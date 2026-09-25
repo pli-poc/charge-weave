@@ -1,0 +1,632 @@
+[
+  {
+    "id": "B110",
+    "requirement": "BR-110",
+    "target": "ServiceAgreement",
+    "title": "An active agreement has evidence of acceptance and at least one allocated contractual obligation.",
+    "body": "$this cd:agreementState cd:agreementState_Active. FILTER(!EXISTS {?e a cd:AgreementLifecycleEvent; cd:serviceAgreement $this; cd:agreementAction cd:agreementAction_Accept} || !EXISTS {?o a cd:ContractObligation; cd:serviceAgreement $this})",
+    "journey": "J01",
+    "phase": "onboarding",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B111",
+    "requirement": "BR-111",
+    "target": "ContractObligation",
+    "title": "Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment.",
+    "body": "$this cd:obligationState ?s. FILTER(?s IN (cd:obligationState_Fulfilled,cd:obligationState_Waived)) BIND(IF(?s=cd:obligationState_Fulfilled,cd:assessmentOutcome_Satisfied,cd:assessmentOutcome_Waived) AS ?outcome) FILTER NOT EXISTS {?a a cd:ObligationAssessment; cd:contractObligation $this; cd:assessmentOutcome ?outcome}",
+    "journey": "J01",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B112",
+    "requirement": "BR-112",
+    "target": "AgreementLifecycleEvent",
+    "title": "Amendment and renewal create a distinct successor version retaining the contract identity.",
+    "body": "$this cd:agreementAction ?a; cd:serviceAgreement ?old. FILTER(?a IN (cd:agreementAction_Amend,cd:agreementAction_Renew)) FILTER NOT EXISTS {$this cd:successorAgreement ?new. ?old cd:agreementReference ?id; cd:agreementVersion ?v1. ?new cd:agreementReference ?id; cd:agreementVersion ?v2. FILTER(?new != ?old && ?v1 != ?v2)}",
+    "journey": "J01",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B113",
+    "requirement": "BR-113",
+    "target": "AgreementLifecycleEvent",
+    "title": "Termination identifies who retains residual liability and the settlement cutoff.",
+    "body": "$this cd:agreementAction cd:agreementAction_Terminate. FILTER(!EXISTS {$this cd:residualLiabilityOwner ?p} || !EXISTS {$this cd:settlementCutoff ?t})",
+    "journey": "J01",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B114",
+    "requirement": "BR-114",
+    "target": "ServiceEntitlement",
+    "title": "An active entitlement is backed by an active agreement and begins inside its effective period.",
+    "body": "$this cd:entitlementState cd:entitlementState_Active; cd:serviceAgreement ?a; cd:validFrom ?t. FILTER NOT EXISTS {?a cd:agreementState cd:agreementState_Active; cd:validFrom ?s. OPTIONAL {?a cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e) || ?t<?e))}",
+    "journey": "J02",
+    "phase": "suspension",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B115",
+    "requirement": "BR-115",
+    "target": "AccountClosure",
+    "title": "Completed closure revokes active access and preserves ownership of any nonzero liability.",
+    "body": "$this cd:closureState cd:closureState_Completed; cd:activeGrantCount ?g; cd:openLiabilityAmount ?a. FILTER(?g!=0 || !EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:closureEvidence ?e} || (?a!=0 && !EXISTS {$this cd:residualLiabilityOwner ?p}))",
+    "journey": "J02",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B116",
+    "requirement": "BR-116",
+    "target": "ChargingStation",
+    "title": "An operating station has an accepted operational handover for that same asset.",
+    "body": "$this cd:assetLifecycle cd:assetLifecycle_Operating. FILTER NOT EXISTS {$this cd:operationalAcceptance ?a. ?a cd:station $this; cd:acceptanceState cd:acceptanceState_Accepted}",
+    "journey": "J03",
+    "phase": "onboarding",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B117",
+    "requirement": "BR-117",
+    "target": "OperationalAcceptance",
+    "title": "Accepted handover requires successful safety, protocol and metering assessments and evidence.",
+    "body": "$this cd:acceptanceState cd:acceptanceState_Accepted; cd:safetyAccepted ?s; cd:protocolAccepted ?p; cd:meteringAccepted ?m. FILTER(!?s || !?p || !?m || !EXISTS {$this cd:acceptedAt ?t} || !EXISTS {$this cd:acceptanceEvidence ?e})",
+    "journey": "J03",
+    "phase": "onboarding",
+    "source": "OCA-CERT"
+  },
+  {
+    "id": "B118",
+    "requirement": "BR-118",
+    "target": "AssetLifecycleEvent",
+    "title": "Replacement and retirement cannot abandon open charging sessions or replace an asset with itself.",
+    "body": "{$this cd:assetAction ?a; cd:openSessionCount ?n. FILTER(?a IN (cd:assetAction_Replace,cd:assetAction_Decommission,cd:assetAction_Dispose) && ?n>0)} UNION {$this cd:station ?s; cd:replacementStation ?s}",
+    "journey": "J03",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B119",
+    "requirement": "BR-119",
+    "target": "ConnectorCompatibility",
+    "title": "A compatible offer requires agreement of physical connector, voltage and current type.",
+    "body": "$this cd:compatibilityState cd:compatibilityState_Compatible; cd:connectorTypeMatch ?c; cd:voltageMatch ?v; cd:currentTypeMatch ?t. FILTER(!?c || !?v || !?t)",
+    "journey": "J04",
+    "phase": "onboarding",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B120",
+    "requirement": "BR-120",
+    "target": "CommercialOffer",
+    "title": "Ad hoc offers do not require account registration.",
+    "body": "$this cd:offerMode cd:offerMode_AdHoc; cd:registrationRequired true.",
+    "journey": "J04",
+    "phase": "contracting",
+    "source": "EC-AFIR"
+  },
+  {
+    "id": "B121",
+    "requirement": "BR-121",
+    "target": "CommercialOffer",
+    "title": "Disclosed currency, tariff currency and offer currency agree and offer expiry follows issue.",
+    "body": "{$this cd:currency ?a; cd:selectedTariff/cd:currency ?b. FILTER(?a!=?b)} UNION {$this cd:currency ?a; cd:priceDisplay/cd:displayCurrency ?b. FILTER(?a!=?b)} UNION {$this cd:issuedAt ?a; cd:expiresAt ?b. FILTER(?b<=?a)}",
+    "journey": "J04",
+    "phase": "contracting",
+    "source": "OCPI-TARIFF"
+  },
+  {
+    "id": "B122",
+    "requirement": "BR-122",
+    "target": "OfferAcceptance",
+    "title": "Offer acceptance occurs during the disclosed offer validity window.",
+    "body": "$this cd:acceptedAt ?t; cd:commercialOffer ?o. ?o cd:issuedAt ?a; cd:expiresAt ?b. FILTER(?t<?a || ?t>=?b)",
+    "journey": "J04",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B123",
+    "requirement": "BR-123",
+    "target": "OfferAcceptance",
+    "title": "Acceptance is bound to the same customer and selected tariff as the charging session.",
+    "body": "$this cd:customer ?c; cd:session ?s; cd:commercialOffer/cd:selectedTariff ?t. FILTER NOT EXISTS {?s cd:customer ?c; cd:selectedTariff ?t}",
+    "journey": "J04",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B124",
+    "requirement": "BR-124",
+    "target": "CommercialResponsibility",
+    "title": "The commercial supplier matches the supplier of the governing service agreement.",
+    "body": "$this cd:serviceSupplier ?a; cd:serviceAgreement/cd:supplier ?b. FILTER(?a!=?b)",
+    "journey": "J01",
+    "phase": "contracting",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B125",
+    "requirement": "BR-125",
+    "target": "OfflineAuthorizationAssessment",
+    "title": "Offline admission obeys credential revocation, cache age, unknown-token policy and financial exposure limits.",
+    "body": "$this cd:offlineDecision cd:offlineDecision_Allow; cd:credentialRevoked ?r; cd:cacheAgeSeconds ?a; cd:maximumCacheAgeSeconds ?m; cd:unknownCredential ?u; cd:permitUnknownCredential ?p; cd:exposureAmount ?e; cd:maximumExposureAmount ?l. FILTER(?r || ?a>?m || (?u && !?p) || ?e>?l || ?e<0 || ?l<0)",
+    "journey": "J05",
+    "phase": "suspension",
+    "source": "OCA-UPTIME"
+  },
+  {
+    "id": "B126",
+    "requirement": "BR-126",
+    "target": "EventProcessingOutcome",
+    "title": "Duplicate delivery refers to an already applied event with matching producer, key, scope and payload and has no new effects.",
+    "body": "$this cd:processingState cd:processingState_Duplicate; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer. FILTER(EXISTS {$this cd:businessEffect ?e} || !EXISTS {$this cd:duplicateOf ?old. ?old cd:processingState cd:processingState_Applied; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer})",
+    "journey": "J06",
+    "phase": "exception",
+    "source": "PSP-EVENTS"
+  },
+  {
+    "id": "B127",
+    "requirement": "BR-127",
+    "target": "EventProcessingOutcome",
+    "title": "A producer/key/scope combination has at most one applied business-effect outcome in a tenant.",
+    "body": "$this cd:processingState cd:processingState_Applied; cd:tenant ?t; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:sourceEvent/cd:sourceSystem ?p. ?other a cd:EventProcessingOutcome; cd:processingState cd:processingState_Applied; cd:tenant ?t; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:sourceEvent/cd:sourceSystem ?p. FILTER(?other!=$this)",
+    "journey": "J06",
+    "phase": "exception",
+    "source": "PSP-EVENTS"
+  },
+  {
+    "id": "B128",
+    "requirement": "BR-128",
+    "target": "EventProcessingOutcome",
+    "title": "Quarantined events retain a reason and produce no accepted business effects.",
+    "body": "$this cd:processingState cd:processingState_Quarantined. FILTER(EXISTS {$this cd:businessEffect ?e} || !EXISTS {$this cd:quarantineReason ?r})",
+    "journey": "J06",
+    "phase": "exception",
+    "source": "PSP-EVENTS"
+  },
+  {
+    "id": "B129",
+    "requirement": "BR-129",
+    "target": "MeterDelta",
+    "title": "Measured usage compares cumulative readings of the same register meter, unit and direction within its epoch.",
+    "body": "$this cd:deltaBasis cd:deltaBasis_Measured; cd:registerEpoch ?e; cd:startReading ?a; cd:endReading ?b. ?e cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:validFrom ?start. OPTIONAL {?e cd:validUntil ?end} FILTER(!EXISTS {?a cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?at. FILTER(?at>=?start)} || !EXISTS {?b cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?bt. FILTER(!BOUND(?end)||?bt<?end)})",
+    "journey": "J07",
+    "phase": "operation",
+    "source": "OCA-UPTIME"
+  },
+  {
+    "id": "B130",
+    "requirement": "BR-130",
+    "target": "MeterDelta",
+    "title": "Measured deltas preserve ordering, multiplier and reset boundaries; estimated deltas require evidence.",
+    "body": "{$this cd:deltaBasis cd:deltaBasis_Measured; cd:resetDetected ?r; cd:deltaValue ?d; cd:startReading ?a; cd:endReading ?b; cd:registerEpoch/cd:multiplier ?m. ?a cd:numericValue ?x; cd:observedAt ?at. ?b cd:numericValue ?y; cd:observedAt ?bt. FILTER(?r || ?m<=0 || ?bt<=?at || ?d<0 || ?d!=(?y-?x)*?m)} UNION {$this cd:deltaBasis cd:deltaBasis_Estimated. FILTER NOT EXISTS {$this cd:deltaEvidence ?e}}",
+    "journey": "J07",
+    "phase": "exception",
+    "source": "OCA-UPTIME"
+  },
+  {
+    "id": "B131",
+    "requirement": "BR-131",
+    "target": "BillingReadinessAssessment",
+    "title": "Billing readiness requires completed charging and resolved usage, authorization, price, tax, commercial responsibility and blocking issues.",
+    "body": "$this cd:readinessState cd:readinessState_Ready; cd:usageComplete ?u; cd:priceResolved ?p; cd:taxResolved ?t; cd:authorizationResolved ?a; cd:responsibilityResolved ?r; cd:openBlockingIssueCount ?n. FILTER(!?u || !?p || !?t || !?a || !?r || ?n!=0 || !EXISTS {$this cd:session/cd:sessionState cd:sessionState_Completed} || !EXISTS {$this cd:readinessEvidence ?e})",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B132",
+    "requirement": "BR-132",
+    "target": "ChargeDetailRecord",
+    "title": "A local debit CDR carries a ready billing decision for the same completed session.",
+    "body": "$this cd:recordOrigin cd:recordOrigin_Local; cd:recordKind cd:recordKind_Debit; cd:session ?s. FILTER NOT EXISTS {$this cd:billingReadiness ?a. ?a cd:readinessState cd:readinessState_Ready; cd:session ?s}",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "OCPI-CDR"
+  },
+  {
+    "id": "B133",
+    "requirement": "BR-133",
+    "target": "ChargeDetailRecord",
+    "title": "Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals.",
+    "body": "$this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)}",
+    "journey": "J08",
+    "phase": "change",
+    "source": "OCPI-CDR"
+  },
+  {
+    "id": "B134",
+    "requirement": "BR-134",
+    "target": "RecordCorrection",
+    "title": "Corrections form an acyclic lineage and cannot replace a record with itself.",
+    "body": "$this cd:originalRecord ?old; cd:correctingRecord ?new. FILTER(?old=?new || EXISTS {?old (^cd:originalRecord/cd:correctingRecord)+ ?old})",
+    "journey": "J08",
+    "phase": "change",
+    "source": "OCPI-CDR"
+  },
+  {
+    "id": "B135",
+    "requirement": "BR-135",
+    "target": "FinancialPosition",
+    "title": "Outstanding liability reconciles original charges, credits, collected money and authorized write-offs.",
+    "body": "$this cd:originalAmount ?o; cd:creditedAmount ?c; cd:collectedAmount ?p; cd:writtenOffAmount ?w; cd:outstandingAmount ?r. FILTER(?o<0 || ?c<0 || ?p<0 || ?w<0 || ?r<0 || ?r!=?o-?c-?p-?w)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B136",
+    "requirement": "BR-136",
+    "target": "FinancialPosition",
+    "title": "A settled position has no residual liability; a written-off position records the write-off.",
+    "body": "$this cd:positionState ?s; cd:outstandingAmount ?v; cd:writtenOffAmount ?w. FILTER((?s=cd:positionState_Settled && ?v!=0) || (?s=cd:positionState_WrittenOff && (?v!=0 || ?w<=0)))",
+    "journey": "J09",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B137",
+    "requirement": "BR-137",
+    "target": "PaymentAllocation",
+    "title": "Posted allocations use confirmed collections, positive amounts and matching currencies.",
+    "body": "$this cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v; cd:currency ?c; cd:paymentCapture ?p; cd:financialPosition ?f. FILTER(?v<=0 || !EXISTS {?p cd:captureState cd:captureState_Confirmed; cd:currency ?c} || !EXISTS {?f cd:currency ?c})",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "PSP-REFUND"
+  },
+  {
+    "id": "B138",
+    "requirement": "BR-138",
+    "target": "PaymentCapture",
+    "title": "Total posted allocations never spend a collection more than once.",
+    "body": "$this cd:capturedAmount ?limit. {SELECT $this (SUM(?v) AS ?total) WHERE {?a a cd:PaymentAllocation; cd:paymentCapture $this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v} GROUP BY $this} FILTER(?total>?limit)",
+    "journey": "J09",
+    "phase": "exception",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B139",
+    "requirement": "BR-139",
+    "target": "ReconciliationCase",
+    "title": "Missing-record cases allow an absent side with a locator; comparison cases require both actual records.",
+    "body": "$this cd:mismatchKind ?k. FILTER((?k=cd:mismatchKind_Missing && ((!EXISTS {$this cd:expectedRecord ?e} && !EXISTS {$this cd:observedRecord ?o} && !EXISTS {$this cd:expectedIdentifier ?i}) || (EXISTS {$this cd:expectedRecord ?e} && EXISTS {$this cd:observedRecord ?o}))) || (?k!=cd:mismatchKind_Missing && (!EXISTS {$this cd:expectedRecord ?e} || !EXISTS {$this cd:observedRecord ?o})))",
+    "journey": "J10",
+    "phase": "exception",
+    "source": "OCPI-CDR"
+  },
+  {
+    "id": "B140",
+    "requirement": "BR-140",
+    "target": "ReconciliationCase",
+    "title": "Resolved reconciliation retains a resolution for the same case, a timestamp and explanation.",
+    "body": "$this cd:caseState cd:caseState_Resolved. FILTER(!EXISTS {$this cd:resolvedAt ?t} || !EXISTS {$this cd:resolutionNote ?n} || !EXISTS {$this cd:reconciliationResolution ?r. ?r cd:reconciliationCase $this})",
+    "journey": "J10",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B141",
+    "requirement": "BR-141",
+    "target": "ReconciliationResolution",
+    "title": "A corrected reconciliation identifies its immutable correction case.",
+    "body": "$this cd:resolutionKind cd:resolutionKind_Corrected. FILTER NOT EXISTS {$this cd:correction ?c}",
+    "journey": "J10",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B142",
+    "requirement": "BR-142",
+    "target": "ServiceDispute",
+    "title": "Disputes preserve response deadlines, reasoned closure and an explicit remedy when remedied.",
+    "body": "{$this cd:openedAt ?o; cd:responseDueAt ?d. FILTER(?d<?o)} UNION {$this cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Remedied,cd:disputeCaseState_Closed)) FILTER(!EXISTS {$this cd:resolutionEvidence ?e} || (?s=cd:disputeCaseState_Remedied && !EXISTS {$this cd:remedyRecord ?r}))}",
+    "journey": "J11",
+    "phase": "termination",
+    "source": "PSP-DISPUTE"
+  },
+  {
+    "id": "B143",
+    "requirement": "BR-143",
+    "target": "DunningAction",
+    "title": "Collection escalation pauses while the position or linked service dispute is unresolved.",
+    "body": "$this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))}",
+    "journey": "J11",
+    "phase": "suspension",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B144",
+    "requirement": "BR-144",
+    "target": "SettlementApproval",
+    "title": "Approval cannot release a partner settlement with unresolved differences or missing approval evidence.",
+    "body": "$this cd:approvalState cd:approvalState_Approved; cd:openDifferenceCount ?n. FILTER(?n!=0 || !EXISTS {$this cd:approvedAt ?t} || !EXISTS {$this cd:approvalEvidence ?e})",
+    "journey": "J12",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B145",
+    "requirement": "BR-145",
+    "target": "SettlementBatch",
+    "title": "Partner settlement totals equal their items; released batches retain an approved release decision.",
+    "body": "{ $this cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. {SELECT $this (SUM(?in) AS ?sn) (SUM(?it) AS ?st) (SUM(?ig) AS ?sg) WHERE {$this cd:settlementItem ?i. ?i cd:netAmount ?in; cd:taxAmount ?it; cd:grossAmount ?ig} GROUP BY $this} FILTER(?n!=?sn || ?t!=?st || ?g!=?sg) } UNION { $this cd:settlementState ?state. FILTER(?state IN (cd:settlementState_Approved,cd:settlementState_Invoiced,cd:settlementState_Settled)) FILTER NOT EXISTS {?approval a cd:SettlementApproval; cd:settlementBatch $this; cd:approvalState cd:approvalState_Approved} }",
+    "journey": "J12",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B146",
+    "requirement": "BR-146",
+    "target": "ReimbursementApproval",
+    "title": "Approved reimbursement matches claimant, currency, amount, rate and eligible measured energy of the claim.",
+    "body": "$this cd:approvalState cd:approvalState_Approved; cd:reimbursementRecord ?r; cd:entitledAccount ?a; cd:approvedAmount ?v; cd:approvedRate ?rate; cd:approvedEnergyKWh ?k; cd:currency ?c. FILTER(?v<0 || ?rate<0 || ?k<0 || !EXISTS {$this cd:approvalEvidence ?e} || !EXISTS {$this cd:approvedAt ?t} || !EXISTS {?r cd:beneficiaryAccount ?a; cd:currency ?c; cd:reimbursementAmount ?v; cd:reimbursementRate ?rate; cd:reimbursableEnergyKWh ?k; cd:session/cd:importedEnergyKWh ?measured. FILTER(?k<=?measured)})",
+    "journey": "J13",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B147",
+    "requirement": "BR-147",
+    "target": "ReimbursementRecord",
+    "title": "Paid reimbursements identify an approved claim and a confirmed payout with matching amount and currency.",
+    "body": "$this cd:reimbursementState cd:reimbursementState_Paid; cd:reimbursementAmount ?a; cd:currency ?c. FILTER(!EXISTS {$this cd:reimbursementApproval ?approval. ?approval cd:reimbursementRecord $this; cd:approvalState cd:approvalState_Approved} || !EXISTS {$this cd:payout ?p. ?p cd:payoutState cd:payoutState_Confirmed; cd:payoutAmount ?a; cd:currency ?c})",
+    "journey": "J13",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B148",
+    "requirement": "BR-148",
+    "target": "BenefitReservation",
+    "title": "Consumed reservations reference consumption for the same allowance, billing period and session within the reserved amount.",
+    "body": "$this cd:reservationState cd:reservationState_Consumed; cd:allowance ?a; cd:billingPeriod ?b; cd:session ?s; cd:reservedValue ?v. FILTER NOT EXISTS {$this cd:consumption ?c. ?c cd:allowance ?a; cd:billingPeriod ?b; cd:session ?s; cd:consumedValue ?used. FILTER(?used>=0 && ?used<=?v)}",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B149",
+    "requirement": "BR-149",
+    "target": "ControlDecision",
+    "title": "A power decision stays within safety and contract limits even when optimization preferences are overridden.",
+    "body": "$this cd:requestedPowerKW ?r; cd:feasiblePowerKW ?f; cd:safetyLimitKW ?s; cd:contractualLimitKW ?c; cd:controlDecision ?d. FILTER(?r<0 || ?f<0 || ?s<0 || ?c<0 || ?f>?s || ?f>?c || ?f>?r || (?d=cd:controlDecision_Accepted && ?f!=?r) || (?d=cd:controlDecision_Rejected && ?f!=0))",
+    "journey": "J15",
+    "phase": "operation",
+    "source": "OCA-CORE"
+  },
+  {
+    "id": "B150",
+    "requirement": "BR-150",
+    "target": "ControlDecision",
+    "title": "An accepted export decision requires an export agreement valid throughout the control interval at the same site.",
+    "body": "$this cd:energyDirection cd:energyDirection_Export; cd:controlDecision ?d; cd:interval ?i; cd:chargingUnit/cd:station/cd:site ?site. FILTER(?d!=cd:controlDecision_Rejected) ?i cd:startsAt ?start; cd:endsAt ?end. FILTER NOT EXISTS {$this cd:exportAgreement ?a. ?a cd:exportPermitted true; cd:site ?site; cd:validFrom ?from. OPTIONAL {?a cd:validUntil ?until} FILTER(?start>=?from && (!BOUND(?until)||?end<=?until))}",
+    "journey": "J15",
+    "phase": "contracting",
+    "source": "OCA-CORE"
+  },
+  {
+    "id": "B151",
+    "requirement": "BR-151",
+    "target": "ControlDecision",
+    "title": "An override is authorized for this unit and covers the entire control interval.",
+    "body": "$this cd:overrideAuthorization ?o; cd:chargingUnit ?u; cd:interval ?i. ?i cd:startsAt ?s; cd:endsAt ?e. FILTER NOT EXISTS {?o cd:authorizedScope ?u; cd:validFrom ?a; cd:validUntil ?b. FILTER(?s>=?a && ?e<=?b)}",
+    "journey": "J15",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B152",
+    "requirement": "BR-152",
+    "target": "DataSubjectRequest",
+    "title": "Fulfilled rights requests require verified identity, completion time and retained response evidence.",
+    "body": "$this cd:requestState cd:requestState_Fulfilled; cd:identityVerified ?v. FILTER(!?v || !EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:responseEvidence ?e})",
+    "journey": "J16",
+    "phase": "termination",
+    "source": "EDPB-RIGHTS"
+  },
+  {
+    "id": "B153",
+    "requirement": "BR-153",
+    "target": "DataSubjectRequest",
+    "title": "Refusal of a rights request retains a reason and a communicated response.",
+    "body": "$this cd:requestState cd:requestState_Refused. FILTER(!EXISTS {$this cd:refusalReason ?r} || !EXISTS {$this cd:responseEvidence ?e})",
+    "journey": "J16",
+    "phase": "exception",
+    "source": "EDPB-RIGHTS"
+  },
+  {
+    "id": "B154",
+    "requirement": "BR-154",
+    "target": "DataDisposition",
+    "title": "Completed disposition records evidence and cannot claim erasure over a still-active scoped hold.",
+    "body": "$this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active})",
+    "journey": "J16",
+    "phase": "termination",
+    "source": "EDPB-RIGHTS"
+  },
+  {
+    "id": "B155",
+    "requirement": "BR-155",
+    "target": "LegalHold",
+    "title": "Holds have a future review relative to inception and explicit release evidence in time.",
+    "body": "{$this cd:validFrom ?s; cd:reviewAt ?e. FILTER(?e<=?s)} UNION {$this cd:holdState cd:holdState_Released. FILTER NOT EXISTS {$this cd:releasedAt ?t}}",
+    "journey": "J16",
+    "phase": "change",
+    "source": "EDPB-RIGHTS"
+  },
+  {
+    "id": "B156",
+    "requirement": "BR-156",
+    "target": "ProcessingPurpose",
+    "title": "International personal-data transfers retain an explicit safeguards assessment.",
+    "body": "$this cd:internationalTransfer true. FILTER NOT EXISTS {$this cd:transferSafeguardEvidence ?e}",
+    "journey": "J16",
+    "phase": "contracting",
+    "source": "EDPB-RIGHTS"
+  },
+  {
+    "id": "B157",
+    "requirement": "BR-157",
+    "target": "AccessDecision",
+    "title": "Permission decisions require an active time-valid grant to the same principal and explicit record scope.",
+    "body": "$this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))}",
+    "journey": "J17",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B158",
+    "requirement": "BR-158",
+    "target": "EvidenceVerification",
+    "title": "Valid artifact verification retains a matching computed digest and verification evidence.",
+    "body": "$this cd:verificationState cd:verificationState_Valid; cd:artifact/cd:contentDigest ?expected. FILTER(!EXISTS {$this cd:computedDigest ?expected} || !EXISTS {$this cd:verificationEvidence ?e})",
+    "journey": "J17",
+    "phase": "exception",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B159",
+    "requirement": "BR-159",
+    "target": "ServiceLevelCommitment",
+    "title": "Availability commitments use a proportion between zero and one.",
+    "body": "$this cd:targetFraction ?v. FILTER(?v<0 || ?v>1)",
+    "journey": "J18",
+    "phase": "contracting",
+    "source": "OCA-UPTIME"
+  },
+  {
+    "id": "B160",
+    "requirement": "BR-160",
+    "target": "ServiceLevelBreach",
+    "title": "Closed service breaches retain completed remediation or a contractual remedy.",
+    "body": "$this cd:breachState cd:breachState_Closed. FILTER(!EXISTS {$this cd:workOrder/cd:workState cd:workState_Completed} && !EXISTS {$this cd:remedyRecord ?r})",
+    "journey": "J18",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B161",
+    "requirement": "BR-161",
+    "target": "RecoveryExercise",
+    "title": "A passed recovery rehearsal meets both time and data-loss objectives.",
+    "body": "$this cd:recoveryResult cd:recoveryResult_Passed; cd:recoveryTimeObjectiveSeconds ?rto; cd:recoveryPointObjectiveSeconds ?rpo; cd:achievedRecoverySeconds ?time; cd:achievedDataLossSeconds ?loss. FILTER(?time>?rto || ?loss>?rpo)",
+    "journey": "J18",
+    "phase": "exception",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B162",
+    "requirement": "BR-162",
+    "target": "MigrationBatch",
+    "title": "Completed migration reconciles all expected records without rejects and revokes obsolete source credentials.",
+    "body": "$this cd:migrationState cd:migrationState_Completed; cd:expectedRecordCount ?e; cd:migratedRecordCount ?m; cd:rejectedRecordCount ?r; cd:sourceCredentialsRevoked ?revoked. FILTER(?e!=?m || ?r!=0 || !?revoked || !EXISTS {$this cd:reconciliationEvidence ?x})",
+    "journey": "J19",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B163",
+    "requirement": "BR-163",
+    "target": "LifecycleSnapshot",
+    "title": "Current lifecycle snapshots agree with the current subject state and any cited transition.",
+    "body": "$this cd:targetRecord ?r; cd:stateProperty ?p; cd:stateValue ?v; cd:effectiveAt ?time; cd:snapshotKind ?kind. FILTER((?kind=cd:snapshotKind_Current && !EXISTS {?r ?p ?v}) || EXISTS {$this cd:basisTransition ?t. FILTER NOT EXISTS {?t cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?v; cd:transitionedAt ?at. FILTER(?at<=?time)}})",
+    "journey": "J20",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B164",
+    "requirement": "BR-164",
+    "target": "StateTransition",
+    "title": "Chained transitions preserve record, property, state continuity and nondecreasing event time.",
+    "body": "$this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)}",
+    "journey": "J20",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B165",
+    "requirement": "BR-165",
+    "target": "ProtocolProfile",
+    "title": "An adapter cannot declare a feature both supported and unsupported.",
+    "body": "$this cd:supportedFeature ?f; cd:unsupportedFeature ?f.",
+    "journey": "J19",
+    "phase": "onboarding",
+    "source": "OCA-CERT"
+  },
+  {
+    "id": "B166",
+    "requirement": "BR-166",
+    "target": "ProcessExecution",
+    "title": "Completed business journeys retain evidence and only successfully completed, compensated or explicitly skipped steps.",
+    "body": "$this cd:processState cd:processState_Completed. FILTER(!EXISTS {$this cd:processEvidence ?e} || EXISTS {$this cd:processStep/cd:stepState ?s. FILTER(?s NOT IN (cd:stepState_Succeeded,cd:stepState_Compensated,cd:stepState_Skipped))})",
+    "journey": "J20",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B167",
+    "requirement": "BR-167",
+    "target": "ProcessStep",
+    "title": "Successful steps have output and evidence; compensated steps identify their compensating record.",
+    "body": "$this cd:stepState ?s. FILTER((?s=cd:stepState_Succeeded && (!EXISTS {$this cd:outputRecord ?o} || !EXISTS {$this cd:stepEvidence ?e})) || (?s=cd:stepState_Compensated && !EXISTS {$this cd:compensationRecord ?c}))",
+    "journey": "J20",
+    "phase": "exception",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B168",
+    "requirement": "BR-168",
+    "target": "ProcessExecution",
+    "title": "Step sequence numbers are unique within a business journey.",
+    "body": "$this cd:processStep ?a,?b. ?a cd:stepSequence ?n. ?b cd:stepSequence ?n. FILTER(?a!=?b)",
+    "journey": "J20",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B169",
+    "requirement": "BR-169",
+    "target": "CreditNote",
+    "title": "Credit-note currency and issuer match the original invoice and cumulative credits stay within its gross amount.",
+    "body": "$this cd:currency ?cur; cd:issuer ?issuer; cd:originalInvoice ?i. FILTER(!EXISTS {?i cd:currency ?cur; cd:issuer ?issuer} || EXISTS {?i cd:grossAmount ?limit. {SELECT ?i (SUM(?v) AS ?total) WHERE {?note a cd:CreditNote; cd:originalInvoice ?i; cd:creditAmount ?v} GROUP BY ?i} FILTER(?total>?limit)})",
+    "journey": "J09",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B170",
+    "requirement": "BR-170",
+    "target": "AllowanceBalance",
+    "title": "Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance.",
+    "body": "$this cd:openingValue ?o; cd:grantedValue ?g; cd:consumedValue ?c; cd:reservedValue ?r; cd:expiredValue ?e; cd:closingValue ?b. FILTER(?o<0 || ?g<0 || ?c<0 || ?r<0 || ?e<0 || ?b<0 || ?b!=?o+?g-?c-?r-?e)",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B171",
+    "requirement": "BR-171",
+    "target": "AllowanceBalance",
+    "title": "Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period.",
+    "body": "$this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)})",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B172",
+    "requirement": "BR-172",
+    "target": "AllowanceBalance",
+    "title": "Money-denominated allowances identify a currency instead of being treated as energy credits.",
+    "body": "$this cd:allowance/cd:allowanceDimension cd:allowanceDimension_Money. FILTER NOT EXISTS {$this cd:currency ?c}",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  }
+]

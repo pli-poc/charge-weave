@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ContractObligation . ?this cd:obligationState ?s. FILTER(?s IN (cd:obligationState_Fulfilled,cd:obligationState_Waived)) BIND(IF(?s=cd:obligationState_Fulfilled,cd:assessmentOutcome_Satisfied,cd:assessmentOutcome_Waived) AS ?outcome) FILTER NOT EXISTS {?a a cd:ObligationAssessment; cd:contractObligation ?this; cd:assessmentOutcome ?outcome} }

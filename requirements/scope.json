@@ -1,0 +1,68 @@
+{
+  "version": "1.1.0",
+  "reviewedOn": "2026-09-25",
+  "product": "ChargeWeave",
+  "profile": "Multi-tenant conductive EV charging management with CPO/eMSP commerce, public/ad hoc, workplace/fleet, home reimbursement, roaming and energy orchestration.",
+  "lifecyclePhases": [
+    "contracting",
+    "onboarding",
+    "operation",
+    "change",
+    "suspension",
+    "termination"
+  ],
+  "inScope": [
+    "Business identities and explicit responsibilities",
+    "All 20 declared actor journeys and their lifecycle/exception treatment",
+    "Canonical asset, session, commercial, financial, energy and governance data contracts",
+    "Model-level acceptance scenarios, correction lineage and lifecycle policies"
+  ],
+  "runtimeBoundaries": [
+    {
+      "id": "RT-PROTOCOL",
+      "owner": "Integration owner",
+      "obligation": "Wire protocol conformance, negotiated-version mapping and real charger behavior."
+    },
+    {
+      "id": "RT-FINANCE",
+      "owner": "Finance and payment integration owner",
+      "obligation": "Authorized financial execution, tax applicability, pricing-engine arithmetic across all tariff policies, bank/PSP reconciliation and fiscal certification."
+    },
+    {
+      "id": "RT-SECURITY",
+      "owner": "Platform security owner",
+      "obligation": "Isolation enforced in storage/query/API, secret custody, signature verification and event atomicity."
+    },
+    {
+      "id": "RT-ENERGY",
+      "owner": "Site energy controller",
+      "obligation": "Safe physical control, grid connection permission, electrical compliance and closed-loop measurement."
+    },
+    {
+      "id": "RT-PRIVACY",
+      "owner": "Data controller",
+      "obligation": "Legal eligibility assessment, actual deletion/portability, verified identity and scoped retention."
+    },
+    {
+      "id": "RT-UX",
+      "owner": "Product/experience owner",
+      "obligation": "Accessible and comprehensible discovery, disclosures, payment and support interfaces."
+    },
+    {
+      "id": "RT-RECOVERY",
+      "owner": "Platform operations",
+      "obligation": "Measured durability, restoration, performance, high availability and complete authorized snapshots."
+    }
+  ],
+  "outOfScope": [
+    {
+      "area": "Civil works engineering and vehicle/BMS design",
+      "reason": "Represented through equipment, commissioning and capability/evidence contracts; this is a CPMS ontology, not engineering CAD or an ECU implementation."
+    },
+    {
+      "area": "Hydrogen fueling and battery-swap inventory operations",
+      "reason": "Different physical product domains; protocol capabilities can declare them unsupported without silently treating them as conductive charging."
+    }
+  ],
+  "claim": "Every declared requirement has traceable semantic contracts and executable model-level evidence. This finite review is not proof of all future market requirements or an implemented/certified production service."
+}

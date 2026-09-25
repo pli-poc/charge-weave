@@ -74,6 +74,8 @@ Parent: Record. Shape: `ChargingStationShape`.
 | nationalStationIdentifier | string | ? |
 | powerCabinet | PowerCabinet | ? |
 | chargingProfile | ChargingProfile | * |
+| assetLifecycle | Planned, Installed, Commissioned, Operating, Suspended, Decommissioned, Disposed | ! |
+| operationalAcceptance | OperationalAcceptance | ? |
 
 ### ChargingUnit
 
@@ -183,6 +185,55 @@ Parent: Record. Shape: `OwnershipTransferShape`.
 | nextOwner | Record | ! |
 | effectiveAt | dateTime | ! |
 | transferEvidence | EvidenceDocument | ! |
+
+### AssetLifecycleEvent
+
+Evidence-backed commissioning, suspension, relocation, replacement or retirement of a physical asset with explicit operational responsibility.
+
+Parent: Record. Shape: `AssetLifecycleEventShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| station | ChargingStation | ! |
+| assetAction | Install, Commission, Activate, Suspend, Relocate, Replace, Decommission, Dispose | ! |
+| effectiveAt | dateTime | ! |
+| accountableParty | LegalEntity | ! |
+| assetEventEvidence | EvidenceDocument | ! |
+| replacementStation | ChargingStation | ? |
+| openSessionCount | nonNegativeInteger | ! |
+
+### OperationalAcceptance
+
+Operational handover of an installed charger, including safety, protocol capability, meter readiness and maintenance ownership.
+
+Parent: Record. Shape: `OperationalAcceptanceShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| station | ChargingStation | ! |
+| acceptanceState | Pending, Accepted, Rejected | ! |
+| safetyAccepted | boolean | ! |
+| protocolAccepted | boolean | ! |
+| meteringAccepted | boolean | ! |
+| maintenanceProvider | LegalEntity | ! |
+| acceptedAt | dateTime | ? |
+| acceptanceEvidence | EvidenceDocument | ? |
+
+### ConnectorCompatibility
+
+Explicit physical and electrical compatibility evaluation before offering a connector to a vehicle.
+
+Parent: Record. Shape: `ConnectorCompatibilityShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| connector | Connector | ! |
+| vehicle | Vehicle | ! |
+| compatibilityState | Unknown, Compatible, Incompatible | ! |
+| currentTypeMatch | boolean | ! |
+| voltageMatch | boolean | ! |
+| connectorTypeMatch | boolean | ! |
+| assessedAt | dateTime | ! |
 
 ## billing-tax
 
@@ -306,6 +357,8 @@ Parent: Record. Shape: `InvoiceShape`.
 | taxAmount | decimal | ! |
 | grossAmount | decimal | ! |
 | numberSequence | DocumentNumberSequence | ! |
+| financialOwner | LegalEntity | ! |
+| commercialResponsibility | CommercialResponsibility | ? |
 
 ### InvoiceLine
 
@@ -518,6 +571,7 @@ Parent: Record. Shape: `ProtocolEndpointShape`.
 | endpointUrl | anyURI | ? |
 | credentialReference | anyURI | ! |
 | securityProfile | string | ! |
+| protocolProfile | ProtocolProfile | ? |
 
 ### ConfigurationVariable
 
@@ -963,6 +1017,61 @@ Parent: Record. Shape: `ChargingProfileShape`.
 | protocolTransaction | ProtocolTransaction | ? |
 | relativeAnchor | dateTime | ? |
 
+### ControlDecision
+
+Requested versus feasible power decision constrained by physical, contractual and safety limits, with an explicit rejected or accepted outcome.
+
+Parent: Record. Shape: `ControlDecisionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| chargingUnit | ChargingUnit | ! |
+| interval | TimeWindow | ! |
+| requestedPowerKW | decimal | ! |
+| feasiblePowerKW | decimal | ! |
+| safetyLimitKW | decimal | ! |
+| contractualLimitKW | decimal | ! |
+| controlDecision | Accepted, Limited, Rejected | ! |
+| energyDirection | Import, Export | ! |
+| accountableParty | LegalEntity | ! |
+| overrideAuthorization | OverrideAuthorization | ? |
+| exportAgreement | ExportAgreement | ? |
+| controlEvidence | EvidenceDocument | ! |
+
+### OverrideAuthorization
+
+Time-limited permission to override an optimization preference; it never grants permission to exceed physical safety limits.
+
+Parent: Record. Shape: `OverrideAuthorizationShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| authorizedBy | Principal | ! |
+| authorizedScope | Record | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ! |
+| overrideReason | string | ! |
+| overrideEvidence | EvidenceDocument | ! |
+
+### ExportAgreement
+
+Explicit permission, metering and settlement responsibility for bidirectional export rather than assuming import authorization permits export.
+
+Parent: Record. Shape: `ExportAgreementShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| vehicle | Vehicle | ! |
+| site | ChargingSite | ! |
+| gridOperator | LegalEntity | ! |
+| energySupplier | LegalEntity | ! |
+| serviceAgreement | ServiceAgreement | ! |
+| exportPermitted | boolean | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ? |
+| exportMeter | ElectricityMeter | ! |
+| exportBeneficiary | LegalEntity | ! |
+
 ## foundation
 
 ### Tenant
@@ -1164,6 +1273,9 @@ Parent: Record. Shape: `StateTransitionShape`.
 | nextState | IRI | ! |
 | transitionedAt | dateTime | ! |
 | sourceEvent | SourceEvent | ! |
+| previousTransition | StateTransition | ? |
+| transitionSequence | positiveInteger | ? |
+| responsibleParty | LegalEntity | ? |
 
 ## identity
 
@@ -1319,6 +1431,7 @@ Parent: Record. Shape: `CustomerAccountShape`.
 | organization | LegalEntity | ? |
 | billingProfile | BillingProfile | ? |
 | preferredLanguage | string | ? |
+| accountClosure | AccountClosure | ? |
 
 ### CustomerGroup
 
@@ -1358,6 +1471,41 @@ Parent: Record. Shape: `UserDeviceShape`.
 | platformName | string | ! |
 | pushTokenReference | anyURI | ? |
 | lastSeenAt | dateTime | ? |
+
+### ServiceEntitlement
+
+Time-bounded right to consume an explicitly scoped service under a contract, independent of login permissions.
+
+Parent: Record. Shape: `ServiceEntitlementShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| customer | CustomerAccount | ! |
+| serviceAgreement | ServiceAgreement | ! |
+| scopeRecord | Record | ! |
+| entitlementState | Pending, Active, Suspended, Revoked, Expired | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ? |
+| accountableParty | LegalEntity | ! |
+
+### AccountClosure
+
+Account offboarding decision that preserves or explicitly transfers remaining debt, refunds and statutory retention duties.
+
+Parent: Record. Shape: `AccountClosureShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| customer | CustomerAccount | ! |
+| closureState | Requested, Blocked, Completed, Cancelled | ! |
+| requestedAt | dateTime | ! |
+| completedAt | dateTime | ? |
+| openLiabilityAmount | decimal | ! |
+| currency | Currency | ! |
+| residualLiabilityOwner | LegalEntity | ? |
+| revokedGrantCount | nonNegativeInteger | ! |
+| activeGrantCount | nonNegativeInteger | ! |
+| closureEvidence | EvidenceDocument | ? |
 
 ## integration-experience
 
@@ -1604,6 +1752,92 @@ Parent: Record. Shape: `ActionApprovalShape`.
 | decidedAt | dateTime | ! |
 | approvedCommand | RemoteCommand | ? |
 
+### ProtocolProfile
+
+Versioned adapter capability contract with negotiated feature blocks, roles, certification evidence and declared loss/error behavior.
+
+Parent: Record. Shape: `ProtocolProfileShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| protocolName | OCPP, OCPI, OICP, ISO15118, OpenADR, Modbus, Custom | ! |
+| protocolVersion | string | ! |
+| supportedFeature | string | + |
+| unsupportedFeature | string | * |
+| adapterVersion | string | ! |
+| protocolRole | string | ! |
+| mappingEvidence | EvidenceDocument | ! |
+| unknownFieldPolicy | Reject, Quarantine, Preserve | ! |
+
+### MigrationBatch
+
+Provider migration or tenant exit with source/target identities, counts, reconciliation and credential revocation evidence.
+
+Parent: Record. Shape: `MigrationBatchShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| sourceSystem | string | ! |
+| targetSystem | string | ! |
+| expectedRecordCount | nonNegativeInteger | ! |
+| migratedRecordCount | nonNegativeInteger | ! |
+| rejectedRecordCount | nonNegativeInteger | ! |
+| migrationState | Planned, Running, Reconciled, Completed, Failed | ! |
+| responsibleParty | LegalEntity | ! |
+| reconciliationEvidence | EvidenceDocument | ? |
+| sourceCredentialsRevoked | boolean | ! |
+
+### LifecycleSnapshot
+
+Current or historical state assertion with effective time and the specific transition evidence supporting it.
+
+Parent: Record. Shape: `LifecycleSnapshotShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| targetRecord | Record | ! |
+| stateProperty | IRI | ! |
+| stateValue | IRI | ! |
+| effectiveAt | dateTime | ! |
+| snapshotKind | Current, Historical | ! |
+| basisTransition | StateTransition | ? |
+
+### ProcessExecution
+
+End-to-end business journey instance tying domain records, step responsibilities, contractual obligations and financial ownership together.
+
+Parent: Record. Shape: `ProcessExecutionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| processKind | Onboard, Charge, Bill, Settle, Reimburse, Maintain, Offboard, RespondToDispute, RespondToPrivacy, Migrate, ControlEnergy | ! |
+| processState | Planned, Running, Completed, Failed, Cancelled | ! |
+| accountableParty | LegalEntity | ! |
+| financialOwner | LegalEntity | ! |
+| subjectRecord | Record | ! |
+| processStep | ProcessStep | + |
+| serviceAgreement | ServiceAgreement | ? |
+| processEvidence | EvidenceDocument | ? |
+
+### ProcessStep
+
+Ordered business step retaining responsible actor, concrete input/output records, obligation, failures and compensation evidence.
+
+Parent: Record. Shape: `ProcessStepShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| stepSequence | positiveInteger | ! |
+| stepKind | string | ! |
+| responsibleParty | LegalEntity | ! |
+| stepState | Pending, Running, Succeeded, Failed, Compensated, Skipped | ! |
+| inputRecord | Record | * |
+| outputRecord | Record | * |
+| contractObligation | ContractObligation | ? |
+| compensationRecord | Record | ? |
+| stepEvidence | EvidenceDocument | ? |
+| previousStep | ProcessStep | ? |
+
 ## operations
 
 ### VendorFaultDefinition
@@ -1758,6 +1992,56 @@ Parent: Record. Shape: `AvailabilityResultShape`.
 | availabilityFraction | decimal | ! |
 | calculatedAt | dateTime | ! |
 
+### ServiceLevelCommitment
+
+Measured service obligation with a contract scope, measurement window, exclusions policy and responsible remediation party.
+
+Parent: Record. Shape: `ServiceLevelCommitmentShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| serviceAgreement | ServiceAgreement | ! |
+| scopeRecord | Record | ! |
+| availabilityPolicy | AvailabilityPolicy | ! |
+| targetFraction | decimal | ! |
+| measurementWindow | TimeWindow | ! |
+| accountableParty | LegalEntity | ! |
+| exclusionPolicyVersion | string | ! |
+
+### ServiceLevelBreach
+
+Observed contractual service breach linking measured availability, customer-impact evidence, remediation and commercial liability.
+
+Parent: Record. Shape: `ServiceLevelBreachShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| serviceLevelCommitment | ServiceLevelCommitment | ! |
+| availabilityResult | AvailabilityResult | ! |
+| breachState | Open, Acknowledged, Remediated, Closed | ! |
+| detectedAt | dateTime | ! |
+| workOrder | WorkOrder | ? |
+| remedyRecord | Record | ? |
+| breachEvidence | EvidenceDocument | ! |
+
+### RecoveryExercise
+
+Verified restoration rehearsal with explicit recovery objectives, achieved recovery and evidence rather than an untested backup assertion.
+
+Parent: Record. Shape: `RecoveryExerciseShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| scopeRecord | Record | ! |
+| recoveryTimeObjectiveSeconds | positiveInteger | ! |
+| recoveryPointObjectiveSeconds | nonNegativeInteger | ! |
+| achievedRecoverySeconds | nonNegativeInteger | ! |
+| achievedDataLossSeconds | nonNegativeInteger | ! |
+| recoveryResult | Passed, Failed | ! |
+| exercisedAt | dateTime | ! |
+| accountableParty | LegalEntity | ! |
+| recoveryEvidence | EvidenceDocument | ! |
+
 ## partners-settlement
 
 ### ServiceAgreement
@@ -1780,6 +2064,9 @@ Parent: Record. Shape: `ServiceAgreementShape`.
 | agreementEvidence | EvidenceDocument | ! |
 | autoRenewal | boolean | ? |
 | platformFee | CustomFee | * |
+| agreementState | Draft, Offered, Active, Suspended, Terminated, Expired | ! |
+| financialOwner | LegalEntity | ! |
+| governingPolicyVersion | string | ! |
 
 ### RevenueShareRule
 
@@ -1868,13 +2155,16 @@ Parent: Record. Shape: `ReconciliationCaseShape`.
 
 | Property | Range | Cardinality |
 |---|---|---|
-| expectedRecord | Record | ! |
-| observedRecord | Record | ! |
+| expectedRecord | Record | ? |
+| observedRecord | Record | ? |
 | mismatchKind | Missing, Duplicate, Energy, Price, Tax, Currency, Payment, Other | ! |
 | caseState | Open, Investigating, Resolved, Rejected | ! |
 | openedAt | dateTime | ! |
 | resolutionNote | string | ? |
 | resolvedAt | dateTime | ? |
+| expectedIdentifier | string | ? |
+| accountableParty | LegalEntity | ! |
+| reconciliationResolution | ReconciliationResolution | ? |
 
 ### PartnerInvitation
 
@@ -1992,6 +2282,7 @@ Parent: Record. Shape: `ReimbursementRecordShape`.
 | correctionOf | ReimbursementRecord | ? |
 | reimbursementTaxCalculation | ReimbursementTaxCalculation | ? |
 | payout | Payout | ? |
+| reimbursementApproval | ReimbursementApproval | ? |
 
 ### ReimbursementReport
 
@@ -2023,6 +2314,90 @@ Parent: Record. Shape: `ReimbursementTaxCalculationShape`.
 | grossAmount | decimal | ! |
 | currency | Currency | ! |
 | taxDetermination | TaxDetermination | ? |
+
+### ContractObligation
+
+Enforceable duty linking the responsible debtor, beneficiary, contract scope and versioned acceptance policy; financial liability belongs to an identified party.
+
+Parent: Record. Shape: `ContractObligationShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| serviceAgreement | ServiceAgreement | ! |
+| obligatedParty | LegalEntity | ! |
+| entitledParty | LegalEntity | ! |
+| obligationScope | Record | ! |
+| obligationKind | Provision, Operate, Maintain, Support, Bill, Collect, Settle, Reimburse, ProtectData, SupplyEnergy, Report, Handover | ! |
+| dueAt | dateTime | ! |
+| obligationState | Pending, Active, Fulfilled, Breached, Waived, Cancelled | ! |
+| obligationPolicyVersion | string | ! |
+| financialOwner | LegalEntity | ! |
+
+### ObligationAssessment
+
+Dated assessment of a specific contractual duty, preserving decision evidence and authority instead of silently marking it fulfilled.
+
+Parent: Record. Shape: `ObligationAssessmentShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| contractObligation | ContractObligation | ! |
+| assessmentOutcome | Satisfied, Unsatisfied, Waived | ! |
+| assessedAt | dateTime | ! |
+| accountableParty | LegalEntity | ! |
+| decisionEvidence | EvidenceDocument | ! |
+
+### AgreementLifecycleEvent
+
+Versioned offer, acceptance, amendment, suspension, renewal or termination decision retaining predecessor and successor contract versions.
+
+Parent: Record. Shape: `AgreementLifecycleEventShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| serviceAgreement | ServiceAgreement | ! |
+| agreementAction | Offer, Accept, Amend, Suspend, Resume, Renew, Terminate, Expire | ! |
+| effectiveAt | dateTime | ! |
+| accountableParty | LegalEntity | ! |
+| decisionEvidence | EvidenceDocument | ! |
+| successorAgreement | ServiceAgreement | ? |
+| residualLiabilityOwner | LegalEntity | ? |
+| settlementCutoff | dateTime | ? |
+
+### SettlementApproval
+
+Explicit release decision for partner settlement, including reconciliation, approver, payee and liability for unresolved differences.
+
+Parent: Record. Shape: `SettlementApprovalShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| settlementBatch | SettlementBatch | ! |
+| approvalState | Pending, Approved, Rejected | ! |
+| approvedBy | Principal | ! |
+| accountableParty | LegalEntity | ! |
+| approvedAt | dateTime | ? |
+| openDifferenceCount | nonNegativeInteger | ! |
+| approvalEvidence | EvidenceDocument | ? |
+
+### ReimbursementApproval
+
+Approval of an employee home-energy claim with measured usage, eligibility, applied rate and prevention of duplicate payment.
+
+Parent: Record. Shape: `ReimbursementApprovalShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| reimbursementRecord | ReimbursementRecord | ! |
+| employer | LegalEntity | ! |
+| entitledAccount | CustomerAccount | ! |
+| approvalState | Pending, Approved, Rejected | ! |
+| approvedAt | dateTime | ? |
+| approvalEvidence | EvidenceDocument | ? |
+| approvedEnergyKWh | decimal | ! |
+| approvedRate | decimal | ! |
+| approvedAmount | decimal | ! |
+| currency | Currency | ! |
 
 ## payments-ledger
 
@@ -2092,6 +2467,7 @@ Parent: Record. Shape: `PaymentCaptureShape`.
 | captureState | Pending, Confirmed, Failed | ! |
 | providerReference | string | ! |
 | idempotencyKey | string | ! |
+| paymentAllocation | PaymentAllocation | * |
 
 ### Refund
 
@@ -2319,6 +2695,90 @@ Parent: Record. Shape: `PayoutBatchShape`.
 | payout | Payout | + |
 | batchTotal | decimal | ! |
 | scheduledAt | dateTime | ! |
+
+### FinancialPosition
+
+Currency-specific receivable or payable preserving original amount, credits, collections, write-offs and remaining liability.
+
+Parent: Record. Shape: `FinancialPositionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| financialOwner | LegalEntity | ! |
+| debtor | Record | ! |
+| creditor | LegalEntity | ! |
+| currency | Currency | ! |
+| originalAmount | decimal | ! |
+| creditedAmount | decimal | ! |
+| collectedAmount | decimal | ! |
+| writtenOffAmount | decimal | ! |
+| outstandingAmount | decimal | ! |
+| positionState | Open, PartiallySettled, Settled, Disputed, WrittenOff | ! |
+| sourceRecord | Record | ! |
+
+### PaymentAllocation
+
+Allocation of a confirmed collection to an identified receivable, with matching currency and no duplicated financial effect.
+
+Parent: Record. Shape: `PaymentAllocationShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| paymentCapture | PaymentCapture | ! |
+| financialPosition | FinancialPosition | ! |
+| allocatedAmount | decimal | ! |
+| currency | Currency | ! |
+| allocationState | Pending, Posted, Reversed | ! |
+| allocatedAt | dateTime | ! |
+| allocationEvidence | EvidenceDocument | ! |
+
+### ReconciliationResolution
+
+Resolution of a missing, duplicate or mismatched record, preserving matching identifiers, disposition, corrective evidence and residual liability owner.
+
+Parent: Record. Shape: `ReconciliationResolutionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| reconciliationCase | ReconciliationCase | ! |
+| resolutionKind | Matched, AcceptedDifference, Corrected, WrittenOff, Rejected | ! |
+| resolvedAt | dateTime | ! |
+| resolutionEvidence | EvidenceDocument | ! |
+| financialOwner | LegalEntity | ! |
+| correction | RecordCorrection | ? |
+
+### ServiceDispute
+
+Customer or partner complaint distinct from a card-network chargeback; captures disputed service, accountable resolver, deadline and remedy.
+
+Parent: Record. Shape: `ServiceDisputeShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| disputedRecord | Record | ! |
+| claimant | Record | ! |
+| accountableParty | LegalEntity | ! |
+| disputeCaseState | Opened, Investigating, Accepted, Rejected, Remedied, Closed | ! |
+| openedAt | dateTime | ! |
+| responseDueAt | dateTime | ! |
+| resolutionEvidence | EvidenceDocument | ? |
+| remedyRecord | Record | ? |
+| financialOwner | LegalEntity | ! |
+
+### DunningAction
+
+Versioned decision to remind, suspend collection or write off overdue debt while respecting an active dispute.
+
+Parent: Record. Shape: `DunningActionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| financialPosition | FinancialPosition | ! |
+| actionKind | Reminder, Escalate, Suspend, WriteOff | ! |
+| actionAt | dateTime | ! |
+| serviceDispute | ServiceDispute | ? |
+| approvedBy | Principal | ! |
+| actionEvidence | EvidenceDocument | ! |
 
 ## places
 
@@ -2814,6 +3274,59 @@ Parent: Record. Shape: `SubsidyRuleShape`.
 | integrationConnection | IntegrationConnection | ? |
 | pricingCondition | PricingCondition | * |
 
+### CommercialOffer
+
+Immutable price disclosure offered before charging, retaining the seller, channel, tax display and applicable tariff version without requiring a registered identity.
+
+Parent: Record. Shape: `CommercialOfferShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| offeredBy | LegalEntity | ! |
+| offeredTo | CustomerAccount | ? |
+| selectedTariff | TariffVersion | ! |
+| priceDisplay | PriceDisplay | ! |
+| issuedAt | dateTime | ! |
+| expiresAt | dateTime | ! |
+| currency | Currency | ! |
+| offerMode | AdHoc, Contract, Roaming, Corporate | ! |
+| registrationRequired | boolean | ! |
+| offerEvidence | EvidenceDocument | ! |
+
+### OfferAcceptance
+
+Evidence that the customer accepted a disclosed offer before its validity expired; binds the accepted price to one charging journey.
+
+Parent: Record. Shape: `OfferAcceptanceShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| commercialOffer | CommercialOffer | ! |
+| customer | CustomerAccount | ! |
+| acceptedAt | dateTime | ! |
+| acceptanceEvidence | EvidenceDocument | ! |
+| session | ChargingSession | ? |
+
+### CommercialResponsibility
+
+Commercial chain for a specific service: supplier, merchant of record, tax-liable party, payer, collector and beneficiary are separate legal responsibilities.
+
+Parent: Record. Shape: `CommercialResponsibilityShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| serviceAgreement | ServiceAgreement | ! |
+| serviceSupplier | LegalEntity | ! |
+| merchantOfRecord | LegalEntity | ! |
+| taxLiableParty | LegalEntity | ! |
+| payer | Record | ! |
+| collectingParty | LegalEntity | ! |
+| beneficiary | LegalEntity | ! |
+| responsibilityScope | Record | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ? |
+| responsibilityEvidence | EvidenceDocument | ! |
+
 ## roaming
 
 ### RoamingNetwork
@@ -3108,6 +3621,7 @@ Parent: Record. Shape: `DataDispositionShape`.
 | dispositionState | Requested, BlockedByHold, Completed, Failed | ! |
 | completedAt | dateTime | ? |
 | dispositionEvidence | EvidenceDocument | ? |
+| legalHold | LegalHold | * |
 
 ### ComplianceAssessment
 
@@ -3142,6 +3656,92 @@ Parent: Record. Shape: `AccessTokenLeaseShape`.
 | accessTokenState | Active, Revoked, Expired | ! |
 | permission | Permission | * |
 | revokedAt | dateTime | ? |
+
+### DataSubjectRequest
+
+Verified data-subject request with separately recorded eligibility, due date, response and justified refusal or retention decisions.
+
+Parent: Record. Shape: `DataSubjectRequestShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| subjectAccount | CustomerAccount | ! |
+| requestKind | Access, Rectification, Erasure, Restriction, Portability, Objection | ! |
+| requestState | Received, Verified, Processing, Fulfilled, Refused, Closed | ! |
+| receivedAt | dateTime | ! |
+| responseDueAt | dateTime | ! |
+| identityVerified | boolean | ! |
+| legalBasisAssessment | string | ! |
+| responsibleController | LegalEntity | ! |
+| responseEvidence | EvidenceDocument | ? |
+| refusalReason | string | ? |
+| completedAt | dateTime | ? |
+
+### LegalHold
+
+Scoped evidence-preservation obligation with review date, authority and legal basis; does not justify indefinite retention of all account data.
+
+Parent: Record. Shape: `LegalHoldShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| heldRecord | Record | ! |
+| holdingParty | LegalEntity | ! |
+| legalBasis | string | ! |
+| validFrom | dateTime | ! |
+| reviewAt | dateTime | ! |
+| holdState | Active, Released, Expired | ! |
+| releasedAt | dateTime | ? |
+| holdEvidence | EvidenceDocument | ! |
+
+### ProcessingPurpose
+
+Purpose-bound data-processing contract recording controller, processor, categories, lawful basis, retention and cross-border safeguards.
+
+Parent: Record. Shape: `ProcessingPurposeShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| controller | LegalEntity | ! |
+| processor | LegalEntity | ? |
+| purposeDescription | string | ! |
+| lawfulBasis | string | ! |
+| dataCategory | string | + |
+| retentionPolicy | RetentionPolicy | ! |
+| processingScope | Record | ! |
+| internationalTransfer | boolean | ! |
+| transferSafeguardEvidence | EvidenceDocument | ? |
+
+### AccessDecision
+
+Time-specific authorization decision for a principal, permission and record scope; an account identity alone grants no operational authority.
+
+Parent: Record. Shape: `AccessDecisionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| grantee | Principal | ! |
+| scopeRecord | Record | ! |
+| permission | Permission | ! |
+| accessDecision | Permit, Deny | ! |
+| decidedAt | dateTime | ! |
+| accessGrant | AccessGrant | ? |
+| decisionEvidence | EvidenceDocument | ! |
+
+### EvidenceVerification
+
+Result of retrieving and verifying an evidence artifact, distinguishing claimed evidence from successful digest/signature verification.
+
+Parent: Record. Shape: `EvidenceVerificationShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| artifact | EvidenceDocument | ! |
+| verificationState | NotChecked, Valid, Invalid, Unavailable | ! |
+| checkedAt | dateTime | ! |
+| computedDigest | string | ? |
+| verifier | Principal | ! |
+| verificationEvidence | EvidenceDocument | ? |
 
 ## sessions-metering
 
@@ -3184,6 +3784,8 @@ Parent: Record. Shape: `ChargingSessionShape`.
 | selectedTariff | TariffVersion | ? |
 | endEvidence | SessionEndEvidence | ? |
 | reservation | Reservation | ? |
+| commercialResponsibility | CommercialResponsibility | ? |
+| billingReadiness | BillingReadinessAssessment | ? |
 
 ### ProtocolTransaction
 
@@ -3319,6 +3921,9 @@ Parent: Record. Shape: `ChargeDetailRecordShape`.
 | correctionOf | ChargeDetailRecord | ? |
 | receivedAt | dateTime | ! |
 | artifact | EvidenceDocument | ! |
+| recordKind | Debit, Credit | ! |
+| originalChargeRecord | ChargeDetailRecord | ? |
+| billingReadiness | BillingReadinessAssessment | ? |
 
 ### ClockAssessment
 
@@ -3332,6 +3937,96 @@ Parent: Record. Shape: `ClockAssessmentShape`.
 | correctionMethod | string | ! |
 | assessedAt | dateTime | ! |
 | evidence | EvidenceDocument | + |
+
+### EventProcessingOutcome
+
+Exactly-once business-effect evidence for a possibly duplicated or out-of-order source event; storage and atomicity remain runtime obligations.
+
+Parent: Record. Shape: `EventProcessingOutcomeShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| sourceEvent | SourceEvent | ! |
+| processingContextKey | string | ! |
+| idempotencyKey | string | ! |
+| processingState | Received, Applied, Duplicate, Quarantined, Failed | ! |
+| payloadDigest | string | ! |
+| businessEffect | Record | * |
+| duplicateOf | EventProcessingOutcome | ? |
+| processedAt | dateTime | ? |
+| accountableParty | LegalEntity | ! |
+| quarantineReason | string | ? |
+
+### MeterRegisterEpoch
+
+Identity and calibration context of a cumulative meter register between resets or replacement; readings from different epochs are not subtracted.
+
+Parent: Record. Shape: `MeterRegisterEpochShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| meter | ElectricityMeter | ! |
+| registerIdentifier | string | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ? |
+| unitIri | IRI | ! |
+| energyDirection | Import, Export | ! |
+| multiplier | decimal | ! |
+| epochEvidence | EvidenceDocument | ! |
+
+### MeterDelta
+
+Reconciled usage derived from two readings in the same cumulative register epoch, or explicitly flagged estimation with supporting evidence.
+
+Parent: Record. Shape: `MeterDeltaShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| registerEpoch | MeterRegisterEpoch | ! |
+| startReading | MeterObservation | ! |
+| endReading | MeterObservation | ! |
+| deltaValue | decimal | ! |
+| deltaBasis | Measured, Estimated | ! |
+| resetDetected | boolean | ! |
+| deltaEvidence | EvidenceDocument | ? |
+| session | ChargingSession | ! |
+
+### BillingReadinessAssessment
+
+Explicit billability decision preserving final usage, authorization, price, tax, commercial owner and unresolved-exception evidence.
+
+Parent: Record. Shape: `BillingReadinessAssessmentShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| session | ChargingSession | ! |
+| readinessState | Pending, Ready, Blocked | ! |
+| usageComplete | boolean | ! |
+| priceResolved | boolean | ! |
+| taxResolved | boolean | ! |
+| authorizationResolved | boolean | ! |
+| responsibilityResolved | boolean | ! |
+| openBlockingIssueCount | nonNegativeInteger | ! |
+| assessedAt | dateTime | ! |
+| accountableParty | LegalEntity | ! |
+| readinessEvidence | EvidenceDocument | ? |
+
+### RecordCorrection
+
+Immutable correction case linking original and replacement or credit records, reason, authority and downstream notifications.
+
+Parent: Record. Shape: `RecordCorrectionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| originalRecord | Record | ! |
+| correctingRecord | Record | ! |
+| correctionReason | string | ! |
+| correctionKind | Credit, Replace, Reverse, Adjust | ! |
+| approvedBy | Principal | ! |
+| issuedAt | dateTime | ! |
+| correctionEvidence | EvidenceDocument | ! |
+| notifiedParty | LegalEntity | + |
 
 ## subscriptions-benefits
 
@@ -3414,6 +4109,7 @@ Parent: Record. Shape: `AllowanceConsumptionShape`.
 | session | ChargingSession | ! |
 | consumedValue | decimal | ! |
 | recordedAt | dateTime | ! |
+| allowanceBalance | AllowanceBalance | ! |
 
 ### EnergyCouponTemplate
 
@@ -3480,6 +4176,43 @@ Parent: Record. Shape: `SubscriptionBillingPolicyShape`.
 | usageBillingThreshold | decimal | ? |
 | accumulateChargingCharges | boolean | ! |
 | replacementPlan | SubscriptionPlan | ? |
+
+### BenefitReservation
+
+Reserved allowance that separates concurrency exposure from settled consumption and supports explicit release or consumption.
+
+Parent: Record. Shape: `BenefitReservationShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| allowance | BenefitAllowance | ! |
+| billingPeriod | BillingPeriod | ! |
+| session | ChargingSession | ! |
+| reservedValue | decimal | ! |
+| reservationState | Pending, Active, Cancelled, Consumed, Expired, Rejected | ! |
+| expiresAt | dateTime | ! |
+| consumption | AllowanceConsumption | ? |
+| allowanceBalance | AllowanceBalance | ! |
+
+### AllowanceBalance
+
+Per-customer, per-period allowance accounting with explicit opening rollover, grant, consumed usage, active reservations, expiry and remaining value.
+
+Parent: Record. Shape: `AllowanceBalanceShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| customer | CustomerAccount | ! |
+| allowance | BenefitAllowance | ! |
+| billingPeriod | BillingPeriod | ! |
+| openingValue | decimal | ! |
+| grantedValue | decimal | ! |
+| consumedValue | decimal | ! |
+| reservedValue | decimal | ! |
+| expiredValue | decimal | ! |
+| closingValue | decimal | ! |
+| currency | Currency | ? |
+| unitIri | IRI | ! |
 
 ## vehicles-authorization
 
@@ -3642,3 +4375,24 @@ Parent: Record. Shape: `ProvisioningCertificateShape`.
 | vehicle | Vehicle | ? |
 | certificate | CertificateRecord | ? |
 | provisioningState | Registered, Active, Revoked | ! |
+
+### OfflineAuthorizationAssessment
+
+Evidence-based decision to admit charging while disconnected, with credential freshness, delegated authority, exposure and reconciliation policy.
+
+Parent: Record. Shape: `OfflineAuthorizationAssessmentShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| authorizationDecision | AuthorizationDecision | ! |
+| cacheAgeSeconds | nonNegativeInteger | ! |
+| maximumCacheAgeSeconds | nonNegativeInteger | ! |
+| credentialRevoked | boolean | ! |
+| unknownCredential | boolean | ! |
+| permitUnknownCredential | boolean | ! |
+| exposureAmount | decimal | ! |
+| maximumExposureAmount | decimal | ! |
+| currency | Currency | ! |
+| accountableParty | LegalEntity | ! |
+| offlineDecision | Allow, Deny | ! |
+| policyVersion | string | ! |

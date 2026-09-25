@@ -11,7 +11,7 @@ The SHACL targets include subclass instances according to SHACL class-target sem
 ## Tests
 
 1. The reference graph explicitly instantiates every non-abstract domain class, with inherited contracts. It is synthetic integration data, not realistic production activity or a volume benchmark.
-2. `test_business.py` has one deliberate adverse fixture for each of the 109 business rules. Each is run through SHACL-SPARQL and must report its specific source shape. Structural shapes are excluded from these isolated tests so an unrelated missing field cannot hide a broken business rule.
+2. `test_business.py` has one deliberate adverse fixture for each of the 172 business rules. Each is run through SHACL-SPARQL and must report its specific source shape. Structural shapes are excluded from these isolated tests so an unrelated missing field cannot hide a broken business rule.
 3. `test_boundaries.py` checks meaningful allowed boundary cases and deliberately malformed structural values, including exact monetary equality, aggregate refunds, cross-currency journals, adjacent schedule periods, coupon reversals and inclusive/exclusive dates.
 4. `check_owl.py` uses HermiT through Owlready2 on the schema and on schema plus reference data. Consistency and unsatisfiable-class results are retained.
 5. `check_release.py` checks exact RDF serialization equivalence, coverage references, structural-shape coverage, query syntax and example competency queries. Diagnostic queries are executed with each applicable focus node bound; this avoids a costly unbound scan in the reference RDFLib engine.
@@ -24,7 +24,7 @@ SPARQL checks validate a graph snapshot. They do not provide transaction isolati
 
 The runner does not perform charger hardware tests, external tax calculation, meter-signature verification, bank settlement confirmation, TLS validation, physical power-flow calculations or timezone database validation. A field such as `signatureVerification_Valid` records the verifier's conclusion; the verifier must actually exist and retain evidence.
 
-Business rules are canonical product policies. Some are deliberately stricter than a permissive vendor API. Vendor payload schemas, deprecation behavior and enum translations require a separately versioned adapter contract. Do not send the canonical graph to an AMPECO endpoint unchanged.
+Business rules are canonical product policies. Some are deliberately stricter than a permissive vendor API. Vendor payload schemas, deprecation behavior and enum translations require a separately versioned adapter contract. Do not send the canonical graph to an External platform endpoint unchanged.
 
 ## Change process
 
@@ -35,3 +35,7 @@ If a constraint requires information not yet available during a lifecycle phase,
 ## Trusted vocabulary boundary
 
 The reference runner rejects instance graphs that redefine controlled terms, command kinds, ontology axioms, SHACL shapes or permitted transitions. Submit only instance data to the validator. Ontology extensions must enter through a reviewed trusted-vocabulary release, not through a customer payload. `test_trust_boundary.py` checks four attempted schema redefinitions, empty and untyped inputs, and confirms that the reference data remains admissible. This guard protects validation meaning; it does not replace application authentication or data-store authorization.
+
+## Independent business review evidence
+
+`test_business_acceptance.py` checks 128 focused valid/invalid decisions for the new invariants. `test_lifecycle.py` checks 24 independently selected allowed/forbidden transitions. `test_journey_snapshots.py --family NAME` runs full SHACL and cross-domain assertions on the conforming and faulty snapshots for that family. There are 13 families and 26 graphs; these validate semantic end states, not external service execution. `check_audit.py` checks requirement/source/actor/property/rule/scenario links and lifecycle vocabulary. See the [audit](business-domain-audit.md) for the declared business profile and runtime obligations.

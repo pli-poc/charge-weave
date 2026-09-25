@@ -1,334 +1,334 @@
 [
   {
     "group": "resource / admins",
-    "url": "https://developers.ampeco.com/reference/adminread"
+    "url": "urn:chargeweave:legacy-api/reference/adminread"
   },
   {
     "group": "resource / authorizations",
-    "url": "https://developers.ampeco.com/reference/authorizationreadv2_1"
+    "url": "urn:chargeweave:legacy-api/reference/authorizationreadv2_1"
   },
   {
     "group": "resource / booking requests",
-    "url": "https://developers.ampeco.com/reference/bookingrequestcreate"
+    "url": "urn:chargeweave:legacy-api/reference/bookingrequestcreate"
   },
   {
     "group": "resource / bookings",
-    "url": "https://developers.ampeco.com/reference/bookingread"
+    "url": "urn:chargeweave:legacy-api/reference/bookingread"
   },
   {
     "group": "resource / cdrs",
-    "url": "https://developers.ampeco.com/reference/cdrread"
+    "url": "urn:chargeweave:legacy-api/reference/cdrread"
   },
   {
     "group": "resource / charge point downtime periods",
-    "url": "https://developers.ampeco.com/reference/chargepointdowntimeperiodcreate"
+    "url": "urn:chargeweave:legacy-api/reference/chargepointdowntimeperiodcreate"
   },
   {
     "group": "resource / charge point models",
-    "url": "https://developers.ampeco.com/reference/chargepointmodelcreate"
+    "url": "urn:chargeweave:legacy-api/reference/chargepointmodelcreate"
   },
   {
     "group": "resource / charge point vendors",
-    "url": "https://developers.ampeco.com/reference/chargepointvendorcreate"
+    "url": "urn:chargeweave:legacy-api/reference/chargepointvendorcreate"
   },
   {
     "group": "resource / charge points",
-    "url": "https://developers.ampeco.com/reference/chargepointcreate"
+    "url": "urn:chargeweave:legacy-api/reference/chargepointcreate"
   },
   {
     "group": "resource / circuits",
-    "url": "https://developers.ampeco.com/reference/circuitcreate"
+    "url": "urn:chargeweave:legacy-api/reference/circuitcreate"
   },
   {
     "group": "resource / configuration templates",
-    "url": "https://developers.ampeco.com/reference/configurationtemplatevariablecreate"
+    "url": "urn:chargeweave:legacy-api/reference/configurationtemplatevariablecreate"
   },
   {
     "group": "resource / consent-history",
-    "url": "https://developers.ampeco.com/reference/consenthistorylisting"
+    "url": "urn:chargeweave:legacy-api/reference/consenthistorylisting"
   },
   {
     "group": "resource / consents",
-    "url": "https://developers.ampeco.com/reference/consentscreate"
+    "url": "urn:chargeweave:legacy-api/reference/consentscreate"
   },
   {
     "group": "resource / contact details",
-    "url": "https://developers.ampeco.com/reference/contactdetailsread"
+    "url": "urn:chargeweave:legacy-api/reference/contactdetailsread"
   },
   {
     "group": "resource / currencies",
-    "url": "https://developers.ampeco.com/reference/currencycreate"
+    "url": "urn:chargeweave:legacy-api/reference/currencycreate"
   },
   {
     "group": "resource / currency rates",
-    "url": "https://developers.ampeco.com/reference/createcurrencyrate"
+    "url": "urn:chargeweave:legacy-api/reference/createcurrencyrate"
   },
   {
     "group": "resource / custom fees",
-    "url": "https://developers.ampeco.com/reference/customfeeread"
+    "url": "urn:chargeweave:legacy-api/reference/customfeeread"
   },
   {
     "group": "resource / downtime period notices",
-    "url": "https://developers.ampeco.com/reference/postdowntimeperiodnotice"
+    "url": "urn:chargeweave:legacy-api/reference/postdowntimeperiodnotice"
   },
   {
     "group": "resource / electricity meters",
-    "url": "https://developers.ampeco.com/reference/electricitymetercreate"
+    "url": "urn:chargeweave:legacy-api/reference/electricitymetercreate"
   },
   {
     "group": "resource / electricity rates",
-    "url": "https://developers.ampeco.com/reference/electricityratecreate"
+    "url": "urn:chargeweave:legacy-api/reference/electricityratecreate"
   },
   {
     "group": "resource / energy coupon templates",
-    "url": "https://developers.ampeco.com/reference/energycoupontemplatecreate"
+    "url": "urn:chargeweave:legacy-api/reference/energycoupontemplatecreate"
   },
   {
     "group": "resource / energy coupons",
-    "url": "https://developers.ampeco.com/reference/energycouponcreate"
+    "url": "urn:chargeweave:legacy-api/reference/energycouponcreate"
   },
   {
     "group": "resource / evse downtime periods",
-    "url": "https://developers.ampeco.com/reference/evsedowntimeperiodcreate"
+    "url": "urn:chargeweave:legacy-api/reference/evsedowntimeperiodcreate"
   },
   {
     "group": "resource / evses",
-    "url": "https://developers.ampeco.com/reference/evsecreate"
+    "url": "urn:chargeweave:legacy-api/reference/evsecreate"
   },
   {
     "group": "resource / faqs",
-    "url": "https://developers.ampeco.com/reference/faqcreate"
+    "url": "urn:chargeweave:legacy-api/reference/faqcreate"
   },
   {
     "group": "resource / firmware versions",
-    "url": "https://developers.ampeco.com/reference/firmwareversionread"
+    "url": "urn:chargeweave:legacy-api/reference/firmwareversionread"
   },
   {
     "group": "resource / flexibility activation requests",
-    "url": "https://developers.ampeco.com/reference/getflexibilityactivationrequest"
+    "url": "urn:chargeweave:legacy-api/reference/getflexibilityactivationrequest"
   },
   {
     "group": "resource / flexibility assets",
-    "url": "https://developers.ampeco.com/reference/createflexibilityasset"
+    "url": "urn:chargeweave:legacy-api/reference/createflexibilityasset"
   },
   {
     "group": "resource / id tags",
-    "url": "https://developers.ampeco.com/reference/idtagcreate"
+    "url": "urn:chargeweave:legacy-api/reference/idtagcreate"
   },
   {
     "group": "resource / installation and maintenance companies",
-    "url": "https://developers.ampeco.com/reference/createinstallationandmaintenancecompany"
+    "url": "urn:chargeweave:legacy-api/reference/createinstallationandmaintenancecompany"
   },
   {
     "group": "resource / installer jobs",
-    "url": "https://developers.ampeco.com/reference/createinstallerjob"
+    "url": "urn:chargeweave:legacy-api/reference/createinstallerjob"
   },
   {
     "group": "resource / invoices",
-    "url": "https://developers.ampeco.com/reference/invoiceread"
+    "url": "urn:chargeweave:legacy-api/reference/invoiceread"
   },
   {
     "group": "resource / issues",
-    "url": "https://developers.ampeco.com/reference/issuescreate"
+    "url": "urn:chargeweave:legacy-api/reference/issuescreate"
   },
   {
     "group": "resource / locations",
-    "url": "https://developers.ampeco.com/reference/locationcreate"
+    "url": "urn:chargeweave:legacy-api/reference/locationcreate"
   },
   {
     "group": "resource / ocpi commands",
-    "url": "https://developers.ampeco.com/reference/ocpicommandread"
+    "url": "urn:chargeweave:legacy-api/reference/ocpicommandread"
   },
   {
     "group": "resource / operators",
-    "url": "https://developers.ampeco.com/reference/operatorread"
+    "url": "urn:chargeweave:legacy-api/reference/operatorread"
   },
   {
     "group": "resource / parking spaces",
-    "url": "https://developers.ampeco.com/reference/createparkingspace"
+    "url": "urn:chargeweave:legacy-api/reference/createparkingspace"
   },
   {
     "group": "resource / partner contracts",
-    "url": "https://developers.ampeco.com/reference/partnercontractcreate"
+    "url": "urn:chargeweave:legacy-api/reference/partnercontractcreate"
   },
   {
     "group": "resource / partner invite access policies",
-    "url": "https://developers.ampeco.com/reference/partnerinviteaccesspolicydelete"
+    "url": "urn:chargeweave:legacy-api/reference/partnerinviteaccesspolicydelete"
   },
   {
     "group": "resource / partner invite corporate billing policies",
-    "url": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicycreate"
+    "url": "urn:chargeweave:legacy-api/reference/partnerinvitecorporatebillingpolicycreate"
   },
   {
     "group": "resource / partner invite corporate billing policy snapshots",
-    "url": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicysnapshotread"
+    "url": "urn:chargeweave:legacy-api/reference/partnerinvitecorporatebillingpolicysnapshotread"
   },
   {
     "group": "resource / partner invites",
-    "url": "https://developers.ampeco.com/reference/partnerinvitecreatev2_0"
+    "url": "urn:chargeweave:legacy-api/reference/partnerinvitecreatev2_0"
   },
   {
     "group": "resource / partner invoices",
-    "url": "https://developers.ampeco.com/reference/partnerinvoiceread"
+    "url": "urn:chargeweave:legacy-api/reference/partnerinvoiceread"
   },
   {
     "group": "resource / partner settlement reports",
-    "url": "https://developers.ampeco.com/reference/partnersettlementreportread"
+    "url": "urn:chargeweave:legacy-api/reference/partnersettlementreportread"
   },
   {
     "group": "resource / partners",
-    "url": "https://developers.ampeco.com/reference/partnercreate"
+    "url": "urn:chargeweave:legacy-api/reference/partnercreate"
   },
   {
     "group": "resource / payment terminals",
-    "url": "https://developers.ampeco.com/reference/createpaymentterminalv1_1"
+    "url": "urn:chargeweave:legacy-api/reference/createpaymentterminalv1_1"
   },
   {
     "group": "resource / provisioning certificate",
-    "url": "https://developers.ampeco.com/reference/createpcid"
+    "url": "urn:chargeweave:legacy-api/reference/createpcid"
   },
   {
     "group": "resource / receipts",
-    "url": "https://developers.ampeco.com/reference/receiptread"
+    "url": "urn:chargeweave:legacy-api/reference/receiptread"
   },
   {
     "group": "resource / reimbursement policies",
-    "url": "https://developers.ampeco.com/reference/reimbursementpolicycreate"
+    "url": "urn:chargeweave:legacy-api/reference/reimbursementpolicycreate"
   },
   {
     "group": "resource / reimbursement records",
-    "url": "https://developers.ampeco.com/reference/reimbursementrecordread"
+    "url": "urn:chargeweave:legacy-api/reference/reimbursementrecordread"
   },
   {
     "group": "resource / reimbursement reports",
-    "url": "https://developers.ampeco.com/reference/reimbursementreportread"
+    "url": "urn:chargeweave:legacy-api/reference/reimbursementreportread"
   },
   {
     "group": "resource / reservations",
-    "url": "https://developers.ampeco.com/reference/reservationread"
+    "url": "urn:chargeweave:legacy-api/reference/reservationread"
   },
   {
     "group": "resource / revenues & expenses",
-    "url": "https://developers.ampeco.com/reference/revenuesv1_2listing"
+    "url": "urn:chargeweave:legacy-api/reference/revenuesv1_2listing"
   },
   {
     "group": "resource / rfids",
-    "url": "https://developers.ampeco.com/reference/rfidtagcreatedeprecated"
+    "url": "urn:chargeweave:legacy-api/reference/rfidtagcreatedeprecated"
   },
   {
     "group": "resource / roaming connections",
-    "url": "https://developers.ampeco.com/reference/getroamingconnection"
+    "url": "urn:chargeweave:legacy-api/reference/getroamingconnection"
   },
   {
     "group": "resource / roaming cpos",
-    "url": "https://developers.ampeco.com/reference/roamingcporead"
+    "url": "urn:chargeweave:legacy-api/reference/roamingcporead"
   },
   {
     "group": "resource / roaming emsps",
-    "url": "https://developers.ampeco.com/reference/roamingemspcreate"
+    "url": "urn:chargeweave:legacy-api/reference/roamingemspcreate"
   },
   {
     "group": "resource / roaming operators",
-    "url": "https://developers.ampeco.com/reference/roamingoperatorread"
+    "url": "urn:chargeweave:legacy-api/reference/roamingoperatorread"
   },
   {
     "group": "resource / roaming platforms",
-    "url": "https://developers.ampeco.com/reference/roamingplatformreaddeprecated"
+    "url": "urn:chargeweave:legacy-api/reference/roamingplatformreaddeprecated"
   },
   {
     "group": "resource / roaming providers",
-    "url": "https://developers.ampeco.com/reference/roamingprovidercreate"
+    "url": "urn:chargeweave:legacy-api/reference/roamingprovidercreate"
   },
   {
     "group": "resource / roaming tariffs",
-    "url": "https://developers.ampeco.com/reference/roamingtariffread"
+    "url": "urn:chargeweave:legacy-api/reference/roamingtariffread"
   },
   {
     "group": "resource / security event logs",
-    "url": "https://developers.ampeco.com/reference/securityeventlogreaddeprecated"
+    "url": "urn:chargeweave:legacy-api/reference/securityeventlogreaddeprecated"
   },
   {
     "group": "resource / security events",
-    "url": "https://developers.ampeco.com/reference/securityeventread"
+    "url": "urn:chargeweave:legacy-api/reference/securityeventread"
   },
   {
     "group": "resource / sessions",
-    "url": "https://developers.ampeco.com/reference/sessionread"
+    "url": "urn:chargeweave:legacy-api/reference/sessionread"
   },
   {
     "group": "resource / settings",
-    "url": "https://developers.ampeco.com/reference/settingslisting"
+    "url": "urn:chargeweave:legacy-api/reference/settingslisting"
   },
   {
     "group": "resource / sharing invites",
-    "url": "https://developers.ampeco.com/reference/sharinginviteread"
+    "url": "urn:chargeweave:legacy-api/reference/sharinginviteread"
   },
   {
     "group": "resource / sub operators",
-    "url": "https://developers.ampeco.com/reference/suboperatorcreate"
+    "url": "urn:chargeweave:legacy-api/reference/suboperatorcreate"
   },
   {
     "group": "resource / subscription-plans",
-    "url": "https://developers.ampeco.com/reference/subscriptionplancreate"
+    "url": "urn:chargeweave:legacy-api/reference/subscriptionplancreate"
   },
   {
     "group": "resource / subscriptions",
-    "url": "https://developers.ampeco.com/reference/subscriptionread"
+    "url": "urn:chargeweave:legacy-api/reference/subscriptionread"
   },
   {
     "group": "resource / tariffs",
-    "url": "https://developers.ampeco.com/reference/tariffcreate"
+    "url": "urn:chargeweave:legacy-api/reference/tariffcreate"
   },
   {
     "group": "resource / tax identification numbers",
-    "url": "https://developers.ampeco.com/reference/taxidentificationnumbercreate"
+    "url": "urn:chargeweave:legacy-api/reference/taxidentificationnumbercreate"
   },
   {
     "group": "resource / taxes",
-    "url": "https://developers.ampeco.com/reference/taxcreate"
+    "url": "urn:chargeweave:legacy-api/reference/taxcreate"
   },
   {
     "group": "resource / templates",
-    "url": "https://developers.ampeco.com/reference/templateslisting"
+    "url": "urn:chargeweave:legacy-api/reference/templateslisting"
   },
   {
     "group": "resource / terms and policies",
-    "url": "https://developers.ampeco.com/reference/termsandpoliciesread"
+    "url": "urn:chargeweave:legacy-api/reference/termsandpoliciesread"
   },
   {
     "group": "resource / top-up packages",
-    "url": "https://developers.ampeco.com/reference/topuppackagcreate"
+    "url": "urn:chargeweave:legacy-api/reference/topuppackagcreate"
   },
   {
     "group": "resource / transactions",
-    "url": "https://developers.ampeco.com/reference/transactionscreate"
+    "url": "urn:chargeweave:legacy-api/reference/transactionscreate"
   },
   {
     "group": "resource / user-devices",
-    "url": "https://developers.ampeco.com/reference/userdeviceread"
+    "url": "urn:chargeweave:legacy-api/reference/userdeviceread"
   },
   {
     "group": "resource / user-groups",
-    "url": "https://developers.ampeco.com/reference/usergroupcreate"
+    "url": "urn:chargeweave:legacy-api/reference/usergroupcreate"
   },
   {
     "group": "resource / users",
-    "url": "https://developers.ampeco.com/reference/usercreatev1_1"
+    "url": "urn:chargeweave:legacy-api/reference/usercreatev1_1"
   },
   {
     "group": "resource / utilities",
-    "url": "https://developers.ampeco.com/reference/createutility"
+    "url": "urn:chargeweave:legacy-api/reference/createutility"
   },
   {
     "group": "resource / vehicles",
-    "url": "https://developers.ampeco.com/reference/vehicletelemetryreadingcreate"
+    "url": "urn:chargeweave:legacy-api/reference/vehicletelemetryreadingcreate"
   },
   {
     "group": "resource / vendor error codes",
-    "url": "https://developers.ampeco.com/reference/vendorerrorcodecreate"
+    "url": "urn:chargeweave:legacy-api/reference/vendorerrorcodecreate"
   },
   {
     "group": "resource / vouchers",
-    "url": "https://developers.ampeco.com/reference/vouchercreate"
+    "url": "urn:chargeweave:legacy-api/reference/vouchercreate"
   }
 ]

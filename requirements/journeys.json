@@ -1,0 +1,590 @@
+[
+  {
+    "id": "J01",
+    "title": "Contract and partner lifecycle",
+    "leadActor": "Commercial manager",
+    "accountableParty": "Contract supplier",
+    "financialOwner": "Contract financial owner",
+    "participants": [
+      "CPO",
+      "eMSP",
+      "SiteHost",
+      "AssetOwner",
+      "Finance"
+    ],
+    "lifecycle": {
+      "contracting": "Offer versioned scope and duties",
+      "onboarding": "Capture acceptance and allocate obligations",
+      "operation": "Assess fulfilment and liability",
+      "change": "Issue successor terms without overwriting history",
+      "suspension": "Suspend future entitlement while preserving existing claims",
+      "termination": "Assign residual liability and final settlement cutoff"
+    },
+    "classes": [
+      "ServiceAgreement",
+      "ContractObligation",
+      "AgreementLifecycleEvent",
+      "CommercialResponsibility"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J02",
+    "title": "Customer and fleet account lifecycle",
+    "leadActor": "Account administrator",
+    "accountableParty": "Service provider",
+    "financialOwner": "Creditor or designated successor",
+    "participants": [
+      "Driver",
+      "FleetManager",
+      "Employer",
+      "PrivacyController"
+    ],
+    "lifecycle": {
+      "contracting": "Disclose account terms and billing responsibility",
+      "onboarding": "Verify account and establish entitlement",
+      "operation": "Authorize within active entitlement",
+      "change": "Amend vehicle, employer and billing assignments with dates",
+      "suspension": "Revoke future access without erasing historical charges",
+      "termination": "Close access, transfer residual liabilities and apply retention"
+    },
+    "classes": [
+      "CustomerAccount",
+      "ServiceEntitlement",
+      "AccountClosure",
+      "AccessGrant"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J03",
+    "title": "Asset commissioning and retirement",
+    "leadActor": "Asset operator",
+    "accountableParty": "CPO",
+    "financialOwner": "Asset owner",
+    "participants": [
+      "AssetOwner",
+      "Installer",
+      "Maintainer",
+      "OEM",
+      "SiteHost",
+      "CPO"
+    ],
+    "lifecycle": {
+      "contracting": "Procure rated hardware and assign maintenance responsibility",
+      "onboarding": "Verify safety, meter and protocol handover",
+      "operation": "Operate accepted assets with current site topology",
+      "change": "Relocate, replace or transfer with identity and metering boundaries",
+      "suspension": "Disable service and reconcile active sessions",
+      "termination": "Retire after final sessions, revoke access and retain evidence"
+    },
+    "classes": [
+      "ChargingStation",
+      "OperationalAcceptance",
+      "AssetLifecycleEvent",
+      "OwnershipTransfer"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J04",
+    "title": "Discovery and ad hoc purchase",
+    "leadActor": "Driver",
+    "accountableParty": "Selling operator",
+    "financialOwner": "Merchant of record",
+    "participants": [
+      "Driver",
+      "CPO",
+      "eMSP",
+      "PaymentProvider",
+      "AccessibilityUser"
+    ],
+    "lifecycle": {
+      "contracting": "Expose compatible connector, access conditions and complete offer",
+      "onboarding": "Choose payment without mandatory registration for ad hoc use",
+      "operation": "Accept the exact valid price and start the matching session",
+      "change": "Issue a new offer when commercial terms change",
+      "suspension": "Expire or withdraw an unusable offer without charging it",
+      "termination": "Issue receipt or preserve a failure/remedy record"
+    },
+    "classes": [
+      "PublicListing",
+      "ConnectorCompatibility",
+      "CommercialOffer",
+      "OfferAcceptance"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J05",
+    "title": "Authorization and offline charging",
+    "leadActor": "Authorization service",
+    "accountableParty": "CPO or delegated eMSP",
+    "financialOwner": "Offline exposure owner",
+    "participants": [
+      "Driver",
+      "CPO",
+      "eMSP",
+      "FleetManager",
+      "OEM"
+    ],
+    "lifecycle": {
+      "contracting": "Define accepted credentials, cache freshness and exposure policy",
+      "onboarding": "Provision and bind credentials or contract certificates",
+      "operation": "Authorize the requested unit under active rights",
+      "change": "Rotate or reassign credentials with explicit authority",
+      "suspension": "Deny revoked, stale or over-limit offline admission",
+      "termination": "Revoke rights and reconcile any offline usage"
+    },
+    "classes": [
+      "ChargingCredential",
+      "AuthorizationDecision",
+      "OfflineAuthorizationAssessment",
+      "PlugAndChargeEnrollment"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J06",
+    "title": "Session operation and event recovery",
+    "leadActor": "Station operations",
+    "accountableParty": "CPO",
+    "financialOwner": "Commercial service supplier",
+    "participants": [
+      "Driver",
+      "CPO",
+      "PlatformOperator",
+      "OEM"
+    ],
+    "lifecycle": {
+      "contracting": "Agree start/stop, offline and recovery responsibilities",
+      "onboarding": "Correlate request, endpoint, boot epoch and business session",
+      "operation": "Apply metering and state events once despite delivery order",
+      "change": "Resume or reconcile gaps without overwriting source evidence",
+      "suspension": "Quarantine incompatible payloads and unknown completion",
+      "termination": "Finalize with evidence or retain an unresolved case"
+    },
+    "classes": [
+      "ChargingSession",
+      "ProtocolTransaction",
+      "SourceEvent",
+      "EventProcessingOutcome"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J07",
+    "title": "Metering and usage evidence",
+    "leadActor": "Metering operator",
+    "accountableParty": "Metering responsible party",
+    "financialOwner": "Billing supplier",
+    "participants": [
+      "MetrologyProvider",
+      "CPO",
+      "AssetOwner",
+      "Driver"
+    ],
+    "lifecycle": {
+      "contracting": "Identify unit, direction, register and calibration responsibilities",
+      "onboarding": "Establish register epoch and signed evidence capability",
+      "operation": "Derive usage from ordered readings in one epoch",
+      "change": "Start a new epoch for reset or replacement",
+      "suspension": "Quarantine suspect values and disclose estimates",
+      "termination": "Close usage evidence with final readings and retention"
+    },
+    "classes": [
+      "ElectricityMeter",
+      "CalibrationRecord",
+      "MeterRegisterEpoch",
+      "MeterDelta",
+      "SignedMeterEvidence"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J08",
+    "title": "Rating and charge record correction",
+    "leadActor": "Billing service",
+    "accountableParty": "Billing supplier",
+    "financialOwner": "Merchant of record",
+    "participants": [
+      "CPO",
+      "eMSP",
+      "Finance",
+      "Driver",
+      "TaxAuthority"
+    ],
+    "lifecycle": {
+      "contracting": "Version price, tax, rounding and evidence policies",
+      "onboarding": "Resolve selected terms and commercial responsibility",
+      "operation": "Assess billability then rate and issue immutable debit records",
+      "change": "Credit erroneous records and issue distinct corrected records",
+      "suspension": "Block unresolved usage, tax, price or responsibility",
+      "termination": "Retain correction lineage and communicate to affected parties"
+    },
+    "classes": [
+      "BillingReadinessAssessment",
+      "RatingCalculation",
+      "ChargeDetailRecord",
+      "RecordCorrection"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J09",
+    "title": "Invoice, collection and refund",
+    "leadActor": "Finance operator",
+    "accountableParty": "Issuer and collector",
+    "financialOwner": "Creditor",
+    "participants": [
+      "Finance",
+      "Driver",
+      "PaymentProvider",
+      "TaxAuthority"
+    ],
+    "lifecycle": {
+      "contracting": "Define supplier, payer, collection routing and document policy",
+      "onboarding": "Create invoice and collection references in one currency",
+      "operation": "Reconcile charges, credits, captures and allocations",
+      "change": "Issue credit note, partial refund or reversal with lineage",
+      "suspension": "Stop disputed collection and expose residual balances",
+      "termination": "Close zero balance or record an approved write-off"
+    },
+    "classes": [
+      "Invoice",
+      "CreditNote",
+      "PaymentCapture",
+      "PaymentAllocation",
+      "FinancialPosition",
+      "Refund"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J10",
+    "title": "Roaming and financial reconciliation",
+    "leadActor": "Reconciliation operator",
+    "accountableParty": "Local roaming party",
+    "financialOwner": "Contract financial owner",
+    "participants": [
+      "CPO",
+      "eMSP",
+      "RoamingHub",
+      "Finance"
+    ],
+    "lifecycle": {
+      "contracting": "Agree versions, roles, modules and settlement scope",
+      "onboarding": "Exchange credentials and synchronize party-owned data",
+      "operation": "Match sessions, CDRs, invoices and payments by authority-qualified identity",
+      "change": "Replay missed records or apply explicit credit/correction",
+      "suspension": "Represent a genuinely missing side and isolate duplicates",
+      "termination": "Close differences with disposition and residual owner"
+    },
+    "classes": [
+      "RoamingConnection",
+      "RoamingExchange",
+      "ReconciliationCase",
+      "ReconciliationResolution"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J11",
+    "title": "Complaint and debt dispute",
+    "leadActor": "Support case owner",
+    "accountableParty": "Accountable service provider",
+    "financialOwner": "Named financial owner",
+    "participants": [
+      "Driver",
+      "Partner",
+      "SupportAgent",
+      "Finance",
+      "PaymentProvider"
+    ],
+    "lifecycle": {
+      "contracting": "State support, response and dispute responsibilities",
+      "onboarding": "Accept complaint with claimant and disputed record",
+      "operation": "Investigate service facts separately from network chargebacks",
+      "change": "Provide correction, refund or reasoned rejection",
+      "suspension": "Pause escalation while liability is unresolved",
+      "termination": "Record remedy, response evidence and closure"
+    },
+    "classes": [
+      "ServiceDispute",
+      "Chargeback",
+      "DunningAction",
+      "RecordCorrection"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J12",
+    "title": "Partner settlement",
+    "leadActor": "Settlement operator",
+    "accountableParty": "Contract supplier",
+    "financialOwner": "Named settlement owner",
+    "participants": [
+      "CPO",
+      "eMSP",
+      "SiteHost",
+      "AssetOwner",
+      "RoamingHub",
+      "Finance"
+    ],
+    "lifecycle": {
+      "contracting": "Set revenue, cost, tax and beneficiary allocation rules",
+      "onboarding": "Bind partner, agreement, currency and period",
+      "operation": "Calculate balanced itemized settlement and reconcile differences",
+      "change": "Carry explicit adjustments with evidence",
+      "suspension": "Withhold approval while blocking differences remain",
+      "termination": "Approve, invoice and pay with traceable confirmation"
+    },
+    "classes": [
+      "SettlementBatch",
+      "SettlementItem",
+      "SettlementApproval",
+      "Payout"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J13",
+    "title": "Employer home reimbursement",
+    "leadActor": "Fleet finance",
+    "accountableParty": "Employer",
+    "financialOwner": "Employer or mandated payer",
+    "participants": [
+      "Employer",
+      "Employee",
+      "FleetManager",
+      "PaymentProvider",
+      "Finance"
+    ],
+    "lifecycle": {
+      "contracting": "Agree home eligibility, rate source and tax treatment",
+      "onboarding": "Bind employee, personal station, claim and beneficiary",
+      "operation": "Validate measured energy and approved monetary amount",
+      "change": "Correct rate or claim with preserved history",
+      "suspension": "Hold disputed, duplicated or unsupported claims",
+      "termination": "Pay the approved beneficiary with confirmed payout"
+    },
+    "classes": [
+      "ReimbursementPolicy",
+      "ReimbursementRecord",
+      "ReimbursementApproval",
+      "Payout"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J14",
+    "title": "Subscriptions and benefits",
+    "leadActor": "Subscription operator",
+    "accountableParty": "Service provider",
+    "financialOwner": "Benefit funder",
+    "participants": [
+      "Driver",
+      "FleetManager",
+      "Employer",
+      "Sponsor",
+      "Finance"
+    ],
+    "lifecycle": {
+      "contracting": "Define allowance dimension, renewal, funding and rollover policy",
+      "onboarding": "Activate plan and scoped benefit entitlement",
+      "operation": "Reserve and consume energy, money, time or session benefits",
+      "change": "Version renewal and plan replacement without changing prior periods",
+      "suspension": "Suspend entitlement and release unconsumed reservations",
+      "termination": "Expire or cancel plan and reconcile remaining value"
+    },
+    "classes": [
+      "Subscription",
+      "BillingPeriod",
+      "BenefitAllowance",
+      "BenefitReservation",
+      "AllowanceConsumption",
+      "EnergyCoupon"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J15",
+    "title": "Energy control and export",
+    "leadActor": "Energy controller",
+    "accountableParty": "Site energy responsible party",
+    "financialOwner": "Import payer or export beneficiary",
+    "participants": [
+      "GridOperator",
+      "EnergySupplier",
+      "Aggregator",
+      "SiteHost",
+      "Driver",
+      "FleetManager"
+    ],
+    "lifecycle": {
+      "contracting": "Specify grid, contractual, driver and export rights",
+      "onboarding": "Bind physical topology, meter direction and adapter capabilities",
+      "operation": "Apply feasible schedules within safety and contract limits",
+      "change": "Reforecast and authorize bounded preference overrides",
+      "suspension": "Reject infeasible control or unauthorized export",
+      "termination": "Close dispatch evidence, delivery and energy settlement"
+    },
+    "classes": [
+      "GridConnection",
+      "PowerConstraint",
+      "ControlDecision",
+      "OverrideAuthorization",
+      "ExportAgreement",
+      "FlexibilityDelivery"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J16",
+    "title": "Privacy and data lifecycle",
+    "leadActor": "Privacy controller",
+    "accountableParty": "Data controller",
+    "financialOwner": "Contractually allocated data liability owner",
+    "participants": [
+      "Driver",
+      "Employee",
+      "PrivacyController",
+      "DataProcessor",
+      "Auditor"
+    ],
+    "lifecycle": {
+      "contracting": "Document purpose, lawful basis, retention and transfer safeguards",
+      "onboarding": "Bind verified subject and controller responsibilities",
+      "operation": "Process scoped access, correction, portability or erasure request",
+      "change": "Record changes and review scoped preservation holds",
+      "suspension": "Restrict disclosure or erasure where justified",
+      "termination": "Communicate fulfilment or refusal and retain scoped evidence"
+    },
+    "classes": [
+      "DataSubjectRequest",
+      "ProcessingPurpose",
+      "LegalHold",
+      "DataDisposition"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J17",
+    "title": "Security, identity and evidence assurance",
+    "leadActor": "Security administrator",
+    "accountableParty": "Platform controller",
+    "financialOwner": "Accountable organization",
+    "participants": [
+      "SecurityAdmin",
+      "PlatformOperator",
+      "Auditor",
+      "OEM",
+      "DataProcessor"
+    ],
+    "lifecycle": {
+      "contracting": "Define principal, permission, scope, secret and certificate policies",
+      "onboarding": "Provision least-privilege grants and verified artifact sources",
+      "operation": "Evaluate time-valid explicit authorization and log decisions",
+      "change": "Rotate certificates, grants and API leases with evidence",
+      "suspension": "Revoke compromised access and quarantine unverified evidence",
+      "termination": "Remove operational access while preserving required audit records"
+    },
+    "classes": [
+      "AccessDecision",
+      "AccessGrant",
+      "CertificateRecord",
+      "AccessTokenLease",
+      "EvidenceVerification"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J18",
+    "title": "Maintenance, service levels and recovery",
+    "leadActor": "Service operations",
+    "accountableParty": "Maintenance/service provider",
+    "financialOwner": "SLA remedy owner",
+    "participants": [
+      "Maintainer",
+      "Installer",
+      "CPO",
+      "SupportAgent",
+      "PlatformOperator",
+      "AssetOwner"
+    ],
+    "lifecycle": {
+      "contracting": "Agree availability windows, exclusions, remedy and recovery objectives",
+      "onboarding": "Assign maintenance capability and exercise restoration",
+      "operation": "Measure downtime, identify faults and track repair work",
+      "change": "Deploy compatible firmware with rollback and retest",
+      "suspension": "Suspend unsafe operation and communicate disruption",
+      "termination": "Close work/SLA remedy and retain recovery proof"
+    },
+    "classes": [
+      "ServiceLevelCommitment",
+      "ServiceLevelBreach",
+      "WorkOrder",
+      "FirmwareDeployment",
+      "RecoveryExercise"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J19",
+    "title": "Integration and provider migration",
+    "leadActor": "Integration owner",
+    "accountableParty": "Platform operator",
+    "financialOwner": "Contract residual owner",
+    "participants": [
+      "CPO",
+      "eMSP",
+      "RoamingHub",
+      "OEM",
+      "PlatformOperator",
+      "DataProcessor"
+    ],
+    "lifecycle": {
+      "contracting": "Agree protocol version, ownership and supported features",
+      "onboarding": "Negotiate credentials and prove adapter capability",
+      "operation": "Synchronize with identity, cursor and evidence preservation",
+      "change": "Version mappings or migrate source/target with counts",
+      "suspension": "Quarantine unmapped fields or failed imports",
+      "termination": "Reconcile migrated data and revoke obsolete credentials"
+    },
+    "classes": [
+      "ProtocolProfile",
+      "IntegrationConnection",
+      "MigrationBatch",
+      "SynchronizationCursor"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  },
+  {
+    "id": "J20",
+    "title": "End-to-end accountability and process evidence",
+    "leadActor": "Business process owner",
+    "accountableParty": "Named accountable party",
+    "financialOwner": "Named financial owner",
+    "participants": [
+      "AllActors",
+      "Finance",
+      "Auditor",
+      "PlatformOperator"
+    ],
+    "lifecycle": {
+      "contracting": "Allocate accountable party, obligations and financial ownership",
+      "onboarding": "Instantiate ordered steps with responsible actors",
+      "operation": "Link concrete domain inputs, outputs and evidence",
+      "change": "Preserve valid state transitions and predecessor lineage",
+      "suspension": "Record failure, compensation or explicit skip",
+      "termination": "Close only terminal successful/compensated steps with evidence"
+    },
+    "classes": [
+      "ProcessExecution",
+      "ProcessStep",
+      "LifecycleSnapshot",
+      "StateTransition"
+    ],
+    "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
+  }
+]

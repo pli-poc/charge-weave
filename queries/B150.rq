@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ControlDecision . ?this cd:energyDirection cd:energyDirection_Export; cd:controlDecision ?d; cd:interval ?i; cd:chargingUnit/cd:station/cd:site ?site. FILTER(?d!=cd:controlDecision_Rejected) ?i cd:startsAt ?start; cd:endsAt ?end. FILTER NOT EXISTS {?this cd:exportAgreement ?a. ?a cd:exportPermitted true; cd:site ?site; cd:validFrom ?from. OPTIONAL {?a cd:validUntil ?until} FILTER(?start>=?from && (!BOUND(?until)||?end<=?until))} }

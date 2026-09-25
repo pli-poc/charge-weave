@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ServiceDispute . {?this cd:openedAt ?o; cd:responseDueAt ?d. FILTER(?d<?o)} UNION {?this cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Remedied,cd:disputeCaseState_Closed)) FILTER(!EXISTS {?this cd:resolutionEvidence ?e} || (?s=cd:disputeCaseState_Remedied && !EXISTS {?this cd:remedyRecord ?r}))} }

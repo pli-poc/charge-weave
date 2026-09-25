@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ChargeDetailRecord . ?this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {?this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=?this && ?n=-?on && ?t=-?ot && ?g=-?og)} }

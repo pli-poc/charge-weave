@@ -1,12 +1,12 @@
-# Completeness assessment against AMPECO
+# Historical catalogue assessment (v1.0)
 
-> Repository import clarification: this assessment concerns the captured public catalogue. An independent actor/journey/lifecycle/exception completeness audit has not been completed. See [the pending audit](business-domain-audit.md).
+> Historical evidence: counts below describe the imported v1.0 catalogue review. Current independent requirements, findings and validation are in [the business-domain audit](business-domain-audit.md). Redacted URNs identify legacy provenance; they are not current web citations.
 
-Assessment date: **25 September 2026**. The canonical design is independent of AMPECO's naming and internal implementation.
+Assessment date: **25 September 2026**. The canonical design is independent of External platform's naming and internal implementation.
 
 ## Finding
 
-AMPECO is appropriately understood as a charging-management business platform. Its public product navigation covers white-label customer experiences, charging operations, payments, tariff plans, partner management, roaming, energy management, maintenance and home charging. The benchmark therefore needs more than charger connectivity and session tracking. [AMPECO platform](https://www.ampeco.com/ev-charging-platform/)
+External platform is appropriately understood as a charging-management business platform. Its public product navigation covers white-label customer experiences, charging operations, payments, tariff plans, partner management, roaming, energy management, maintenance and home charging. The benchmark therefore needs more than charger connectivity and session tracking. [External platform platform](urn:chargeweave:legacy-site/ev-charging-platform/)
 
 This release provides a broad semantic model for that scope and accounts for every family and operation page in the captured public reference navigation. It also adds supporting accounting, provenance, identity, power-allocation and governance concepts that should be explicit in an independent CPMS.
 
@@ -26,7 +26,7 @@ This release provides a broad semantic model for that scope and accounts for eve
 | All public API fields and vendor business rules reproduced | Not established | No full field-by-field parity or adapter certification claim |
 | Private tenant behavior, scale and reliability reproduced | Not established | Requires access, executable services and deployment tests |
 
-The live reference reported version **v3.253.0**. AMPECO's official GitHub-generated schema and endpoint indexes reported **v3.251.8**, with 971 schema definitions and 651 operations. These are distinct snapshots, not interchangeable counts. The live OpenAPI header was independently read. Raw full-spec acquisition was unavailable through the direct download route, so this release does not pretend to have run an exhaustive latest-version OpenAPI schema diff. Selected endpoint bodies and the full tariff-create schema supplied deeper evidence. The resource crosswalk records weaker evidence for pages whose bodies could not be retrieved.
+The live reference reported version **v3.253.0**. External platform's official GitHub-generated schema and endpoint indexes reported **v3.251.8**, with 971 schema definitions and 651 operations. These are distinct snapshots, not interchangeable counts. The live OpenAPI header was independently read. Raw full-spec acquisition was unavailable through the direct download route, so this release does not pretend to have run an exhaustive latest-version OpenAPI schema diff. Selected endpoint bodies and the full tariff-create schema supplied deeper evidence. The resource crosswalk records weaker evidence for pages whose bodies could not be retrieved.
 
 ## Domain coverage
 

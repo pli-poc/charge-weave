@@ -1,0 +1,431 @@
+{
+  "accountState": {
+    "Pending": [
+      "Active",
+      "Closed"
+    ],
+    "Active": [
+      "Suspended",
+      "Closed"
+    ],
+    "Suspended": [
+      "Active",
+      "Closed"
+    ]
+  },
+  "agreementState": {
+    "Draft": [
+      "Offered"
+    ],
+    "Offered": [
+      "Active",
+      "Terminated"
+    ],
+    "Active": [
+      "Suspended",
+      "Terminated",
+      "Expired"
+    ],
+    "Suspended": [
+      "Active",
+      "Terminated",
+      "Expired"
+    ]
+  },
+  "obligationState": {
+    "Pending": [
+      "Active",
+      "Cancelled"
+    ],
+    "Active": [
+      "Fulfilled",
+      "Breached",
+      "Waived",
+      "Cancelled"
+    ],
+    "Breached": [
+      "Fulfilled",
+      "Waived"
+    ]
+  },
+  "entitlementState": {
+    "Pending": [
+      "Active",
+      "Revoked"
+    ],
+    "Active": [
+      "Suspended",
+      "Revoked",
+      "Expired"
+    ],
+    "Suspended": [
+      "Active",
+      "Revoked",
+      "Expired"
+    ]
+  },
+  "closureState": {
+    "Requested": [
+      "Blocked",
+      "Completed",
+      "Cancelled"
+    ],
+    "Blocked": [
+      "Requested",
+      "Completed",
+      "Cancelled"
+    ]
+  },
+  "assetLifecycle": {
+    "Planned": [
+      "Installed"
+    ],
+    "Installed": [
+      "Commissioned",
+      "Decommissioned"
+    ],
+    "Commissioned": [
+      "Operating",
+      "Suspended",
+      "Decommissioned"
+    ],
+    "Operating": [
+      "Suspended",
+      "Decommissioned"
+    ],
+    "Suspended": [
+      "Operating",
+      "Decommissioned"
+    ],
+    "Decommissioned": [
+      "Disposed"
+    ]
+  },
+  "acceptanceState": {
+    "Pending": [
+      "Accepted",
+      "Rejected"
+    ],
+    "Rejected": [
+      "Pending"
+    ]
+  },
+  "bookingState": {
+    "Confirmed": [
+      "Cancelled",
+      "Fulfilled",
+      "NoShow",
+      "Expired"
+    ]
+  },
+  "invoiceState": {
+    "Draft": [
+      "Issued",
+      "Voided"
+    ],
+    "Issued": [
+      "PartiallyPaid",
+      "Paid",
+      "Overdue",
+      "Voided"
+    ],
+    "PartiallyPaid": [
+      "Paid",
+      "Overdue",
+      "Voided"
+    ],
+    "Overdue": [
+      "PartiallyPaid",
+      "Paid",
+      "Voided"
+    ]
+  },
+  "captureState": {
+    "Pending": [
+      "Confirmed",
+      "Failed"
+    ]
+  },
+  "refundState": {
+    "Pending": [
+      "Confirmed",
+      "Failed"
+    ]
+  },
+  "caseState": {
+    "Open": [
+      "Investigating",
+      "Resolved",
+      "Rejected"
+    ],
+    "Investigating": [
+      "Resolved",
+      "Rejected"
+    ]
+  },
+  "settlementState": {
+    "Draft": [
+      "Calculated"
+    ],
+    "Calculated": [
+      "Approved",
+      "Disputed"
+    ],
+    "Approved": [
+      "Invoiced",
+      "Disputed"
+    ],
+    "Invoiced": [
+      "Settled",
+      "Disputed"
+    ],
+    "Disputed": [
+      "Calculated"
+    ]
+  },
+  "reimbursementState": {
+    "Calculated": [
+      "Approved",
+      "Disputed"
+    ],
+    "Approved": [
+      "Paid",
+      "Disputed"
+    ],
+    "Paid": [
+      "Credited",
+      "Disputed"
+    ],
+    "Disputed": [
+      "Calculated",
+      "Credited"
+    ]
+  },
+  "connectionState": {
+    "Pending": [
+      "Active",
+      "Closed"
+    ],
+    "Active": [
+      "Suspended",
+      "Closed"
+    ],
+    "Suspended": [
+      "Active",
+      "Closed"
+    ]
+  },
+  "grantState": {
+    "Active": [
+      "Revoked",
+      "Expired"
+    ]
+  },
+  "accessTokenState": {
+    "Active": [
+      "Revoked",
+      "Expired"
+    ]
+  },
+  "processingState": {
+    "Received": [
+      "Applied",
+      "Duplicate",
+      "Quarantined",
+      "Failed"
+    ],
+    "Quarantined": [
+      "Received",
+      "Failed"
+    ],
+    "Failed": [
+      "Received"
+    ]
+  },
+  "readinessState": {
+    "Pending": [
+      "Ready",
+      "Blocked"
+    ],
+    "Blocked": [
+      "Pending",
+      "Ready"
+    ],
+    "Ready": [
+      "Blocked"
+    ]
+  },
+  "positionState": {
+    "Open": [
+      "PartiallySettled",
+      "Settled",
+      "Disputed",
+      "WrittenOff"
+    ],
+    "PartiallySettled": [
+      "Settled",
+      "Disputed",
+      "WrittenOff"
+    ],
+    "Disputed": [
+      "Open",
+      "PartiallySettled",
+      "Settled",
+      "WrittenOff"
+    ]
+  },
+  "allocationState": {
+    "Pending": [
+      "Posted",
+      "Reversed"
+    ],
+    "Posted": [
+      "Reversed"
+    ]
+  },
+  "disputeCaseState": {
+    "Opened": [
+      "Investigating",
+      "Rejected"
+    ],
+    "Investigating": [
+      "Accepted",
+      "Rejected"
+    ],
+    "Accepted": [
+      "Remedied"
+    ],
+    "Rejected": [
+      "Closed"
+    ],
+    "Remedied": [
+      "Closed"
+    ]
+  },
+  "approvalState": {
+    "Pending": [
+      "Approved",
+      "Rejected"
+    ]
+  },
+  "requestState": {
+    "Received": [
+      "Verified",
+      "Refused"
+    ],
+    "Verified": [
+      "Processing",
+      "Refused"
+    ],
+    "Processing": [
+      "Fulfilled",
+      "Refused"
+    ],
+    "Fulfilled": [
+      "Closed"
+    ],
+    "Refused": [
+      "Closed"
+    ]
+  },
+  "holdState": {
+    "Active": [
+      "Released",
+      "Expired"
+    ]
+  },
+  "dispositionState": {
+    "Requested": [
+      "BlockedByHold",
+      "Completed",
+      "Failed"
+    ],
+    "BlockedByHold": [
+      "Requested",
+      "Failed"
+    ],
+    "Failed": [
+      "Requested"
+    ]
+  },
+  "breachState": {
+    "Open": [
+      "Acknowledged",
+      "Remediated"
+    ],
+    "Acknowledged": [
+      "Remediated"
+    ],
+    "Remediated": [
+      "Closed"
+    ]
+  },
+  "migrationState": {
+    "Planned": [
+      "Running",
+      "Failed"
+    ],
+    "Running": [
+      "Reconciled",
+      "Failed"
+    ],
+    "Reconciled": [
+      "Completed",
+      "Failed"
+    ],
+    "Failed": [
+      "Planned"
+    ]
+  },
+  "processState": {
+    "Planned": [
+      "Running",
+      "Cancelled"
+    ],
+    "Running": [
+      "Completed",
+      "Failed",
+      "Cancelled"
+    ]
+  },
+  "stepState": {
+    "Pending": [
+      "Running",
+      "Skipped"
+    ],
+    "Running": [
+      "Succeeded",
+      "Failed"
+    ],
+    "Failed": [
+      "Compensated"
+    ]
+  },
+  "payoutState": {
+    "Scheduled": [
+      "Submitted",
+      "Failed"
+    ],
+    "Submitted": [
+      "Confirmed",
+      "Failed"
+    ],
+    "Confirmed": [
+      "Reversed"
+    ]
+  },
+  "workState": {
+    "New": [
+      "Assigned",
+      "Cancelled"
+    ],
+    "Assigned": [
+      "InProgress",
+      "Cancelled"
+    ],
+    "InProgress": [
+      "Completed",
+      "Cancelled"
+    ]
+  }
+}

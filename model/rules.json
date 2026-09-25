@@ -652,5 +652,383 @@
     "target": "RatingCalculation",
     "message": "Rating a deferred-base discount requires the resolved immutable base tariff.",
     "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:selectedTariff/cd:baseTariffSelection ?mode. FILTER(?mode IN (cd:baseTariffSelection_SetBase,cd:baseTariffSelection_RoamingWholesale)) FILTER NOT EXISTS {$this cd:tariffResolution/cd:resolvedBaseTariff ?base} }"
+  },
+  {
+    "id": "B110",
+    "target": "ServiceAgreement",
+    "message": "An active agreement has evidence of acceptance and at least one allocated contractual obligation.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:agreementState cd:agreementState_Active. FILTER(!EXISTS {?e a cd:AgreementLifecycleEvent; cd:serviceAgreement $this; cd:agreementAction cd:agreementAction_Accept} || !EXISTS {?o a cd:ContractObligation; cd:serviceAgreement $this}) }"
+  },
+  {
+    "id": "B111",
+    "target": "ContractObligation",
+    "message": "Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:obligationState ?s. FILTER(?s IN (cd:obligationState_Fulfilled,cd:obligationState_Waived)) BIND(IF(?s=cd:obligationState_Fulfilled,cd:assessmentOutcome_Satisfied,cd:assessmentOutcome_Waived) AS ?outcome) FILTER NOT EXISTS {?a a cd:ObligationAssessment; cd:contractObligation $this; cd:assessmentOutcome ?outcome} }"
+  },
+  {
+    "id": "B112",
+    "target": "AgreementLifecycleEvent",
+    "message": "Amendment and renewal create a distinct successor version retaining the contract identity.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:agreementAction ?a; cd:serviceAgreement ?old. FILTER(?a IN (cd:agreementAction_Amend,cd:agreementAction_Renew)) FILTER NOT EXISTS {$this cd:successorAgreement ?new. ?old cd:agreementReference ?id; cd:agreementVersion ?v1. ?new cd:agreementReference ?id; cd:agreementVersion ?v2. FILTER(?new != ?old && ?v1 != ?v2)} }"
+  },
+  {
+    "id": "B113",
+    "target": "AgreementLifecycleEvent",
+    "message": "Termination identifies who retains residual liability and the settlement cutoff.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:agreementAction cd:agreementAction_Terminate. FILTER(!EXISTS {$this cd:residualLiabilityOwner ?p} || !EXISTS {$this cd:settlementCutoff ?t}) }"
+  },
+  {
+    "id": "B114",
+    "target": "ServiceEntitlement",
+    "message": "An active entitlement is backed by an active agreement and begins inside its effective period.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:entitlementState cd:entitlementState_Active; cd:serviceAgreement ?a; cd:validFrom ?t. FILTER NOT EXISTS {?a cd:agreementState cd:agreementState_Active; cd:validFrom ?s. OPTIONAL {?a cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e) || ?t<?e))} }"
+  },
+  {
+    "id": "B115",
+    "target": "AccountClosure",
+    "message": "Completed closure revokes active access and preserves ownership of any nonzero liability.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:closureState cd:closureState_Completed; cd:activeGrantCount ?g; cd:openLiabilityAmount ?a. FILTER(?g!=0 || !EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:closureEvidence ?e} || (?a!=0 && !EXISTS {$this cd:residualLiabilityOwner ?p})) }"
+  },
+  {
+    "id": "B116",
+    "target": "ChargingStation",
+    "message": "An operating station has an accepted operational handover for that same asset.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:assetLifecycle cd:assetLifecycle_Operating. FILTER NOT EXISTS {$this cd:operationalAcceptance ?a. ?a cd:station $this; cd:acceptanceState cd:acceptanceState_Accepted} }"
+  },
+  {
+    "id": "B117",
+    "target": "OperationalAcceptance",
+    "message": "Accepted handover requires successful safety, protocol and metering assessments and evidence.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:acceptanceState cd:acceptanceState_Accepted; cd:safetyAccepted ?s; cd:protocolAccepted ?p; cd:meteringAccepted ?m. FILTER(!?s || !?p || !?m || !EXISTS {$this cd:acceptedAt ?t} || !EXISTS {$this cd:acceptanceEvidence ?e}) }"
+  },
+  {
+    "id": "B118",
+    "target": "AssetLifecycleEvent",
+    "message": "Replacement and retirement cannot abandon open charging sessions or replace an asset with itself.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { {$this cd:assetAction ?a; cd:openSessionCount ?n. FILTER(?a IN (cd:assetAction_Replace,cd:assetAction_Decommission,cd:assetAction_Dispose) && ?n>0)} UNION {$this cd:station ?s; cd:replacementStation ?s} }"
+  },
+  {
+    "id": "B119",
+    "target": "ConnectorCompatibility",
+    "message": "A compatible offer requires agreement of physical connector, voltage and current type.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:compatibilityState cd:compatibilityState_Compatible; cd:connectorTypeMatch ?c; cd:voltageMatch ?v; cd:currentTypeMatch ?t. FILTER(!?c || !?v || !?t) }"
+  },
+  {
+    "id": "B120",
+    "target": "CommercialOffer",
+    "message": "Ad hoc offers do not require account registration.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:offerMode cd:offerMode_AdHoc; cd:registrationRequired true. }"
+  },
+  {
+    "id": "B121",
+    "target": "CommercialOffer",
+    "message": "Disclosed currency, tariff currency and offer currency agree and offer expiry follows issue.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { {$this cd:currency ?a; cd:selectedTariff/cd:currency ?b. FILTER(?a!=?b)} UNION {$this cd:currency ?a; cd:priceDisplay/cd:displayCurrency ?b. FILTER(?a!=?b)} UNION {$this cd:issuedAt ?a; cd:expiresAt ?b. FILTER(?b<=?a)} }"
+  },
+  {
+    "id": "B122",
+    "target": "OfferAcceptance",
+    "message": "Offer acceptance occurs during the disclosed offer validity window.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:acceptedAt ?t; cd:commercialOffer ?o. ?o cd:issuedAt ?a; cd:expiresAt ?b. FILTER(?t<?a || ?t>=?b) }"
+  },
+  {
+    "id": "B123",
+    "target": "OfferAcceptance",
+    "message": "Acceptance is bound to the same customer and selected tariff as the charging session.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:customer ?c; cd:session ?s; cd:commercialOffer/cd:selectedTariff ?t. FILTER NOT EXISTS {?s cd:customer ?c; cd:selectedTariff ?t} }"
+  },
+  {
+    "id": "B124",
+    "target": "CommercialResponsibility",
+    "message": "The commercial supplier matches the supplier of the governing service agreement.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:serviceSupplier ?a; cd:serviceAgreement/cd:supplier ?b. FILTER(?a!=?b) }"
+  },
+  {
+    "id": "B125",
+    "target": "OfflineAuthorizationAssessment",
+    "message": "Offline admission obeys credential revocation, cache age, unknown-token policy and financial exposure limits.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:offlineDecision cd:offlineDecision_Allow; cd:credentialRevoked ?r; cd:cacheAgeSeconds ?a; cd:maximumCacheAgeSeconds ?m; cd:unknownCredential ?u; cd:permitUnknownCredential ?p; cd:exposureAmount ?e; cd:maximumExposureAmount ?l. FILTER(?r || ?a>?m || (?u && !?p) || ?e>?l || ?e<0 || ?l<0) }"
+  },
+  {
+    "id": "B126",
+    "target": "EventProcessingOutcome",
+    "message": "Duplicate delivery refers to an already applied event with matching producer, key, scope and payload and has no new effects.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:processingState cd:processingState_Duplicate; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer. FILTER(EXISTS {$this cd:businessEffect ?e} || !EXISTS {$this cd:duplicateOf ?old. ?old cd:processingState cd:processingState_Applied; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer}) }"
+  },
+  {
+    "id": "B127",
+    "target": "EventProcessingOutcome",
+    "message": "A producer/key/scope combination has at most one applied business-effect outcome in a tenant.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:processingState cd:processingState_Applied; cd:tenant ?t; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:sourceEvent/cd:sourceSystem ?p. ?other a cd:EventProcessingOutcome; cd:processingState cd:processingState_Applied; cd:tenant ?t; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:sourceEvent/cd:sourceSystem ?p. FILTER(?other!=$this) }"
+  },
+  {
+    "id": "B128",
+    "target": "EventProcessingOutcome",
+    "message": "Quarantined events retain a reason and produce no accepted business effects.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:processingState cd:processingState_Quarantined. FILTER(EXISTS {$this cd:businessEffect ?e} || !EXISTS {$this cd:quarantineReason ?r}) }"
+  },
+  {
+    "id": "B129",
+    "target": "MeterDelta",
+    "message": "Measured usage compares cumulative readings of the same register meter, unit and direction within its epoch.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:deltaBasis cd:deltaBasis_Measured; cd:registerEpoch ?e; cd:startReading ?a; cd:endReading ?b. ?e cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:validFrom ?start. OPTIONAL {?e cd:validUntil ?end} FILTER(!EXISTS {?a cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?at. FILTER(?at>=?start)} || !EXISTS {?b cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?bt. FILTER(!BOUND(?end)||?bt<?end)}) }"
+  },
+  {
+    "id": "B130",
+    "target": "MeterDelta",
+    "message": "Measured deltas preserve ordering, multiplier and reset boundaries; estimated deltas require evidence.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { {$this cd:deltaBasis cd:deltaBasis_Measured; cd:resetDetected ?r; cd:deltaValue ?d; cd:startReading ?a; cd:endReading ?b; cd:registerEpoch/cd:multiplier ?m. ?a cd:numericValue ?x; cd:observedAt ?at. ?b cd:numericValue ?y; cd:observedAt ?bt. FILTER(?r || ?m<=0 || ?bt<=?at || ?d<0 || ?d!=(?y-?x)*?m)} UNION {$this cd:deltaBasis cd:deltaBasis_Estimated. FILTER NOT EXISTS {$this cd:deltaEvidence ?e}} }"
+  },
+  {
+    "id": "B131",
+    "target": "BillingReadinessAssessment",
+    "message": "Billing readiness requires completed charging and resolved usage, authorization, price, tax, commercial responsibility and blocking issues.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:readinessState cd:readinessState_Ready; cd:usageComplete ?u; cd:priceResolved ?p; cd:taxResolved ?t; cd:authorizationResolved ?a; cd:responsibilityResolved ?r; cd:openBlockingIssueCount ?n. FILTER(!?u || !?p || !?t || !?a || !?r || ?n!=0 || !EXISTS {$this cd:session/cd:sessionState cd:sessionState_Completed} || !EXISTS {$this cd:readinessEvidence ?e}) }"
+  },
+  {
+    "id": "B132",
+    "target": "ChargeDetailRecord",
+    "message": "A local debit CDR carries a ready billing decision for the same completed session.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:recordOrigin cd:recordOrigin_Local; cd:recordKind cd:recordKind_Debit; cd:session ?s. FILTER NOT EXISTS {$this cd:billingReadiness ?a. ?a cd:readinessState cd:readinessState_Ready; cd:session ?s} }"
+  },
+  {
+    "id": "B133",
+    "target": "ChargeDetailRecord",
+    "message": "Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)} }"
+  },
+  {
+    "id": "B134",
+    "target": "RecordCorrection",
+    "message": "Corrections form an acyclic lineage and cannot replace a record with itself.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:originalRecord ?old; cd:correctingRecord ?new. FILTER(?old=?new || EXISTS {?old (^cd:originalRecord/cd:correctingRecord)+ ?old}) }"
+  },
+  {
+    "id": "B135",
+    "target": "FinancialPosition",
+    "message": "Outstanding liability reconciles original charges, credits, collected money and authorized write-offs.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:originalAmount ?o; cd:creditedAmount ?c; cd:collectedAmount ?p; cd:writtenOffAmount ?w; cd:outstandingAmount ?r. FILTER(?o<0 || ?c<0 || ?p<0 || ?w<0 || ?r<0 || ?r!=?o-?c-?p-?w) }"
+  },
+  {
+    "id": "B136",
+    "target": "FinancialPosition",
+    "message": "A settled position has no residual liability; a written-off position records the write-off.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:positionState ?s; cd:outstandingAmount ?v; cd:writtenOffAmount ?w. FILTER((?s=cd:positionState_Settled && ?v!=0) || (?s=cd:positionState_WrittenOff && (?v!=0 || ?w<=0))) }"
+  },
+  {
+    "id": "B137",
+    "target": "PaymentAllocation",
+    "message": "Posted allocations use confirmed collections, positive amounts and matching currencies.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v; cd:currency ?c; cd:paymentCapture ?p; cd:financialPosition ?f. FILTER(?v<=0 || !EXISTS {?p cd:captureState cd:captureState_Confirmed; cd:currency ?c} || !EXISTS {?f cd:currency ?c}) }"
+  },
+  {
+    "id": "B138",
+    "target": "PaymentCapture",
+    "message": "Total posted allocations never spend a collection more than once.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:capturedAmount ?limit. {SELECT $this (SUM(?v) AS ?total) WHERE {?a a cd:PaymentAllocation; cd:paymentCapture $this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v} GROUP BY $this} FILTER(?total>?limit) }"
+  },
+  {
+    "id": "B139",
+    "target": "ReconciliationCase",
+    "message": "Missing-record cases allow an absent side with a locator; comparison cases require both actual records.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:mismatchKind ?k. FILTER((?k=cd:mismatchKind_Missing && ((!EXISTS {$this cd:expectedRecord ?e} && !EXISTS {$this cd:observedRecord ?o} && !EXISTS {$this cd:expectedIdentifier ?i}) || (EXISTS {$this cd:expectedRecord ?e} && EXISTS {$this cd:observedRecord ?o}))) || (?k!=cd:mismatchKind_Missing && (!EXISTS {$this cd:expectedRecord ?e} || !EXISTS {$this cd:observedRecord ?o}))) }"
+  },
+  {
+    "id": "B140",
+    "target": "ReconciliationCase",
+    "message": "Resolved reconciliation retains a resolution for the same case, a timestamp and explanation.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:caseState cd:caseState_Resolved. FILTER(!EXISTS {$this cd:resolvedAt ?t} || !EXISTS {$this cd:resolutionNote ?n} || !EXISTS {$this cd:reconciliationResolution ?r. ?r cd:reconciliationCase $this}) }"
+  },
+  {
+    "id": "B141",
+    "target": "ReconciliationResolution",
+    "message": "A corrected reconciliation identifies its immutable correction case.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:resolutionKind cd:resolutionKind_Corrected. FILTER NOT EXISTS {$this cd:correction ?c} }"
+  },
+  {
+    "id": "B142",
+    "target": "ServiceDispute",
+    "message": "Disputes preserve response deadlines, reasoned closure and an explicit remedy when remedied.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { {$this cd:openedAt ?o; cd:responseDueAt ?d. FILTER(?d<?o)} UNION {$this cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Remedied,cd:disputeCaseState_Closed)) FILTER(!EXISTS {$this cd:resolutionEvidence ?e} || (?s=cd:disputeCaseState_Remedied && !EXISTS {$this cd:remedyRecord ?r}))} }"
+  },
+  {
+    "id": "B143",
+    "target": "DunningAction",
+    "message": "Collection escalation pauses while the position or linked service dispute is unresolved.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} }"
+  },
+  {
+    "id": "B144",
+    "target": "SettlementApproval",
+    "message": "Approval cannot release a partner settlement with unresolved differences or missing approval evidence.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:approvalState cd:approvalState_Approved; cd:openDifferenceCount ?n. FILTER(?n!=0 || !EXISTS {$this cd:approvedAt ?t} || !EXISTS {$this cd:approvalEvidence ?e}) }"
+  },
+  {
+    "id": "B145",
+    "target": "SettlementBatch",
+    "message": "Partner settlement totals equal their items; released batches retain an approved release decision.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. {SELECT $this (SUM(?in) AS ?sn) (SUM(?it) AS ?st) (SUM(?ig) AS ?sg) WHERE {$this cd:settlementItem ?i. ?i cd:netAmount ?in; cd:taxAmount ?it; cd:grossAmount ?ig} GROUP BY $this} FILTER(?n!=?sn || ?t!=?st || ?g!=?sg) } UNION { $this cd:settlementState ?state. FILTER(?state IN (cd:settlementState_Approved,cd:settlementState_Invoiced,cd:settlementState_Settled)) FILTER NOT EXISTS {?approval a cd:SettlementApproval; cd:settlementBatch $this; cd:approvalState cd:approvalState_Approved} } }"
+  },
+  {
+    "id": "B146",
+    "target": "ReimbursementApproval",
+    "message": "Approved reimbursement matches claimant, currency, amount, rate and eligible measured energy of the claim.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:approvalState cd:approvalState_Approved; cd:reimbursementRecord ?r; cd:entitledAccount ?a; cd:approvedAmount ?v; cd:approvedRate ?rate; cd:approvedEnergyKWh ?k; cd:currency ?c. FILTER(?v<0 || ?rate<0 || ?k<0 || !EXISTS {$this cd:approvalEvidence ?e} || !EXISTS {$this cd:approvedAt ?t} || !EXISTS {?r cd:beneficiaryAccount ?a; cd:currency ?c; cd:reimbursementAmount ?v; cd:reimbursementRate ?rate; cd:reimbursableEnergyKWh ?k; cd:session/cd:importedEnergyKWh ?measured. FILTER(?k<=?measured)}) }"
+  },
+  {
+    "id": "B147",
+    "target": "ReimbursementRecord",
+    "message": "Paid reimbursements identify an approved claim and a confirmed payout with matching amount and currency.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:reimbursementState cd:reimbursementState_Paid; cd:reimbursementAmount ?a; cd:currency ?c. FILTER(!EXISTS {$this cd:reimbursementApproval ?approval. ?approval cd:reimbursementRecord $this; cd:approvalState cd:approvalState_Approved} || !EXISTS {$this cd:payout ?p. ?p cd:payoutState cd:payoutState_Confirmed; cd:payoutAmount ?a; cd:currency ?c}) }"
+  },
+  {
+    "id": "B148",
+    "target": "BenefitReservation",
+    "message": "Consumed reservations reference consumption for the same allowance, billing period and session within the reserved amount.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:reservationState cd:reservationState_Consumed; cd:allowance ?a; cd:billingPeriod ?b; cd:session ?s; cd:reservedValue ?v. FILTER NOT EXISTS {$this cd:consumption ?c. ?c cd:allowance ?a; cd:billingPeriod ?b; cd:session ?s; cd:consumedValue ?used. FILTER(?used>=0 && ?used<=?v)} }"
+  },
+  {
+    "id": "B149",
+    "target": "ControlDecision",
+    "message": "A power decision stays within safety and contract limits even when optimization preferences are overridden.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:requestedPowerKW ?r; cd:feasiblePowerKW ?f; cd:safetyLimitKW ?s; cd:contractualLimitKW ?c; cd:controlDecision ?d. FILTER(?r<0 || ?f<0 || ?s<0 || ?c<0 || ?f>?s || ?f>?c || ?f>?r || (?d=cd:controlDecision_Accepted && ?f!=?r) || (?d=cd:controlDecision_Rejected && ?f!=0)) }"
+  },
+  {
+    "id": "B150",
+    "target": "ControlDecision",
+    "message": "An accepted export decision requires an export agreement valid throughout the control interval at the same site.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:energyDirection cd:energyDirection_Export; cd:controlDecision ?d; cd:interval ?i; cd:chargingUnit/cd:station/cd:site ?site. FILTER(?d!=cd:controlDecision_Rejected) ?i cd:startsAt ?start; cd:endsAt ?end. FILTER NOT EXISTS {$this cd:exportAgreement ?a. ?a cd:exportPermitted true; cd:site ?site; cd:validFrom ?from. OPTIONAL {?a cd:validUntil ?until} FILTER(?start>=?from && (!BOUND(?until)||?end<=?until))} }"
+  },
+  {
+    "id": "B151",
+    "target": "ControlDecision",
+    "message": "An override is authorized for this unit and covers the entire control interval.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:overrideAuthorization ?o; cd:chargingUnit ?u; cd:interval ?i. ?i cd:startsAt ?s; cd:endsAt ?e. FILTER NOT EXISTS {?o cd:authorizedScope ?u; cd:validFrom ?a; cd:validUntil ?b. FILTER(?s>=?a && ?e<=?b)} }"
+  },
+  {
+    "id": "B152",
+    "target": "DataSubjectRequest",
+    "message": "Fulfilled rights requests require verified identity, completion time and retained response evidence.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:requestState cd:requestState_Fulfilled; cd:identityVerified ?v. FILTER(!?v || !EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:responseEvidence ?e}) }"
+  },
+  {
+    "id": "B153",
+    "target": "DataSubjectRequest",
+    "message": "Refusal of a rights request retains a reason and a communicated response.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:requestState cd:requestState_Refused. FILTER(!EXISTS {$this cd:refusalReason ?r} || !EXISTS {$this cd:responseEvidence ?e}) }"
+  },
+  {
+    "id": "B154",
+    "target": "DataDisposition",
+    "message": "Completed disposition records evidence and cannot claim erasure over a still-active scoped hold.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active}) }"
+  },
+  {
+    "id": "B155",
+    "target": "LegalHold",
+    "message": "Holds have a future review relative to inception and explicit release evidence in time.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { {$this cd:validFrom ?s; cd:reviewAt ?e. FILTER(?e<=?s)} UNION {$this cd:holdState cd:holdState_Released. FILTER NOT EXISTS {$this cd:releasedAt ?t}} }"
+  },
+  {
+    "id": "B156",
+    "target": "ProcessingPurpose",
+    "message": "International personal-data transfers retain an explicit safeguards assessment.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:internationalTransfer true. FILTER NOT EXISTS {$this cd:transferSafeguardEvidence ?e} }"
+  },
+  {
+    "id": "B157",
+    "target": "AccessDecision",
+    "message": "Permission decisions require an active time-valid grant to the same principal and explicit record scope.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} }"
+  },
+  {
+    "id": "B158",
+    "target": "EvidenceVerification",
+    "message": "Valid artifact verification retains a matching computed digest and verification evidence.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:verificationState cd:verificationState_Valid; cd:artifact/cd:contentDigest ?expected. FILTER(!EXISTS {$this cd:computedDigest ?expected} || !EXISTS {$this cd:verificationEvidence ?e}) }"
+  },
+  {
+    "id": "B159",
+    "target": "ServiceLevelCommitment",
+    "message": "Availability commitments use a proportion between zero and one.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:targetFraction ?v. FILTER(?v<0 || ?v>1) }"
+  },
+  {
+    "id": "B160",
+    "target": "ServiceLevelBreach",
+    "message": "Closed service breaches retain completed remediation or a contractual remedy.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:breachState cd:breachState_Closed. FILTER(!EXISTS {$this cd:workOrder/cd:workState cd:workState_Completed} && !EXISTS {$this cd:remedyRecord ?r}) }"
+  },
+  {
+    "id": "B161",
+    "target": "RecoveryExercise",
+    "message": "A passed recovery rehearsal meets both time and data-loss objectives.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:recoveryResult cd:recoveryResult_Passed; cd:recoveryTimeObjectiveSeconds ?rto; cd:recoveryPointObjectiveSeconds ?rpo; cd:achievedRecoverySeconds ?time; cd:achievedDataLossSeconds ?loss. FILTER(?time>?rto || ?loss>?rpo) }"
+  },
+  {
+    "id": "B162",
+    "target": "MigrationBatch",
+    "message": "Completed migration reconciles all expected records without rejects and revokes obsolete source credentials.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:migrationState cd:migrationState_Completed; cd:expectedRecordCount ?e; cd:migratedRecordCount ?m; cd:rejectedRecordCount ?r; cd:sourceCredentialsRevoked ?revoked. FILTER(?e!=?m || ?r!=0 || !?revoked || !EXISTS {$this cd:reconciliationEvidence ?x}) }"
+  },
+  {
+    "id": "B163",
+    "target": "LifecycleSnapshot",
+    "message": "Current lifecycle snapshots agree with the current subject state and any cited transition.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:targetRecord ?r; cd:stateProperty ?p; cd:stateValue ?v; cd:effectiveAt ?time; cd:snapshotKind ?kind. FILTER((?kind=cd:snapshotKind_Current && !EXISTS {?r ?p ?v}) || EXISTS {$this cd:basisTransition ?t. FILTER NOT EXISTS {?t cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?v; cd:transitionedAt ?at. FILTER(?at<=?time)}}) }"
+  },
+  {
+    "id": "B164",
+    "target": "StateTransition",
+    "message": "Chained transitions preserve record, property, state continuity and nondecreasing event time.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)} }"
+  },
+  {
+    "id": "B165",
+    "target": "ProtocolProfile",
+    "message": "An adapter cannot declare a feature both supported and unsupported.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:supportedFeature ?f; cd:unsupportedFeature ?f. }"
+  },
+  {
+    "id": "B166",
+    "target": "ProcessExecution",
+    "message": "Completed business journeys retain evidence and only successfully completed, compensated or explicitly skipped steps.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:processState cd:processState_Completed. FILTER(!EXISTS {$this cd:processEvidence ?e} || EXISTS {$this cd:processStep/cd:stepState ?s. FILTER(?s NOT IN (cd:stepState_Succeeded,cd:stepState_Compensated,cd:stepState_Skipped))}) }"
+  },
+  {
+    "id": "B167",
+    "target": "ProcessStep",
+    "message": "Successful steps have output and evidence; compensated steps identify their compensating record.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:stepState ?s. FILTER((?s=cd:stepState_Succeeded && (!EXISTS {$this cd:outputRecord ?o} || !EXISTS {$this cd:stepEvidence ?e})) || (?s=cd:stepState_Compensated && !EXISTS {$this cd:compensationRecord ?c})) }"
+  },
+  {
+    "id": "B168",
+    "target": "ProcessExecution",
+    "message": "Step sequence numbers are unique within a business journey.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:processStep ?a,?b. ?a cd:stepSequence ?n. ?b cd:stepSequence ?n. FILTER(?a!=?b) }"
+  },
+  {
+    "id": "B169",
+    "target": "CreditNote",
+    "message": "Credit-note currency and issuer match the original invoice and cumulative credits stay within its gross amount.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:currency ?cur; cd:issuer ?issuer; cd:originalInvoice ?i. FILTER(!EXISTS {?i cd:currency ?cur; cd:issuer ?issuer} || EXISTS {?i cd:grossAmount ?limit. {SELECT ?i (SUM(?v) AS ?total) WHERE {?note a cd:CreditNote; cd:originalInvoice ?i; cd:creditAmount ?v} GROUP BY ?i} FILTER(?total>?limit)}) }"
+  },
+  {
+    "id": "B170",
+    "target": "AllowanceBalance",
+    "message": "Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:openingValue ?o; cd:grantedValue ?g; cd:consumedValue ?c; cd:reservedValue ?r; cd:expiredValue ?e; cd:closingValue ?b. FILTER(?o<0 || ?g<0 || ?c<0 || ?r<0 || ?e<0 || ?b<0 || ?b!=?o+?g-?c-?r-?e) }"
+  },
+  {
+    "id": "B171",
+    "target": "AllowanceBalance",
+    "message": "Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) }"
+  },
+  {
+    "id": "B172",
+    "target": "AllowanceBalance",
+    "message": "Money-denominated allowances identify a currency instead of being treated as energy credits.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:allowance/cd:allowanceDimension cd:allowanceDimension_Money. FILTER NOT EXISTS {$this cd:currency ?c} }"
   }
 ]

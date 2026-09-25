@@ -605,6 +605,12 @@
       "BillingProfile"
     ]
   ],
+  "accountClosure": [
+    [
+      "object",
+      "AccountClosure"
+    ]
+  ],
   "groupName": [
     [
       "datatype",
@@ -1119,6 +1125,18 @@
       "ChargingProfile"
     ]
   ],
+  "assetLifecycle": [
+    [
+      "enum",
+      "AssetLifecycleCode"
+    ]
+  ],
+  "operationalAcceptance": [
+    [
+      "object",
+      "OperationalAcceptance"
+    ]
+  ],
   "station": [
     [
       "object",
@@ -1357,6 +1375,12 @@
     [
       "datatype",
       "string"
+    ]
+  ],
+  "protocolProfile": [
+    [
+      "object",
+      "ProtocolProfile"
     ]
   ],
   "componentName": [
@@ -1989,6 +2013,18 @@
       "Reservation"
     ]
   ],
+  "commercialResponsibility": [
+    [
+      "object",
+      "CommercialResponsibility"
+    ]
+  ],
+  "billingReadiness": [
+    [
+      "object",
+      "BillingReadinessAssessment"
+    ]
+  ],
   "endpoint": [
     [
       "object",
@@ -2183,6 +2219,18 @@
     [
       "object",
       "ReimbursementRecord"
+    ]
+  ],
+  "recordKind": [
+    [
+      "enum",
+      "RecordKindCode"
+    ]
+  ],
+  "originalChargeRecord": [
+    [
+      "object",
+      "ChargeDetailRecord"
     ]
   ],
   "tariffName": [
@@ -2833,6 +2881,12 @@
       "DocumentNumberSequence"
     ]
   ],
+  "financialOwner": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
   "lineDescription": [
     [
       "datatype",
@@ -3071,6 +3125,12 @@
     [
       "enum",
       "CaptureStateCode"
+    ]
+  ],
+  "paymentAllocation": [
+    [
+      "object",
+      "PaymentAllocation"
     ]
   ],
   "refundAmount": [
@@ -3461,6 +3521,12 @@
       "decimal"
     ]
   ],
+  "allowanceBalance": [
+    [
+      "object",
+      "AllowanceBalance"
+    ]
+  ],
   "energyAllowanceKWh": [
     [
       "datatype",
@@ -3569,6 +3635,18 @@
       "CustomFee"
     ]
   ],
+  "agreementState": [
+    [
+      "enum",
+      "AgreementStateCode"
+    ]
+  ],
+  "governingPolicyVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
   "revenueBasis": [
     [
       "enum",
@@ -3663,6 +3741,24 @@
     [
       "datatype",
       "string"
+    ]
+  ],
+  "expectedIdentifier": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "accountableParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "reconciliationResolution": [
+    [
+      "object",
+      "ReconciliationResolution"
     ]
   ],
   "partner": [
@@ -3833,10 +3929,20 @@
       "Payout"
     ]
   ],
+  "reimbursementApproval": [
+    [
+      "object",
+      "ReimbursementApproval"
+    ]
+  ],
   "payer": [
     [
       "object",
       "LegalEntity"
+    ],
+    [
+      "object",
+      "Record"
     ]
   ],
   "reimbursementRecord": [
@@ -4769,6 +4875,12 @@
       "EvidenceDocument"
     ]
   ],
+  "legalHold": [
+    [
+      "object",
+      "LegalHold"
+    ]
+  ],
   "assessedRecord": [
     [
       "object",
@@ -5181,6 +5293,18 @@
     [
       "datatype",
       "dateTime"
+    ]
+  ],
+  "previousTransition": [
+    [
+      "object",
+      "StateTransition"
+    ]
+  ],
+  "transitionSequence": [
+    [
+      "datatype",
+      "positiveInteger"
     ]
   ],
   "discountBasis": [
@@ -5631,6 +5755,1254 @@
     [
       "datatype",
       "string"
+    ]
+  ],
+  "obligatedParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "entitledParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "obligationScope": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "obligationKind": [
+    [
+      "enum",
+      "ObligationKindCode"
+    ]
+  ],
+  "obligationState": [
+    [
+      "enum",
+      "ObligationStateCode"
+    ]
+  ],
+  "obligationPolicyVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "contractObligation": [
+    [
+      "object",
+      "ContractObligation"
+    ]
+  ],
+  "assessmentOutcome": [
+    [
+      "enum",
+      "AssessmentOutcomeCode"
+    ]
+  ],
+  "decisionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "agreementAction": [
+    [
+      "enum",
+      "AgreementActionCode"
+    ]
+  ],
+  "successorAgreement": [
+    [
+      "object",
+      "ServiceAgreement"
+    ]
+  ],
+  "residualLiabilityOwner": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "settlementCutoff": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "approvalState": [
+    [
+      "enum",
+      "ApprovalStateCode"
+    ]
+  ],
+  "approvedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "openDifferenceCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "approvalEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "employer": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "entitledAccount": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "approvedEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "approvedRate": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "approvedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "entitlementState": [
+    [
+      "enum",
+      "EntitlementStateCode"
+    ]
+  ],
+  "closureState": [
+    [
+      "enum",
+      "ClosureStateCode"
+    ]
+  ],
+  "openLiabilityAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "revokedGrantCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "activeGrantCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "closureEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "assetAction": [
+    [
+      "enum",
+      "AssetActionCode"
+    ]
+  ],
+  "assetEventEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "replacementStation": [
+    [
+      "object",
+      "ChargingStation"
+    ]
+  ],
+  "openSessionCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "acceptanceState": [
+    [
+      "enum",
+      "AcceptanceStateCode"
+    ]
+  ],
+  "safetyAccepted": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "protocolAccepted": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "meteringAccepted": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "acceptedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "acceptanceEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "connector": [
+    [
+      "object",
+      "Connector"
+    ]
+  ],
+  "compatibilityState": [
+    [
+      "enum",
+      "CompatibilityStateCode"
+    ]
+  ],
+  "currentTypeMatch": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "voltageMatch": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "connectorTypeMatch": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "offeredBy": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "offeredTo": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "offerMode": [
+    [
+      "enum",
+      "OfferModeCode"
+    ]
+  ],
+  "registrationRequired": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "offerEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "commercialOffer": [
+    [
+      "object",
+      "CommercialOffer"
+    ]
+  ],
+  "serviceSupplier": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "merchantOfRecord": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "taxLiableParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "collectingParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "responsibilityScope": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "responsibilityEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "cacheAgeSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "maximumCacheAgeSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "credentialRevoked": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "unknownCredential": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "permitUnknownCredential": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "exposureAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumExposureAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "offlineDecision": [
+    [
+      "enum",
+      "OfflineDecisionCode"
+    ]
+  ],
+  "processingContextKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "processingState": [
+    [
+      "enum",
+      "ProcessingStateCode"
+    ]
+  ],
+  "payloadDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "businessEffect": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "duplicateOf": [
+    [
+      "object",
+      "EventProcessingOutcome"
+    ]
+  ],
+  "processedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "quarantineReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "registerIdentifier": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "multiplier": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "epochEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "registerEpoch": [
+    [
+      "object",
+      "MeterRegisterEpoch"
+    ]
+  ],
+  "startReading": [
+    [
+      "object",
+      "MeterObservation"
+    ]
+  ],
+  "endReading": [
+    [
+      "object",
+      "MeterObservation"
+    ]
+  ],
+  "deltaValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "deltaBasis": [
+    [
+      "enum",
+      "DeltaBasisCode"
+    ]
+  ],
+  "resetDetected": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "deltaEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "readinessState": [
+    [
+      "enum",
+      "ReadinessStateCode"
+    ]
+  ],
+  "usageComplete": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "priceResolved": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "taxResolved": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "authorizationResolved": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "responsibilityResolved": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "openBlockingIssueCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "readinessEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "originalRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "correctingRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "correctionReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "correctionKind": [
+    [
+      "enum",
+      "CorrectionKindCode"
+    ]
+  ],
+  "correctionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "notifiedParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "debtor": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "creditor": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "originalAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "creditedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "collectedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "writtenOffAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "outstandingAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "positionState": [
+    [
+      "enum",
+      "PositionStateCode"
+    ]
+  ],
+  "sourceRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "financialPosition": [
+    [
+      "object",
+      "FinancialPosition"
+    ]
+  ],
+  "allocatedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "allocationState": [
+    [
+      "enum",
+      "AllocationStateCode"
+    ]
+  ],
+  "allocatedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "allocationEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "reconciliationCase": [
+    [
+      "object",
+      "ReconciliationCase"
+    ]
+  ],
+  "resolutionKind": [
+    [
+      "enum",
+      "ResolutionKindCode"
+    ]
+  ],
+  "resolutionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "correction": [
+    [
+      "object",
+      "RecordCorrection"
+    ]
+  ],
+  "disputedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "claimant": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "disputeCaseState": [
+    [
+      "enum",
+      "DisputeCaseStateCode"
+    ]
+  ],
+  "remedyRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "actionKind": [
+    [
+      "enum",
+      "ActionKindCode"
+    ]
+  ],
+  "actionAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "serviceDispute": [
+    [
+      "object",
+      "ServiceDispute"
+    ]
+  ],
+  "actionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "reservedValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "consumption": [
+    [
+      "object",
+      "AllowanceConsumption"
+    ]
+  ],
+  "feasiblePowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "safetyLimitKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "contractualLimitKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "controlDecision": [
+    [
+      "enum",
+      "ControlDecisionCode"
+    ]
+  ],
+  "overrideAuthorization": [
+    [
+      "object",
+      "OverrideAuthorization"
+    ]
+  ],
+  "exportAgreement": [
+    [
+      "object",
+      "ExportAgreement"
+    ]
+  ],
+  "controlEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "authorizedBy": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "authorizedScope": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "overrideEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "energySupplier": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "exportPermitted": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "exportMeter": [
+    [
+      "object",
+      "ElectricityMeter"
+    ]
+  ],
+  "exportBeneficiary": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "identityVerified": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "legalBasisAssessment": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "responsibleController": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "responseEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "refusalReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "heldRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "holdingParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "reviewAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "holdState": [
+    [
+      "enum",
+      "HoldStateCode"
+    ]
+  ],
+  "releasedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "holdEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "controller": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "processor": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "purposeDescription": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "lawfulBasis": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "dataCategory": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "processingScope": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "internationalTransfer": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "transferSafeguardEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "accessDecision": [
+    [
+      "enum",
+      "AccessDecisionCode"
+    ]
+  ],
+  "checkedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "computedDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "verifier": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "verificationEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "targetFraction": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "measurementWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "exclusionPolicyVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "serviceLevelCommitment": [
+    [
+      "object",
+      "ServiceLevelCommitment"
+    ]
+  ],
+  "availabilityResult": [
+    [
+      "object",
+      "AvailabilityResult"
+    ]
+  ],
+  "breachState": [
+    [
+      "enum",
+      "BreachStateCode"
+    ]
+  ],
+  "detectedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "workOrder": [
+    [
+      "object",
+      "WorkOrder"
+    ]
+  ],
+  "breachEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "recoveryTimeObjectiveSeconds": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "recoveryPointObjectiveSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "achievedRecoverySeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "achievedDataLossSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "exercisedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "recoveryEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "supportedFeature": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "unsupportedFeature": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "adapterVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "protocolRole": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "mappingEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "unknownFieldPolicy": [
+    [
+      "enum",
+      "UnknownFieldPolicyCode"
+    ]
+  ],
+  "targetSystem": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "expectedRecordCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "migratedRecordCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "rejectedRecordCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "migrationState": [
+    [
+      "enum",
+      "MigrationStateCode"
+    ]
+  ],
+  "reconciliationEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "sourceCredentialsRevoked": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "stateValue": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "snapshotKind": [
+    [
+      "enum",
+      "SnapshotKindCode"
+    ]
+  ],
+  "basisTransition": [
+    [
+      "object",
+      "StateTransition"
+    ]
+  ],
+  "processKind": [
+    [
+      "enum",
+      "ProcessKindCode"
+    ]
+  ],
+  "processState": [
+    [
+      "enum",
+      "ProcessStateCode"
+    ]
+  ],
+  "subjectRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "processStep": [
+    [
+      "object",
+      "ProcessStep"
+    ]
+  ],
+  "processEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "stepSequence": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "stepKind": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "stepState": [
+    [
+      "enum",
+      "StepStateCode"
+    ]
+  ],
+  "inputRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "outputRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "compensationRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "stepEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "previousStep": [
+    [
+      "object",
+      "ProcessStep"
+    ]
+  ],
+  "openingValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "grantedValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "expiredValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "closingValue": [
+    [
+      "datatype",
+      "decimal"
     ]
   ]
 }

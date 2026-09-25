@@ -8,11 +8,14 @@ cd:CreditNote a owl:Class ;
     rdfs:label "Credit Note"@en ;
     rdfs:comment "Accounting correction linked to an original invoice, separate from refund execution."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:creditAmount ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:creditNumber ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:issuedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:creditAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:artifact ],
@@ -20,17 +23,14 @@ cd:CreditNote a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:creditReason ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:creditNumber ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:issuer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Invoice ;
             owl:onProperty cd:originalInvoice ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:issuer ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -39,29 +39,29 @@ cd:CustomFee a owl:Class ;
     rdfs:label "Custom Fee"@en ;
     rdfs:comment "Explicit non-session fee tied to a customer and accounting basis."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:feeReason ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:assessedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:netAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:grossAmount ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:assessedAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:feeReason ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:TaxDetermination ;
             owl:onProperty cd:taxDetermination ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:taxAmount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -70,17 +70,8 @@ cd:FiscalizationAttempt a owl:Class ;
     rdfs:label "Fiscalization Attempt"@en ;
     rdfs:comment "Attempt to submit an invoice to a fiscal authority, with retry and authority outcome."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:attemptNumber ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:authorityReference ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:fiscalDocument ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:FiscalizationStateCode ;
-            owl:onProperty cd:fiscalizationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:attemptedAt ],
@@ -88,11 +79,20 @@ cd:FiscalizationAttempt a owl:Class ;
             owl:allValuesFrom cd:Invoice ;
             owl:onProperty cd:invoice ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:integration ],
+            owl:allValuesFrom cd:FiscalizationStateCode ;
+            owl:onProperty cd:fiscalizationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:failureCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:authorityReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:attemptNumber ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integration ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -101,35 +101,35 @@ cd:RatingCalculation a owl:Class ;
     rdfs:label "Rating Calculation"@en ;
     rdfs:comment "Versioned calculation of a session charge from immutable tariff and usage inputs."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:calculatedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffResolution ;
-            owl:onProperty cd:tariffResolution ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:ratingVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:taxAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:netAmount ],
+            owl:allValuesFrom cd:TariffResolution ;
+            owl:onProperty cd:tariffResolution ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:selectedTariff ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:ratingVersion ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSession ;
             owl:onProperty cd:session ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:calculatedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:grossAmount ],
+            owl:onProperty cd:netAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RatedLine ;
             owl:onProperty cd:ratedLine ],
@@ -141,26 +141,26 @@ cd:Receipt a owl:Class ;
     rdfs:label "Receipt"@en ;
     rdfs:comment "Evidence of a monetary receipt tied to payment capture and optional invoice."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:artifact ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:issuedAt ],
+            owl:allValuesFrom cd:Invoice ;
+            owl:onProperty cd:invoice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:receiptNumber ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:receivedAmount ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentCapture ;
             owl:onProperty cd:paymentCapture ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Invoice ;
-            owl:onProperty cd:invoice ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:artifact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:issuedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:receivedAmount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -175,14 +175,14 @@ cd:BillingProfile a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:receiptEmail ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:billingParty ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:billToName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Address ;
             owl:onProperty cd:billToAddress ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:billToName ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:billingParty ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -197,14 +197,14 @@ cd:DocumentNumberSequence a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:numberPrefix ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:numberWidth ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:DocumentKindCode ;
             owl:onProperty cd:documentKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:issuer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:numberWidth ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -213,35 +213,35 @@ cd:InvoiceLine a owl:Class ;
     rdfs:label "Invoice Line"@en ;
     rdfs:comment "Invoice line linked to rated or contractual supply evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:RatedLine ;
-            owl:onProperty cd:ratedLine ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:unitPrice ],
+            owl:onProperty cd:quantityValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargeDetailRecord ;
             owl:onProperty cd:chargeRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:quantityValue ],
+            owl:onProperty cd:taxAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:grossAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:lineDescription ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:netAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:allValuesFrom cd:RatedLine ;
+            owl:onProperty cd:ratedLine ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ServiceAgreement ;
             owl:onProperty cd:serviceAgreement ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:taxAmount ],
+            owl:onProperty cd:netAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:unitPrice ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:lineDescription ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -251,25 +251,25 @@ cd:TaxRule a owl:Class ;
     rdfs:comment "Versioned tax rule selected by jurisdiction and supply context; not a global VAT default."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:jurisdictionCode ],
+            owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:taxName ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:taxFraction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TaxIdentifier ;
+            owl:onProperty cd:taxIdentifier ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:taxCategory ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TaxIdentifier ;
-            owl:onProperty cd:taxIdentifier ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:jurisdictionCode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -278,6 +278,9 @@ cd:RatedLine a owl:Class ;
     rdfs:label "Rated Line"@en ;
     rdfs:comment "Priced usage or fee component with quantity, rounding and tax evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:netAmount ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:PriceComponent ;
             owl:onProperty cd:priceComponent ],
         [ a owl:Restriction ;
@@ -288,25 +291,22 @@ cd:RatedLine a owl:Class ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:netAmount ],
+            owl:onProperty cd:grossAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:grossAmount ],
+            owl:onProperty cd:quantityValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TaxDetermination ;
             owl:onProperty cd:taxDetermination ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:quantityValue ],
+            owl:allValuesFrom cd:RoundingPolicy ;
+            owl:onProperty cd:roundingPolicy ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:unitPrice ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingInterval ;
             owl:onProperty cd:chargingInterval ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RoundingPolicy ;
-            owl:onProperty cd:roundingPolicy ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -324,20 +324,20 @@ cd:TaxDetermination a owl:Class ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:customerParty ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:supplier ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:taxBasisAmount ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:supplier ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TaxRule ;
             owl:onProperty cd:taxRule ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxBasisAmount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -346,12 +346,6 @@ cd:TaxIdentifier a owl:Class ;
     rdfs:label "Tax Identifier"@en ;
     rdfs:comment "Tax registration identifier qualified by issuing jurisdiction and identifier type."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:party ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:taxIdentifierType ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:taxNumber ],
         [ a owl:Restriction ;
@@ -360,6 +354,12 @@ cd:TaxIdentifier a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:VerificationStateCode ;
             owl:onProperty cd:verificationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:taxIdentifierType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:party ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .
@@ -368,41 +368,47 @@ cd:Invoice a owl:Class ;
     rdfs:label "Invoice"@en ;
     rdfs:comment "Issued or draft accounting document with independent lifecycle and issuer numbering."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:taxAmount ],
+            owl:allValuesFrom cd:DocumentNumberSequence ;
+            owl:onProperty cd:numberSequence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:issuer ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:netAmount ],
+            owl:onProperty cd:grossAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:invoiceNumber ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:grossAmount ],
+            owl:onProperty cd:netAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:dueAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:DocumentNumberSequence ;
-            owl:onProperty cd:numberSequence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:InvoiceStateCode ;
-            owl:onProperty cd:invoiceState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:BillingProfile ;
-            owl:onProperty cd:billingProfile ],
+            owl:allValuesFrom cd:InvoiceLine ;
+            owl:onProperty cd:invoiceLine ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:issuer ],
+            owl:onProperty cd:financialOwner ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:issuedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:InvoiceLine ;
-            owl:onProperty cd:invoiceLine ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:dueAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:InvoiceStateCode ;
+            owl:onProperty cd:invoiceState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BillingProfile ;
+            owl:onProperty cd:billingProfile ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CommercialResponsibility ;
+            owl:onProperty cd:commercialResponsibility ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "billing-tax" .

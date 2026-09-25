@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:LifecycleSnapshot . ?this cd:targetRecord ?r; cd:stateProperty ?p; cd:stateValue ?v; cd:effectiveAt ?time; cd:snapshotKind ?kind. FILTER((?kind=cd:snapshotKind_Current && !EXISTS {?r ?p ?v}) || EXISTS {?this cd:basisTransition ?t. FILTER NOT EXISTS {?t cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?v; cd:transitionedAt ?at. FILTER(?at<=?time)}}) }

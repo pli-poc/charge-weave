@@ -13,6 +13,12 @@ cd:SelectionStrategyCode a owl:Class ;
 cd:selectionStrategyScheme a skos:ConceptScheme ;
     skos:prefLabel "selection Strategy"@en .
 
+cd:AccessDecisionCode a owl:Class ;
+    rdfs:label "access Decision code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:accessDecision_Deny cd:accessDecision_Permit ) ] .
+
 cd:ApprovalDecisionCode a owl:Class ;
     rdfs:label "approval Decision code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -49,6 +55,12 @@ cd:DeliveryTransportCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:deliveryTransport_Kafka cd:deliveryTransport_Webhook ) ] .
 
+cd:DeltaBasisCode a owl:Class ;
+    rdfs:label "delta Basis code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:deltaBasis_Estimated cd:deltaBasis_Measured ) ] .
+
 cd:DirectionCode a owl:Class ;
     rdfs:label "direction code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -72,6 +84,12 @@ cd:FilterStateCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:filterState_Active cd:filterState_Disabled ) ] .
+
+cd:OfflineDecisionCode a owl:Class ;
+    rdfs:label "offline Decision code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:offlineDecision_Allow cd:offlineDecision_Deny ) ] .
 
 cd:OutcomeKindCode a owl:Class ;
     rdfs:label "outcome Kind code"@en ;
@@ -103,6 +121,12 @@ cd:PrincipalStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:principalState_Disabled cd:principalState_Enabled ) ] .
 
+cd:RecordKindCode a owl:Class ;
+    rdfs:label "record Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:recordKind_Credit cd:recordKind_Debit ) ] .
+
 cd:RecordOriginCode a owl:Class ;
     rdfs:label "record Origin code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -127,6 +151,12 @@ cd:ScheduleUnitCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:scheduleUnit_A cd:scheduleUnit_kW ) ] .
 
+cd:SnapshotKindCode a owl:Class ;
+    rdfs:label "snapshot Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:snapshotKind_Current cd:snapshotKind_Historical ) ] .
+
 cd:TierModeCode a owl:Class ;
     rdfs:label "tier Mode code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -138,6 +168,39 @@ cd:ValidityModeCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:validityMode_DaysAfterRedemption cd:validityMode_FixedWindow ) ] .
+
+cd:acceptanceState_Accepted a owl:NamedIndividual,
+        skos:Concept,
+        cd:AcceptanceStateCode ;
+    skos:inScheme cd:acceptanceStateScheme ;
+    skos:prefLabel "Accepted"@en .
+
+cd:acceptanceState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:AcceptanceStateCode ;
+    skos:inScheme cd:acceptanceStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:acceptanceState_Rejected a owl:NamedIndividual,
+        skos:Concept,
+        cd:AcceptanceStateCode ;
+    skos:inScheme cd:acceptanceStateScheme ;
+    skos:prefLabel "Rejected"@en .
+
+cd:accessDecisionScheme a skos:ConceptScheme ;
+    skos:prefLabel "access Decision"@en .
+
+cd:accessDecision_Deny a owl:NamedIndividual,
+        skos:Concept,
+        cd:AccessDecisionCode ;
+    skos:inScheme cd:accessDecisionScheme ;
+    skos:prefLabel "Deny"@en .
+
+cd:accessDecision_Permit a owl:NamedIndividual,
+        skos:Concept,
+        cd:AccessDecisionCode ;
+    skos:inScheme cd:accessDecisionScheme ;
+    skos:prefLabel "Permit"@en .
 
 cd:accessMode_AllowList a owl:NamedIndividual,
         skos:Concept,
@@ -289,6 +352,30 @@ cd:accountState_Suspended a owl:NamedIndividual,
     skos:inScheme cd:accountStateScheme ;
     skos:prefLabel "Suspended"@en .
 
+cd:actionKind_Escalate a owl:NamedIndividual,
+        skos:Concept,
+        cd:ActionKindCode ;
+    skos:inScheme cd:actionKindScheme ;
+    skos:prefLabel "Escalate"@en .
+
+cd:actionKind_Reminder a owl:NamedIndividual,
+        skos:Concept,
+        cd:ActionKindCode ;
+    skos:inScheme cd:actionKindScheme ;
+    skos:prefLabel "Reminder"@en .
+
+cd:actionKind_Suspend a owl:NamedIndividual,
+        skos:Concept,
+        cd:ActionKindCode ;
+    skos:inScheme cd:actionKindScheme ;
+    skos:prefLabel "Suspend"@en .
+
+cd:actionKind_WriteOff a owl:NamedIndividual,
+        skos:Concept,
+        cd:ActionKindCode ;
+    skos:inScheme cd:actionKindScheme ;
+    skos:prefLabel "Write Off"@en .
+
 cd:activationState_Accepted a owl:NamedIndividual,
         skos:Concept,
         cd:ActivationStateCode ;
@@ -409,6 +496,108 @@ cd:affectedDimension_Total a owl:NamedIndividual,
     skos:inScheme cd:affectedDimensionScheme ;
     skos:prefLabel "Total"@en .
 
+cd:agreementAction_Accept a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Accept"@en .
+
+cd:agreementAction_Amend a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Amend"@en .
+
+cd:agreementAction_Expire a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Expire"@en .
+
+cd:agreementAction_Offer a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Offer"@en .
+
+cd:agreementAction_Renew a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Renew"@en .
+
+cd:agreementAction_Resume a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Resume"@en .
+
+cd:agreementAction_Suspend a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Suspend"@en .
+
+cd:agreementAction_Terminate a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementActionCode ;
+    skos:inScheme cd:agreementActionScheme ;
+    skos:prefLabel "Terminate"@en .
+
+cd:agreementState_Active a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Active"@en .
+
+cd:agreementState_Draft a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Draft"@en .
+
+cd:agreementState_Expired a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Expired"@en .
+
+cd:agreementState_Offered a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Offered"@en .
+
+cd:agreementState_Suspended a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Suspended"@en .
+
+cd:agreementState_Terminated a owl:NamedIndividual,
+        skos:Concept,
+        cd:AgreementStateCode ;
+    skos:inScheme cd:agreementStateScheme ;
+    skos:prefLabel "Terminated"@en .
+
+cd:allocationState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:AllocationStateCode ;
+    skos:inScheme cd:allocationStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:allocationState_Posted a owl:NamedIndividual,
+        skos:Concept,
+        cd:AllocationStateCode ;
+    skos:inScheme cd:allocationStateScheme ;
+    skos:prefLabel "Posted"@en .
+
+cd:allocationState_Reversed a owl:NamedIndividual,
+        skos:Concept,
+        cd:AllocationStateCode ;
+    skos:inScheme cd:allocationStateScheme ;
+    skos:prefLabel "Reversed"@en .
+
 cd:allowanceDimension_Energy a owl:NamedIndividual,
         skos:Concept,
         cd:AllowanceDimensionCode ;
@@ -472,6 +661,42 @@ cd:approvalDecision_Rejected a owl:NamedIndividual,
     skos:inScheme cd:approvalDecisionScheme ;
     skos:prefLabel "Rejected"@en .
 
+cd:approvalState_Approved a owl:NamedIndividual,
+        skos:Concept,
+        cd:ApprovalStateCode ;
+    skos:inScheme cd:approvalStateScheme ;
+    skos:prefLabel "Approved"@en .
+
+cd:approvalState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:ApprovalStateCode ;
+    skos:inScheme cd:approvalStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:approvalState_Rejected a owl:NamedIndividual,
+        skos:Concept,
+        cd:ApprovalStateCode ;
+    skos:inScheme cd:approvalStateScheme ;
+    skos:prefLabel "Rejected"@en .
+
+cd:assessmentOutcome_Satisfied a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssessmentOutcomeCode ;
+    skos:inScheme cd:assessmentOutcomeScheme ;
+    skos:prefLabel "Satisfied"@en .
+
+cd:assessmentOutcome_Unsatisfied a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssessmentOutcomeCode ;
+    skos:inScheme cd:assessmentOutcomeScheme ;
+    skos:prefLabel "Unsatisfied"@en .
+
+cd:assessmentOutcome_Waived a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssessmentOutcomeCode ;
+    skos:inScheme cd:assessmentOutcomeScheme ;
+    skos:prefLabel "Waived"@en .
+
 cd:assessmentResult_Conforming a owl:NamedIndividual,
         skos:Concept,
         cd:AssessmentResultCode ;
@@ -495,6 +720,96 @@ cd:assessmentResult_Unassessed a owl:NamedIndividual,
         cd:AssessmentResultCode ;
     skos:inScheme cd:assessmentResultScheme ;
     skos:prefLabel "Unassessed"@en .
+
+cd:assetAction_Activate a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Activate"@en .
+
+cd:assetAction_Commission a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Commission"@en .
+
+cd:assetAction_Decommission a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Decommission"@en .
+
+cd:assetAction_Dispose a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Dispose"@en .
+
+cd:assetAction_Install a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Install"@en .
+
+cd:assetAction_Relocate a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Relocate"@en .
+
+cd:assetAction_Replace a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Replace"@en .
+
+cd:assetAction_Suspend a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetActionCode ;
+    skos:inScheme cd:assetActionScheme ;
+    skos:prefLabel "Suspend"@en .
+
+cd:assetLifecycle_Commissioned a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Commissioned"@en .
+
+cd:assetLifecycle_Decommissioned a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Decommissioned"@en .
+
+cd:assetLifecycle_Disposed a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Disposed"@en .
+
+cd:assetLifecycle_Installed a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Installed"@en .
+
+cd:assetLifecycle_Operating a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Operating"@en .
+
+cd:assetLifecycle_Planned a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Planned"@en .
+
+cd:assetLifecycle_Suspended a owl:NamedIndividual,
+        skos:Concept,
+        cd:AssetLifecycleCode ;
+    skos:inScheme cd:assetLifecycleScheme ;
+    skos:prefLabel "Suspended"@en .
 
 cd:assetState_Active a owl:NamedIndividual,
         skos:Concept,
@@ -732,6 +1047,30 @@ cd:bookingState_NoShow a owl:NamedIndividual,
         cd:BookingStateCode ;
     skos:inScheme cd:bookingStateScheme ;
     skos:prefLabel "No Show"@en .
+
+cd:breachState_Acknowledged a owl:NamedIndividual,
+        skos:Concept,
+        cd:BreachStateCode ;
+    skos:inScheme cd:breachStateScheme ;
+    skos:prefLabel "Acknowledged"@en .
+
+cd:breachState_Closed a owl:NamedIndividual,
+        skos:Concept,
+        cd:BreachStateCode ;
+    skos:inScheme cd:breachStateScheme ;
+    skos:prefLabel "Closed"@en .
+
+cd:breachState_Open a owl:NamedIndividual,
+        skos:Concept,
+        cd:BreachStateCode ;
+    skos:inScheme cd:breachStateScheme ;
+    skos:prefLabel "Open"@en .
+
+cd:breachState_Remediated a owl:NamedIndividual,
+        skos:Concept,
+        cd:BreachStateCode ;
+    skos:inScheme cd:breachStateScheme ;
+    skos:prefLabel "Remediated"@en .
 
 cd:businessRole_AssetOwner a owl:NamedIndividual,
         skos:Concept,
@@ -1021,6 +1360,30 @@ cd:channelKind_Terminal a owl:NamedIndividual,
     skos:inScheme cd:channelKindScheme ;
     skos:prefLabel "Terminal"@en .
 
+cd:closureState_Blocked a owl:NamedIndividual,
+        skos:Concept,
+        cd:ClosureStateCode ;
+    skos:inScheme cd:closureStateScheme ;
+    skos:prefLabel "Blocked"@en .
+
+cd:closureState_Cancelled a owl:NamedIndividual,
+        skos:Concept,
+        cd:ClosureStateCode ;
+    skos:inScheme cd:closureStateScheme ;
+    skos:prefLabel "Cancelled"@en .
+
+cd:closureState_Completed a owl:NamedIndividual,
+        skos:Concept,
+        cd:ClosureStateCode ;
+    skos:inScheme cd:closureStateScheme ;
+    skos:prefLabel "Completed"@en .
+
+cd:closureState_Requested a owl:NamedIndividual,
+        skos:Concept,
+        cd:ClosureStateCode ;
+    skos:inScheme cd:closureStateScheme ;
+    skos:prefLabel "Requested"@en .
+
 cd:commandState_Accepted a owl:NamedIndividual,
         skos:Concept,
         cd:CommandStateCode ;
@@ -1152,6 +1515,24 @@ cd:comparisonOperator_NotIn a owl:NamedIndividual,
         cd:ComparisonOperatorCode ;
     skos:inScheme cd:comparisonOperatorScheme ;
     skos:prefLabel "Not In"@en .
+
+cd:compatibilityState_Compatible a owl:NamedIndividual,
+        skos:Concept,
+        cd:CompatibilityStateCode ;
+    skos:inScheme cd:compatibilityStateScheme ;
+    skos:prefLabel "Compatible"@en .
+
+cd:compatibilityState_Incompatible a owl:NamedIndividual,
+        skos:Concept,
+        cd:CompatibilityStateCode ;
+    skos:inScheme cd:compatibilityStateScheme ;
+    skos:prefLabel "Incompatible"@en .
+
+cd:compatibilityState_Unknown a owl:NamedIndividual,
+        skos:Concept,
+        cd:CompatibilityStateCode ;
+    skos:inScheme cd:compatibilityStateScheme ;
+    skos:prefLabel "Unknown"@en .
 
 cd:completeness_Complete a owl:NamedIndividual,
         skos:Concept,
@@ -1402,6 +1783,24 @@ cd:contentState_Published a owl:NamedIndividual,
     skos:inScheme cd:contentStateScheme ;
     skos:prefLabel "Published"@en .
 
+cd:controlDecision_Accepted a owl:NamedIndividual,
+        skos:Concept,
+        cd:ControlDecisionCode ;
+    skos:inScheme cd:controlDecisionScheme ;
+    skos:prefLabel "Accepted"@en .
+
+cd:controlDecision_Limited a owl:NamedIndividual,
+        skos:Concept,
+        cd:ControlDecisionCode ;
+    skos:inScheme cd:controlDecisionScheme ;
+    skos:prefLabel "Limited"@en .
+
+cd:controlDecision_Rejected a owl:NamedIndividual,
+        skos:Concept,
+        cd:ControlDecisionCode ;
+    skos:inScheme cd:controlDecisionScheme ;
+    skos:prefLabel "Rejected"@en .
+
 cd:controlStrategy_Cost a owl:NamedIndividual,
         skos:Concept,
         cd:ControlStrategyCode ;
@@ -1431,6 +1830,30 @@ cd:controlStrategy_Priority a owl:NamedIndividual,
         cd:ControlStrategyCode ;
     skos:inScheme cd:controlStrategyScheme ;
     skos:prefLabel "Priority"@en .
+
+cd:correctionKind_Adjust a owl:NamedIndividual,
+        skos:Concept,
+        cd:CorrectionKindCode ;
+    skos:inScheme cd:correctionKindScheme ;
+    skos:prefLabel "Adjust"@en .
+
+cd:correctionKind_Credit a owl:NamedIndividual,
+        skos:Concept,
+        cd:CorrectionKindCode ;
+    skos:inScheme cd:correctionKindScheme ;
+    skos:prefLabel "Credit"@en .
+
+cd:correctionKind_Replace a owl:NamedIndividual,
+        skos:Concept,
+        cd:CorrectionKindCode ;
+    skos:inScheme cd:correctionKindScheme ;
+    skos:prefLabel "Replace"@en .
+
+cd:correctionKind_Reverse a owl:NamedIndividual,
+        skos:Concept,
+        cd:CorrectionKindCode ;
+    skos:inScheme cd:correctionKindScheme ;
+    skos:prefLabel "Reverse"@en .
 
 cd:costCategory_Energy a owl:NamedIndividual,
         skos:Concept,
@@ -1669,6 +2092,21 @@ cd:deliveryTransport_Webhook a owl:NamedIndividual,
     skos:inScheme cd:deliveryTransportScheme ;
     skos:prefLabel "Webhook"@en .
 
+cd:deltaBasisScheme a skos:ConceptScheme ;
+    skos:prefLabel "delta Basis"@en .
+
+cd:deltaBasis_Estimated a owl:NamedIndividual,
+        skos:Concept,
+        cd:DeltaBasisCode ;
+    skos:inScheme cd:deltaBasisScheme ;
+    skos:prefLabel "Estimated"@en .
+
+cd:deltaBasis_Measured a owl:NamedIndividual,
+        skos:Concept,
+        cd:DeltaBasisCode ;
+    skos:inScheme cd:deltaBasisScheme ;
+    skos:prefLabel "Measured"@en .
+
 cd:deploymentState_Downloaded a owl:NamedIndividual,
         skos:Concept,
         cd:DeploymentStateCode ;
@@ -1839,6 +2277,42 @@ cd:disposition_Delete a owl:NamedIndividual,
         cd:DispositionCode ;
     skos:inScheme cd:dispositionScheme ;
     skos:prefLabel "Delete"@en .
+
+cd:disputeCaseState_Accepted a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Accepted"@en .
+
+cd:disputeCaseState_Closed a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Closed"@en .
+
+cd:disputeCaseState_Investigating a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Investigating"@en .
+
+cd:disputeCaseState_Opened a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Opened"@en .
+
+cd:disputeCaseState_Rejected a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Rejected"@en .
+
+cd:disputeCaseState_Remedied a owl:NamedIndividual,
+        skos:Concept,
+        cd:DisputeCaseStateCode ;
+    skos:inScheme cd:disputeCaseStateScheme ;
+    skos:prefLabel "Remedied"@en .
 
 cd:disputeState_Closed a owl:NamedIndividual,
         skos:Concept,
@@ -2058,6 +2532,36 @@ cd:enrollmentState_Revoked a owl:NamedIndividual,
         cd:EnrollmentStateCode ;
     skos:inScheme cd:enrollmentStateScheme ;
     skos:prefLabel "Revoked"@en .
+
+cd:entitlementState_Active a owl:NamedIndividual,
+        skos:Concept,
+        cd:EntitlementStateCode ;
+    skos:inScheme cd:entitlementStateScheme ;
+    skos:prefLabel "Active"@en .
+
+cd:entitlementState_Expired a owl:NamedIndividual,
+        skos:Concept,
+        cd:EntitlementStateCode ;
+    skos:inScheme cd:entitlementStateScheme ;
+    skos:prefLabel "Expired"@en .
+
+cd:entitlementState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:EntitlementStateCode ;
+    skos:inScheme cd:entitlementStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:entitlementState_Revoked a owl:NamedIndividual,
+        skos:Concept,
+        cd:EntitlementStateCode ;
+    skos:inScheme cd:entitlementStateScheme ;
+    skos:prefLabel "Revoked"@en .
+
+cd:entitlementState_Suspended a owl:NamedIndividual,
+        skos:Concept,
+        cd:EntitlementStateCode ;
+    skos:inScheme cd:entitlementStateScheme ;
+    skos:prefLabel "Suspended"@en .
 
 cd:entryReason_Adjustment a owl:NamedIndividual,
         skos:Concept,
@@ -2376,6 +2880,24 @@ cd:hardwareState_Unknown a owl:NamedIndividual,
         cd:HardwareStateCode ;
     skos:inScheme cd:hardwareStateScheme ;
     skos:prefLabel "Unknown"@en .
+
+cd:holdState_Active a owl:NamedIndividual,
+        skos:Concept,
+        cd:HoldStateCode ;
+    skos:inScheme cd:holdStateScheme ;
+    skos:prefLabel "Active"@en .
+
+cd:holdState_Expired a owl:NamedIndividual,
+        skos:Concept,
+        cd:HoldStateCode ;
+    skos:inScheme cd:holdStateScheme ;
+    skos:prefLabel "Expired"@en .
+
+cd:holdState_Released a owl:NamedIndividual,
+        skos:Concept,
+        cd:HoldStateCode ;
+    skos:inScheme cd:holdStateScheme ;
+    skos:prefLabel "Released"@en .
 
 cd:installationState_Disabled a owl:NamedIndividual,
         skos:Concept,
@@ -2833,6 +3355,36 @@ cd:measurementAggregation_Peak a owl:NamedIndividual,
     skos:inScheme cd:measurementAggregationScheme ;
     skos:prefLabel "Peak"@en .
 
+cd:migrationState_Completed a owl:NamedIndividual,
+        skos:Concept,
+        cd:MigrationStateCode ;
+    skos:inScheme cd:migrationStateScheme ;
+    skos:prefLabel "Completed"@en .
+
+cd:migrationState_Failed a owl:NamedIndividual,
+        skos:Concept,
+        cd:MigrationStateCode ;
+    skos:inScheme cd:migrationStateScheme ;
+    skos:prefLabel "Failed"@en .
+
+cd:migrationState_Planned a owl:NamedIndividual,
+        skos:Concept,
+        cd:MigrationStateCode ;
+    skos:inScheme cd:migrationStateScheme ;
+    skos:prefLabel "Planned"@en .
+
+cd:migrationState_Reconciled a owl:NamedIndividual,
+        skos:Concept,
+        cd:MigrationStateCode ;
+    skos:inScheme cd:migrationStateScheme ;
+    skos:prefLabel "Reconciled"@en .
+
+cd:migrationState_Running a owl:NamedIndividual,
+        skos:Concept,
+        cd:MigrationStateCode ;
+    skos:inScheme cd:migrationStateScheme ;
+    skos:prefLabel "Running"@en .
+
 cd:mismatchKind_Currency a owl:NamedIndividual,
         skos:Concept,
         cd:MismatchKindCode ;
@@ -3019,6 +3571,114 @@ cd:notificationState_Sent a owl:NamedIndividual,
     skos:inScheme cd:notificationStateScheme ;
     skos:prefLabel "Sent"@en .
 
+cd:obligationKind_Bill a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Bill"@en .
+
+cd:obligationKind_Collect a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Collect"@en .
+
+cd:obligationKind_Handover a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Handover"@en .
+
+cd:obligationKind_Maintain a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Maintain"@en .
+
+cd:obligationKind_Operate a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Operate"@en .
+
+cd:obligationKind_ProtectData a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Protect Data"@en .
+
+cd:obligationKind_Provision a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Provision"@en .
+
+cd:obligationKind_Reimburse a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Reimburse"@en .
+
+cd:obligationKind_Report a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Report"@en .
+
+cd:obligationKind_Settle a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Settle"@en .
+
+cd:obligationKind_SupplyEnergy a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Supply Energy"@en .
+
+cd:obligationKind_Support a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationKindCode ;
+    skos:inScheme cd:obligationKindScheme ;
+    skos:prefLabel "Support"@en .
+
+cd:obligationState_Active a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Active"@en .
+
+cd:obligationState_Breached a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Breached"@en .
+
+cd:obligationState_Cancelled a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Cancelled"@en .
+
+cd:obligationState_Fulfilled a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Fulfilled"@en .
+
+cd:obligationState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:obligationState_Waived a owl:NamedIndividual,
+        skos:Concept,
+        cd:ObligationStateCode ;
+    skos:inScheme cd:obligationStateScheme ;
+    skos:prefLabel "Waived"@en .
+
 cd:observedCompliance_Unknown a owl:NamedIndividual,
         skos:Concept,
         cd:ObservedComplianceCode ;
@@ -3060,6 +3720,45 @@ cd:occupancy_Vacant a owl:NamedIndividual,
         cd:OccupancyCode ;
     skos:inScheme cd:occupancyScheme ;
     skos:prefLabel "Vacant"@en .
+
+cd:offerMode_AdHoc a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfferModeCode ;
+    skos:inScheme cd:offerModeScheme ;
+    skos:prefLabel "Ad Hoc"@en .
+
+cd:offerMode_Contract a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfferModeCode ;
+    skos:inScheme cd:offerModeScheme ;
+    skos:prefLabel "Contract"@en .
+
+cd:offerMode_Corporate a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfferModeCode ;
+    skos:inScheme cd:offerModeScheme ;
+    skos:prefLabel "Corporate"@en .
+
+cd:offerMode_Roaming a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfferModeCode ;
+    skos:inScheme cd:offerModeScheme ;
+    skos:prefLabel "Roaming"@en .
+
+cd:offlineDecisionScheme a skos:ConceptScheme ;
+    skos:prefLabel "offline Decision"@en .
+
+cd:offlineDecision_Allow a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfflineDecisionCode ;
+    skos:inScheme cd:offlineDecisionScheme ;
+    skos:prefLabel "Allow"@en .
+
+cd:offlineDecision_Deny a owl:NamedIndividual,
+        skos:Concept,
+        cd:OfflineDecisionCode ;
+    skos:inScheme cd:offlineDecisionScheme ;
+    skos:prefLabel "Deny"@en .
 
 cd:outcomeKindScheme a skos:ConceptScheme ;
     skos:prefLabel "outcome Kind"@en .
@@ -3280,6 +3979,36 @@ cd:policyState_Disabled a owl:NamedIndividual,
     skos:inScheme cd:policyStateScheme ;
     skos:prefLabel "Disabled"@en .
 
+cd:positionState_Disputed a owl:NamedIndividual,
+        skos:Concept,
+        cd:PositionStateCode ;
+    skos:inScheme cd:positionStateScheme ;
+    skos:prefLabel "Disputed"@en .
+
+cd:positionState_Open a owl:NamedIndividual,
+        skos:Concept,
+        cd:PositionStateCode ;
+    skos:inScheme cd:positionStateScheme ;
+    skos:prefLabel "Open"@en .
+
+cd:positionState_PartiallySettled a owl:NamedIndividual,
+        skos:Concept,
+        cd:PositionStateCode ;
+    skos:inScheme cd:positionStateScheme ;
+    skos:prefLabel "Partially Settled"@en .
+
+cd:positionState_Settled a owl:NamedIndividual,
+        skos:Concept,
+        cd:PositionStateCode ;
+    skos:inScheme cd:positionStateScheme ;
+    skos:prefLabel "Settled"@en .
+
+cd:positionState_WrittenOff a owl:NamedIndividual,
+        skos:Concept,
+        cd:PositionStateCode ;
+    skos:inScheme cd:positionStateScheme ;
+    skos:prefLabel "Written Off"@en .
+
 cd:priceDimension_ChargingTime a owl:NamedIndividual,
         skos:Concept,
         cd:PriceDimensionCode ;
@@ -3376,6 +4105,132 @@ cd:principalState_Enabled a owl:NamedIndividual,
     skos:inScheme cd:principalStateScheme ;
     skos:prefLabel "Enabled"@en .
 
+cd:processKind_Bill a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Bill"@en .
+
+cd:processKind_Charge a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Charge"@en .
+
+cd:processKind_ControlEnergy a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Control Energy"@en .
+
+cd:processKind_Maintain a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Maintain"@en .
+
+cd:processKind_Migrate a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Migrate"@en .
+
+cd:processKind_Offboard a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Offboard"@en .
+
+cd:processKind_Onboard a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Onboard"@en .
+
+cd:processKind_Reimburse a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Reimburse"@en .
+
+cd:processKind_RespondToDispute a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Respond To Dispute"@en .
+
+cd:processKind_RespondToPrivacy a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Respond To Privacy"@en .
+
+cd:processKind_Settle a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessKindCode ;
+    skos:inScheme cd:processKindScheme ;
+    skos:prefLabel "Settle"@en .
+
+cd:processState_Cancelled a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessStateCode ;
+    skos:inScheme cd:processStateScheme ;
+    skos:prefLabel "Cancelled"@en .
+
+cd:processState_Completed a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessStateCode ;
+    skos:inScheme cd:processStateScheme ;
+    skos:prefLabel "Completed"@en .
+
+cd:processState_Failed a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessStateCode ;
+    skos:inScheme cd:processStateScheme ;
+    skos:prefLabel "Failed"@en .
+
+cd:processState_Planned a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessStateCode ;
+    skos:inScheme cd:processStateScheme ;
+    skos:prefLabel "Planned"@en .
+
+cd:processState_Running a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessStateCode ;
+    skos:inScheme cd:processStateScheme ;
+    skos:prefLabel "Running"@en .
+
+cd:processingState_Applied a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessingStateCode ;
+    skos:inScheme cd:processingStateScheme ;
+    skos:prefLabel "Applied"@en .
+
+cd:processingState_Duplicate a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessingStateCode ;
+    skos:inScheme cd:processingStateScheme ;
+    skos:prefLabel "Duplicate"@en .
+
+cd:processingState_Failed a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessingStateCode ;
+    skos:inScheme cd:processingStateScheme ;
+    skos:prefLabel "Failed"@en .
+
+cd:processingState_Quarantined a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessingStateCode ;
+    skos:inScheme cd:processingStateScheme ;
+    skos:prefLabel "Quarantined"@en .
+
+cd:processingState_Received a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProcessingStateCode ;
+    skos:inScheme cd:processingStateScheme ;
+    skos:prefLabel "Received"@en .
+
 cd:profileKind_Absolute a owl:NamedIndividual,
         skos:Concept,
         cd:ProfileKindCode ;
@@ -3423,6 +4278,18 @@ cd:protocolName_Custom a owl:NamedIndividual,
         cd:ProtocolNameCode ;
     skos:inScheme cd:protocolNameScheme ;
     skos:prefLabel "Custom"@en .
+
+cd:protocolName_ISO15118 a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProtocolNameCode ;
+    skos:inScheme cd:protocolNameScheme ;
+    skos:prefLabel "ISO15118"@en .
+
+cd:protocolName_Modbus a owl:NamedIndividual,
+        skos:Concept,
+        cd:ProtocolNameCode ;
+    skos:inScheme cd:protocolNameScheme ;
+    skos:prefLabel "Modbus"@en .
 
 cd:protocolName_OCPI a owl:NamedIndividual,
         skos:Concept,
@@ -3490,6 +4357,24 @@ cd:quality_Valid a owl:NamedIndividual,
     skos:inScheme cd:qualityScheme ;
     skos:prefLabel "Valid"@en .
 
+cd:readinessState_Blocked a owl:NamedIndividual,
+        skos:Concept,
+        cd:ReadinessStateCode ;
+    skos:inScheme cd:readinessStateScheme ;
+    skos:prefLabel "Blocked"@en .
+
+cd:readinessState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:ReadinessStateCode ;
+    skos:inScheme cd:readinessStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:readinessState_Ready a owl:NamedIndividual,
+        skos:Concept,
+        cd:ReadinessStateCode ;
+    skos:inScheme cd:readinessStateScheme ;
+    skos:prefLabel "Ready"@en .
+
 cd:readingKind_Cumulative a owl:NamedIndividual,
         skos:Concept,
         cd:ReadingKindCode ;
@@ -3507,6 +4392,21 @@ cd:readingKind_Interval a owl:NamedIndividual,
         cd:ReadingKindCode ;
     skos:inScheme cd:readingKindScheme ;
     skos:prefLabel "Interval"@en .
+
+cd:recordKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "record Kind"@en .
+
+cd:recordKind_Credit a owl:NamedIndividual,
+        skos:Concept,
+        cd:RecordKindCode ;
+    skos:inScheme cd:recordKindScheme ;
+    skos:prefLabel "Credit"@en .
+
+cd:recordKind_Debit a owl:NamedIndividual,
+        skos:Concept,
+        cd:RecordKindCode ;
+    skos:inScheme cd:recordKindScheme ;
+    skos:prefLabel "Debit"@en .
 
 cd:recordOriginScheme a skos:ConceptScheme ;
     skos:prefLabel "record Origin"@en .
@@ -3534,6 +4434,12 @@ cd:recoveryResult_Failed a owl:NamedIndividual,
         cd:RecoveryResultCode ;
     skos:inScheme cd:recoveryResultScheme ;
     skos:prefLabel "Failed"@en .
+
+cd:recoveryResult_Passed a owl:NamedIndividual,
+        skos:Concept,
+        cd:RecoveryResultCode ;
+    skos:inScheme cd:recoveryResultScheme ;
+    skos:prefLabel "Passed"@en .
 
 cd:recoveryResult_Pending a owl:NamedIndividual,
         skos:Concept,
@@ -3685,6 +4591,12 @@ cd:reportState_Replaced a owl:NamedIndividual,
     skos:inScheme cd:reportStateScheme ;
     skos:prefLabel "Replaced"@en .
 
+cd:requestKind_Access a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Access"@en .
+
 cd:requestKind_Cancel a owl:NamedIndividual,
         skos:Concept,
         cd:RequestKindCode ;
@@ -3703,11 +4615,47 @@ cd:requestKind_Create a owl:NamedIndividual,
     skos:inScheme cd:requestKindScheme ;
     skos:prefLabel "Create"@en .
 
+cd:requestKind_Erasure a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Erasure"@en .
+
+cd:requestKind_Objection a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Objection"@en .
+
+cd:requestKind_Portability a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Portability"@en .
+
+cd:requestKind_Rectification a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Rectification"@en .
+
+cd:requestKind_Restriction a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestKindCode ;
+    skos:inScheme cd:requestKindScheme ;
+    skos:prefLabel "Restriction"@en .
+
 cd:requestState_Accepted a owl:NamedIndividual,
         skos:Concept,
         cd:RequestStateCode ;
     skos:inScheme cd:requestStateScheme ;
     skos:prefLabel "Accepted"@en .
+
+cd:requestState_Closed a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Closed"@en .
 
 cd:requestState_Expired a owl:NamedIndividual,
         skos:Concept,
@@ -3715,17 +4663,47 @@ cd:requestState_Expired a owl:NamedIndividual,
     skos:inScheme cd:requestStateScheme ;
     skos:prefLabel "Expired"@en .
 
+cd:requestState_Fulfilled a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Fulfilled"@en .
+
 cd:requestState_Pending a owl:NamedIndividual,
         skos:Concept,
         cd:RequestStateCode ;
     skos:inScheme cd:requestStateScheme ;
     skos:prefLabel "Pending"@en .
 
+cd:requestState_Processing a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Processing"@en .
+
+cd:requestState_Received a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Received"@en .
+
+cd:requestState_Refused a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Refused"@en .
+
 cd:requestState_Rejected a owl:NamedIndividual,
         skos:Concept,
         cd:RequestStateCode ;
     skos:inScheme cd:requestStateScheme ;
     skos:prefLabel "Rejected"@en .
+
+cd:requestState_Verified a owl:NamedIndividual,
+        skos:Concept,
+        cd:RequestStateCode ;
+    skos:inScheme cd:requestStateScheme ;
+    skos:prefLabel "Verified"@en .
 
 cd:reservationState_Active a owl:NamedIndividual,
         skos:Concept,
@@ -3780,6 +4758,36 @@ cd:resetRule_Never a owl:NamedIndividual,
         cd:ResetRuleCode ;
     skos:inScheme cd:resetRuleScheme ;
     skos:prefLabel "Never"@en .
+
+cd:resolutionKind_AcceptedDifference a owl:NamedIndividual,
+        skos:Concept,
+        cd:ResolutionKindCode ;
+    skos:inScheme cd:resolutionKindScheme ;
+    skos:prefLabel "Accepted Difference"@en .
+
+cd:resolutionKind_Corrected a owl:NamedIndividual,
+        skos:Concept,
+        cd:ResolutionKindCode ;
+    skos:inScheme cd:resolutionKindScheme ;
+    skos:prefLabel "Corrected"@en .
+
+cd:resolutionKind_Matched a owl:NamedIndividual,
+        skos:Concept,
+        cd:ResolutionKindCode ;
+    skos:inScheme cd:resolutionKindScheme ;
+    skos:prefLabel "Matched"@en .
+
+cd:resolutionKind_Rejected a owl:NamedIndividual,
+        skos:Concept,
+        cd:ResolutionKindCode ;
+    skos:inScheme cd:resolutionKindScheme ;
+    skos:prefLabel "Rejected"@en .
+
+cd:resolutionKind_WrittenOff a owl:NamedIndividual,
+        skos:Concept,
+        cd:ResolutionKindCode ;
+    skos:inScheme cd:resolutionKindScheme ;
+    skos:prefLabel "Written Off"@en .
 
 cd:revenueBasis_EnergyMargin a owl:NamedIndividual,
         skos:Concept,
@@ -4138,6 +5146,21 @@ cd:signatureVerification_Valid a owl:NamedIndividual,
     skos:inScheme cd:signatureVerificationScheme ;
     skos:prefLabel "Valid"@en .
 
+cd:snapshotKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "snapshot Kind"@en .
+
+cd:snapshotKind_Current a owl:NamedIndividual,
+        skos:Concept,
+        cd:SnapshotKindCode ;
+    skos:inScheme cd:snapshotKindScheme ;
+    skos:prefLabel "Current"@en .
+
+cd:snapshotKind_Historical a owl:NamedIndividual,
+        skos:Concept,
+        cd:SnapshotKindCode ;
+    skos:inScheme cd:snapshotKindScheme ;
+    skos:prefLabel "Historical"@en .
+
 cd:stationUse_Personal a owl:NamedIndividual,
         skos:Concept,
         cd:StationUseCode ;
@@ -4155,6 +5178,42 @@ cd:stationUse_Public a owl:NamedIndividual,
         cd:StationUseCode ;
     skos:inScheme cd:stationUseScheme ;
     skos:prefLabel "Public"@en .
+
+cd:stepState_Compensated a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Compensated"@en .
+
+cd:stepState_Failed a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Failed"@en .
+
+cd:stepState_Pending a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Pending"@en .
+
+cd:stepState_Running a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Running"@en .
+
+cd:stepState_Skipped a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Skipped"@en .
+
+cd:stepState_Succeeded a owl:NamedIndividual,
+        skos:Concept,
+        cd:StepStateCode ;
+    skos:inScheme cd:stepStateScheme ;
+    skos:prefLabel "Succeeded"@en .
 
 cd:strategy_Custom a owl:NamedIndividual,
         skos:Concept,
@@ -4339,6 +5398,24 @@ cd:tierMode_WholeQuantity a owl:NamedIndividual,
     skos:inScheme cd:tierModeScheme ;
     skos:prefLabel "Whole Quantity"@en .
 
+cd:unknownFieldPolicy_Preserve a owl:NamedIndividual,
+        skos:Concept,
+        cd:UnknownFieldPolicyCode ;
+    skos:inScheme cd:unknownFieldPolicyScheme ;
+    skos:prefLabel "Preserve"@en .
+
+cd:unknownFieldPolicy_Quarantine a owl:NamedIndividual,
+        skos:Concept,
+        cd:UnknownFieldPolicyCode ;
+    skos:inScheme cd:unknownFieldPolicyScheme ;
+    skos:prefLabel "Quarantine"@en .
+
+cd:unknownFieldPolicy_Reject a owl:NamedIndividual,
+        skos:Concept,
+        cd:UnknownFieldPolicyCode ;
+    skos:inScheme cd:unknownFieldPolicyScheme ;
+    skos:prefLabel "Reject"@en .
+
 cd:unknownUnitStatus_Available a owl:NamedIndividual,
         skos:Concept,
         cd:UnknownUnitStatusCode ;
@@ -4419,6 +5496,12 @@ cd:verificationState_Invalid a owl:NamedIndividual,
         cd:VerificationStateCode ;
     skos:inScheme cd:verificationStateScheme ;
     skos:prefLabel "Invalid"@en .
+
+cd:verificationState_NotChecked a owl:NamedIndividual,
+        skos:Concept,
+        cd:VerificationStateCode ;
+    skos:inScheme cd:verificationStateScheme ;
+    skos:prefLabel "Not Checked"@en .
 
 cd:verificationState_Observed a owl:NamedIndividual,
         skos:Concept,
@@ -4540,6 +5623,12 @@ cd:workState_New a owl:NamedIndividual,
     skos:inScheme cd:workStateScheme ;
     skos:prefLabel "New"@en .
 
+cd:AcceptanceStateCode a owl:Class ;
+    rdfs:label "acceptance State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:acceptanceState_Accepted cd:acceptanceState_Pending cd:acceptanceState_Rejected ) ] .
+
 cd:AccessTokenStateCode a owl:Class ;
     rdfs:label "access Token State code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -4563,6 +5652,24 @@ cd:AccountSchemeCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:accountScheme_Domestic cd:accountScheme_IBAN cd:accountScheme_Provider ) ] .
+
+cd:AllocationStateCode a owl:Class ;
+    rdfs:label "allocation State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:allocationState_Pending cd:allocationState_Posted cd:allocationState_Reversed ) ] .
+
+cd:ApprovalStateCode a owl:Class ;
+    rdfs:label "approval State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:approvalState_Approved cd:approvalState_Pending cd:approvalState_Rejected ) ] .
+
+cd:AssessmentOutcomeCode a owl:Class ;
+    rdfs:label "assessment Outcome code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:assessmentOutcome_Satisfied cd:assessmentOutcome_Unsatisfied cd:assessmentOutcome_Waived ) ] .
 
 cd:AssignmentRoleCode a owl:Class ;
     rdfs:label "assignment Role code"@en ;
@@ -4600,6 +5707,12 @@ cd:CommunicationModeCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:communicationMode_Direct cd:communicationMode_Gateway cd:communicationMode_Unmanaged ) ] .
 
+cd:CompatibilityStateCode a owl:Class ;
+    rdfs:label "compatibility State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:compatibilityState_Compatible cd:compatibilityState_Incompatible cd:compatibilityState_Unknown ) ] .
+
 cd:CompletenessCode a owl:Class ;
     rdfs:label "completeness code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -4617,6 +5730,12 @@ cd:ContentStateCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:contentState_Archived cd:contentState_Draft cd:contentState_Published ) ] .
+
+cd:ControlDecisionCode a owl:Class ;
+    rdfs:label "control Decision code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:controlDecision_Accepted cd:controlDecision_Limited cd:controlDecision_Rejected ) ] .
 
 cd:CoverageModeCode a owl:Class ;
     rdfs:label "coverage Mode code"@en ;
@@ -4696,6 +5815,12 @@ cd:GrantStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:grantState_Active cd:grantState_Expired cd:grantState_Revoked ) ] .
 
+cd:HoldStateCode a owl:Class ;
+    rdfs:label "hold State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:holdState_Active cd:holdState_Expired cd:holdState_Released ) ] .
+
 cd:InstrumentStateCode a owl:Class ;
     rdfs:label "instrument State code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -4774,6 +5899,12 @@ cd:ProvisioningStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:provisioningState_Active cd:provisioningState_Registered cd:provisioningState_Revoked ) ] .
 
+cd:ReadinessStateCode a owl:Class ;
+    rdfs:label "readiness State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:readinessState_Blocked cd:readinessState_Pending cd:readinessState_Ready ) ] .
+
 cd:ReadingKindCode a owl:Class ;
     rdfs:label "reading Kind code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -4785,12 +5916,6 @@ cd:RefundStateCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:refundState_Confirmed cd:refundState_Failed cd:refundState_Pending ) ] .
-
-cd:RequestKindCode a owl:Class ;
-    rdfs:label "request Kind code"@en ;
-    rdfs:subClassOf skos:Concept ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:oneOf ( cd:requestKind_Cancel cd:requestKind_Change cd:requestKind_Create ) ] .
 
 cd:ResetRuleCode a owl:Class ;
     rdfs:label "reset Rule code"@en ;
@@ -4858,6 +5983,12 @@ cd:TaxBasisCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:taxBasis_Exclusive cd:taxBasis_Exempt cd:taxBasis_Inclusive ) ] .
 
+cd:UnknownFieldPolicyCode a owl:Class ;
+    rdfs:label "unknown Field Policy code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:unknownFieldPolicy_Preserve cd:unknownFieldPolicy_Quarantine cd:unknownFieldPolicy_Reject ) ] .
+
 cd:UnknownUnitStatusCode a owl:Class ;
     rdfs:label "unknown Unit Status code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -4876,6 +6007,9 @@ cd:WalletStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:walletState_Active cd:walletState_Closed cd:walletState_Frozen ) ] .
 
+cd:acceptanceStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "acceptance State"@en .
+
 cd:accessTokenStateScheme a skos:ConceptScheme ;
     skos:prefLabel "access Token State"@en .
 
@@ -4887,6 +6021,15 @@ cd:accountKindScheme a skos:ConceptScheme ;
 
 cd:accountSchemeScheme a skos:ConceptScheme ;
     skos:prefLabel "account Scheme"@en .
+
+cd:allocationStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "allocation State"@en .
+
+cd:approvalStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "approval State"@en .
+
+cd:assessmentOutcomeScheme a skos:ConceptScheme ;
+    skos:prefLabel "assessment Outcome"@en .
 
 cd:assignmentRoleScheme a skos:ConceptScheme ;
     skos:prefLabel "assignment Role"@en .
@@ -4906,6 +6049,9 @@ cd:captureStateScheme a skos:ConceptScheme ;
 cd:communicationModeScheme a skos:ConceptScheme ;
     skos:prefLabel "communication Mode"@en .
 
+cd:compatibilityStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "compatibility State"@en .
+
 cd:completenessScheme a skos:ConceptScheme ;
     skos:prefLabel "completeness"@en .
 
@@ -4914,6 +6060,9 @@ cd:consentChoiceScheme a skos:ConceptScheme ;
 
 cd:contentStateScheme a skos:ConceptScheme ;
     skos:prefLabel "content State"@en .
+
+cd:controlDecisionScheme a skos:ConceptScheme ;
+    skos:prefLabel "control Decision"@en .
 
 cd:coverageModeScheme a skos:ConceptScheme ;
     skos:prefLabel "coverage Mode"@en .
@@ -4954,6 +6103,9 @@ cd:graceModeScheme a skos:ConceptScheme ;
 cd:grantStateScheme a skos:ConceptScheme ;
     skos:prefLabel "grant State"@en .
 
+cd:holdStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "hold State"@en .
+
 cd:instrumentStateScheme a skos:ConceptScheme ;
     skos:prefLabel "instrument State"@en .
 
@@ -4993,14 +6145,14 @@ cd:profileKindScheme a skos:ConceptScheme ;
 cd:provisioningStateScheme a skos:ConceptScheme ;
     skos:prefLabel "provisioning State"@en .
 
+cd:readinessStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "readiness State"@en .
+
 cd:readingKindScheme a skos:ConceptScheme ;
     skos:prefLabel "reading Kind"@en .
 
 cd:refundStateScheme a skos:ConceptScheme ;
     skos:prefLabel "refund State"@en .
-
-cd:requestKindScheme a skos:ConceptScheme ;
-    skos:prefLabel "request Kind"@en .
 
 cd:resetRuleScheme a skos:ConceptScheme ;
     skos:prefLabel "reset Rule"@en .
@@ -5035,6 +6187,9 @@ cd:tariffStateScheme a skos:ConceptScheme ;
 cd:taxBasisScheme a skos:ConceptScheme ;
     skos:prefLabel "tax Basis"@en .
 
+cd:unknownFieldPolicyScheme a skos:ConceptScheme ;
+    skos:prefLabel "unknown Field Policy"@en .
+
 cd:unknownUnitStatusScheme a skos:ConceptScheme ;
     skos:prefLabel "unknown Unit Status"@en .
 
@@ -5055,6 +6210,12 @@ cd:AccountStateCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:accountState_Active cd:accountState_Closed cd:accountState_Pending cd:accountState_Suspended ) ] .
+
+cd:ActionKindCode a owl:Class ;
+    rdfs:label "action Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:actionKind_Escalate cd:actionKind_Reminder cd:actionKind_Suspend cd:actionKind_WriteOff ) ] .
 
 cd:AdministrationStateCode a owl:Class ;
     rdfs:label "administration State code"@en ;
@@ -5092,6 +6253,12 @@ cd:AuthorizationStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:authorizationState_Approved cd:authorizationState_Declined cd:authorizationState_Expired cd:authorizationState_Voided ) ] .
 
+cd:BreachStateCode a owl:Class ;
+    rdfs:label "breach State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:breachState_Acknowledged cd:breachState_Closed cd:breachState_Open cd:breachState_Remediated ) ] .
+
 cd:CaseStateCode a owl:Class ;
     rdfs:label "case State code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -5110,11 +6277,23 @@ cd:ChangeStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:changeState_Applied cd:changeState_Cancelled cd:changeState_Failed cd:changeState_Scheduled ) ] .
 
+cd:ClosureStateCode a owl:Class ;
+    rdfs:label "closure State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:closureState_Blocked cd:closureState_Cancelled cd:closureState_Completed cd:closureState_Requested ) ] .
+
 cd:ConfigurationStateCode a owl:Class ;
     rdfs:label "configuration State code"@en ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:configurationState_Applied cd:configurationState_Pending cd:configurationState_Rejected cd:configurationState_Unknown ) ] .
+
+cd:CorrectionKindCode a owl:Class ;
+    rdfs:label "correction Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:correctionKind_Adjust cd:correctionKind_Credit cd:correctionKind_Replace cd:correctionKind_Reverse ) ] .
 
 cd:CouponStateCode a owl:Class ;
     rdfs:label "coupon State code"@en ;
@@ -5212,6 +6391,12 @@ cd:OccupancyCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:occupancy_Blocked cd:occupancy_Occupied cd:occupancy_Unknown cd:occupancy_Vacant ) ] .
 
+cd:OfferModeCode a owl:Class ;
+    rdfs:label "offer Mode code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:offerMode_AdHoc cd:offerMode_Contract cd:offerMode_Corporate cd:offerMode_Roaming ) ] .
+
 cd:ProfilePurposeCode a owl:Class ;
     rdfs:label "profile Purpose code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -5224,23 +6409,11 @@ cd:QualityCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:quality_Estimated cd:quality_Invalid cd:quality_Suspect cd:quality_Valid ) ] .
 
-cd:RecoveryResultCode a owl:Class ;
-    rdfs:label "recovery Result code"@en ;
-    rdfs:subClassOf skos:Concept ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:oneOf ( cd:recoveryResult_Escalated cd:recoveryResult_Failed cd:recoveryResult_Pending cd:recoveryResult_Succeeded ) ] .
-
 cd:ReportStateCode a owl:Class ;
     rdfs:label "report State code"@en ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:reportState_Approved cd:reportState_Draft cd:reportState_Paid cd:reportState_Replaced ) ] .
-
-cd:RequestStateCode a owl:Class ;
-    rdfs:label "request State code"@en ;
-    rdfs:subClassOf skos:Concept ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:oneOf ( cd:requestState_Accepted cd:requestState_Expired cd:requestState_Pending cd:requestState_Rejected ) ] .
 
 cd:RevenueBasisCode a owl:Class ;
     rdfs:label "revenue Basis code"@en ;
@@ -5284,6 +6457,9 @@ cd:accessModeScheme a skos:ConceptScheme ;
 cd:accountStateScheme a skos:ConceptScheme ;
     skos:prefLabel "account State"@en .
 
+cd:actionKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "action Kind"@en .
+
 cd:administrationStateScheme a skos:ConceptScheme ;
     skos:prefLabel "administration State"@en .
 
@@ -5302,6 +6478,9 @@ cd:assetStateScheme a skos:ConceptScheme ;
 cd:authorizationStateScheme a skos:ConceptScheme ;
     skos:prefLabel "authorization State"@en .
 
+cd:breachStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "breach State"@en .
+
 cd:caseStateScheme a skos:ConceptScheme ;
     skos:prefLabel "case State"@en .
 
@@ -5311,8 +6490,14 @@ cd:certificateStateScheme a skos:ConceptScheme ;
 cd:changeStateScheme a skos:ConceptScheme ;
     skos:prefLabel "change State"@en .
 
+cd:closureStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "closure State"@en .
+
 cd:configurationStateScheme a skos:ConceptScheme ;
     skos:prefLabel "configuration State"@en .
+
+cd:correctionKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "correction Kind"@en .
 
 cd:couponStateScheme a skos:ConceptScheme ;
     skos:prefLabel "coupon State"@en .
@@ -5362,20 +6547,17 @@ cd:notificationStateScheme a skos:ConceptScheme ;
 cd:occupancyScheme a skos:ConceptScheme ;
     skos:prefLabel "occupancy"@en .
 
+cd:offerModeScheme a skos:ConceptScheme ;
+    skos:prefLabel "offer Mode"@en .
+
 cd:profilePurposeScheme a skos:ConceptScheme ;
     skos:prefLabel "profile Purpose"@en .
 
 cd:qualityScheme a skos:ConceptScheme ;
     skos:prefLabel "quality"@en .
 
-cd:recoveryResultScheme a skos:ConceptScheme ;
-    skos:prefLabel "recovery Result"@en .
-
 cd:reportStateScheme a skos:ConceptScheme ;
     skos:prefLabel "report State"@en .
-
-cd:requestStateScheme a skos:ConceptScheme ;
-    skos:prefLabel "request State"@en .
 
 cd:revenueBasisScheme a skos:ConceptScheme ;
     skos:prefLabel "revenue Basis"@en .
@@ -5443,6 +6625,12 @@ cd:DisputeStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:disputeState_Closed cd:disputeState_Lost cd:disputeState_Open cd:disputeState_Submitted cd:disputeState_Won ) ] .
 
+cd:EntitlementStateCode a owl:Class ;
+    rdfs:label "entitlement State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:entitlementState_Active cd:entitlementState_Expired cd:entitlementState_Pending cd:entitlementState_Revoked cd:entitlementState_Suspended ) ] .
+
 cd:EntryReasonCode a owl:Class ;
     rdfs:label "entry Reason code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -5485,6 +6673,12 @@ cd:LimitDimensionCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:limitDimension_Balance cd:limitDimension_Cost cd:limitDimension_Duration cd:limitDimension_Energy cd:limitDimension_OpeningHours ) ] .
 
+cd:MigrationStateCode a owl:Class ;
+    rdfs:label "migration State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:migrationState_Completed cd:migrationState_Failed cd:migrationState_Planned cd:migrationState_Reconciled cd:migrationState_Running ) ] .
+
 cd:OutcomeStateCode a owl:Class ;
     rdfs:label "outcome State code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -5497,17 +6691,41 @@ cd:PayoutStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:payoutState_Confirmed cd:payoutState_Failed cd:payoutState_Reversed cd:payoutState_Scheduled cd:payoutState_Submitted ) ] .
 
-cd:ProtocolNameCode a owl:Class ;
-    rdfs:label "protocol Name code"@en ;
+cd:PositionStateCode a owl:Class ;
+    rdfs:label "position State code"@en ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
-            owl:oneOf ( cd:protocolName_Custom cd:protocolName_OCPI cd:protocolName_OCPP cd:protocolName_OICP cd:protocolName_OpenADR ) ] .
+            owl:oneOf ( cd:positionState_Disputed cd:positionState_Open cd:positionState_PartiallySettled cd:positionState_Settled cd:positionState_WrittenOff ) ] .
+
+cd:ProcessStateCode a owl:Class ;
+    rdfs:label "process State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:processState_Cancelled cd:processState_Completed cd:processState_Failed cd:processState_Planned cd:processState_Running ) ] .
+
+cd:ProcessingStateCode a owl:Class ;
+    rdfs:label "processing State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:processingState_Applied cd:processingState_Duplicate cd:processingState_Failed cd:processingState_Quarantined cd:processingState_Received ) ] .
+
+cd:RecoveryResultCode a owl:Class ;
+    rdfs:label "recovery Result code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:recoveryResult_Escalated cd:recoveryResult_Failed cd:recoveryResult_Passed cd:recoveryResult_Pending cd:recoveryResult_Succeeded ) ] .
 
 cd:ReimbursementStateCode a owl:Class ;
     rdfs:label "reimbursement State code"@en ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:reimbursementState_Approved cd:reimbursementState_Calculated cd:reimbursementState_Credited cd:reimbursementState_Disputed cd:reimbursementState_Paid ) ] .
+
+cd:ResolutionKindCode a owl:Class ;
+    rdfs:label "resolution Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:resolutionKind_AcceptedDifference cd:resolutionKind_Corrected cd:resolutionKind_Matched cd:resolutionKind_Rejected cd:resolutionKind_WrittenOff ) ] .
 
 cd:StrategyCode a owl:Class ;
     rdfs:label "strategy code"@en ;
@@ -5563,6 +6781,9 @@ cd:disclosureChannelScheme a skos:ConceptScheme ;
 cd:disputeStateScheme a skos:ConceptScheme ;
     skos:prefLabel "dispute State"@en .
 
+cd:entitlementStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "entitlement State"@en .
+
 cd:entryReasonScheme a skos:ConceptScheme ;
     skos:prefLabel "entry Reason"@en .
 
@@ -5584,17 +6805,32 @@ cd:jobStateScheme a skos:ConceptScheme ;
 cd:limitDimensionScheme a skos:ConceptScheme ;
     skos:prefLabel "limit Dimension"@en .
 
+cd:migrationStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "migration State"@en .
+
 cd:outcomeStateScheme a skos:ConceptScheme ;
     skos:prefLabel "outcome State"@en .
 
 cd:payoutStateScheme a skos:ConceptScheme ;
     skos:prefLabel "payout State"@en .
 
-cd:protocolNameScheme a skos:ConceptScheme ;
-    skos:prefLabel "protocol Name"@en .
+cd:positionStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "position State"@en .
+
+cd:processStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "process State"@en .
+
+cd:processingStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "processing State"@en .
+
+cd:recoveryResultScheme a skos:ConceptScheme ;
+    skos:prefLabel "recovery Result"@en .
 
 cd:reimbursementStateScheme a skos:ConceptScheme ;
     skos:prefLabel "reimbursement State"@en .
+
+cd:resolutionKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "resolution Kind"@en .
 
 cd:strategyScheme a skos:ConceptScheme ;
     skos:prefLabel "strategy"@en .
@@ -5616,6 +6852,12 @@ cd:ActivationStateCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:activationState_Accepted cd:activationState_Active cd:activationState_Completed cd:activationState_Failed cd:activationState_Rejected cd:activationState_Requested ) ] .
+
+cd:AgreementStateCode a owl:Class ;
+    rdfs:label "agreement State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:agreementState_Active cd:agreementState_Draft cd:agreementState_Expired cd:agreementState_Offered cd:agreementState_Suspended cd:agreementState_Terminated ) ] .
 
 cd:CertificateActionCode a owl:Class ;
     rdfs:label "certificate Action code"@en ;
@@ -5647,6 +6889,12 @@ cd:CostCategoryCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:costCategory_Energy cd:costCategory_Maintenance cd:costCategory_Other cd:costCategory_Payment cd:costCategory_Platform cd:costCategory_Roaming ) ] .
 
+cd:DisputeCaseStateCode a owl:Class ;
+    rdfs:label "dispute Case State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:disputeCaseState_Accepted cd:disputeCaseState_Closed cd:disputeCaseState_Investigating cd:disputeCaseState_Opened cd:disputeCaseState_Rejected cd:disputeCaseState_Remedied ) ] .
+
 cd:ExchangeStateCode a owl:Class ;
     rdfs:label "exchange State code"@en ;
     rdfs:subClassOf skos:Concept ;
@@ -5664,6 +6912,12 @@ cd:IssueKindCode a owl:Class ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:issueKind_Connectivity cd:issueKind_Hardware cd:issueKind_Other cd:issueKind_Payment cd:issueKind_Roaming cd:issueKind_Security ) ] .
+
+cd:ObligationStateCode a owl:Class ;
+    rdfs:label "obligation State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:obligationState_Active cd:obligationState_Breached cd:obligationState_Cancelled cd:obligationState_Fulfilled cd:obligationState_Pending cd:obligationState_Waived ) ] .
 
 cd:PolicyPurposeCode a owl:Class ;
     rdfs:label "policy Purpose code"@en ;
@@ -5689,8 +6943,17 @@ cd:SettlementStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:settlementState_Approved cd:settlementState_Calculated cd:settlementState_Disputed cd:settlementState_Draft cd:settlementState_Invoiced cd:settlementState_Settled ) ] .
 
+cd:StepStateCode a owl:Class ;
+    rdfs:label "step State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:stepState_Compensated cd:stepState_Failed cd:stepState_Pending cd:stepState_Running cd:stepState_Skipped cd:stepState_Succeeded ) ] .
+
 cd:activationStateScheme a skos:ConceptScheme ;
     skos:prefLabel "activation State"@en .
+
+cd:agreementStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "agreement State"@en .
 
 cd:certificateActionScheme a skos:ConceptScheme ;
     skos:prefLabel "certificate Action"@en .
@@ -5707,6 +6970,9 @@ cd:constraintOriginScheme a skos:ConceptScheme ;
 cd:costCategoryScheme a skos:ConceptScheme ;
     skos:prefLabel "cost Category"@en .
 
+cd:disputeCaseStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "dispute Case State"@en .
+
 cd:exchangeStateScheme a skos:ConceptScheme ;
     skos:prefLabel "exchange State"@en .
 
@@ -5715,6 +6981,9 @@ cd:invoiceStateScheme a skos:ConceptScheme ;
 
 cd:issueKindScheme a skos:ConceptScheme ;
     skos:prefLabel "issue Kind"@en .
+
+cd:obligationStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "obligation State"@en .
 
 cd:policyPurposeScheme a skos:ConceptScheme ;
     skos:prefLabel "policy Purpose"@en .
@@ -5727,6 +6996,15 @@ cd:reservationStateScheme a skos:ConceptScheme ;
 
 cd:settlementStateScheme a skos:ConceptScheme ;
     skos:prefLabel "settlement State"@en .
+
+cd:stepStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "step State"@en .
+
+cd:AssetLifecycleCode a owl:Class ;
+    rdfs:label "asset Lifecycle code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:assetLifecycle_Commissioned cd:assetLifecycle_Decommissioned cd:assetLifecycle_Disposed cd:assetLifecycle_Installed cd:assetLifecycle_Operating cd:assetLifecycle_Planned cd:assetLifecycle_Suspended ) ] .
 
 cd:AuthorizationMethodCode a owl:Class ;
     rdfs:label "authorization Method code"@en ;
@@ -5746,6 +7024,15 @@ cd:PaymentStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:paymentState_Authorized cd:paymentState_Cancelled cd:paymentState_Captured cd:paymentState_Created cd:paymentState_Failed cd:paymentState_PartiallyCaptured cd:paymentState_Refunded ) ] .
 
+cd:ProtocolNameCode a owl:Class ;
+    rdfs:label "protocol Name code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:protocolName_Custom cd:protocolName_ISO15118 cd:protocolName_Modbus cd:protocolName_OCPI cd:protocolName_OCPP cd:protocolName_OICP cd:protocolName_OpenADR ) ] .
+
+cd:assetLifecycleScheme a skos:ConceptScheme ;
+    skos:prefLabel "asset Lifecycle"@en .
+
 cd:authorizationMethodScheme a skos:ConceptScheme ;
     skos:prefLabel "authorization Method"@en .
 
@@ -5754,6 +7041,21 @@ cd:deploymentStateScheme a skos:ConceptScheme ;
 
 cd:paymentStateScheme a skos:ConceptScheme ;
     skos:prefLabel "payment State"@en .
+
+cd:protocolNameScheme a skos:ConceptScheme ;
+    skos:prefLabel "protocol Name"@en .
+
+cd:AgreementActionCode a owl:Class ;
+    rdfs:label "agreement Action code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:agreementAction_Accept cd:agreementAction_Amend cd:agreementAction_Expire cd:agreementAction_Offer cd:agreementAction_Renew cd:agreementAction_Resume cd:agreementAction_Suspend cd:agreementAction_Terminate ) ] .
+
+cd:AssetActionCode a owl:Class ;
+    rdfs:label "asset Action code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:assetAction_Activate cd:assetAction_Commission cd:assetAction_Decommission cd:assetAction_Dispose cd:assetAction_Install cd:assetAction_Relocate cd:assetAction_Replace cd:assetAction_Suspend ) ] .
 
 cd:CommandStateCode a owl:Class ;
     rdfs:label "command State code"@en ;
@@ -5803,11 +7105,11 @@ cd:SessionStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:sessionState_Active cd:sessionState_Completed cd:sessionState_Ending cd:sessionState_Failed cd:sessionState_Pending cd:sessionState_ReconciliationRequired cd:sessionState_Starting cd:sessionState_Suspended ) ] .
 
-cd:VerificationStateCode a owl:Class ;
-    rdfs:label "verification State code"@en ;
-    rdfs:subClassOf skos:Concept ;
-    owl:equivalentClass [ a owl:Class ;
-            owl:oneOf ( cd:verificationState_Certified cd:verificationState_Declared cd:verificationState_Invalid cd:verificationState_Observed cd:verificationState_Tested cd:verificationState_Unavailable cd:verificationState_Unchecked cd:verificationState_Valid ) ] .
+cd:agreementActionScheme a skos:ConceptScheme ;
+    skos:prefLabel "agreement Action"@en .
+
+cd:assetActionScheme a skos:ConceptScheme ;
+    skos:prefLabel "asset Action"@en .
 
 cd:commandStateScheme a skos:ConceptScheme ;
     skos:prefLabel "command State"@en .
@@ -5833,6 +7135,21 @@ cd:sessionEventKindScheme a skos:ConceptScheme ;
 cd:sessionStateScheme a skos:ConceptScheme ;
     skos:prefLabel "session State"@en .
 
+cd:RequestKindCode a owl:Class ;
+    rdfs:label "request Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:requestKind_Access cd:requestKind_Cancel cd:requestKind_Change cd:requestKind_Create cd:requestKind_Erasure cd:requestKind_Objection cd:requestKind_Portability cd:requestKind_Rectification cd:requestKind_Restriction ) ] .
+
+cd:VerificationStateCode a owl:Class ;
+    rdfs:label "verification State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:verificationState_Certified cd:verificationState_Declared cd:verificationState_Invalid cd:verificationState_NotChecked cd:verificationState_Observed cd:verificationState_Tested cd:verificationState_Unavailable cd:verificationState_Unchecked cd:verificationState_Valid ) ] .
+
+cd:requestKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "request Kind"@en .
+
 cd:verificationStateScheme a skos:ConceptScheme ;
     skos:prefLabel "verification State"@en .
 
@@ -5854,6 +7171,12 @@ cd:HardwareStateCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:hardwareState_Available cd:hardwareState_Charging cd:hardwareState_Faulted cd:hardwareState_Finishing cd:hardwareState_Preparing cd:hardwareState_Reserved cd:hardwareState_SuspendedByStation cd:hardwareState_SuspendedByVehicle cd:hardwareState_Unavailable cd:hardwareState_Unknown ) ] .
 
+cd:RequestStateCode a owl:Class ;
+    rdfs:label "request State code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:requestState_Accepted cd:requestState_Closed cd:requestState_Expired cd:requestState_Fulfilled cd:requestState_Pending cd:requestState_Processing cd:requestState_Received cd:requestState_Refused cd:requestState_Rejected cd:requestState_Verified ) ] .
+
 cd:affectedDimensionScheme a skos:ConceptScheme ;
     skos:prefLabel "affected Dimension"@en .
 
@@ -5863,14 +7186,26 @@ cd:businessRoleScheme a skos:ConceptScheme ;
 cd:hardwareStateScheme a skos:ConceptScheme ;
     skos:prefLabel "hardware State"@en .
 
+cd:requestStateScheme a skos:ConceptScheme ;
+    skos:prefLabel "request State"@en .
+
 cd:ChannelKindCode a owl:Class ;
     rdfs:label "channel Kind code"@en ;
     rdfs:subClassOf skos:Concept ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:channelKind_AdHocWeb cd:channelKind_BackOffice cd:channelKind_Display cd:channelKind_Document cd:channelKind_DriverApp cd:channelKind_Email cd:channelKind_InstallerApp cd:channelKind_PartnerPortal cd:channelKind_Push cd:channelKind_SMS cd:channelKind_Terminal ) ] .
 
+cd:ProcessKindCode a owl:Class ;
+    rdfs:label "process Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:processKind_Bill cd:processKind_Charge cd:processKind_ControlEnergy cd:processKind_Maintain cd:processKind_Migrate cd:processKind_Offboard cd:processKind_Onboard cd:processKind_Reimburse cd:processKind_RespondToDispute cd:processKind_RespondToPrivacy cd:processKind_Settle ) ] .
+
 cd:channelKindScheme a skos:ConceptScheme ;
     skos:prefLabel "channel Kind"@en .
+
+cd:processKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "process Kind"@en .
 
 cd:ConditionDimensionCode a owl:Class ;
     rdfs:label "condition Dimension code"@en ;
@@ -5884,410 +7219,539 @@ cd:ModuleNameCode a owl:Class ;
     owl:equivalentClass [ a owl:Class ;
             owl:oneOf ( cd:moduleName_Bookings cd:moduleName_CDRs cd:moduleName_ChargingProfiles cd:moduleName_Commands cd:moduleName_Credentials cd:moduleName_HubClientInfo cd:moduleName_InvoiceReconciliation cd:moduleName_Locations cd:moduleName_Payments cd:moduleName_Sessions cd:moduleName_Tariffs cd:moduleName_Tokens ) ] .
 
+cd:ObligationKindCode a owl:Class ;
+    rdfs:label "obligation Kind code"@en ;
+    rdfs:subClassOf skos:Concept ;
+    owl:equivalentClass [ a owl:Class ;
+            owl:oneOf ( cd:obligationKind_Bill cd:obligationKind_Collect cd:obligationKind_Handover cd:obligationKind_Maintain cd:obligationKind_Operate cd:obligationKind_ProtectData cd:obligationKind_Provision cd:obligationKind_Reimburse cd:obligationKind_Report cd:obligationKind_Settle cd:obligationKind_SupplyEnergy cd:obligationKind_Support ) ] .
+
 cd:conditionDimensionScheme a skos:ConceptScheme ;
     skos:prefLabel "condition Dimension"@en .
 
 cd:moduleNameScheme a skos:ConceptScheme ;
     skos:prefLabel "module Name"@en .
 
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:noticeSeverity_Information cd:noticeSeverity_Unavailable cd:noticeSeverity_Warning ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:payoutState_Confirmed cd:payoutState_Failed cd:payoutState_Reversed cd:payoutState_Scheduled cd:payoutState_Submitted ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:faultSeverity_Critical cd:faultSeverity_Info cd:faultSeverity_Warning ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:roamingRole_CPO cd:roamingRole_EMSP cd:roamingRole_Hub ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:channelKind_AdHocWeb cd:channelKind_BackOffice cd:channelKind_Display cd:channelKind_Document cd:channelKind_DriverApp cd:channelKind_Email cd:channelKind_InstallerApp cd:channelKind_PartnerPortal cd:channelKind_Push cd:channelKind_SMS cd:channelKind_Terminal ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:instrumentKind_BankTransfer cd:instrumentKind_Card cd:instrumentKind_Corporate cd:instrumentKind_External cd:instrumentKind_Wallet ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:scheduleKind_Absolute cd:scheduleKind_Recurring cd:scheduleKind_Relative ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:refundState_Confirmed cd:refundState_Failed cd:refundState_Pending ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:walletState_Active cd:walletState_Closed cd:walletState_Frozen ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:allowanceDimension_Energy cd:allowanceDimension_Money cd:allowanceDimension_Sessions cd:allowanceDimension_Time ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:sessionEventKind_Authorized cd:sessionEventKind_Reconciled cd:sessionEventKind_Recovered cd:sessionEventKind_Requested cd:sessionEventKind_Resumed cd:sessionEventKind_Started cd:sessionEventKind_Stopped cd:sessionEventKind_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:profilePurpose_ExternalConstraints cd:profilePurpose_StationMaximum cd:profilePurpose_TransactionDefault cd:profilePurpose_TransactionSpecific ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:sessionState_Active cd:sessionState_Completed cd:sessionState_Ending cd:sessionState_Failed cd:sessionState_Pending cd:sessionState_ReconciliationRequired cd:sessionState_Starting cd:sessionState_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:energySource_Biomass cd:energySource_Coal cd:energySource_Gas cd:energySource_Hydro cd:energySource_Nuclear cd:energySource_Other cd:energySource_Solar cd:energySource_Wind ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:tariffMode_DiscountBased cd:tariffMode_Dynamic cd:tariffMode_Free cd:tariffMode_Priced cd:tariffMode_Prohibited ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:sharingMode_Dynamic cd:sharingMode_External cd:sharingMode_Fixed ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:subsidyBasis_FixedPerUnit cd:subsidyBasis_FixedTotal cd:subsidyBasis_Percentage ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:communicationMode_Direct cd:communicationMode_Gateway cd:communicationMode_Unmanaged ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:jobState_Assigned cd:jobState_Completed cd:jobState_InProgress cd:jobState_Planned cd:jobState_Rejected ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:applicationState_Applied cd:applicationState_PartiallyApplied cd:applicationState_Pending cd:applicationState_Rejected ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:entryReason_Adjustment cd:entryReason_Charge cd:entryReason_Refund cd:entryReason_TopUp cd:entryReason_Voucher ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:baseTariffSelection_Explicit cd:baseTariffSelection_RoamingWholesale cd:baseTariffSelection_SetBase ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:recordOrigin_Local cd:recordOrigin_Roaming ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:requestKind_Cancel cd:requestKind_Change cd:requestKind_Create ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:outcomeState_Accepted cd:outcomeState_Failed cd:outcomeState_Rejected cd:outcomeState_Succeeded cd:outcomeState_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:discountBasis_FixedPerUnit cd:discountBasis_FixedTotal cd:discountBasis_Percentage ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:disposition_Anonymize cd:disposition_Archive cd:disposition_Delete ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:stationUse_Personal cd:stationUse_Private cd:stationUse_Public ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:scheduleUnit_A cd:scheduleUnit_kW ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:integrationKind_Billing cd:integrationKind_Energy cd:integrationKind_Fiscalization cd:integrationKind_Maintenance cd:integrationKind_Other cd:integrationKind_Payment cd:integrationKind_Roaming cd:integrationKind_Telematics ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:listingState_Draft cd:listingState_Published cd:listingState_Withdrawn ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:roundingMode_Down cd:roundingMode_HalfEven cd:roundingMode_HalfUp cd:roundingMode_Up ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accountState_Active cd:accountState_Closed cd:accountState_Pending cd:accountState_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:voucherState_Active cd:voucherState_Cancelled cd:voucherState_Expired cd:voucherState_Redeemed ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:contentState_Archived cd:contentState_Draft cd:contentState_Published ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:settlementState_Approved cd:settlementState_Calculated cd:settlementState_Disputed cd:settlementState_Draft cd:settlementState_Invoiced cd:settlementState_Settled ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:quality_Estimated cd:quality_Invalid cd:quality_Suspect cd:quality_Valid ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:recoveryResult_Escalated cd:recoveryResult_Failed cd:recoveryResult_Pending cd:recoveryResult_Succeeded ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:unknownUnitStatus_Available cd:unknownUnitStatus_Unavailable cd:unknownUnitStatus_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:severity_Critical cd:severity_Info cd:severity_Warning ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:intervalKind_Charging cd:intervalKind_Exporting cd:intervalKind_Idle cd:intervalKind_Parking cd:intervalKind_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:enrollmentState_Active cd:enrollmentState_Failed cd:enrollmentState_Pending cd:enrollmentState_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:configurationState_Applied cd:configurationState_Pending cd:configurationState_Rejected cd:configurationState_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:reportState_Approved cd:reportState_Draft cd:reportState_Paid cd:reportState_Replaced ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:enforcement_Notify cd:enforcement_RejectStart cd:enforcement_RequestStop ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:requestState_Accepted cd:requestState_Expired cd:requestState_Pending cd:requestState_Rejected ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:activationState_Accepted cd:activationState_Active cd:activationState_Completed cd:activationState_Failed cd:activationState_Rejected cd:activationState_Requested ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accessibility_Private cd:accessibility_Public cd:accessibility_Restricted ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:currentKind_AC cd:currentKind_Any cd:currentKind_DC ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:roundingStage_Component cd:roundingStage_Invoice cd:roundingStage_Line ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:assessmentResult_Conforming cd:assessmentResult_Nonconforming cd:assessmentResult_NotApplicable cd:assessmentResult_Unassessed ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:freezeMoment_Continuously cd:freezeMoment_PeriodStart cd:freezeMoment_SessionStart ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:administrationState_Disabled cd:administrationState_Enabled cd:administrationState_OutOfService cd:administrationState_Simulation ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:captureState_Confirmed cd:captureState_Failed cd:captureState_Pending ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:billingCycle_Annual cd:billingCycle_Monthly ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:readingKind_Cumulative cd:readingKind_Instantaneous cd:readingKind_Interval ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:conditionDimension_ConnectorKind cd:conditionDimension_Current cd:conditionDimension_CustomerGroup cd:conditionDimension_Duration cd:conditionDimension_Energy cd:conditionDimension_Location cd:conditionDimension_Partner cd:conditionDimension_Power cd:conditionDimension_Reservation cd:conditionDimension_StateOfCharge cd:conditionDimension_TimeWindow cd:conditionDimension_Weekday ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:businessRole_AssetOwner cd:businessRole_CPO cd:businessRole_EMSP cd:businessRole_FleetEmployer cd:businessRole_Installer cd:businessRole_PaymentProvider cd:businessRole_RoamingHub cd:businessRole_ServiceProvider cd:businessRole_SiteHost cd:businessRole_Utility ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:issueKind_Connectivity cd:issueKind_Hardware cd:issueKind_Other cd:issueKind_Payment cd:issueKind_Roaming cd:issueKind_Security ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:connectorFormat_Cable cd:connectorFormat_Socket ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:tariffState_Active cd:tariffState_Draft cd:tariffState_Retired ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:hardwareState_Available cd:hardwareState_Charging cd:hardwareState_Faulted cd:hardwareState_Finishing cd:hardwareState_Preparing cd:hardwareState_Reserved cd:hardwareState_SuspendedByStation cd:hardwareState_SuspendedByVehicle cd:hardwareState_Unavailable cd:hardwareState_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:billingMode_Postpaid cd:billingMode_Prepaid ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:priceDimension_ChargingTime cd:priceDimension_Connection cd:priceDimension_EnergyExport cd:priceDimension_EnergyImport cd:priceDimension_Flat cd:priceDimension_IdleTime cd:priceDimension_ParkingTime cd:priceDimension_ServiceFee ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accountKind_AdHoc cd:accountKind_Corporate cd:accountKind_Registered ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:decision_Accepted cd:decision_Pending cd:decision_Rejected ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:assetState_Active cd:assetState_Expired cd:assetState_Registered cd:assetState_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:grantState_Active cd:grantState_Expired cd:grantState_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:serviceRole_Both cd:serviceRole_CPO cd:serviceRole_EMSP ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:deploymentState_Downloaded cd:deploymentState_Downloading cd:deploymentState_Failed cd:deploymentState_Installing cd:deploymentState_RolledBack cd:deploymentState_Scheduled cd:deploymentState_Succeeded ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:billingType_Postpaid cd:billingType_Prepaid ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:issueState_Acknowledged cd:issueState_Closed cd:issueState_Investigating cd:issueState_Open cd:issueState_Resolved ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accessMode_AllowList cd:accessMode_DenyList cd:accessMode_Open cd:accessMode_Private ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accessTokenState_Active cd:accessTokenState_Expired cd:accessTokenState_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:profileKind_Absolute cd:profileKind_Recurring cd:profileKind_Relative ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:authorizationMethod_AdHoc cd:authorizationMethod_App cd:authorizationMethod_Autocharge cd:authorizationMethod_LocalFree cd:authorizationMethod_PlugAndCharge cd:authorizationMethod_RFID cd:authorizationMethod_Roaming ) .
+cd:obligationKindScheme a skos:ConceptScheme ;
+    skos:prefLabel "obligation Kind"@en .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:finalizationBasis_Administrative cd:finalizationBasis_DeviceStop cd:finalizationBasis_PartnerCDR cd:finalizationBasis_ReconciledMeter ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:signatureVerification_Invalid cd:signatureVerification_NotChecked cd:signatureVerification_Unverifiable cd:signatureVerification_Valid ) .
+    owl:distinctMembers ( cd:administrationState_Disabled cd:administrationState_Enabled cd:administrationState_OutOfService cd:administrationState_Simulation ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:notificationChannel_Email cd:notificationChannel_InApp cd:notificationChannel_Push cd:notificationChannel_SMS ) .
+    owl:distinctMembers ( cd:certificatePurpose_Contract cd:certificatePurpose_FirmwareSigning cd:certificatePurpose_MeterSigning cd:certificatePurpose_Provisioning cd:certificatePurpose_Transport cd:certificatePurpose_TrustAnchor ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:constraintOrigin_Contract cd:constraintOrigin_Grid cd:constraintOrigin_LocalSafety cd:constraintOrigin_Optimizer cd:constraintOrigin_User cd:constraintOrigin_Utility ) .
+    owl:distinctMembers ( cd:entitlementState_Active cd:entitlementState_Expired cd:entitlementState_Pending cd:entitlementState_Revoked cd:entitlementState_Suspended ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:policyPurpose_Accessibility cd:policyPurpose_Marketing cd:policyPurpose_Operational cd:policyPurpose_Other cd:policyPurpose_Privacy cd:policyPurpose_Terms ) .
+    owl:distinctMembers ( cd:assetState_Active cd:assetState_Expired cd:assetState_Registered cd:assetState_Suspended ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accountScheme_Domestic cd:accountScheme_IBAN cd:accountScheme_Provider ) .
+    owl:distinctMembers ( cd:controlDecision_Accepted cd:controlDecision_Limited cd:controlDecision_Rejected ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:principalKind_Human cd:principalKind_Machine ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:credentialState_Active cd:credentialState_Blocked cd:credentialState_Expired cd:credentialState_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:mismatchKind_Currency cd:mismatchKind_Duplicate cd:mismatchKind_Energy cd:mismatchKind_Missing cd:mismatchKind_Other cd:mismatchKind_Payment cd:mismatchKind_Price cd:mismatchKind_Tax ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:phaseSystem_Single cd:phaseSystem_Split cd:phaseSystem_Three ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:principalState_Disabled cd:principalState_Enabled ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:reimbursementState_Approved cd:reimbursementState_Calculated cd:reimbursementState_Credited cd:reimbursementState_Disputed cd:reimbursementState_Paid ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:exchangeState_Acknowledged cd:exchangeState_DeadLetter cd:exchangeState_Pending cd:exchangeState_Rejected cd:exchangeState_Retrying cd:exchangeState_Sent ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:exchangeDirection_Inbound cd:exchangeDirection_Outbound ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:resetRule_BillingPeriod cd:resetRule_CalendarMonth cd:resetRule_Never ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:pricingMode_Fixed cd:pricingMode_MarketIndexed cd:pricingMode_TimeOfUse ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:journalState_Draft cd:journalState_Posted cd:journalState_Reversed ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:moduleName_Bookings cd:moduleName_CDRs cd:moduleName_ChargingProfiles cd:moduleName_Commands cd:moduleName_Credentials cd:moduleName_HubClientInfo cd:moduleName_InvoiceReconciliation cd:moduleName_Locations cd:moduleName_Payments cd:moduleName_Sessions cd:moduleName_Tariffs cd:moduleName_Tokens ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:subscriptionState_Active cd:subscriptionState_Cancelled cd:subscriptionState_Expired cd:subscriptionState_Pending cd:subscriptionState_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:verificationState_Certified cd:verificationState_Declared cd:verificationState_Invalid cd:verificationState_Observed cd:verificationState_Tested cd:verificationState_Unavailable cd:verificationState_Unchecked cd:verificationState_Valid ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:certificateAction_Deleted cd:certificateAction_Failed cd:certificateAction_Installed cd:certificateAction_Issued cd:certificateAction_Renewed cd:certificateAction_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:bookingState_Cancelled cd:bookingState_Confirmed cd:bookingState_Expired cd:bookingState_Fulfilled cd:bookingState_NoShow ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:downtimeState_Active cd:downtimeState_Cancelled cd:downtimeState_Completed cd:downtimeState_Scheduled ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:decisionSource_LocalCache cd:decisionSource_Operator cd:decisionSource_PaymentProvider cd:decisionSource_Policy cd:decisionSource_RoamingPartner ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:credentialKind_AdHoc cd:credentialKind_App cd:credentialKind_Autocharge cd:credentialKind_ContractCertificate cd:credentialKind_RFID ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:accountCategory_Asset cd:accountCategory_Equity cd:accountCategory_Expense cd:accountCategory_Income cd:accountCategory_Liability ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:workState_Assigned cd:workState_Cancelled cd:workState_Completed cd:workState_InProgress cd:workState_New ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:measurementAggregation_Average cd:measurementAggregation_Instantaneous cd:measurementAggregation_Peak ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:energyDirection_Export cd:energyDirection_Import cd:energyDirection_NotApplicable ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:approvalDecision_Approved cd:approvalDecision_Rejected ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:phasePowerFormula_Reported cd:phasePowerFormula_SinglePhase cd:phasePowerFormula_ThreePhase ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:filterState_Active cd:filterState_Disabled ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:connectionState_Active cd:connectionState_Closed cd:connectionState_Connected cd:connectionState_Disconnected cd:connectionState_NeverConnected cd:connectionState_Pending cd:connectionState_Stale cd:connectionState_Suspended ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:controlStrategy_Cost cd:controlStrategy_Deadline cd:controlStrategy_EqualShare cd:controlStrategy_FirstCome cd:controlStrategy_Priority ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:deliveryTransport_Kafka cd:deliveryTransport_Webhook ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:localRole_Both cd:localRole_Receiver cd:localRole_Sender ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:visibility_Customer cd:visibility_Internal cd:visibility_Partner ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:invitationState_Accepted cd:invitationState_Declined cd:invitationState_Expired cd:invitationState_Pending cd:invitationState_Revoked ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:dispositionState_BlockedByHold cd:dispositionState_Completed cd:dispositionState_Failed cd:dispositionState_Requested ) .
+    owl:distinctMembers ( cd:roundingMode_Down cd:roundingMode_HalfEven cd:roundingMode_HalfUp cd:roundingMode_Up ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:notificationState_Delivered cd:notificationState_Failed cd:notificationState_Queued cd:notificationState_Sent ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:billingPeriodState_Billed cd:billingPeriodState_Closed cd:billingPeriodState_Open ) .
+    owl:distinctMembers ( cd:channelKind_AdHocWeb cd:channelKind_BackOffice cd:channelKind_Display cd:channelKind_Document cd:channelKind_DriverApp cd:channelKind_Email cd:channelKind_InstallerApp cd:channelKind_PartnerPortal cd:channelKind_Push cd:channelKind_SMS cd:channelKind_Terminal ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:schedulePurpose_Composite cd:schedulePurpose_DefaultSession cd:schedulePurpose_Session cd:schedulePurpose_StationLimit ) .
+    owl:distinctMembers ( cd:filterState_Active cd:filterState_Disabled ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:graceMode_AfterCharging cd:graceMode_AfterGrace cd:graceMode_FromStart ) .
+    owl:distinctMembers ( cd:conditionDimension_ConnectorKind cd:conditionDimension_Current cd:conditionDimension_CustomerGroup cd:conditionDimension_Duration cd:conditionDimension_Energy cd:conditionDimension_Location cd:conditionDimension_Partner cd:conditionDimension_Power cd:conditionDimension_Reservation cd:conditionDimension_StateOfCharge cd:conditionDimension_TimeWindow cd:conditionDimension_Weekday ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:disputeState_Closed cd:disputeState_Lost cd:disputeState_Open cd:disputeState_Submitted cd:disputeState_Won ) .
+    owl:distinctMembers ( cd:deliveryTransport_Kafka cd:deliveryTransport_Webhook ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:caseState_Investigating cd:caseState_Open cd:caseState_Rejected cd:caseState_Resolved ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:disclosureChannel_App cd:disclosureChannel_Printed cd:disclosureChannel_StationDisplay cd:disclosureChannel_Terminal cd:disclosureChannel_Web ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:authorizationState_Approved cd:authorizationState_Declined cd:authorizationState_Expired cd:authorizationState_Voided ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:deliveryState_DeadLetter cd:deliveryState_Delivered cd:deliveryState_Pending cd:deliveryState_Retrying ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:downtimeKind_Planned cd:downtimeKind_Unplanned ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:instrumentState_Active cd:instrumentState_Expired cd:instrumentState_Revoked ) .
+    owl:distinctMembers ( cd:approvalDecision_Approved cd:approvalDecision_Rejected ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:commercialMode_Corporate cd:commercialMode_Direct cd:commercialMode_Free cd:commercialMode_HomeReimbursement cd:commercialMode_Roaming ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:completeness_Complete cd:completeness_Disputed cd:completeness_Estimated ) .
+    owl:distinctMembers ( cd:invitationState_Accepted cd:invitationState_Declined cd:invitationState_Expired cd:invitationState_Pending cd:invitationState_Revoked ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:remoteCommandState_Accepted cd:remoteCommandState_Expired cd:remoteCommandState_Failed cd:remoteCommandState_Pending cd:remoteCommandState_Rejected cd:remoteCommandState_Succeeded ) .
+    owl:distinctMembers ( cd:certificateAction_Deleted cd:certificateAction_Failed cd:certificateAction_Installed cd:certificateAction_Issued cd:certificateAction_Renewed cd:certificateAction_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:assetLifecycle_Commissioned cd:assetLifecycle_Decommissioned cd:assetLifecycle_Disposed cd:assetLifecycle_Installed cd:assetLifecycle_Operating cd:assetLifecycle_Planned cd:assetLifecycle_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:fiscalizationState_Accepted cd:fiscalizationState_Pending cd:fiscalizationState_Rejected cd:fiscalizationState_Unavailable ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:settlementState_Approved cd:settlementState_Calculated cd:settlementState_Disputed cd:settlementState_Draft cd:settlementState_Invoiced cd:settlementState_Settled ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:acceptanceState_Accepted cd:acceptanceState_Pending cd:acceptanceState_Rejected ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:billingPeriodState_Billed cd:billingPeriodState_Closed cd:billingPeriodState_Open ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:constraintOrigin_Contract cd:constraintOrigin_Grid cd:constraintOrigin_LocalSafety cd:constraintOrigin_Optimizer cd:constraintOrigin_User cd:constraintOrigin_Utility ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:sessionState_Active cd:sessionState_Completed cd:sessionState_Ending cd:sessionState_Failed cd:sessionState_Pending cd:sessionState_ReconciliationRequired cd:sessionState_Starting cd:sessionState_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:positionState_Disputed cd:positionState_Open cd:positionState_PartiallySettled cd:positionState_Settled cd:positionState_WrittenOff ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:revenueBasis_EnergyMargin cd:revenueBasis_FixedFee cd:revenueBasis_GrossCharging cd:revenueBasis_NetCharging ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:communicationMode_Direct cd:communicationMode_Gateway cd:communicationMode_Unmanaged ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:resolutionKind_AcceptedDifference cd:resolutionKind_Corrected cd:resolutionKind_Matched cd:resolutionKind_Rejected cd:resolutionKind_WrittenOff ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:disputeState_Closed cd:disputeState_Lost cd:disputeState_Open cd:disputeState_Submitted cd:disputeState_Won ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:occupancy_Blocked cd:occupancy_Occupied cd:occupancy_Unknown cd:occupancy_Vacant ) .
 
 [] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:discountBasis_FixedPerUnit cd:discountBasis_FixedTotal cd:discountBasis_Percentage ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:journalState_Draft cd:journalState_Posted cd:journalState_Reversed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:reimbursementState_Approved cd:reimbursementState_Calculated cd:reimbursementState_Credited cd:reimbursementState_Disputed cd:reimbursementState_Paid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:consentChoice_Declined cd:consentChoice_Granted cd:consentChoice_Withdrawn ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:recordKind_Credit cd:recordKind_Debit ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:affectedDimension_ChargingTime cd:affectedDimension_Connection cd:affectedDimension_EnergyExport cd:affectedDimension_EnergyImport cd:affectedDimension_Flat cd:affectedDimension_IdleTime cd:affectedDimension_MinimumCharge cd:affectedDimension_ParkingTime cd:affectedDimension_ServiceFee cd:affectedDimension_Total ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:reimbursementRateSource_Policy cd:reimbursementRateSource_Station ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:policyState_Active cd:policyState_Disabled ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:principalKind_Human cd:principalKind_Machine ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:graceMode_AfterCharging cd:graceMode_AfterGrace cd:graceMode_FromStart ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:outcomeKind_Acknowledgement cd:outcomeKind_Completion ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:processKind_Bill cd:processKind_Charge cd:processKind_ControlEnergy cd:processKind_Maintain cd:processKind_Migrate cd:processKind_Offboard cd:processKind_Onboard cd:processKind_Reimburse cd:processKind_RespondToDispute cd:processKind_RespondToPrivacy cd:processKind_Settle ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:decision_Accepted cd:decision_Pending cd:decision_Rejected ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:remoteCommandState_Accepted cd:remoteCommandState_Expired cd:remoteCommandState_Failed cd:remoteCommandState_Pending cd:remoteCommandState_Rejected cd:remoteCommandState_Succeeded ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accountState_Active cd:accountState_Closed cd:accountState_Pending cd:accountState_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:disposition_Anonymize cd:disposition_Archive cd:disposition_Delete ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:roamingRole_CPO cd:roamingRole_EMSP cd:roamingRole_Hub ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:allocationState_Pending cd:allocationState_Posted cd:allocationState_Reversed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:connectionState_Active cd:connectionState_Closed cd:connectionState_Connected cd:connectionState_Disconnected cd:connectionState_NeverConnected cd:connectionState_Pending cd:connectionState_Stale cd:connectionState_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:baseTariffSelection_Explicit cd:baseTariffSelection_RoamingWholesale cd:baseTariffSelection_SetBase ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:resetRule_BillingPeriod cd:resetRule_CalendarMonth cd:resetRule_Never ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:contentState_Archived cd:contentState_Draft cd:contentState_Published ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:downtimeState_Active cd:downtimeState_Cancelled cd:downtimeState_Completed cd:downtimeState_Scheduled ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:approvalState_Approved cd:approvalState_Pending cd:approvalState_Rejected ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accessDecision_Deny cd:accessDecision_Permit ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:costCategory_Energy cd:costCategory_Maintenance cd:costCategory_Other cd:costCategory_Payment cd:costCategory_Platform cd:costCategory_Roaming ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:reportState_Approved cd:reportState_Draft cd:reportState_Paid cd:reportState_Replaced ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:processState_Cancelled cd:processState_Completed cd:processState_Failed cd:processState_Planned cd:processState_Running ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:deliveryState_DeadLetter cd:deliveryState_Delivered cd:deliveryState_Pending cd:deliveryState_Retrying ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:sessionEventKind_Authorized cd:sessionEventKind_Reconciled cd:sessionEventKind_Recovered cd:sessionEventKind_Requested cd:sessionEventKind_Resumed cd:sessionEventKind_Started cd:sessionEventKind_Stopped cd:sessionEventKind_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:grantState_Active cd:grantState_Expired cd:grantState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:assessmentResult_Conforming cd:assessmentResult_Nonconforming cd:assessmentResult_NotApplicable cd:assessmentResult_Unassessed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:dispositionState_BlockedByHold cd:dispositionState_Completed cd:dispositionState_Failed cd:dispositionState_Requested ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:recordOrigin_Local cd:recordOrigin_Roaming ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:deltaBasis_Estimated cd:deltaBasis_Measured ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:exchangeDirection_Inbound cd:exchangeDirection_Outbound ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:pricingMode_Fixed cd:pricingMode_MarketIndexed cd:pricingMode_TimeOfUse ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:protocolName_Custom cd:protocolName_ISO15118 cd:protocolName_Modbus cd:protocolName_OCPI cd:protocolName_OCPP cd:protocolName_OICP cd:protocolName_OpenADR ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:sharingMode_Dynamic cd:sharingMode_External cd:sharingMode_Fixed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:billingType_Postpaid cd:billingType_Prepaid ) .
+
+[] a owl:AllDifferent ;
     owl:distinctMembers ( cd:observedCompliance_Unknown cd:observedCompliance_Violation cd:observedCompliance_WithinLimit ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:diagnosticState_Available cd:diagnosticState_Failed cd:diagnosticState_Requested cd:diagnosticState_Uploading ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:phasePowerFormula_Reported cd:phasePowerFormula_SinglePhase cd:phasePowerFormula_ThreePhase ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:paymentOptionsKnowledge_Known cd:paymentOptionsKnowledge_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:integrationKind_Billing cd:integrationKind_Energy cd:integrationKind_Fiscalization cd:integrationKind_Maintenance cd:integrationKind_Other cd:integrationKind_Payment cd:integrationKind_Roaming cd:integrationKind_Telematics ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:scheduleKind_Absolute cd:scheduleKind_Recurring cd:scheduleKind_Relative ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:breachState_Acknowledged cd:breachState_Closed cd:breachState_Open cd:breachState_Remediated ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:currentKind_AC cd:currentKind_Any cd:currentKind_DC ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:recurrenceKind_Daily cd:recurrenceKind_Weekly ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:notificationChannel_Email cd:notificationChannel_InApp cd:notificationChannel_Push cd:notificationChannel_SMS ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:installationState_Disabled cd:installationState_Enabled cd:installationState_Installed cd:installationState_Removed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:decisionSource_LocalCache cd:decisionSource_Operator cd:decisionSource_PaymentProvider cd:decisionSource_Policy cd:decisionSource_RoamingPartner ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accountCategory_Asset cd:accountCategory_Equity cd:accountCategory_Expense cd:accountCategory_Income cd:accountCategory_Liability ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:processingState_Applied cd:processingState_Duplicate cd:processingState_Failed cd:processingState_Quarantined cd:processingState_Received ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:freezeMoment_Continuously cd:freezeMoment_PeriodStart cd:freezeMoment_SessionStart ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:assetAction_Activate cd:assetAction_Commission cd:assetAction_Decommission cd:assetAction_Dispose cd:assetAction_Install cd:assetAction_Relocate cd:assetAction_Replace cd:assetAction_Suspend ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:serviceRole_Both cd:serviceRole_CPO cd:serviceRole_EMSP ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:bookingState_Cancelled cd:bookingState_Confirmed cd:bookingState_Expired cd:bookingState_Fulfilled cd:bookingState_NoShow ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:verificationState_Certified cd:verificationState_Declared cd:verificationState_Invalid cd:verificationState_NotChecked cd:verificationState_Observed cd:verificationState_Tested cd:verificationState_Unavailable cd:verificationState_Unchecked cd:verificationState_Valid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:payoutState_Confirmed cd:payoutState_Failed cd:payoutState_Reversed cd:payoutState_Scheduled cd:payoutState_Submitted ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:captureState_Confirmed cd:captureState_Failed cd:captureState_Pending ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:strategy_Custom cd:strategy_Deadline cd:strategy_Immediate cd:strategy_LowestCost cd:strategy_Solar ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:selectionStrategy_HighestPriorityFirst ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:profilePurpose_ExternalConstraints cd:profilePurpose_StationMaximum cd:profilePurpose_TransactionDefault cd:profilePurpose_TransactionSpecific ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:assignmentRole_Driver cd:assignmentRole_FleetUser cd:assignmentRole_Owner ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:mismatchKind_Currency cd:mismatchKind_Duplicate cd:mismatchKind_Energy cd:mismatchKind_Missing cd:mismatchKind_Other cd:mismatchKind_Payment cd:mismatchKind_Price cd:mismatchKind_Tax ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:activationState_Accepted cd:activationState_Active cd:activationState_Completed cd:activationState_Failed cd:activationState_Rejected cd:activationState_Requested ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:obligationState_Active cd:obligationState_Breached cd:obligationState_Cancelled cd:obligationState_Fulfilled cd:obligationState_Pending cd:obligationState_Waived ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:agreementState_Active cd:agreementState_Draft cd:agreementState_Expired cd:agreementState_Offered cd:agreementState_Suspended cd:agreementState_Terminated ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:signatureVerification_Invalid cd:signatureVerification_NotChecked cd:signatureVerification_Unverifiable cd:signatureVerification_Valid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:workState_Assigned cd:workState_Cancelled cd:workState_Completed cd:workState_InProgress cd:workState_New ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:disclosureChannel_App cd:disclosureChannel_Printed cd:disclosureChannel_StationDisplay cd:disclosureChannel_Terminal cd:disclosureChannel_Web ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:caseState_Investigating cd:caseState_Open cd:caseState_Rejected cd:caseState_Resolved ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:listingState_Draft cd:listingState_Published cd:listingState_Withdrawn ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:faultSeverity_Critical cd:faultSeverity_Info cd:faultSeverity_Warning ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accessMode_AllowList cd:accessMode_DenyList cd:accessMode_Open cd:accessMode_Private ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:coverageMode_Full cd:coverageMode_Limited cd:coverageMode_None ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:agreementAction_Accept cd:agreementAction_Amend cd:agreementAction_Expire cd:agreementAction_Offer cd:agreementAction_Renew cd:agreementAction_Resume cd:agreementAction_Suspend cd:agreementAction_Terminate ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:compatibilityState_Compatible cd:compatibilityState_Incompatible cd:compatibilityState_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accessTokenState_Active cd:accessTokenState_Expired cd:accessTokenState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:subscriptionState_Active cd:subscriptionState_Cancelled cd:subscriptionState_Expired cd:subscriptionState_Pending cd:subscriptionState_Suspended ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:readingKind_Cumulative cd:readingKind_Instantaneous cd:readingKind_Interval ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:subsidyBasis_FixedPerUnit cd:subsidyBasis_FixedTotal cd:subsidyBasis_Percentage ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:walletState_Active cd:walletState_Closed cd:walletState_Frozen ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:snapshotKind_Current cd:snapshotKind_Historical ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accessibility_Private cd:accessibility_Public cd:accessibility_Restricted ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:priceDimension_ChargingTime cd:priceDimension_Connection cd:priceDimension_EnergyExport cd:priceDimension_EnergyImport cd:priceDimension_Flat cd:priceDimension_IdleTime cd:priceDimension_ParkingTime cd:priceDimension_ServiceFee ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:vehicleCategory_Bus cd:vehicleCategory_Other cd:vehicleCategory_Passenger cd:vehicleCategory_Truck cd:vehicleCategory_Van ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:entryReason_Adjustment cd:entryReason_Charge cd:entryReason_Refund cd:entryReason_TopUp cd:entryReason_Voucher ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:billingMode_Postpaid cd:billingMode_Prepaid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:holdState_Active cd:holdState_Expired cd:holdState_Released ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:noticeSeverity_Information cd:noticeSeverity_Unavailable cd:noticeSeverity_Warning ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:credentialState_Active cd:credentialState_Blocked cd:credentialState_Expired cd:credentialState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:disputeCaseState_Accepted cd:disputeCaseState_Closed cd:disputeCaseState_Investigating cd:disputeCaseState_Opened cd:disputeCaseState_Rejected cd:disputeCaseState_Remedied ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:couponState_Active cd:couponState_Cancelled cd:couponState_Exhausted cd:couponState_Expired ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:recoveryResult_Escalated cd:recoveryResult_Failed cd:recoveryResult_Passed cd:recoveryResult_Pending cd:recoveryResult_Succeeded ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:deploymentState_Downloaded cd:deploymentState_Downloading cd:deploymentState_Failed cd:deploymentState_Installing cd:deploymentState_RolledBack cd:deploymentState_Scheduled cd:deploymentState_Succeeded ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:instrumentState_Active cd:instrumentState_Expired cd:instrumentState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:issueKind_Connectivity cd:issueKind_Hardware cd:issueKind_Other cd:issueKind_Payment cd:issueKind_Roaming cd:issueKind_Security ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:provisioningState_Active cd:provisioningState_Registered cd:provisioningState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:energyDirection_Export cd:energyDirection_Import cd:energyDirection_NotApplicable ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:invoiceState_Draft cd:invoiceState_Issued cd:invoiceState_Overdue cd:invoiceState_Paid cd:invoiceState_PartiallyPaid cd:invoiceState_Voided ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:limitDimension_Balance cd:limitDimension_Cost cd:limitDimension_Duration cd:limitDimension_Energy cd:limitDimension_OpeningHours ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:billingCycle_Annual cd:billingCycle_Monthly ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:voucherState_Active cd:voucherState_Cancelled cd:voucherState_Expired cd:voucherState_Redeemed ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:stepState_Compensated cd:stepState_Failed cd:stepState_Pending cd:stepState_Running cd:stepState_Skipped cd:stepState_Succeeded ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:tariffPurpose_Internal cd:tariffPurpose_Reimbursement cd:tariffPurpose_Retail cd:tariffPurpose_Wholesale ) .
 
 [] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:mappingMode_Native cd:mappingMode_Overridden cd:mappingMode_Translated ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:taxBasis_Exclusive cd:taxBasis_Exempt cd:taxBasis_Inclusive ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:issueState_Acknowledged cd:issueState_Closed cd:issueState_Investigating cd:issueState_Open cd:issueState_Resolved ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:downtimeKind_Planned cd:downtimeKind_Unplanned ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:authorizationMethod_AdHoc cd:authorizationMethod_App cd:authorizationMethod_Autocharge cd:authorizationMethod_LocalFree cd:authorizationMethod_PlugAndCharge cd:authorizationMethod_RFID cd:authorizationMethod_Roaming ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:stationUse_Personal cd:stationUse_Private cd:stationUse_Public ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:unknownFieldPolicy_Preserve cd:unknownFieldPolicy_Quarantine cd:unknownFieldPolicy_Reject ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:commandState_Accepted cd:commandState_Expired cd:commandState_Failed cd:commandState_Queued cd:commandState_Rejected cd:commandState_Sent cd:commandState_Succeeded cd:commandState_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:failureAction_AllowWithRisk cd:failureAction_RejectStart cd:failureAction_StopCharging ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:offerMode_AdHoc cd:offerMode_Contract cd:offerMode_Corporate cd:offerMode_Roaming ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:requestState_Accepted cd:requestState_Closed cd:requestState_Expired cd:requestState_Fulfilled cd:requestState_Pending cd:requestState_Processing cd:requestState_Received cd:requestState_Refused cd:requestState_Rejected cd:requestState_Verified ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:measurementAggregation_Average cd:measurementAggregation_Instantaneous cd:measurementAggregation_Peak ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:closureState_Blocked cd:closureState_Cancelled cd:closureState_Completed cd:closureState_Requested ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:credentialKind_AdHoc cd:credentialKind_App cd:credentialKind_Autocharge cd:credentialKind_ContractCertificate cd:credentialKind_RFID ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:unknownUnitStatus_Available cd:unknownUnitStatus_Unavailable cd:unknownUnitStatus_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:obligationKind_Bill cd:obligationKind_Collect cd:obligationKind_Handover cd:obligationKind_Maintain cd:obligationKind_Operate cd:obligationKind_ProtectData cd:obligationKind_Provision cd:obligationKind_Reimburse cd:obligationKind_Report cd:obligationKind_Settle cd:obligationKind_SupplyEnergy cd:obligationKind_Support ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:businessRole_AssetOwner cd:businessRole_CPO cd:businessRole_EMSP cd:businessRole_FleetEmployer cd:businessRole_Installer cd:businessRole_PaymentProvider cd:businessRole_RoamingHub cd:businessRole_ServiceProvider cd:businessRole_SiteHost cd:businessRole_Utility ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:applicationState_Applied cd:applicationState_PartiallyApplied cd:applicationState_Pending cd:applicationState_Rejected ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:actionKind_Escalate cd:actionKind_Reminder cd:actionKind_Suspend cd:actionKind_WriteOff ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:offlineDecision_Allow cd:offlineDecision_Deny ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:connectorFormat_Cable cd:connectorFormat_Socket ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:schedulePurpose_Composite cd:schedulePurpose_DefaultSession cd:schedulePurpose_Session cd:schedulePurpose_StationLimit ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:tariffMode_DiscountBased cd:tariffMode_Dynamic cd:tariffMode_Free cd:tariffMode_Priced cd:tariffMode_Prohibited ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:intervalKind_Charging cd:intervalKind_Exporting cd:intervalKind_Idle cd:intervalKind_Parking cd:intervalKind_Suspended ) .
+
+[] a owl:AllDifferent ;
     owl:distinctMembers ( cd:certificateState_Expired cd:certificateState_Pending cd:certificateState_Revoked cd:certificateState_Valid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:energyAssetKind_Other cd:energyAssetKind_Solar cd:energyAssetKind_StationaryBattery cd:energyAssetKind_VehicleBattery ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:migrationState_Completed cd:migrationState_Failed cd:migrationState_Planned cd:migrationState_Reconciled cd:migrationState_Running ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:completeness_Complete cd:completeness_Disputed cd:completeness_Estimated ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:requestKind_Access cd:requestKind_Cancel cd:requestKind_Change cd:requestKind_Create cd:requestKind_Erasure cd:requestKind_Objection cd:requestKind_Portability cd:requestKind_Rectification cd:requestKind_Restriction ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:quality_Estimated cd:quality_Invalid cd:quality_Suspect cd:quality_Valid ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:scheduleUnit_A cd:scheduleUnit_kW ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:exchangeState_Acknowledged cd:exchangeState_DeadLetter cd:exchangeState_Pending cd:exchangeState_Rejected cd:exchangeState_Retrying cd:exchangeState_Sent ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:outcomeState_Accepted cd:outcomeState_Failed cd:outcomeState_Rejected cd:outcomeState_Succeeded cd:outcomeState_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accountKind_AdHoc cd:accountKind_Corporate cd:accountKind_Registered ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:paymentState_Authorized cd:paymentState_Cancelled cd:paymentState_Captured cd:paymentState_Created cd:paymentState_Failed cd:paymentState_PartiallyCaptured cd:paymentState_Refunded ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:accountScheme_Domestic cd:accountScheme_IBAN cd:accountScheme_Provider ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:roundingStage_Component cd:roundingStage_Invoice cd:roundingStage_Line ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:documentKind_CreditNote cd:documentKind_Invoice cd:documentKind_Receipt ) .
@@ -6296,113 +7760,95 @@ cd:moduleNameScheme a skos:ConceptScheme ;
     owl:distinctMembers ( cd:integrationState_Active cd:integrationState_Configured cd:integrationState_Disabled cd:integrationState_Failed ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:assignmentRole_Driver cd:assignmentRole_FleetUser cd:assignmentRole_Owner ) .
+    owl:distinctMembers ( cd:policyPurpose_Accessibility cd:policyPurpose_Marketing cd:policyPurpose_Operational cd:policyPurpose_Other cd:policyPurpose_Privacy cd:policyPurpose_Terms ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:moduleName_Bookings cd:moduleName_CDRs cd:moduleName_ChargingProfiles cd:moduleName_Commands cd:moduleName_Credentials cd:moduleName_HubClientInfo cd:moduleName_InvoiceReconciliation cd:moduleName_Locations cd:moduleName_Payments cd:moduleName_Sessions cd:moduleName_Tariffs cd:moduleName_Tokens ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:profileKind_Absolute cd:profileKind_Recurring cd:profileKind_Relative ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:configurationState_Applied cd:configurationState_Pending cd:configurationState_Rejected cd:configurationState_Unknown ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:phaseSystem_Single cd:phaseSystem_Split cd:phaseSystem_Three ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:groupingPurpose_Access cd:groupingPurpose_Corporate cd:groupingPurpose_Pricing cd:groupingPurpose_Reporting ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:auditResult_Failed cd:auditResult_Rejected cd:auditResult_Succeeded ) .
+    owl:distinctMembers ( cd:refundState_Confirmed cd:refundState_Failed cd:refundState_Pending ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:outcomeKind_Acknowledgement cd:outcomeKind_Completion ) .
+    owl:distinctMembers ( cd:localRole_Both cd:localRole_Receiver cd:localRole_Sender ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:costCategory_Energy cd:costCategory_Maintenance cd:costCategory_Other cd:costCategory_Payment cd:costCategory_Platform cd:costCategory_Roaming ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:taxBasis_Exclusive cd:taxBasis_Exempt cd:taxBasis_Inclusive ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:comparisonOperator_Between cd:comparisonOperator_Equal cd:comparisonOperator_GreaterOrEqual cd:comparisonOperator_In cd:comparisonOperator_LessThan cd:comparisonOperator_NotIn ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:affectedDimension_ChargingTime cd:affectedDimension_Connection cd:affectedDimension_EnergyExport cd:affectedDimension_EnergyImport cd:affectedDimension_Flat cd:affectedDimension_IdleTime cd:affectedDimension_MinimumCharge cd:affectedDimension_ParkingTime cd:affectedDimension_ServiceFee cd:affectedDimension_Total ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:tierMode_Graduated cd:tierMode_WholeQuantity ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:recurrenceKind_Daily cd:recurrenceKind_Weekly ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:paymentState_Authorized cd:paymentState_Cancelled cd:paymentState_Captured cd:paymentState_Created cd:paymentState_Failed cd:paymentState_PartiallyCaptured cd:paymentState_Refunded ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:energyAssetKind_Other cd:energyAssetKind_Solar cd:energyAssetKind_StationaryBattery cd:energyAssetKind_VehicleBattery ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:mappingMode_Native cd:mappingMode_Overridden cd:mappingMode_Translated ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:couponState_Active cd:couponState_Cancelled cd:couponState_Exhausted cd:couponState_Expired ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:installationState_Disabled cd:installationState_Enabled cd:installationState_Installed cd:installationState_Removed ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:commandState_Accepted cd:commandState_Expired cd:commandState_Failed cd:commandState_Queued cd:commandState_Rejected cd:commandState_Sent cd:commandState_Succeeded cd:commandState_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:fiscalizationState_Accepted cd:fiscalizationState_Pending cd:fiscalizationState_Rejected cd:fiscalizationState_Unavailable ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:policyState_Active cd:policyState_Disabled ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:diagnosticState_Available cd:diagnosticState_Failed cd:diagnosticState_Requested cd:diagnosticState_Uploading ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:vehicleCategory_Bus cd:vehicleCategory_Other cd:vehicleCategory_Passenger cd:vehicleCategory_Truck cd:vehicleCategory_Van ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:strategy_Custom cd:strategy_Deadline cd:strategy_Immediate cd:strategy_LowestCost cd:strategy_Solar ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:protocolName_Custom cd:protocolName_OCPI cd:protocolName_OCPP cd:protocolName_OICP cd:protocolName_OpenADR ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:coverageMode_Full cd:coverageMode_Limited cd:coverageMode_None ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:invoiceState_Draft cd:invoiceState_Issued cd:invoiceState_Overdue cd:invoiceState_Paid cd:invoiceState_PartiallyPaid cd:invoiceState_Voided ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:paymentOptionsKnowledge_Known cd:paymentOptionsKnowledge_Unknown ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:consentChoice_Declined cd:consentChoice_Granted cd:consentChoice_Withdrawn ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:failureAction_AllowWithRisk cd:failureAction_RejectStart cd:failureAction_StopCharging ) .
-
-[] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:reimbursementRateSource_Policy cd:reimbursementRateSource_Station ) .
+    owl:distinctMembers ( cd:correctionKind_Adjust cd:correctionKind_Credit cd:correctionKind_Replace cd:correctionKind_Reverse ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:reservationState_Active cd:reservationState_Cancelled cd:reservationState_Consumed cd:reservationState_Expired cd:reservationState_Pending cd:reservationState_Rejected ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:revenueBasis_EnergyMargin cd:revenueBasis_FixedFee cd:revenueBasis_GrossCharging cd:revenueBasis_NetCharging ) .
+    owl:distinctMembers ( cd:allowanceDimension_Energy cd:allowanceDimension_Money cd:allowanceDimension_Sessions cd:allowanceDimension_Time ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:changeState_Applied cd:changeState_Cancelled cd:changeState_Failed cd:changeState_Scheduled ) .
+    owl:distinctMembers ( cd:hardwareState_Available cd:hardwareState_Charging cd:hardwareState_Faulted cd:hardwareState_Finishing cd:hardwareState_Preparing cd:hardwareState_Reserved cd:hardwareState_SuspendedByStation cd:hardwareState_SuspendedByVehicle cd:hardwareState_Unavailable cd:hardwareState_Unknown ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:direction_Inbound cd:direction_Outbound ) .
+    owl:distinctMembers ( cd:instrumentKind_BankTransfer cd:instrumentKind_Card cd:instrumentKind_Corporate cd:instrumentKind_External cd:instrumentKind_Wallet ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:visibility_Customer cd:visibility_Internal cd:visibility_Partner ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:enforcement_Notify cd:enforcement_RejectStart cd:enforcement_RequestStop ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:assessmentOutcome_Satisfied cd:assessmentOutcome_Unsatisfied cd:assessmentOutcome_Waived ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:energySource_Biomass cd:energySource_Coal cd:energySource_Gas cd:energySource_Hydro cd:energySource_Nuclear cd:energySource_Other cd:energySource_Solar cd:energySource_Wind ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:principalState_Disabled cd:principalState_Enabled ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:controlStrategy_Cost cd:controlStrategy_Deadline cd:controlStrategy_EqualShare cd:controlStrategy_FirstCome cd:controlStrategy_Priority ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:enrollmentState_Active cd:enrollmentState_Failed cd:enrollmentState_Pending cd:enrollmentState_Revoked ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:comparisonOperator_Between cd:comparisonOperator_Equal cd:comparisonOperator_GreaterOrEqual cd:comparisonOperator_In cd:comparisonOperator_LessThan cd:comparisonOperator_NotIn ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:authorizationState_Approved cd:authorizationState_Declined cd:authorizationState_Expired cd:authorizationState_Voided ) .
 
 [] a owl:AllDifferent ;
     owl:distinctMembers ( cd:validityMode_DaysAfterRedemption cd:validityMode_FixedWindow ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:provisioningState_Active cd:provisioningState_Registered cd:provisioningState_Revoked ) .
+    owl:distinctMembers ( cd:jobState_Assigned cd:jobState_Completed cd:jobState_InProgress cd:jobState_Planned cd:jobState_Rejected ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:certificatePurpose_Contract cd:certificatePurpose_FirmwareSigning cd:certificatePurpose_MeterSigning cd:certificatePurpose_Provisioning cd:certificatePurpose_Transport cd:certificatePurpose_TrustAnchor ) .
+    owl:distinctMembers ( cd:changeState_Applied cd:changeState_Cancelled cd:changeState_Failed cd:changeState_Scheduled ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:selectionStrategy_HighestPriorityFirst ) .
+    owl:distinctMembers ( cd:tierMode_Graduated cd:tierMode_WholeQuantity ) .
 
 [] a owl:AllDifferent ;
-    owl:distinctMembers ( cd:limitDimension_Balance cd:limitDimension_Cost cd:limitDimension_Duration cd:limitDimension_Energy cd:limitDimension_OpeningHours ) .
+    owl:distinctMembers ( cd:tariffState_Active cd:tariffState_Draft cd:tariffState_Retired ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:readinessState_Blocked cd:readinessState_Pending cd:readinessState_Ready ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:direction_Inbound cd:direction_Outbound ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:severity_Critical cd:severity_Info cd:severity_Warning ) .
+
+[] a owl:AllDifferent ;
+    owl:distinctMembers ( cd:auditResult_Failed cd:auditResult_Rejected cd:auditResult_Succeeded ) .
 

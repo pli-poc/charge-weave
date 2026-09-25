@@ -13,6 +13,10 @@ tests:
 	$(PYTHON) tools/test_business.py
 	$(PYTHON) tools/test_boundaries.py
 	$(PYTHON) tools/test_trust_boundary.py
+	$(PYTHON) tools/test_business_acceptance.py
+	$(PYTHON) tools/test_lifecycle.py
+	$(PYTHON) tools/check_audit.py
+	$(PYTHON) tools/check_naming.py
 reason:
 	$(PYTHON) tools/check_owl.py
 release:

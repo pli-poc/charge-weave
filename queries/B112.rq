@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:AgreementLifecycleEvent . ?this cd:agreementAction ?a; cd:serviceAgreement ?old. FILTER(?a IN (cd:agreementAction_Amend,cd:agreementAction_Renew)) FILTER NOT EXISTS {?this cd:successorAgreement ?new. ?old cd:agreementReference ?id; cd:agreementVersion ?v1. ?new cd:agreementReference ?id; cd:agreementVersion ?v2. FILTER(?new != ?old && ?v1 != ?v2)} }

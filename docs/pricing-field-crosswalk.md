@@ -1,6 +1,6 @@
 # Detailed pricing field audit
 
-Every property in the inspected AMPECO `pricing` and `discountTariffSettings` objects has an explicit semantic disposition below. Source: [Tariff create](https://developers.ampeco.com/reference/tariffcreate), retrieved 25 September 2026; compared with the official schema index v3.251.8. This is a design mapping. Vendor enum conversion, precedence, arithmetic equivalence and serializers still require adapter contract tests.
+Every property in the inspected External platform `pricing` and `discountTariffSettings` objects has an explicit semantic disposition below. Source: [Tariff create](urn:chargeweave:legacy-api/reference/tariffcreate), retrieved 25 September 2026; compared with the official schema index v3.251.8. This is a design mapping. Vendor enum conversion, precedence, arithmetic equivalence and serializers still require adapter contract tests.
 
 | Source object.field | Canonical path | Translation decision |
 |---|---|---|

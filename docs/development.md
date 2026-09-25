@@ -1,8 +1,7 @@
 # Development and GitHub Actions
 
 ChargeWeave uses GitHub as its canonical source and GitHub Actions as its shared
-verification record. The initial import is the existing CPMS ontology v1.0,
-with tooling made portable for clean CI checkouts.
+verification record. Version 1.1 includes the independent business requirement register and its executable semantic evidence.
 
 ## Environment and commands
 
@@ -30,10 +29,11 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | Editable source | Generated outputs |
 |---|---|
 | `model/domain.schema`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
-| `tools/build_rules.py` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
-| Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | AMPECO crosswalks, actions/events and vocabulary shapes |
+| `tools/build_rules.py`, `model/audit-rules.json`, `model/lifecycle-policies.json` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
+| Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | External platform crosswalks, actions/events and vocabulary shapes |
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |
-| `tools/build_examples.py` | All-class synthetic reference graph |
+| `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
+| `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `tools/build_queries.py` | Competency questions and CQ queries |
 | `tests/negative-cases.json`, `tools/test_*.py` | Validation reports |
 
@@ -55,6 +55,10 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Input trust boundaries | Empty/untyped inputs and trusted-vocabulary tampering are rejected |
 | OWL consistency and satisfiability | HermiT accepts both the schema and schema plus reference graph |
 | Coverage formats and competency queries | Declared classes, mappings, standalone queries and exports agree |
+| Requirement traceability | Actors, sources, relationships, rules, lifecycles and acceptance links resolve |
+| Business and lifecycle acceptance | Valid/invalid business decisions and selected allowed/forbidden transitions |
+| Thirteen journey families | Complete conforming snapshots, cross-domain assertions and deliberate business faults |
+| Current source naming | Removed platform name does not recur in current paths/content |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 
 Open [Actions](https://github.com/pli-poc/charge-weave/actions/workflows/ontology-ci.yml)
@@ -68,8 +72,7 @@ Pull-request runs verify GitHub's merge commit; provenance records that exact co
 
 `reports/` and `dist/` are runtime output directories and are ignored by Git.
 The original v1.0 results are preserved separately in `evidence/baseline-v1.0/`;
-they are historical evidence, not current-run results. The original manifest refers
-to the pre-import archive layout. New package manifests describe the actual artifact.
+they are historical evidence, not current-run results. The obsolete original manifest was removed after current-tree debranding changed archived file bytes. New package manifests describe the actual artifact.
 
 For local packaging, run all gates on the current checkout, commit changes, then
 run `python tools/package.py`. The local packaging guard checks report completeness
@@ -77,5 +80,4 @@ and a clean tree; it does not prove that locally retained reports are fresh. The
 authoritative package is the Actions artifact, whose reports come from one run.
 
 No workflow automatically updates the benchmark from a moving website or treats
-technical success as independent business completeness. That audit has its own
-[acceptance plan](business-domain-audit.md).
+technical success as independent business completeness. The completed semantic review has its own [findings and evidence boundary](business-domain-audit.md).

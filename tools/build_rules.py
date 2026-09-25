@@ -114,6 +114,8 @@ rule('B106','PaymentCapture','Confirmed captures require a provider confirmation
 rule('B107','TariffVersion','A discount-based tariff requires explicit discount rules.','$this cd:tariffMode cd:tariffMode_DiscountBased. FILTER NOT EXISTS {$this cd:discountRule ?d}')
 rule('B108','PowerModuleAllocation','Allocated charging unit must be served by the cabinet.','$this cd:chargingUnit ?u; cd:powerCabinet ?c. FILTER NOT EXISTS {?c cd:servedUnit ?u}')
 rule('B109','RatingCalculation','Rating a deferred-base discount requires the resolved immutable base tariff.','$this cd:selectedTariff/cd:baseTariffSelection ?mode. FILTER(?mode IN (cd:baseTariffSelection_SetBase,cd:baseTariffSelection_RoamingWholesale)) FILTER NOT EXISTS {$this cd:tariffResolution/cd:resolvedBaseTariff ?base}')
+for extra in json.loads((P/'model/audit-rules.json').read_text()):
+ rule(extra['id'],extra['target'],extra['title'],extra['body'])
 # Enumeration transitions are domain policy, not a copied vendor state machine.
 transitions={
 'sessionState':{'Pending':['Starting','Failed'],'Starting':['Active','Failed','ReconciliationRequired'],'Active':['Suspended','Ending','ReconciliationRequired'],'Suspended':['Active','Ending','ReconciliationRequired'],'Ending':['Completed','ReconciliationRequired'],'ReconciliationRequired':['Completed','Failed']},
@@ -125,12 +127,13 @@ transitions={
 'deploymentState':{'Scheduled':['Downloading','Failed'],'Downloading':['Downloaded','Failed'],'Downloaded':['Installing','Failed'],'Installing':['Succeeded','Failed'],'Succeeded':['RolledBack'],'Failed':['RolledBack']},
 'invitationState':{'Pending':['Accepted','Declined','Expired','Revoked']},
 'activationState':{'Requested':['Accepted','Rejected'],'Accepted':['Active','Failed'],'Active':['Completed','Failed']}}
+transitions.update(json.loads((P/'model/lifecycle-policies.json').read_text()))
 g=Graph();g.bind('cd',C);g.bind('sh',SH)
 for r in rules:
  n=C[r['id']];b=BNode();g.add((n,RDF.type,SH.NodeShape));g.add((n,SH.targetClass,C[r['target']]));g.add((n,SH.sparql,b));g.add((b,SH.message,Literal(r['id']+': '+r['message'])));g.add((b,SH.select,Literal(r['query'])))
  standalone=r['query'].replace('WHERE { ','WHERE { $this rdf:type/rdfs:subClassOf* cd:'+r['target']+' . ',1).replace('$this','?this')
  (P/f'queries/{r["id"]}.rq').write_text(standalone+'\n')
-g.serialize(P/'validation/business.shacl.ttl',format='turtle');(P/'model/rules.json').write_text(json.dumps(rules,indent=2));(P/'model/transitions.json').write_text(json.dumps(transitions,indent=2))
+(P/'validation/business.shacl.ttl').write_text(g.serialize(format='turtle'));(P/'model/rules.json').write_text(json.dumps(rules,indent=2));(P/'model/transitions.json').write_text(json.dumps(transitions,indent=2))
 from rdflib import OWL,RDFS
 trans=Graph();trans.bind('cd',C)
 for prop in ['transitionProperty','fromState','toState']:trans.add((C[prop],RDF.type,OWL.ObjectProperty))
@@ -139,6 +142,6 @@ for p,states in transitions.items():
  for start,ends in states.items():
   for end in ends:
    n=C['transition_'+p+'_'+start+'_'+end];trans.add((n,RDF.type,C.TransitionRule));trans.add((n,C.transitionProperty,C[p]));trans.add((n,C.fromState,C[p+'_'+start]));trans.add((n,C.toState,C[p+'_'+end]))
-trans.serialize(P/'ontology/transitions.ttl',format='turtle')
-(P/'docs/validation-rules.md').write_text('# Cross-domain business validation\n\nThese are canonical domain policies. Vendor-specific restrictions belong in the separate AMPECO compatibility profile. SELECT results are violations; absence of rows is meaningful only after structural validation over a complete authorized snapshot.\n\n| Rule | Target | Invariant |\n|---|---|---|\n'+'\n'.join('| '+r['id']+' | '+r['target']+' | '+r['message']+' |' for r in rules)+'\n')
+(P/'ontology/transitions.ttl').write_text(trans.serialize(format='turtle'))
+(P/'docs/validation-rules.md').write_text('# Cross-domain business validation\n\nThese are canonical domain policies. Vendor-specific restrictions belong in the separate External platform compatibility profile. SELECT results are violations; absence of rows is meaningful only after structural validation over a complete authorized snapshot.\n\n| Rule | Target | Invariant |\n|---|---|---|\n'+'\n'.join('| '+r['id']+' | '+r['target']+' | '+r['message']+' |' for r in rules)+'\n')
 print(len(rules),'business rules',sum(len(v) for s in transitions.values() for v in s.values()),'allowed transitions')

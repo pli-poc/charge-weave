@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:MeterDelta . ?this cd:deltaBasis cd:deltaBasis_Measured; cd:registerEpoch ?e; cd:startReading ?a; cd:endReading ?b. ?e cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:validFrom ?start. OPTIONAL {?e cd:validUntil ?end} FILTER(!EXISTS {?a cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?at. FILTER(?at>=?start)} || !EXISTS {?b cd:meter ?m; cd:unitIri ?u; cd:energyDirection ?d; cd:readingKind cd:readingKind_Cumulative; cd:observedAt ?bt. FILTER(!BOUND(?end)||?bt<?end)}) }

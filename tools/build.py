@@ -36,7 +36,7 @@ for k,ts in prop_types.items():
  assert len({t[0] for t in ts})==1,(k,ts)
 ont=graph(); shapes=graph(); concepts=graph();mods={m:graph() for m in sorted({i['module'] for i in classes.values()})}
 root=URIRef('https://example.org/charge-domain')
-ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.0.0')));ont.add((root,OWL.versionInfo,Literal('1.0.0')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
+ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.1.0')));ont.add((root,OWL.versionInfo,Literal('1.1.0')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
 for ap in ['module','definitionStatus','abstract','sameTenant','benchmarkSource','operationTarget','sourcePath']:
  ont.add((C[ap],RDF.type,OWL.AnnotationProperty))
 for c,i in classes.items():
@@ -106,10 +106,10 @@ for c,i in classes.items():
   if k=='contentDigest':shapes.add((ps,SH.pattern,Literal('^sha256:[a-f0-9]{64}$')))
   if k=='numberOfPhases':shapes.add((ps,SH.maxInclusive,Literal(3)))
 for m,g in mods.items():
- g.serialize(P/f'ontology/modules/{m}.ttl',format='turtle');ont+=g
-concepts.serialize(P/'ontology/codes.ttl',format='turtle');ont+=concepts
-ont.serialize(P/'ontology/charge-domain.ttl',format='turtle');ont.serialize(P/'ontology/charge-domain.owl',format='xml');ont.serialize(P/'ontology/charge-domain.jsonld',format='json-ld',auto_compact=True)
-shapes.serialize(P/'validation/structure.shacl.ttl',format='turtle')
+ (P/f'ontology/modules/{m}.ttl').write_text(g.serialize(format='turtle'));ont+=g
+(P/'ontology/codes.ttl').write_text(concepts.serialize(format='turtle'));ont+=concepts
+(P/'ontology/charge-domain.ttl').write_text(ont.serialize(format='turtle'));(P/'ontology/charge-domain.owl').write_text(ont.serialize(format='xml'));(P/'ontology/charge-domain.jsonld').write_text(ont.serialize(format='json-ld',auto_compact=True))
+(P/'validation/structure.shacl.ttl').write_text(shapes.serialize(format='turtle'))
 (P/'model/catalog.json').write_text(json.dumps(classes,indent=2))
 (P/'model/property-types.json').write_text(json.dumps({k:sorted(v) for k,v in prop_types.items()},indent=2))
 d=['# Domain dictionary','', 'Cardinalities: `!` exactly one, `?` zero or one, `+` one or more, `*` any number. Every Record subclass also inherits the Record properties. OWL has open-world semantics; mandatory fields are enforced by SHACL.','']

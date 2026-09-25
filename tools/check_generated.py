@@ -18,9 +18,10 @@ GENERATED_FILES = (
     'benchmark/resource-coverage.json', 'benchmark/endpoint-coverage.json',
     'benchmark/event-catalog.json', 'benchmark/capture.json',
     'benchmark/pricing-field-crosswalk.json', 'docs/domain-dictionary.md',
-    'docs/validation-rules.md', 'docs/ampeco-resource-crosswalk.md',
-    'docs/ampeco-endpoint-crosswalk.md', 'docs/pricing-field-crosswalk.md',
-    'docs/competency-questions.md',
+    'docs/validation-rules.md', 'docs/external-platform-resource-crosswalk.md',
+    'docs/external-platform-endpoint-crosswalk.md', 'docs/pricing-field-crosswalk.md',
+    'docs/competency-questions.md', 'docs/business-requirements.md',
+    'docs/actor-journeys.md', 'docs/business-research-sources.md', 'tests/journey-snapshots.json',
 )
 FORMATS = {'.ttl': 'turtle', '.owl': 'xml', '.jsonld': 'json-ld'}
 
@@ -35,7 +36,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='chargeweave-build-') as directory:
         rebuilt = Path(directory)
         # Only source inputs: stale generated files cannot survive in this build.
-        for name in ('tools', 'model', 'benchmark'):
+        for name in ('tools', 'model', 'benchmark', 'requirements', 'tests'):
             shutil.copytree(ROOT / name, rebuilt / name,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         for name in GENERATED_DIRS + ('docs', 'reports'):

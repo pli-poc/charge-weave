@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ReimbursementRecord . ?this cd:reimbursementState cd:reimbursementState_Paid; cd:reimbursementAmount ?a; cd:currency ?c. FILTER(!EXISTS {?this cd:reimbursementApproval ?approval. ?approval cd:reimbursementRecord ?this; cd:approvalState cd:approvalState_Approved} || !EXISTS {?this cd:payout ?p. ?p cd:payoutState cd:payoutState_Confirmed; cd:payoutAmount ?a; cd:currency ?c}) }

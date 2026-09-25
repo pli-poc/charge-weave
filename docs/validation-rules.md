@@ -1,6 +1,6 @@
 # Cross-domain business validation
 
-These are canonical domain policies. Vendor-specific restrictions belong in the separate AMPECO compatibility profile. SELECT results are violations; absence of rows is meaningful only after structural validation over a complete authorized snapshot.
+These are canonical domain policies. Vendor-specific restrictions belong in the separate External platform compatibility profile. SELECT results are violations; absence of rows is meaningful only after structural validation over a complete authorized snapshot.
 
 | Rule | Target | Invariant |
 |---|---|---|
@@ -113,3 +113,66 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B107 | TariffVersion | A discount-based tariff requires explicit discount rules. |
 | B108 | PowerModuleAllocation | Allocated charging unit must be served by the cabinet. |
 | B109 | RatingCalculation | Rating a deferred-base discount requires the resolved immutable base tariff. |
+| B110 | ServiceAgreement | An active agreement has evidence of acceptance and at least one allocated contractual obligation. |
+| B111 | ContractObligation | Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment. |
+| B112 | AgreementLifecycleEvent | Amendment and renewal create a distinct successor version retaining the contract identity. |
+| B113 | AgreementLifecycleEvent | Termination identifies who retains residual liability and the settlement cutoff. |
+| B114 | ServiceEntitlement | An active entitlement is backed by an active agreement and begins inside its effective period. |
+| B115 | AccountClosure | Completed closure revokes active access and preserves ownership of any nonzero liability. |
+| B116 | ChargingStation | An operating station has an accepted operational handover for that same asset. |
+| B117 | OperationalAcceptance | Accepted handover requires successful safety, protocol and metering assessments and evidence. |
+| B118 | AssetLifecycleEvent | Replacement and retirement cannot abandon open charging sessions or replace an asset with itself. |
+| B119 | ConnectorCompatibility | A compatible offer requires agreement of physical connector, voltage and current type. |
+| B120 | CommercialOffer | Ad hoc offers do not require account registration. |
+| B121 | CommercialOffer | Disclosed currency, tariff currency and offer currency agree and offer expiry follows issue. |
+| B122 | OfferAcceptance | Offer acceptance occurs during the disclosed offer validity window. |
+| B123 | OfferAcceptance | Acceptance is bound to the same customer and selected tariff as the charging session. |
+| B124 | CommercialResponsibility | The commercial supplier matches the supplier of the governing service agreement. |
+| B125 | OfflineAuthorizationAssessment | Offline admission obeys credential revocation, cache age, unknown-token policy and financial exposure limits. |
+| B126 | EventProcessingOutcome | Duplicate delivery refers to an already applied event with matching producer, key, scope and payload and has no new effects. |
+| B127 | EventProcessingOutcome | A producer/key/scope combination has at most one applied business-effect outcome in a tenant. |
+| B128 | EventProcessingOutcome | Quarantined events retain a reason and produce no accepted business effects. |
+| B129 | MeterDelta | Measured usage compares cumulative readings of the same register meter, unit and direction within its epoch. |
+| B130 | MeterDelta | Measured deltas preserve ordering, multiplier and reset boundaries; estimated deltas require evidence. |
+| B131 | BillingReadinessAssessment | Billing readiness requires completed charging and resolved usage, authorization, price, tax, commercial responsibility and blocking issues. |
+| B132 | ChargeDetailRecord | A local debit CDR carries a ready billing decision for the same completed session. |
+| B133 | ChargeDetailRecord | Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals. |
+| B134 | RecordCorrection | Corrections form an acyclic lineage and cannot replace a record with itself. |
+| B135 | FinancialPosition | Outstanding liability reconciles original charges, credits, collected money and authorized write-offs. |
+| B136 | FinancialPosition | A settled position has no residual liability; a written-off position records the write-off. |
+| B137 | PaymentAllocation | Posted allocations use confirmed collections, positive amounts and matching currencies. |
+| B138 | PaymentCapture | Total posted allocations never spend a collection more than once. |
+| B139 | ReconciliationCase | Missing-record cases allow an absent side with a locator; comparison cases require both actual records. |
+| B140 | ReconciliationCase | Resolved reconciliation retains a resolution for the same case, a timestamp and explanation. |
+| B141 | ReconciliationResolution | A corrected reconciliation identifies its immutable correction case. |
+| B142 | ServiceDispute | Disputes preserve response deadlines, reasoned closure and an explicit remedy when remedied. |
+| B143 | DunningAction | Collection escalation pauses while the position or linked service dispute is unresolved. |
+| B144 | SettlementApproval | Approval cannot release a partner settlement with unresolved differences or missing approval evidence. |
+| B145 | SettlementBatch | Partner settlement totals equal their items; released batches retain an approved release decision. |
+| B146 | ReimbursementApproval | Approved reimbursement matches claimant, currency, amount, rate and eligible measured energy of the claim. |
+| B147 | ReimbursementRecord | Paid reimbursements identify an approved claim and a confirmed payout with matching amount and currency. |
+| B148 | BenefitReservation | Consumed reservations reference consumption for the same allowance, billing period and session within the reserved amount. |
+| B149 | ControlDecision | A power decision stays within safety and contract limits even when optimization preferences are overridden. |
+| B150 | ControlDecision | An accepted export decision requires an export agreement valid throughout the control interval at the same site. |
+| B151 | ControlDecision | An override is authorized for this unit and covers the entire control interval. |
+| B152 | DataSubjectRequest | Fulfilled rights requests require verified identity, completion time and retained response evidence. |
+| B153 | DataSubjectRequest | Refusal of a rights request retains a reason and a communicated response. |
+| B154 | DataDisposition | Completed disposition records evidence and cannot claim erasure over a still-active scoped hold. |
+| B155 | LegalHold | Holds have a future review relative to inception and explicit release evidence in time. |
+| B156 | ProcessingPurpose | International personal-data transfers retain an explicit safeguards assessment. |
+| B157 | AccessDecision | Permission decisions require an active time-valid grant to the same principal and explicit record scope. |
+| B158 | EvidenceVerification | Valid artifact verification retains a matching computed digest and verification evidence. |
+| B159 | ServiceLevelCommitment | Availability commitments use a proportion between zero and one. |
+| B160 | ServiceLevelBreach | Closed service breaches retain completed remediation or a contractual remedy. |
+| B161 | RecoveryExercise | A passed recovery rehearsal meets both time and data-loss objectives. |
+| B162 | MigrationBatch | Completed migration reconciles all expected records without rejects and revokes obsolete source credentials. |
+| B163 | LifecycleSnapshot | Current lifecycle snapshots agree with the current subject state and any cited transition. |
+| B164 | StateTransition | Chained transitions preserve record, property, state continuity and nondecreasing event time. |
+| B165 | ProtocolProfile | An adapter cannot declare a feature both supported and unsupported. |
+| B166 | ProcessExecution | Completed business journeys retain evidence and only successfully completed, compensated or explicitly skipped steps. |
+| B167 | ProcessStep | Successful steps have output and evidence; compensated steps identify their compensating record. |
+| B168 | ProcessExecution | Step sequence numbers are unique within a business journey. |
+| B169 | CreditNote | Credit-note currency and issuer match the original invoice and cumulative credits stay within its gross amount. |
+| B170 | AllowanceBalance | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. |
+| B171 | AllowanceBalance | Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period. |
+| B172 | AllowanceBalance | Money-denominated allowances identify a currency instead of being treated as energy credits. |

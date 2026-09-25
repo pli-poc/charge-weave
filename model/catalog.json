@@ -1000,6 +1000,13 @@
         "range": "string",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "accountClosure",
+        "type": "object",
+        "range": "AccountClosure",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -1901,6 +1908,28 @@
         "range": "ChargingProfile",
         "cardinality": "*",
         "values": null
+      },
+      {
+        "property": "assetLifecycle",
+        "type": "enum",
+        "range": "AssetLifecycleCode",
+        "cardinality": "!",
+        "values": [
+          "Planned",
+          "Installed",
+          "Commissioned",
+          "Operating",
+          "Suspended",
+          "Decommissioned",
+          "Disposed"
+        ]
+      },
+      {
+        "property": "operationalAcceptance",
+        "type": "object",
+        "range": "OperationalAcceptance",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -2341,6 +2370,13 @@
         "type": "datatype",
         "range": "string",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "protocolProfile",
+        "type": "object",
+        "range": "ProtocolProfile",
+        "cardinality": "?",
         "values": null
       }
     ]
@@ -3875,6 +3911,20 @@
         "range": "Reservation",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "commercialResponsibility",
+        "type": "object",
+        "range": "CommercialResponsibility",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "billingReadiness",
+        "type": "object",
+        "range": "BillingReadinessAssessment",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -4416,6 +4466,30 @@
         "type": "object",
         "range": "EvidenceDocument",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recordKind",
+        "type": "enum",
+        "range": "RecordKindCode",
+        "cardinality": "!",
+        "values": [
+          "Debit",
+          "Credit"
+        ]
+      },
+      {
+        "property": "originalChargeRecord",
+        "type": "object",
+        "range": "ChargeDetailRecord",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "billingReadiness",
+        "type": "object",
+        "range": "BillingReadinessAssessment",
+        "cardinality": "?",
         "values": null
       }
     ]
@@ -5853,6 +5927,20 @@
         "range": "DocumentNumberSequence",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "commercialResponsibility",
+        "type": "object",
+        "range": "CommercialResponsibility",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -6497,6 +6585,13 @@
         "type": "datatype",
         "range": "string",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "paymentAllocation",
+        "type": "object",
+        "range": "PaymentAllocation",
+        "cardinality": "*",
         "values": null
       }
     ]
@@ -7384,6 +7479,13 @@
         "range": "dateTime",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "allowanceBalance",
+        "type": "object",
+        "range": "AllowanceBalance",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -7647,6 +7749,34 @@
         "type": "object",
         "range": "CustomFee",
         "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "agreementState",
+        "type": "enum",
+        "range": "AgreementStateCode",
+        "cardinality": "!",
+        "values": [
+          "Draft",
+          "Offered",
+          "Active",
+          "Suspended",
+          "Terminated",
+          "Expired"
+        ]
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "governingPolicyVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
         "values": null
       }
     ]
@@ -7952,14 +8082,14 @@
         "property": "expectedRecord",
         "type": "object",
         "range": "Record",
-        "cardinality": "!",
+        "cardinality": "?",
         "values": null
       },
       {
         "property": "observedRecord",
         "type": "object",
         "range": "Record",
-        "cardinality": "!",
+        "cardinality": "?",
         "values": null
       },
       {
@@ -8008,6 +8138,27 @@
         "property": "resolvedAt",
         "type": "datatype",
         "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "expectedIdentifier",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reconciliationResolution",
+        "type": "object",
+        "range": "ReconciliationResolution",
         "cardinality": "?",
         "values": null
       }
@@ -8464,6 +8615,13 @@
         "property": "payout",
         "type": "object",
         "range": "Payout",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "reimbursementApproval",
+        "type": "object",
+        "range": "ReimbursementApproval",
         "cardinality": "?",
         "values": null
       }
@@ -11052,6 +11210,13 @@
         "range": "EvidenceDocument",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "legalHold",
+        "type": "object",
+        "range": "LegalHold",
+        "cardinality": "*",
+        "values": null
       }
     ]
   },
@@ -12040,6 +12205,27 @@
         "type": "object",
         "range": "SourceEvent",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "previousTransition",
+        "type": "object",
+        "range": "StateTransition",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "transitionSequence",
+        "type": "datatype",
+        "range": "positiveInteger",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "responsibleParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "?",
         "values": null
       }
     ]
@@ -13045,6 +13231,2984 @@
         "type": "object",
         "range": "EvidenceDocument",
         "cardinality": "+",
+        "values": null
+      }
+    ]
+  },
+  "ContractObligation": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "Enforceable duty linking the responsible debtor, beneficiary, contract scope and versioned acceptance policy; financial liability belongs to an identified party.",
+    "fields": [
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "obligatedParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "entitledParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "obligationScope",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "obligationKind",
+        "type": "enum",
+        "range": "ObligationKindCode",
+        "cardinality": "!",
+        "values": [
+          "Provision",
+          "Operate",
+          "Maintain",
+          "Support",
+          "Bill",
+          "Collect",
+          "Settle",
+          "Reimburse",
+          "ProtectData",
+          "SupplyEnergy",
+          "Report",
+          "Handover"
+        ]
+      },
+      {
+        "property": "dueAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "obligationState",
+        "type": "enum",
+        "range": "ObligationStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Active",
+          "Fulfilled",
+          "Breached",
+          "Waived",
+          "Cancelled"
+        ]
+      },
+      {
+        "property": "obligationPolicyVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ObligationAssessment": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "Dated assessment of a specific contractual duty, preserving decision evidence and authority instead of silently marking it fulfilled.",
+    "fields": [
+      {
+        "property": "contractObligation",
+        "type": "object",
+        "range": "ContractObligation",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "assessmentOutcome",
+        "type": "enum",
+        "range": "AssessmentOutcomeCode",
+        "cardinality": "!",
+        "values": [
+          "Satisfied",
+          "Unsatisfied",
+          "Waived"
+        ]
+      },
+      {
+        "property": "assessedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "decisionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "AgreementLifecycleEvent": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "Versioned offer, acceptance, amendment, suspension, renewal or termination decision retaining predecessor and successor contract versions.",
+    "fields": [
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "agreementAction",
+        "type": "enum",
+        "range": "AgreementActionCode",
+        "cardinality": "!",
+        "values": [
+          "Offer",
+          "Accept",
+          "Amend",
+          "Suspend",
+          "Resume",
+          "Renew",
+          "Terminate",
+          "Expire"
+        ]
+      },
+      {
+        "property": "effectiveAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "decisionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "successorAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "residualLiabilityOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "settlementCutoff",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "SettlementApproval": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "Explicit release decision for partner settlement, including reconciliation, approver, payee and liability for unresolved differences.",
+    "fields": [
+      {
+        "property": "settlementBatch",
+        "type": "object",
+        "range": "SettlementBatch",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvalState",
+        "type": "enum",
+        "range": "ApprovalStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Approved",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "approvedBy",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "openDifferenceCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvalEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ReimbursementApproval": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "Approval of an employee home-energy claim with measured usage, eligibility, applied rate and prevention of duplicate payment.",
+    "fields": [
+      {
+        "property": "reimbursementRecord",
+        "type": "object",
+        "range": "ReimbursementRecord",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "employer",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "entitledAccount",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvalState",
+        "type": "enum",
+        "range": "ApprovalStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Approved",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "approvedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "approvalEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "approvedEnergyKWh",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvedRate",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvedAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ServiceEntitlement": {
+    "module": "identity",
+    "parent": "Record",
+    "definition": "Time-bounded right to consume an explicitly scoped service under a contract, independent of login permissions.",
+    "fields": [
+      {
+        "property": "customer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "entitlementState",
+        "type": "enum",
+        "range": "EntitlementStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Active",
+          "Suspended",
+          "Revoked",
+          "Expired"
+        ]
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "AccountClosure": {
+    "module": "identity",
+    "parent": "Record",
+    "definition": "Account offboarding decision that preserves or explicitly transfers remaining debt, refunds and statutory retention duties.",
+    "fields": [
+      {
+        "property": "customer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "closureState",
+        "type": "enum",
+        "range": "ClosureStateCode",
+        "cardinality": "!",
+        "values": [
+          "Requested",
+          "Blocked",
+          "Completed",
+          "Cancelled"
+        ]
+      },
+      {
+        "property": "requestedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "completedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "openLiabilityAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "residualLiabilityOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "revokedGrantCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "activeGrantCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "closureEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "AssetLifecycleEvent": {
+    "module": "assets",
+    "parent": "Record",
+    "definition": "Evidence-backed commissioning, suspension, relocation, replacement or retirement of a physical asset with explicit operational responsibility.",
+    "fields": [
+      {
+        "property": "station",
+        "type": "object",
+        "range": "ChargingStation",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "assetAction",
+        "type": "enum",
+        "range": "AssetActionCode",
+        "cardinality": "!",
+        "values": [
+          "Install",
+          "Commission",
+          "Activate",
+          "Suspend",
+          "Relocate",
+          "Replace",
+          "Decommission",
+          "Dispose"
+        ]
+      },
+      {
+        "property": "effectiveAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "assetEventEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "replacementStation",
+        "type": "object",
+        "range": "ChargingStation",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "openSessionCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "OperationalAcceptance": {
+    "module": "assets",
+    "parent": "Record",
+    "definition": "Operational handover of an installed charger, including safety, protocol capability, meter readiness and maintenance ownership.",
+    "fields": [
+      {
+        "property": "station",
+        "type": "object",
+        "range": "ChargingStation",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "acceptanceState",
+        "type": "enum",
+        "range": "AcceptanceStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Accepted",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "safetyAccepted",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "protocolAccepted",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "meteringAccepted",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "maintenanceProvider",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "acceptedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "acceptanceEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ConnectorCompatibility": {
+    "module": "assets",
+    "parent": "Record",
+    "definition": "Explicit physical and electrical compatibility evaluation before offering a connector to a vehicle.",
+    "fields": [
+      {
+        "property": "connector",
+        "type": "object",
+        "range": "Connector",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "vehicle",
+        "type": "object",
+        "range": "Vehicle",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "compatibilityState",
+        "type": "enum",
+        "range": "CompatibilityStateCode",
+        "cardinality": "!",
+        "values": [
+          "Unknown",
+          "Compatible",
+          "Incompatible"
+        ]
+      },
+      {
+        "property": "currentTypeMatch",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "voltageMatch",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "connectorTypeMatch",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "assessedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "CommercialOffer": {
+    "module": "pricing",
+    "parent": "Record",
+    "definition": "Immutable price disclosure offered before charging, retaining the seller, channel, tax display and applicable tariff version without requiring a registered identity.",
+    "fields": [
+      {
+        "property": "offeredBy",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "offeredTo",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "selectedTariff",
+        "type": "object",
+        "range": "TariffVersion",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "priceDisplay",
+        "type": "object",
+        "range": "PriceDisplay",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "issuedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "expiresAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "offerMode",
+        "type": "enum",
+        "range": "OfferModeCode",
+        "cardinality": "!",
+        "values": [
+          "AdHoc",
+          "Contract",
+          "Roaming",
+          "Corporate"
+        ]
+      },
+      {
+        "property": "registrationRequired",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "offerEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "OfferAcceptance": {
+    "module": "pricing",
+    "parent": "Record",
+    "definition": "Evidence that the customer accepted a disclosed offer before its validity expired; binds the accepted price to one charging journey.",
+    "fields": [
+      {
+        "property": "commercialOffer",
+        "type": "object",
+        "range": "CommercialOffer",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "customer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "acceptedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "acceptanceEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "session",
+        "type": "object",
+        "range": "ChargingSession",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "CommercialResponsibility": {
+    "module": "pricing",
+    "parent": "Record",
+    "definition": "Commercial chain for a specific service: supplier, merchant of record, tax-liable party, payer, collector and beneficiary are separate legal responsibilities.",
+    "fields": [
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceSupplier",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "merchantOfRecord",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "taxLiableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "payer",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "collectingParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "beneficiary",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responsibilityScope",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "responsibilityEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "OfflineAuthorizationAssessment": {
+    "module": "vehicles-authorization",
+    "parent": "Record",
+    "definition": "Evidence-based decision to admit charging while disconnected, with credential freshness, delegated authority, exposure and reconciliation policy.",
+    "fields": [
+      {
+        "property": "authorizationDecision",
+        "type": "object",
+        "range": "AuthorizationDecision",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "cacheAgeSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "maximumCacheAgeSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "credentialRevoked",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "unknownCredential",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "permitUnknownCredential",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "exposureAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "maximumExposureAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "offlineDecision",
+        "type": "enum",
+        "range": "OfflineDecisionCode",
+        "cardinality": "!",
+        "values": [
+          "Allow",
+          "Deny"
+        ]
+      },
+      {
+        "property": "policyVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "EventProcessingOutcome": {
+    "module": "sessions-metering",
+    "parent": "Record",
+    "definition": "Exactly-once business-effect evidence for a possibly duplicated or out-of-order source event; storage and atomicity remain runtime obligations.",
+    "fields": [
+      {
+        "property": "sourceEvent",
+        "type": "object",
+        "range": "SourceEvent",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "processingContextKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "idempotencyKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "processingState",
+        "type": "enum",
+        "range": "ProcessingStateCode",
+        "cardinality": "!",
+        "values": [
+          "Received",
+          "Applied",
+          "Duplicate",
+          "Quarantined",
+          "Failed"
+        ]
+      },
+      {
+        "property": "payloadDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "businessEffect",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "duplicateOf",
+        "type": "object",
+        "range": "EventProcessingOutcome",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "processedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "quarantineReason",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "MeterRegisterEpoch": {
+    "module": "sessions-metering",
+    "parent": "Record",
+    "definition": "Identity and calibration context of a cumulative meter register between resets or replacement; readings from different epochs are not subtracted.",
+    "fields": [
+      {
+        "property": "meter",
+        "type": "object",
+        "range": "ElectricityMeter",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "registerIdentifier",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "unitIri",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "energyDirection",
+        "type": "enum",
+        "range": "EnergyDirectionCode",
+        "cardinality": "!",
+        "values": [
+          "Import",
+          "Export"
+        ]
+      },
+      {
+        "property": "multiplier",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "epochEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "MeterDelta": {
+    "module": "sessions-metering",
+    "parent": "Record",
+    "definition": "Reconciled usage derived from two readings in the same cumulative register epoch, or explicitly flagged estimation with supporting evidence.",
+    "fields": [
+      {
+        "property": "registerEpoch",
+        "type": "object",
+        "range": "MeterRegisterEpoch",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "startReading",
+        "type": "object",
+        "range": "MeterObservation",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "endReading",
+        "type": "object",
+        "range": "MeterObservation",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "deltaValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "deltaBasis",
+        "type": "enum",
+        "range": "DeltaBasisCode",
+        "cardinality": "!",
+        "values": [
+          "Measured",
+          "Estimated"
+        ]
+      },
+      {
+        "property": "resetDetected",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "deltaEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "session",
+        "type": "object",
+        "range": "ChargingSession",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "BillingReadinessAssessment": {
+    "module": "sessions-metering",
+    "parent": "Record",
+    "definition": "Explicit billability decision preserving final usage, authorization, price, tax, commercial owner and unresolved-exception evidence.",
+    "fields": [
+      {
+        "property": "session",
+        "type": "object",
+        "range": "ChargingSession",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "readinessState",
+        "type": "enum",
+        "range": "ReadinessStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Ready",
+          "Blocked"
+        ]
+      },
+      {
+        "property": "usageComplete",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "priceResolved",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "taxResolved",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "authorizationResolved",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responsibilityResolved",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "openBlockingIssueCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "assessedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "readinessEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "RecordCorrection": {
+    "module": "sessions-metering",
+    "parent": "Record",
+    "definition": "Immutable correction case linking original and replacement or credit records, reason, authority and downstream notifications.",
+    "fields": [
+      {
+        "property": "originalRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correctingRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correctionReason",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correctionKind",
+        "type": "enum",
+        "range": "CorrectionKindCode",
+        "cardinality": "!",
+        "values": [
+          "Credit",
+          "Replace",
+          "Reverse",
+          "Adjust"
+        ]
+      },
+      {
+        "property": "approvedBy",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "issuedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correctionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "notifiedParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "+",
+        "values": null
+      }
+    ]
+  },
+  "FinancialPosition": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Currency-specific receivable or payable preserving original amount, credits, collections, write-offs and remaining liability.",
+    "fields": [
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "debtor",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "creditor",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "originalAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "creditedAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "collectedAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "writtenOffAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "outstandingAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "positionState",
+        "type": "enum",
+        "range": "PositionStateCode",
+        "cardinality": "!",
+        "values": [
+          "Open",
+          "PartiallySettled",
+          "Settled",
+          "Disputed",
+          "WrittenOff"
+        ]
+      },
+      {
+        "property": "sourceRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "PaymentAllocation": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Allocation of a confirmed collection to an identified receivable, with matching currency and no duplicated financial effect.",
+    "fields": [
+      {
+        "property": "paymentCapture",
+        "type": "object",
+        "range": "PaymentCapture",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "financialPosition",
+        "type": "object",
+        "range": "FinancialPosition",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "allocatedAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "allocationState",
+        "type": "enum",
+        "range": "AllocationStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Posted",
+          "Reversed"
+        ]
+      },
+      {
+        "property": "allocatedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "allocationEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ReconciliationResolution": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Resolution of a missing, duplicate or mismatched record, preserving matching identifiers, disposition, corrective evidence and residual liability owner.",
+    "fields": [
+      {
+        "property": "reconciliationCase",
+        "type": "object",
+        "range": "ReconciliationCase",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "resolutionKind",
+        "type": "enum",
+        "range": "ResolutionKindCode",
+        "cardinality": "!",
+        "values": [
+          "Matched",
+          "AcceptedDifference",
+          "Corrected",
+          "WrittenOff",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "resolvedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "resolutionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correction",
+        "type": "object",
+        "range": "RecordCorrection",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ServiceDispute": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Customer or partner complaint distinct from a card-network chargeback; captures disputed service, accountable resolver, deadline and remedy.",
+    "fields": [
+      {
+        "property": "disputedRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "claimant",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "disputeCaseState",
+        "type": "enum",
+        "range": "DisputeCaseStateCode",
+        "cardinality": "!",
+        "values": [
+          "Opened",
+          "Investigating",
+          "Accepted",
+          "Rejected",
+          "Remedied",
+          "Closed"
+        ]
+      },
+      {
+        "property": "openedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responseDueAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "resolutionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "remedyRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "DunningAction": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Versioned decision to remind, suspend collection or write off overdue debt while respecting an active dispute.",
+    "fields": [
+      {
+        "property": "financialPosition",
+        "type": "object",
+        "range": "FinancialPosition",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "actionKind",
+        "type": "enum",
+        "range": "ActionKindCode",
+        "cardinality": "!",
+        "values": [
+          "Reminder",
+          "Escalate",
+          "Suspend",
+          "WriteOff"
+        ]
+      },
+      {
+        "property": "actionAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceDispute",
+        "type": "object",
+        "range": "ServiceDispute",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "approvedBy",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "actionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "BenefitReservation": {
+    "module": "subscriptions-benefits",
+    "parent": "Record",
+    "definition": "Reserved allowance that separates concurrency exposure from settled consumption and supports explicit release or consumption.",
+    "fields": [
+      {
+        "property": "allowance",
+        "type": "object",
+        "range": "BenefitAllowance",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "billingPeriod",
+        "type": "object",
+        "range": "BillingPeriod",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "session",
+        "type": "object",
+        "range": "ChargingSession",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reservedValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reservationState",
+        "type": "enum",
+        "range": "ReservationStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Active",
+          "Cancelled",
+          "Consumed",
+          "Expired",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "expiresAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "consumption",
+        "type": "object",
+        "range": "AllowanceConsumption",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "allowanceBalance",
+        "type": "object",
+        "range": "AllowanceBalance",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ControlDecision": {
+    "module": "energy",
+    "parent": "Record",
+    "definition": "Requested versus feasible power decision constrained by physical, contractual and safety limits, with an explicit rejected or accepted outcome.",
+    "fields": [
+      {
+        "property": "chargingUnit",
+        "type": "object",
+        "range": "ChargingUnit",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "interval",
+        "type": "object",
+        "range": "TimeWindow",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "requestedPowerKW",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "feasiblePowerKW",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "safetyLimitKW",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "contractualLimitKW",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "controlDecision",
+        "type": "enum",
+        "range": "ControlDecisionCode",
+        "cardinality": "!",
+        "values": [
+          "Accepted",
+          "Limited",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "energyDirection",
+        "type": "enum",
+        "range": "EnergyDirectionCode",
+        "cardinality": "!",
+        "values": [
+          "Import",
+          "Export"
+        ]
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "overrideAuthorization",
+        "type": "object",
+        "range": "OverrideAuthorization",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "exportAgreement",
+        "type": "object",
+        "range": "ExportAgreement",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "controlEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "OverrideAuthorization": {
+    "module": "energy",
+    "parent": "Record",
+    "definition": "Time-limited permission to override an optimization preference; it never grants permission to exceed physical safety limits.",
+    "fields": [
+      {
+        "property": "authorizedBy",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "authorizedScope",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "overrideReason",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "overrideEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ExportAgreement": {
+    "module": "energy",
+    "parent": "Record",
+    "definition": "Explicit permission, metering and settlement responsibility for bidirectional export rather than assuming import authorization permits export.",
+    "fields": [
+      {
+        "property": "vehicle",
+        "type": "object",
+        "range": "Vehicle",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "site",
+        "type": "object",
+        "range": "ChargingSite",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "gridOperator",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "energySupplier",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "exportPermitted",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "exportMeter",
+        "type": "object",
+        "range": "ElectricityMeter",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "exportBeneficiary",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "DataSubjectRequest": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Verified data-subject request with separately recorded eligibility, due date, response and justified refusal or retention decisions.",
+    "fields": [
+      {
+        "property": "subjectAccount",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "requestKind",
+        "type": "enum",
+        "range": "RequestKindCode",
+        "cardinality": "!",
+        "values": [
+          "Access",
+          "Rectification",
+          "Erasure",
+          "Restriction",
+          "Portability",
+          "Objection"
+        ]
+      },
+      {
+        "property": "requestState",
+        "type": "enum",
+        "range": "RequestStateCode",
+        "cardinality": "!",
+        "values": [
+          "Received",
+          "Verified",
+          "Processing",
+          "Fulfilled",
+          "Refused",
+          "Closed"
+        ]
+      },
+      {
+        "property": "receivedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responseDueAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "identityVerified",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "legalBasisAssessment",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responsibleController",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responseEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "refusalReason",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "completedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "LegalHold": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Scoped evidence-preservation obligation with review date, authority and legal basis; does not justify indefinite retention of all account data.",
+    "fields": [
+      {
+        "property": "heldRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "holdingParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "legalBasis",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reviewAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "holdState",
+        "type": "enum",
+        "range": "HoldStateCode",
+        "cardinality": "!",
+        "values": [
+          "Active",
+          "Released",
+          "Expired"
+        ]
+      },
+      {
+        "property": "releasedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "holdEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ProcessingPurpose": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Purpose-bound data-processing contract recording controller, processor, categories, lawful basis, retention and cross-border safeguards.",
+    "fields": [
+      {
+        "property": "controller",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "processor",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "purposeDescription",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "lawfulBasis",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dataCategory",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "retentionPolicy",
+        "type": "object",
+        "range": "RetentionPolicy",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "processingScope",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "internationalTransfer",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "transferSafeguardEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "AccessDecision": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Time-specific authorization decision for a principal, permission and record scope; an account identity alone grants no operational authority.",
+    "fields": [
+      {
+        "property": "grantee",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "permission",
+        "type": "object",
+        "range": "Permission",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accessDecision",
+        "type": "enum",
+        "range": "AccessDecisionCode",
+        "cardinality": "!",
+        "values": [
+          "Permit",
+          "Deny"
+        ]
+      },
+      {
+        "property": "decidedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accessGrant",
+        "type": "object",
+        "range": "AccessGrant",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "decisionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "EvidenceVerification": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Result of retrieving and verifying an evidence artifact, distinguishing claimed evidence from successful digest/signature verification.",
+    "fields": [
+      {
+        "property": "artifact",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "verificationState",
+        "type": "enum",
+        "range": "VerificationStateCode",
+        "cardinality": "!",
+        "values": [
+          "NotChecked",
+          "Valid",
+          "Invalid",
+          "Unavailable"
+        ]
+      },
+      {
+        "property": "checkedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "computedDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "verifier",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "verificationEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ServiceLevelCommitment": {
+    "module": "operations",
+    "parent": "Record",
+    "definition": "Measured service obligation with a contract scope, measurement window, exclusions policy and responsible remediation party.",
+    "fields": [
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "availabilityPolicy",
+        "type": "object",
+        "range": "AvailabilityPolicy",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "targetFraction",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "measurementWindow",
+        "type": "object",
+        "range": "TimeWindow",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "exclusionPolicyVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ServiceLevelBreach": {
+    "module": "operations",
+    "parent": "Record",
+    "definition": "Observed contractual service breach linking measured availability, customer-impact evidence, remediation and commercial liability.",
+    "fields": [
+      {
+        "property": "serviceLevelCommitment",
+        "type": "object",
+        "range": "ServiceLevelCommitment",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "availabilityResult",
+        "type": "object",
+        "range": "AvailabilityResult",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "breachState",
+        "type": "enum",
+        "range": "BreachStateCode",
+        "cardinality": "!",
+        "values": [
+          "Open",
+          "Acknowledged",
+          "Remediated",
+          "Closed"
+        ]
+      },
+      {
+        "property": "detectedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "workOrder",
+        "type": "object",
+        "range": "WorkOrder",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "remedyRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "breachEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "RecoveryExercise": {
+    "module": "operations",
+    "parent": "Record",
+    "definition": "Verified restoration rehearsal with explicit recovery objectives, achieved recovery and evidence rather than an untested backup assertion.",
+    "fields": [
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recoveryTimeObjectiveSeconds",
+        "type": "datatype",
+        "range": "positiveInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recoveryPointObjectiveSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "achievedRecoverySeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "achievedDataLossSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recoveryResult",
+        "type": "enum",
+        "range": "RecoveryResultCode",
+        "cardinality": "!",
+        "values": [
+          "Passed",
+          "Failed"
+        ]
+      },
+      {
+        "property": "exercisedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recoveryEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "ProtocolProfile": {
+    "module": "integration-experience",
+    "parent": "Record",
+    "definition": "Versioned adapter capability contract with negotiated feature blocks, roles, certification evidence and declared loss/error behavior.",
+    "fields": [
+      {
+        "property": "protocolName",
+        "type": "enum",
+        "range": "ProtocolNameCode",
+        "cardinality": "!",
+        "values": [
+          "OCPP",
+          "OCPI",
+          "OICP",
+          "ISO15118",
+          "OpenADR",
+          "Modbus",
+          "Custom"
+        ]
+      },
+      {
+        "property": "protocolVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "supportedFeature",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "unsupportedFeature",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "adapterVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "protocolRole",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "mappingEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "unknownFieldPolicy",
+        "type": "enum",
+        "range": "UnknownFieldPolicyCode",
+        "cardinality": "!",
+        "values": [
+          "Reject",
+          "Quarantine",
+          "Preserve"
+        ]
+      }
+    ]
+  },
+  "MigrationBatch": {
+    "module": "integration-experience",
+    "parent": "Record",
+    "definition": "Provider migration or tenant exit with source/target identities, counts, reconciliation and credential revocation evidence.",
+    "fields": [
+      {
+        "property": "sourceSystem",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "targetSystem",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "expectedRecordCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "migratedRecordCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "rejectedRecordCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "migrationState",
+        "type": "enum",
+        "range": "MigrationStateCode",
+        "cardinality": "!",
+        "values": [
+          "Planned",
+          "Running",
+          "Reconciled",
+          "Completed",
+          "Failed"
+        ]
+      },
+      {
+        "property": "responsibleParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reconciliationEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "sourceCredentialsRevoked",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "LifecycleSnapshot": {
+    "module": "integration-experience",
+    "parent": "Record",
+    "definition": "Current or historical state assertion with effective time and the specific transition evidence supporting it.",
+    "fields": [
+      {
+        "property": "targetRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "stateProperty",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "stateValue",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "effectiveAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "snapshotKind",
+        "type": "enum",
+        "range": "SnapshotKindCode",
+        "cardinality": "!",
+        "values": [
+          "Current",
+          "Historical"
+        ]
+      },
+      {
+        "property": "basisTransition",
+        "type": "object",
+        "range": "StateTransition",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ProcessExecution": {
+    "module": "integration-experience",
+    "parent": "Record",
+    "definition": "End-to-end business journey instance tying domain records, step responsibilities, contractual obligations and financial ownership together.",
+    "fields": [
+      {
+        "property": "processKind",
+        "type": "enum",
+        "range": "ProcessKindCode",
+        "cardinality": "!",
+        "values": [
+          "Onboard",
+          "Charge",
+          "Bill",
+          "Settle",
+          "Reimburse",
+          "Maintain",
+          "Offboard",
+          "RespondToDispute",
+          "RespondToPrivacy",
+          "Migrate",
+          "ControlEnergy"
+        ]
+      },
+      {
+        "property": "processState",
+        "type": "enum",
+        "range": "ProcessStateCode",
+        "cardinality": "!",
+        "values": [
+          "Planned",
+          "Running",
+          "Completed",
+          "Failed",
+          "Cancelled"
+        ]
+      },
+      {
+        "property": "accountableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "subjectRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "processStep",
+        "type": "object",
+        "range": "ProcessStep",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "processEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "ProcessStep": {
+    "module": "integration-experience",
+    "parent": "Record",
+    "definition": "Ordered business step retaining responsible actor, concrete input/output records, obligation, failures and compensation evidence.",
+    "fields": [
+      {
+        "property": "stepSequence",
+        "type": "datatype",
+        "range": "positiveInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "stepKind",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "responsibleParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "stepState",
+        "type": "enum",
+        "range": "StepStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Running",
+          "Succeeded",
+          "Failed",
+          "Compensated",
+          "Skipped"
+        ]
+      },
+      {
+        "property": "inputRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "outputRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "contractObligation",
+        "type": "object",
+        "range": "ContractObligation",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "compensationRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "stepEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "previousStep",
+        "type": "object",
+        "range": "ProcessStep",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "AllowanceBalance": {
+    "module": "subscriptions-benefits",
+    "parent": "Record",
+    "definition": "Per-customer, per-period allowance accounting with explicit opening rollover, grant, consumed usage, active reservations, expiry and remaining value.",
+    "fields": [
+      {
+        "property": "customer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "allowance",
+        "type": "object",
+        "range": "BenefitAllowance",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "billingPeriod",
+        "type": "object",
+        "range": "BillingPeriod",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "openingValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "grantedValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "consumedValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "reservedValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "expiredValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "closingValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "unitIri",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
         "values": null
       }
     ]

@@ -14,16 +14,21 @@ from rdflib import Graph, Literal, Namespace, RDF
 from project_files import project_files
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tests.json',
-           'trust-boundary-tests.json', 'release-checks.json', 'owl-consistency.json',
-           'validation.ttl', 'validation.txt')
+COUNTED_REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tests.json',
+                   'trust-boundary-tests.json', 'release-checks.json',
+                   'business-acceptance.json', 'business-traceability.json',
+                   'lifecycle-tests.json', 'naming-checks.json') + tuple(
+    'journey-' + family + '.json' for family in
+    ('closure', 'charge', 'credit', 'offline', 'reimbursement', 'privacy', 'energy',
+     'migration', 'asset', 'allowance', 'access', 'settlement', 'process'))
+REPORTS = COUNTED_REPORTS + ('owl-consistency.json', 'validation.ttl', 'validation.txt')
 
 
 def check_reports(directory):
     for name in REPORTS:
         if not (directory / name).is_file():
             raise ValueError(f'Missing gate report: {name}; run all verification gates first.')
-    for name in REPORTS[:5]:
+    for name in COUNTED_REPORTS:
         result = json.loads((directory / name).read_text())
         rows = result.get('tests', result.get('checks', []))
         if not (result['total'] > 0 and result['passed'] == result['total']
@@ -51,14 +56,14 @@ def main():
         raise ValueError('Checkout does not match the GitHub Actions commit')
     files = project_files(ROOT) + [ROOT / 'reports' / name for name in REPORTS]
     manifest = {
-        'product': 'ChargeWeave', 'ontologyVersion': '1.0.0', 'commit': commit,
+        'product': 'ChargeWeave', 'ontologyVersion': '1.1.0', 'commit': commit,
         'createdAt': datetime.now(timezone.utc).isoformat(),
         'workflowRun': os.environ.get('GITHUB_RUN_ID'),
         'workflowAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'),
         'python': platform.python_version(),
         'dependencies': {name: importlib.metadata.version(name)
                          for name in ('rdflib', 'pyshacl', 'owlready2')},
-        'evidenceBoundary': 'Technical gates passed; independent business completeness remains unverified.',
+        'evidenceBoundary': 'Declared CPMS business profile has traceable semantic contracts and model-level acceptance evidence; runtime integration, operational behavior and jurisdiction-specific certification are separate gates.',
         'files': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                   for p in files},
     }

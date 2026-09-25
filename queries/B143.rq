@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:DunningAction . ?this cd:actionKind cd:actionKind_Escalate. { ?this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {?this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} }

@@ -7,7 +7,7 @@
       "SecurityRole",
       "Permission"
     ],
-    "source": "https://developers.ampeco.com/reference/adminread",
+    "source": "urn:chargeweave:legacy-api/reference/adminread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -23,7 +23,7 @@
       "AuthorizationRequest",
       "AuthorizationDecision"
     ],
-    "source": "https://developers.ampeco.com/reference/authorizationreadv2_1",
+    "source": "urn:chargeweave:legacy-api/reference/authorizationreadv2_1",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -36,7 +36,7 @@
     "classes": [
       "BookingRequest"
     ],
-    "source": "https://developers.ampeco.com/reference/bookingrequestcreate",
+    "source": "urn:chargeweave:legacy-api/reference/bookingrequestcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -48,7 +48,7 @@
     "classes": [
       "Booking"
     ],
-    "source": "https://developers.ampeco.com/reference/bookingread",
+    "source": "urn:chargeweave:legacy-api/reference/bookingread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -60,7 +60,7 @@
     "classes": [
       "ChargeDetailRecord"
     ],
-    "source": "https://developers.ampeco.com/reference/cdrread",
+    "source": "urn:chargeweave:legacy-api/reference/cdrread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -73,7 +73,7 @@
       "DowntimePeriod",
       "OperationalPeriod"
     ],
-    "source": "https://developers.ampeco.com/reference/chargepointdowntimeperiodcreate",
+    "source": "urn:chargeweave:legacy-api/reference/chargepointdowntimeperiodcreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -87,7 +87,7 @@
       "EquipmentModel",
       "DeviceCapability"
     ],
-    "source": "https://developers.ampeco.com/reference/chargepointmodelcreate",
+    "source": "urn:chargeweave:legacy-api/reference/chargepointmodelcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -100,7 +100,7 @@
     "classes": [
       "Manufacturer"
     ],
-    "source": "https://developers.ampeco.com/reference/chargepointvendorcreate",
+    "source": "urn:chargeweave:legacy-api/reference/chargepointvendorcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -116,7 +116,7 @@
       "HardwareStatusObservation",
       "ConnectionObservation"
     ],
-    "source": "https://developers.ampeco.com/reference/chargepointcreate",
+    "source": "urn:chargeweave:legacy-api/reference/chargepointcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -135,7 +135,7 @@
       "PowerConstraint",
       "PhaseCurrentConstraint"
     ],
-    "source": "https://developers.ampeco.com/reference/circuitcreate",
+    "source": "urn:chargeweave:legacy-api/reference/circuitcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -152,7 +152,7 @@
       "ConfigurationTemplateEntry",
       "TemplateApplication"
     ],
-    "source": "https://developers.ampeco.com/reference/configurationtemplatevariablecreate",
+    "source": "urn:chargeweave:legacy-api/reference/configurationtemplatevariablecreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -166,7 +166,7 @@
     "classes": [
       "ConsentDecision"
     ],
-    "source": "https://developers.ampeco.com/reference/consenthistorylisting",
+    "source": "urn:chargeweave:legacy-api/reference/consenthistorylisting",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -178,7 +178,7 @@
     "classes": [
       "ConsentDecision"
     ],
-    "source": "https://developers.ampeco.com/reference/consentscreate",
+    "source": "urn:chargeweave:legacy-api/reference/consentscreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -190,7 +190,7 @@
     "classes": [
       "ContactProfile"
     ],
-    "source": "https://developers.ampeco.com/reference/contactdetailsread",
+    "source": "urn:chargeweave:legacy-api/reference/contactdetailsread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -202,7 +202,7 @@
     "classes": [
       "Currency"
     ],
-    "source": "https://developers.ampeco.com/reference/currencycreate",
+    "source": "urn:chargeweave:legacy-api/reference/currencycreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -214,7 +214,7 @@
     "classes": [
       "ExchangeRate"
     ],
-    "source": "https://developers.ampeco.com/reference/createcurrencyrate",
+    "source": "urn:chargeweave:legacy-api/reference/createcurrencyrate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -226,7 +226,7 @@
     "classes": [
       "CustomFee"
     ],
-    "source": "https://developers.ampeco.com/reference/customfeeread",
+    "source": "urn:chargeweave:legacy-api/reference/customfeeread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -238,7 +238,7 @@
     "classes": [
       "ServiceNotice"
     ],
-    "source": "https://developers.ampeco.com/reference/postdowntimeperiodnotice",
+    "source": "urn:chargeweave:legacy-api/reference/postdowntimeperiodnotice",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -251,7 +251,7 @@
       "ElectricityMeter",
       "MeterObservation"
     ],
-    "source": "https://developers.ampeco.com/reference/electricitymetercreate",
+    "source": "urn:chargeweave:legacy-api/reference/electricitymetercreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -266,7 +266,7 @@
       "ElectricityPriceInterval",
       "EnergyMix"
     ],
-    "source": "https://developers.ampeco.com/reference/electricityratecreate",
+    "source": "urn:chargeweave:legacy-api/reference/electricityratecreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -280,7 +280,7 @@
     "classes": [
       "EnergyCouponTemplate"
     ],
-    "source": "https://developers.ampeco.com/reference/energycoupontemplatecreate",
+    "source": "urn:chargeweave:legacy-api/reference/energycoupontemplatecreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -293,7 +293,7 @@
       "EnergyCoupon",
       "CouponConsumption"
     ],
-    "source": "https://developers.ampeco.com/reference/energycouponcreate",
+    "source": "urn:chargeweave:legacy-api/reference/energycouponcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -306,7 +306,7 @@
     "classes": [
       "DowntimePeriod"
     ],
-    "source": "https://developers.ampeco.com/reference/evsedowntimeperiodcreate",
+    "source": "urn:chargeweave:legacy-api/reference/evsedowntimeperiodcreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -319,7 +319,7 @@
       "ChargingUnit",
       "Connector"
     ],
-    "source": "https://developers.ampeco.com/reference/evsecreate",
+    "source": "urn:chargeweave:legacy-api/reference/evsecreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -332,7 +332,7 @@
     "classes": [
       "HelpArticle"
     ],
-    "source": "https://developers.ampeco.com/reference/faqcreate",
+    "source": "urn:chargeweave:legacy-api/reference/faqcreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -344,7 +344,7 @@
     "classes": [
       "FirmwareRelease"
     ],
-    "source": "https://developers.ampeco.com/reference/firmwareversionread",
+    "source": "urn:chargeweave:legacy-api/reference/firmwareversionread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -357,7 +357,7 @@
       "FlexibilityActivation",
       "FlexibilityDelivery"
     ],
-    "source": "https://developers.ampeco.com/reference/getflexibilityactivationrequest",
+    "source": "urn:chargeweave:legacy-api/reference/getflexibilityactivationrequest",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -371,7 +371,7 @@
       "FlexibilityAsset",
       "EnergyForecast"
     ],
-    "source": "https://developers.ampeco.com/reference/createflexibilityasset",
+    "source": "urn:chargeweave:legacy-api/reference/createflexibilityasset",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -385,7 +385,7 @@
       "ChargingCredential",
       "CredentialAssignment"
     ],
-    "source": "https://developers.ampeco.com/reference/idtagcreate",
+    "source": "urn:chargeweave:legacy-api/reference/idtagcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -399,7 +399,7 @@
       "LegalEntity",
       "PartyRole"
     ],
-    "source": "https://developers.ampeco.com/reference/createinstallationandmaintenancecompany",
+    "source": "urn:chargeweave:legacy-api/reference/createinstallationandmaintenancecompany",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -412,7 +412,7 @@
     "classes": [
       "InstallationJob"
     ],
-    "source": "https://developers.ampeco.com/reference/createinstallerjob",
+    "source": "urn:chargeweave:legacy-api/reference/createinstallerjob",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -426,7 +426,7 @@
       "InvoiceLine",
       "FiscalizationAttempt"
     ],
-    "source": "https://developers.ampeco.com/reference/invoiceread",
+    "source": "urn:chargeweave:legacy-api/reference/invoiceread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -441,7 +441,7 @@
       "Issue",
       "RecoveryAttempt"
     ],
-    "source": "https://developers.ampeco.com/reference/issuescreate",
+    "source": "urn:chargeweave:legacy-api/reference/issuescreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -456,7 +456,7 @@
       "PublicListing",
       "ChargingArea"
     ],
-    "source": "https://developers.ampeco.com/reference/locationcreate",
+    "source": "urn:chargeweave:legacy-api/reference/locationcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -470,7 +470,7 @@
     "classes": [
       "RoamingCommand"
     ],
-    "source": "https://developers.ampeco.com/reference/ocpicommandread",
+    "source": "urn:chargeweave:legacy-api/reference/ocpicommandread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -482,7 +482,7 @@
     "classes": [
       "OperatorService"
     ],
-    "source": "https://developers.ampeco.com/reference/operatorread",
+    "source": "urn:chargeweave:legacy-api/reference/operatorread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -494,7 +494,7 @@
     "classes": [
       "ParkingSpace"
     ],
-    "source": "https://developers.ampeco.com/reference/createparkingspace",
+    "source": "urn:chargeweave:legacy-api/reference/createparkingspace",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -509,7 +509,7 @@
       "CostAllocationRule",
       "SettlementOverride"
     ],
-    "source": "https://developers.ampeco.com/reference/partnercontractcreate",
+    "source": "urn:chargeweave:legacy-api/reference/partnercontractcreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -524,7 +524,7 @@
     "classes": [
       "SiteAccessPolicy"
     ],
-    "source": "https://developers.ampeco.com/reference/partnerinviteaccesspolicydelete",
+    "source": "urn:chargeweave:legacy-api/reference/partnerinviteaccesspolicydelete",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -537,7 +537,7 @@
       "CorporateBillingPolicy",
       "CorporateChargerRule"
     ],
-    "source": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicycreate",
+    "source": "urn:chargeweave:legacy-api/reference/partnerinvitecorporatebillingpolicycreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -550,7 +550,7 @@
     "classes": [
       "CorporateBillingSnapshot"
     ],
-    "source": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicysnapshotread",
+    "source": "urn:chargeweave:legacy-api/reference/partnerinvitecorporatebillingpolicysnapshotread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -562,7 +562,7 @@
     "classes": [
       "PartnerInvitation"
     ],
-    "source": "https://developers.ampeco.com/reference/partnerinvitecreatev2_0",
+    "source": "urn:chargeweave:legacy-api/reference/partnerinvitecreatev2_0",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -575,7 +575,7 @@
       "Invoice",
       "CreditNote"
     ],
-    "source": "https://developers.ampeco.com/reference/partnerinvoiceread",
+    "source": "urn:chargeweave:legacy-api/reference/partnerinvoiceread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -589,7 +589,7 @@
       "SettlementBatch",
       "SettlementItem"
     ],
-    "source": "https://developers.ampeco.com/reference/partnersettlementreportread",
+    "source": "urn:chargeweave:legacy-api/reference/partnersettlementreportread",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -604,7 +604,7 @@
       "PartyRole",
       "ServiceAgreement"
     ],
-    "source": "https://developers.ampeco.com/reference/partnercreate",
+    "source": "urn:chargeweave:legacy-api/reference/partnercreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -618,7 +618,7 @@
     "classes": [
       "PaymentTerminal"
     ],
-    "source": "https://developers.ampeco.com/reference/createpaymentterminalv1_1",
+    "source": "urn:chargeweave:legacy-api/reference/createpaymentterminalv1_1",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -631,7 +631,7 @@
       "ProvisioningCertificate",
       "PlugAndChargeEnrollment"
     ],
-    "source": "https://developers.ampeco.com/reference/createpcid",
+    "source": "urn:chargeweave:legacy-api/reference/createpcid",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -644,7 +644,7 @@
     "classes": [
       "Receipt"
     ],
-    "source": "https://developers.ampeco.com/reference/receiptread",
+    "source": "urn:chargeweave:legacy-api/reference/receiptread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -656,7 +656,7 @@
     "classes": [
       "ReimbursementPolicy"
     ],
-    "source": "https://developers.ampeco.com/reference/reimbursementpolicycreate",
+    "source": "urn:chargeweave:legacy-api/reference/reimbursementpolicycreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -668,7 +668,7 @@
     "classes": [
       "ReimbursementRecord"
     ],
-    "source": "https://developers.ampeco.com/reference/reimbursementrecordread",
+    "source": "urn:chargeweave:legacy-api/reference/reimbursementrecordread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -680,7 +680,7 @@
     "classes": [
       "ReimbursementReport"
     ],
-    "source": "https://developers.ampeco.com/reference/reimbursementreportread",
+    "source": "urn:chargeweave:legacy-api/reference/reimbursementreportread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -692,7 +692,7 @@
     "classes": [
       "Reservation"
     ],
-    "source": "https://developers.ampeco.com/reference/reservationread",
+    "source": "urn:chargeweave:legacy-api/reference/reservationread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -707,7 +707,7 @@
       "LedgerAccount",
       "JournalLine"
     ],
-    "source": "https://developers.ampeco.com/reference/revenuesv1_2listing",
+    "source": "urn:chargeweave:legacy-api/reference/revenuesv1_2listing",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -722,7 +722,7 @@
     "classes": [
       "ChargingCredential"
     ],
-    "source": "https://developers.ampeco.com/reference/rfidtagcreatedeprecated",
+    "source": "urn:chargeweave:legacy-api/reference/rfidtagcreatedeprecated",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -735,7 +735,7 @@
       "RoamingConnection",
       "RoamingModuleAgreement"
     ],
-    "source": "https://developers.ampeco.com/reference/getroamingconnection",
+    "source": "urn:chargeweave:legacy-api/reference/getroamingconnection",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -748,7 +748,7 @@
     "classes": [
       "RoamingParty"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingcporead",
+    "source": "urn:chargeweave:legacy-api/reference/roamingcporead",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -760,7 +760,7 @@
     "classes": [
       "RoamingParty"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingemspcreate",
+    "source": "urn:chargeweave:legacy-api/reference/roamingemspcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -773,7 +773,7 @@
       "RoamingParty",
       "RoamingTariffFilter"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingoperatorread",
+    "source": "urn:chargeweave:legacy-api/reference/roamingoperatorread",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -786,7 +786,7 @@
     "classes": [
       "RoamingNetwork"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingplatformreaddeprecated",
+    "source": "urn:chargeweave:legacy-api/reference/roamingplatformreaddeprecated",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -799,7 +799,7 @@
       "LegalEntity",
       "RoamingNetwork"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingprovidercreate",
+    "source": "urn:chargeweave:legacy-api/reference/roamingprovidercreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -813,7 +813,7 @@
       "TariffVersion",
       "RoamingTariffMapping"
     ],
-    "source": "https://developers.ampeco.com/reference/roamingtariffread",
+    "source": "urn:chargeweave:legacy-api/reference/roamingtariffread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -826,7 +826,7 @@
     "classes": [
       "SecurityEvent"
     ],
-    "source": "https://developers.ampeco.com/reference/securityeventlogreaddeprecated",
+    "source": "urn:chargeweave:legacy-api/reference/securityeventlogreaddeprecated",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -838,7 +838,7 @@
     "classes": [
       "SecurityEvent"
     ],
-    "source": "https://developers.ampeco.com/reference/securityeventread",
+    "source": "urn:chargeweave:legacy-api/reference/securityeventread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -853,7 +853,7 @@
       "SessionEvent",
       "UsageAggregate"
     ],
-    "source": "https://developers.ampeco.com/reference/sessionread",
+    "source": "urn:chargeweave:legacy-api/reference/sessionread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -868,7 +868,7 @@
     "classes": [
       "PlatformSetting"
     ],
-    "source": "https://developers.ampeco.com/reference/settingslisting",
+    "source": "urn:chargeweave:legacy-api/reference/settingslisting",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -880,7 +880,7 @@
     "classes": [
       "SharingInvitation"
     ],
-    "source": "https://developers.ampeco.com/reference/sharinginviteread",
+    "source": "urn:chargeweave:legacy-api/reference/sharinginviteread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -893,7 +893,7 @@
       "OperatorService",
       "ManagementDelegation"
     ],
-    "source": "https://developers.ampeco.com/reference/suboperatorcreate",
+    "source": "urn:chargeweave:legacy-api/reference/suboperatorcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -907,7 +907,7 @@
       "SubscriptionPlan",
       "BenefitAllowance"
     ],
-    "source": "https://developers.ampeco.com/reference/subscriptionplancreate",
+    "source": "urn:chargeweave:legacy-api/reference/subscriptionplancreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -921,7 +921,7 @@
       "Subscription",
       "BillingPeriod"
     ],
-    "source": "https://developers.ampeco.com/reference/subscriptionread",
+    "source": "urn:chargeweave:legacy-api/reference/subscriptionread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -940,7 +940,7 @@
       "TariffAssignment",
       "ScheduledTariffChange"
     ],
-    "source": "https://developers.ampeco.com/reference/tariffcreate",
+    "source": "urn:chargeweave:legacy-api/reference/tariffcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -958,7 +958,7 @@
     "classes": [
       "TaxIdentifier"
     ],
-    "source": "https://developers.ampeco.com/reference/taxidentificationnumbercreate",
+    "source": "urn:chargeweave:legacy-api/reference/taxidentificationnumbercreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -971,7 +971,7 @@
       "TaxRule",
       "TaxDetermination"
     ],
-    "source": "https://developers.ampeco.com/reference/taxcreate",
+    "source": "urn:chargeweave:legacy-api/reference/taxcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -984,7 +984,7 @@
     "classes": [
       "ContentTemplate"
     ],
-    "source": "https://developers.ampeco.com/reference/templateslisting",
+    "source": "urn:chargeweave:legacy-api/reference/templateslisting",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -996,7 +996,7 @@
     "classes": [
       "PolicyDocument"
     ],
-    "source": "https://developers.ampeco.com/reference/termsandpoliciesread",
+    "source": "urn:chargeweave:legacy-api/reference/termsandpoliciesread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1008,7 +1008,7 @@
     "classes": [
       "TopUpOffer"
     ],
-    "source": "https://developers.ampeco.com/reference/topuppackagcreate",
+    "source": "urn:chargeweave:legacy-api/reference/topuppackagcreate",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1022,7 +1022,7 @@
       "PaymentAuthorization",
       "PaymentCapture"
     ],
-    "source": "https://developers.ampeco.com/reference/transactionscreate",
+    "source": "urn:chargeweave:legacy-api/reference/transactionscreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1036,7 +1036,7 @@
     "classes": [
       "UserDevice"
     ],
-    "source": "https://developers.ampeco.com/reference/userdeviceread",
+    "source": "urn:chargeweave:legacy-api/reference/userdeviceread",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1049,7 +1049,7 @@
       "CustomerGroup",
       "GroupMembership"
     ],
-    "source": "https://developers.ampeco.com/reference/usergroupcreate",
+    "source": "urn:chargeweave:legacy-api/reference/usergroupcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1065,7 +1065,7 @@
       "BillingProfile",
       "PaymentInstrument"
     ],
-    "source": "https://developers.ampeco.com/reference/usercreatev1_1",
+    "source": "urn:chargeweave:legacy-api/reference/usercreatev1_1",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1081,7 +1081,7 @@
       "LegalEntity",
       "PartyRole"
     ],
-    "source": "https://developers.ampeco.com/reference/createutility",
+    "source": "urn:chargeweave:legacy-api/reference/createutility",
     "evidenceLevel": "Navigation only; body retrieval failed",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1096,7 +1096,7 @@
       "VehicleAssignment",
       "VehicleTelemetry"
     ],
-    "source": "https://developers.ampeco.com/reference/vehicletelemetryreadingcreate",
+    "source": "urn:chargeweave:legacy-api/reference/vehicletelemetryreadingcreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1110,7 +1110,7 @@
     "classes": [
       "VendorFaultDefinition"
     ],
-    "source": "https://developers.ampeco.com/reference/vendorerrorcodecreate",
+    "source": "urn:chargeweave:legacy-api/reference/vendorerrorcodecreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [
@@ -1123,7 +1123,7 @@
       "Voucher",
       "VoucherRedemption"
     ],
-    "source": "https://developers.ampeco.com/reference/vouchercreate",
+    "source": "urn:chargeweave:legacy-api/reference/vouchercreate",
     "evidenceLevel": "Retrieved body",
     "mappingStatus": "Represented",
     "shapeCoverage": [

@@ -46,6 +46,57 @@ jobs:
           - gate: Coverage formats and competency queries
             id: release
             command: python tools/check_release.py
+          - gate: Requirement traceability
+            id: audit
+            command: python tools/check_audit.py
+          - gate: Business acceptance decisions
+            id: acceptance
+            command: python tools/test_business_acceptance.py
+          - gate: Lifecycle acceptance
+            id: lifecycle
+            command: python tools/test_lifecycle.py
+          - gate: Current source naming
+            id: naming
+            command: python tools/check_naming.py
+          - gate: Journey closure
+            id: journey-closure
+            command: python tools/test_journey_snapshots.py --family closure
+          - gate: Journey charge
+            id: journey-charge
+            command: python tools/test_journey_snapshots.py --family charge
+          - gate: Journey credit
+            id: journey-credit
+            command: python tools/test_journey_snapshots.py --family credit
+          - gate: Journey offline
+            id: journey-offline
+            command: python tools/test_journey_snapshots.py --family offline
+          - gate: Journey reimbursement
+            id: journey-reimbursement
+            command: python tools/test_journey_snapshots.py --family reimbursement
+          - gate: Journey privacy
+            id: journey-privacy
+            command: python tools/test_journey_snapshots.py --family privacy
+          - gate: Journey energy
+            id: journey-energy
+            command: python tools/test_journey_snapshots.py --family energy
+          - gate: Journey migration
+            id: journey-migration
+            command: python tools/test_journey_snapshots.py --family migration
+          - gate: Journey asset
+            id: journey-asset
+            command: python tools/test_journey_snapshots.py --family asset
+          - gate: Journey allowance
+            id: journey-allowance
+            command: python tools/test_journey_snapshots.py --family allowance
+          - gate: Journey access
+            id: journey-access
+            command: python tools/test_journey_snapshots.py --family access
+          - gate: Journey settlement
+            id: journey-settlement
+            command: python tools/test_journey_snapshots.py --family settlement
+          - gate: Journey process
+            id: journey-process
+            command: python tools/test_journey_snapshots.py --family process
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -110,4 +161,4 @@ jobs:
         run: |
           echo 'All technical ontology gates passed for this commit.' >> "$GITHUB_STEP_SUMMARY"
           echo 'The package includes the source, generated schemas, fresh reports and a commit/hash manifest.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Independent business-domain completeness is still an open audit.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The declared business profile has traceable model-level evidence. Runtime integration and market-specific certification remain separate acceptance gates.' >> "$GITHUB_STEP_SUMMARY"

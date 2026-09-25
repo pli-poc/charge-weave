@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:EventProcessingOutcome . ?this cd:processingState cd:processingState_Duplicate; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer. FILTER(EXISTS {?this cd:businessEffect ?e} || !EXISTS {?this cd:duplicateOf ?old. ?old cd:processingState cd:processingState_Applied; cd:processingContextKey ?s; cd:idempotencyKey ?k; cd:payloadDigest ?d; cd:sourceEvent/cd:sourceSystem ?producer}) }

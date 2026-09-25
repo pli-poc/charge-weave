@@ -6,7 +6,7 @@ started=time.monotonic();results=[]
 for mode in ['schema','schema-and-example']:
  g=ontology()
  if mode.endswith('example'):g+=Graph().parse(P/'examples/reference.ttl')
- p=P/'reports'/('reasoner-input-'+mode+'.owl');g.serialize(p,format='xml');w=World();o=w.get_ontology(p.as_uri()).load()
+ p=P/'reports'/('reasoner-input-'+mode+'.owl');(p).write_text(g.serialize(format='xml'));w=World();o=w.get_ontology(p.as_uri()).load()
  try:
   with o:sync_reasoner(w,debug=0)
   bad=[str(x) for x in w.inconsistent_classes() if x.name!='Nothing'];r={'scope':mode,'consistent':True,'unsatisfiableClasses':bad}

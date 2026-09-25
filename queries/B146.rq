@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ReimbursementApproval . ?this cd:approvalState cd:approvalState_Approved; cd:reimbursementRecord ?r; cd:entitledAccount ?a; cd:approvedAmount ?v; cd:approvedRate ?rate; cd:approvedEnergyKWh ?k; cd:currency ?c. FILTER(?v<0 || ?rate<0 || ?k<0 || !EXISTS {?this cd:approvalEvidence ?e} || !EXISTS {?this cd:approvedAt ?t} || !EXISTS {?r cd:beneficiaryAccount ?a; cd:currency ?c; cd:reimbursementAmount ?v; cd:reimbursementRate ?rate; cd:reimbursableEnergyKWh ?k; cd:session/cd:importedEnergyKWh ?measured. FILTER(?k<=?measured)}) }

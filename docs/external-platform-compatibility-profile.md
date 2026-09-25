@@ -1,6 +1,6 @@
-# AMPECO compatibility profile
+# External platform compatibility profile
 
-Canonical business meaning and vendor payload restrictions are versioned separately. This document records concrete restrictions observed during research; it is not an exhaustive copy of AMPECO's validation behavior.
+Canonical business meaning and vendor payload restrictions are versioned separately. This document records concrete restrictions observed during research; it is not an exhaustive copy of External platform's validation behavior.
 
 | Observed vendor behavior | Canonical treatment | Enforcement location |
 |---|---|---|
@@ -14,6 +14,6 @@ Canonical business meaning and vendor payload restrictions are versioned separat
 | The corporate billing API retains policy snapshots after changes | Store immutable canonical policy versions and session selections | CorporateBillingSnapshot, B086 and transactional history |
 | Payment terminal types expose provider-specific fields | PaymentTerminal carries canonical identity; IntegrationConnection and approved custom definitions carry provider-specific configuration | Provider-specific adapter schema, not a universal union of every terminal's fields |
 
-Sources: [Circuit create](https://developers.ampeco.com/reference/circuitcreate), [Charge point update](https://developers.ampeco.com/reference/chargepointupdate), [Models relationship](https://developers.ampeco.com/docs/models-relationship), and the family references in the crosswalk.
+Sources: [Circuit create](urn:chargeweave:legacy-api/reference/circuitcreate), [Charge point update](urn:chargeweave:legacy-api/reference/chargepointupdate), [Models relationship](urn:chargeweave:legacy-api/docs/models-relationship), and the family references in the crosswalk.
 
-Do not infer that a constraint absent from the canonical 109-rule set is accepted by AMPECO. An AMPECO importer/exporter must pin an exact OpenAPI version, preserve null-versus-absent update semantics, map enums explicitly, respect endpoint-specific permission scopes and test conflict responses. This release supplies semantic traceability, not that adapter.
+Do not infer that a constraint absent from the canonical 172-rule set is accepted by External platform. An External platform importer/exporter must pin an exact OpenAPI version, preserve null-versus-absent update semantics, map enums explicitly, respect endpoint-specific permission scopes and test conflict responses. This release supplies semantic traceability, not that adapter.

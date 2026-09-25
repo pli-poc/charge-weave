@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ControlDecision . ?this cd:requestedPowerKW ?r; cd:feasiblePowerKW ?f; cd:safetyLimitKW ?s; cd:contractualLimitKW ?c; cd:controlDecision ?d. FILTER(?r<0 || ?f<0 || ?s<0 || ?c<0 || ?f>?s || ?f>?c || ?f>?r || (?d=cd:controlDecision_Accepted && ?f!=?r) || (?d=cd:controlDecision_Rejected && ?f!=0)) }

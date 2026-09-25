@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:AllowanceBalance . ?this cd:openingValue ?o; cd:grantedValue ?g; cd:consumedValue ?c; cd:reservedValue ?r; cd:expiredValue ?e; cd:closingValue ?b. FILTER(?o<0 || ?g<0 || ?c<0 || ?r<0 || ?e<0 || ?b<0 || ?b!=?o+?g-?c-?r-?e) }

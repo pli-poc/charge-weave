@@ -1,0 +1,194 @@
+[
+  {
+    "id": "agreementState-PASS",
+    "property": "agreementState",
+    "from": "Offered",
+    "to": "Active",
+    "expectedConformance": true,
+    "reason": "Acceptance activates an offer; ended contracts require a successor agreement."
+  },
+  {
+    "id": "agreementState-REJECT",
+    "property": "agreementState",
+    "from": "Terminated",
+    "to": "Active",
+    "expectedConformance": false,
+    "reason": "Acceptance activates an offer; ended contracts require a successor agreement."
+  },
+  {
+    "id": "accountState-PASS",
+    "property": "accountState",
+    "from": "Suspended",
+    "to": "Active",
+    "expectedConformance": true,
+    "reason": "Suspension is reversible; a closed account is not silently reopened."
+  },
+  {
+    "id": "accountState-REJECT",
+    "property": "accountState",
+    "from": "Closed",
+    "to": "Active",
+    "expectedConformance": false,
+    "reason": "Suspension is reversible; a closed account is not silently reopened."
+  },
+  {
+    "id": "assetLifecycle-PASS",
+    "property": "assetLifecycle",
+    "from": "Commissioned",
+    "to": "Operating",
+    "expectedConformance": true,
+    "reason": "Operation follows commissioning."
+  },
+  {
+    "id": "assetLifecycle-REJECT",
+    "property": "assetLifecycle",
+    "from": "Planned",
+    "to": "Operating",
+    "expectedConformance": false,
+    "reason": "Operation follows commissioning."
+  },
+  {
+    "id": "sessionState-PASS",
+    "property": "sessionState",
+    "from": "Ending",
+    "to": "Completed",
+    "expectedConformance": true,
+    "reason": "A completed session is not resumed by rewriting its state."
+  },
+  {
+    "id": "sessionState-REJECT",
+    "property": "sessionState",
+    "from": "Completed",
+    "to": "Active",
+    "expectedConformance": false,
+    "reason": "A completed session is not resumed by rewriting its state."
+  },
+  {
+    "id": "grantState-PASS",
+    "property": "grantState",
+    "from": "Active",
+    "to": "Revoked",
+    "expectedConformance": true,
+    "reason": "Revocation requires issuing a new grant."
+  },
+  {
+    "id": "grantState-REJECT",
+    "property": "grantState",
+    "from": "Revoked",
+    "to": "Active",
+    "expectedConformance": false,
+    "reason": "Revocation requires issuing a new grant."
+  },
+  {
+    "id": "invoiceState-PASS",
+    "property": "invoiceState",
+    "from": "Issued",
+    "to": "Paid",
+    "expectedConformance": true,
+    "reason": "Issued billing is settled or corrected, not rewritten as draft."
+  },
+  {
+    "id": "invoiceState-REJECT",
+    "property": "invoiceState",
+    "from": "Paid",
+    "to": "Draft",
+    "expectedConformance": false,
+    "reason": "Issued billing is settled or corrected, not rewritten as draft."
+  },
+  {
+    "id": "reimbursementState-PASS",
+    "property": "reimbursementState",
+    "from": "Approved",
+    "to": "Paid",
+    "expectedConformance": true,
+    "reason": "Payment follows approval."
+  },
+  {
+    "id": "reimbursementState-REJECT",
+    "property": "reimbursementState",
+    "from": "Calculated",
+    "to": "Paid",
+    "expectedConformance": false,
+    "reason": "Payment follows approval."
+  },
+  {
+    "id": "requestState-PASS",
+    "property": "requestState",
+    "from": "Processing",
+    "to": "Fulfilled",
+    "expectedConformance": true,
+    "reason": "Rights requests pass verification and processing."
+  },
+  {
+    "id": "requestState-REJECT",
+    "property": "requestState",
+    "from": "Received",
+    "to": "Fulfilled",
+    "expectedConformance": false,
+    "reason": "Rights requests pass verification and processing."
+  },
+  {
+    "id": "allocationState-PASS",
+    "property": "allocationState",
+    "from": "Posted",
+    "to": "Reversed",
+    "expectedConformance": true,
+    "reason": "Reversals are retained; a fresh allocation is a new record."
+  },
+  {
+    "id": "allocationState-REJECT",
+    "property": "allocationState",
+    "from": "Reversed",
+    "to": "Posted",
+    "expectedConformance": false,
+    "reason": "Reversals are retained; a fresh allocation is a new record."
+  },
+  {
+    "id": "dispositionState-PASS",
+    "property": "dispositionState",
+    "from": "BlockedByHold",
+    "to": "Requested",
+    "expectedConformance": true,
+    "reason": "Removal of a hold restarts the disposition decision."
+  },
+  {
+    "id": "dispositionState-REJECT",
+    "property": "dispositionState",
+    "from": "BlockedByHold",
+    "to": "Completed",
+    "expectedConformance": false,
+    "reason": "Removal of a hold restarts the disposition decision."
+  },
+  {
+    "id": "migrationState-PASS",
+    "property": "migrationState",
+    "from": "Reconciled",
+    "to": "Completed",
+    "expectedConformance": true,
+    "reason": "Exit requires reconciliation."
+  },
+  {
+    "id": "migrationState-REJECT",
+    "property": "migrationState",
+    "from": "Running",
+    "to": "Completed",
+    "expectedConformance": false,
+    "reason": "Exit requires reconciliation."
+  },
+  {
+    "id": "stepState-PASS",
+    "property": "stepState",
+    "from": "Failed",
+    "to": "Compensated",
+    "expectedConformance": true,
+    "reason": "Failed business effects are compensated and retried as new evidence."
+  },
+  {
+    "id": "stepState-REJECT",
+    "property": "stepState",
+    "from": "Failed",
+    "to": "Succeeded",
+    "expectedConformance": false,
+    "reason": "Failed business effects are compensated and retried as new evidence."
+  }
+]

@@ -1,0 +1,106 @@
+[
+  {
+    "id": "OCA-CORE",
+    "title": "Open Charge Alliance: OCPP protocol scope",
+    "url": "https://openchargealliance.org/protocols/open-charge-point-protocol/",
+    "type": "Primary protocol overview",
+    "reviewedOn": "2026-09-25",
+    "use": "Versioned station/control capabilities; bidirectional extensions are distinct capabilities, not assumed support."
+  },
+  {
+    "id": "OCA-CERT",
+    "title": "Open Charge Alliance: OCPP 2.0.1 certification profiles",
+    "url": "https://openchargealliance.org/certificationocpp/certification-ocpp-2-0-1/",
+    "type": "Primary certification guidance",
+    "reviewedOn": "2026-09-25",
+    "use": "Core, security and feature profiles inform explicit capability evidence; ontology checks do not certify protocol conformance."
+  },
+  {
+    "id": "OCA-UPTIME",
+    "title": "Open Charge Alliance: Improving Uptime Monitoring with OCPP",
+    "url": "https://openchargealliance.org/wp-content/uploads/2024/08/improving_uptime_with_ocpp_v1_2.pdf",
+    "type": "Primary white paper",
+    "reviewedOn": "2026-09-25",
+    "use": "Offline observations and authorization policy affect recovery and availability evidence."
+  },
+  {
+    "id": "OCPI-CDR",
+    "title": "EVRoaming Foundation: OCPI 2.3.0 CDR module",
+    "url": "https://github.com/ocpi/ocpi/blob/2.3.0/release/core/mod_cdrs.asciidoc",
+    "type": "Primary specification",
+    "reviewedOn": "2026-09-25",
+    "use": "Immutable billing records, credit lineage, party boundaries and recovery after missed deliveries."
+  },
+  {
+    "id": "OCPI-TARIFF",
+    "title": "EVRoaming Foundation: OCPI 2.3.0 tariff module",
+    "url": "https://github.com/ocpi/ocpi/blob/2.3.0/release/core/mod_tariffs.asciidoc",
+    "type": "Primary specification",
+    "reviewedOn": "2026-09-25",
+    "use": "Component restrictions and precedence are distinguished from jurisdictional rounding and tax decisions."
+  },
+  {
+    "id": "OCPI-CREDENTIALS",
+    "title": "EVRoaming Foundation: OCPI 2.3.0 credential lifecycle",
+    "url": "https://github.com/ocpi/ocpi/blob/2.3.0/release/core/credentials.asciidoc",
+    "type": "Primary specification",
+    "reviewedOn": "2026-09-25",
+    "use": "Registration, version and role negotiation and removal belong to the partner lifecycle."
+  },
+  {
+    "id": "PSP-EVENTS",
+    "title": "Payment provider: asynchronous event handling",
+    "url": "https://docs.stripe.com/webhooks",
+    "type": "Primary implementation reference",
+    "reviewedOn": "2026-09-25",
+    "use": "Duplicates and unordered arrival motivate canonical idempotency/effect evidence. Provider-specific retry durations are not universal domain rules."
+  },
+  {
+    "id": "PSP-REFUND",
+    "title": "Payment provider: refunds",
+    "url": "https://docs.stripe.com/refunds",
+    "type": "Primary implementation reference",
+    "reviewedOn": "2026-09-25",
+    "use": "Refunds have asynchronous outcomes and must preserve original collection and currency references."
+  },
+  {
+    "id": "PSP-DISPUTE",
+    "title": "Payment provider: dispute process",
+    "url": "https://docs.stripe.com/disputes/how-disputes-work",
+    "type": "Primary implementation reference",
+    "reviewedOn": "2026-09-25",
+    "use": "Network disputes, response evidence and financial effects are distinct from service complaints."
+  },
+  {
+    "id": "EC-AFIR",
+    "title": "European Commission: alternative-fuels infrastructure Q&A",
+    "url": "https://transport.ec.europa.eu/transport-themes/clean-transport/alternative-fuels-sustainable-mobility-europe/alternative-fuels-infrastructure/questions-and-answers-regulation-deployment-alternative-fuels-infrastructure-eu-20231804_en",
+    "type": "Primary regulatory guidance",
+    "reviewedOn": "2026-09-25",
+    "use": "Ad hoc purchase and advance price disclosure inform the offer model. Actual legal applicability depends on jurisdiction and infrastructure context."
+  },
+  {
+    "id": "EDPB-RIGHTS",
+    "title": "European Data Protection Board: data subject rights",
+    "url": "https://www.edpb.europa.eu/topics/key-gdpr-concepts/data-subject-rights_en",
+    "type": "Primary regulator guidance",
+    "reviewedOn": "2026-09-25",
+    "use": "Rights requests, purpose and justified retention are modeled separately from account closure. Conditions and legal assessments remain explicit."
+  },
+  {
+    "id": "W3C-SHACL",
+    "title": "W3C: Shapes Constraint Language",
+    "url": "https://www.w3.org/TR/shacl/",
+    "type": "Primary recommendation",
+    "reviewedOn": "2026-09-25",
+    "use": "Structural and SPARQL constraints validate a supplied graph; they do not establish factual truth or runtime enforcement."
+  },
+  {
+    "id": "CW-POLICY",
+    "title": "ChargeWeave canonical business policy",
+    "url": "docs/business-policy-decisions.md",
+    "type": "Explicit product design decision",
+    "reviewedOn": "2026-09-25",
+    "use": "Responsibilities, readiness, arithmetic, lifecycle tables and evidence gates are product policies unless a more specific source is cited."
+  }
+]

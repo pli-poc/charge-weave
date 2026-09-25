@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:SettlementBatch . { ?this cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. {SELECT ?this (SUM(?in) AS ?sn) (SUM(?it) AS ?st) (SUM(?ig) AS ?sg) WHERE {?this cd:settlementItem ?i. ?i cd:netAmount ?in; cd:taxAmount ?it; cd:grossAmount ?ig} GROUP BY ?this} FILTER(?n!=?sn || ?t!=?st || ?g!=?sg) } UNION { ?this cd:settlementState ?state. FILTER(?state IN (cd:settlementState_Approved,cd:settlementState_Invoiced,cd:settlementState_Settled)) FILTER NOT EXISTS {?approval a cd:SettlementApproval; cd:settlementBatch ?this; cd:approvalState cd:approvalState_Approved} } }

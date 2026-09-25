@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:MigrationBatch . ?this cd:migrationState cd:migrationState_Completed; cd:expectedRecordCount ?e; cd:migratedRecordCount ?m; cd:rejectedRecordCount ?r; cd:sourceCredentialsRevoked ?revoked. FILTER(?e!=?m || ?r!=0 || !?revoked || !EXISTS {?this cd:reconciliationEvidence ?x}) }

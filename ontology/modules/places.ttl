@@ -8,32 +8,20 @@ cd:PublicListing a owl:Class ;
     rdfs:label "Public Listing"@en ;
     rdfs:comment "Published representation of a site for discovery or roaming, with audience and publication state."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:paymentOptionCode ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:publicName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:publishedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:paymentBrandCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:parkingCategory ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccessibilityCode ;
-            owl:onProperty cd:accessibility ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ListingStateCode ;
-            owl:onProperty cd:listingState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:operatorService ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentOptionsKnowledgeCode ;
             owl:onProperty cd:paymentOptionsKnowledge ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:facilityCode ],
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:operatorService ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSite ;
             owl:onProperty cd:site ],
@@ -41,8 +29,20 @@ cd:PublicListing a owl:Class ;
             owl:allValuesFrom cd:MediaAsset ;
             owl:onProperty cd:media ],
         [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:publicName ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:paymentBrandCode ],
+            owl:onProperty cd:facilityCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ListingStateCode ;
+            owl:onProperty cd:listingState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:paymentOptionCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccessibilityCode ;
+            owl:onProperty cd:accessibility ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -51,26 +51,26 @@ cd:SharingInvitation a owl:Class ;
     rdfs:label "Sharing Invitation"@en ;
     rdfs:comment "Invitation to accept asset access; stores a secret reference rather than an invitation token."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:SharingAgreement ;
-            owl:onProperty cd:sharingAgreement ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:inviteeReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:invitationSecretReference ],
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:inviter ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:sharedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SharingAgreement ;
+            owl:onProperty cd:sharingAgreement ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:InvitationStateCode ;
             owl:onProperty cd:invitationState ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:inviter ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:expiresAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:sharedRecord ],
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:invitationSecretReference ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -85,11 +85,11 @@ cd:ChargingArea a owl:Class ;
             owl:allValuesFrom cd:ParkingSpace ;
             owl:onProperty cd:parkingSpace ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PaymentTerminal ;
-            owl:onProperty cd:terminal ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSite ;
             owl:onProperty cd:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentTerminal ;
+            owl:onProperty cd:terminal ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -101,14 +101,14 @@ cd:MediaAsset a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:mediaType ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:rightsStatement ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:mediaUrl ],
         [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
             owl:onProperty cd:altText ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:rightsStatement ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -120,23 +120,23 @@ cd:ParkingSpace a owl:Class ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:accessibleBay ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSite ;
-            owl:onProperty cd:site ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:occupancyObservedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingUnit ;
             owl:onProperty cd:servesUnit ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:OccupancyCode ;
-            owl:onProperty cd:occupancy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingArea ;
             owl:onProperty cd:area ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:bayReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:OccupancyCode ;
+            owl:onProperty cd:occupancy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:occupancyObservedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -145,20 +145,20 @@ cd:ServiceNotice a owl:Class ;
     rdfs:label "Service Notice"@en ;
     rdfs:comment "Localized customer information with severity and effective interval."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:affectedRecord ],
-        [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
             owl:onProperty cd:noticeText ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:affectedRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:NoticeSeverityCode ;
-            owl:onProperty cd:noticeSeverity ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:NoticeSeverityCode ;
+            owl:onProperty cd:noticeSeverity ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -167,11 +167,14 @@ cd:SharingAgreement a owl:Class ;
     rdfs:label "Sharing Agreement"@en ;
     rdfs:comment "Time-limited sharing of an asset with an account or partner, preserving ownership."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:sharedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AccessGrant ;
             owl:onProperty cd:accessGrant ],
@@ -181,9 +184,6 @@ cd:SharingAgreement a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:beneficiary ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -192,8 +192,8 @@ cd:SiteAccessPolicy a owl:Class ;
     rdfs:label "Site Access Policy"@en ;
     rdfs:comment "Rules for physical or service access, independent of map visibility."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:RecurringWindow ;
-            owl:onProperty cd:openingWindow ],
+            owl:allValuesFrom cd:AccessModeCode ;
+            owl:onProperty cd:accessMode ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:credentialMethod ],
@@ -201,11 +201,11 @@ cd:SiteAccessPolicy a owl:Class ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:stopOutsideOpening ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccessModeCode ;
-            owl:onProperty cd:accessMode ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerGroup ;
             owl:onProperty cd:eligibleGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RecurringWindow ;
+            owl:onProperty cd:openingWindow ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .
@@ -217,12 +217,6 @@ cd:ChargingSite a owl:Class ;
             owl:allValuesFrom cd:GeoPosition ;
             owl:onProperty cd:position ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:RecurringWindow ;
-            owl:onProperty cd:openingWindow ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SiteAccessPolicy ;
-            owl:onProperty cd:siteAccessPolicy ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Address ;
             owl:onProperty cd:address ],
         [ a owl:Restriction ;
@@ -232,11 +226,17 @@ cd:ChargingSite a owl:Class ;
             owl:allValuesFrom cd:ServiceNotice ;
             owl:onProperty cd:serviceNotice ],
         [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:siteName ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:timezoneName ],
         [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:siteName ],
+            owl:allValuesFrom cd:SiteAccessPolicy ;
+            owl:onProperty cd:siteAccessPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RecurringWindow ;
+            owl:onProperty cd:openingWindow ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "places" .

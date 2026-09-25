@@ -2,7 +2,7 @@
 from pathlib import Path
 
 DIRECTORIES = ('benchmark', 'docs', 'evidence', 'examples', 'model', 'ontology',
-               'queries', 'tests', 'tools', 'validation', '.github')
+               'queries', 'requirements', 'tests', 'tools', 'validation', '.github')
 ROOT_FILES = ('README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md',
               'Makefile', 'requirements.txt', 'requirements-ci.txt',
               '.gitignore', '.gitattributes')

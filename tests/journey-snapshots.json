@@ -1,0 +1,368 @@
+[
+  {
+    "id": "JOURNEY-CLOSURE-PASS",
+    "family": "closure",
+    "title": "Accepted contract and customer exit with transferred residual debt",
+    "file": "examples/journeys/closure-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J01",
+      "J02",
+      "J20"
+    ],
+    "assertion": "ASK { ex:AccountClosure cd:customer ex:CustomerAccount; cd:closureState cd:closureState_Completed; cd:residualLiabilityOwner ?owner. ex:CustomerAccount cd:accountState cd:accountState_Closed. ex:ServiceAgreement cd:financialOwner ?owner; cd:agreementState cd:agreementState_Active. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-CLOSURE-REJECT",
+    "family": "closure",
+    "title": "Accepted contract and customer exit with transferred residual debt",
+    "file": "examples/journeys/closure-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B115",
+    "journeys": [
+      "J01",
+      "J02",
+      "J20"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-CHARGE-PASS",
+    "family": "charge",
+    "title": "Completed charging through billability, CDR, invoice, capture and allocated settlement",
+    "file": "examples/journeys/charge-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J04",
+      "J06",
+      "J07",
+      "J08",
+      "J09",
+      "J12"
+    ],
+    "assertion": "ASK { ex:ChargingSession cd:sessionState cd:sessionState_Completed; cd:importedEnergyKWh ?energy. ex:ChargeDetailRecord cd:session ex:ChargingSession; cd:billingReadiness/cd:readinessState cd:readinessState_Ready. ex:InvoiceLine cd:chargeRecord ex:ChargeDetailRecord. ex:Invoice cd:invoiceLine ex:InvoiceLine; cd:invoiceState cd:invoiceState_Paid. ex:PaymentIntent cd:invoice ex:Invoice. ex:PaymentCapture cd:paymentIntent ex:PaymentIntent; cd:captureState cd:captureState_Confirmed. ex:PaymentAllocation cd:paymentCapture ex:PaymentCapture; cd:financialPosition/cd:outstandingAmount ?balance. FILTER(?energy=10 && ?balance=0) }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-CHARGE-REJECT",
+    "family": "charge",
+    "title": "Completed charging through billability, CDR, invoice, capture and allocated settlement",
+    "file": "examples/journeys/charge-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B138",
+    "journeys": [
+      "J04",
+      "J06",
+      "J07",
+      "J08",
+      "J09",
+      "J12"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-CREDIT-PASS",
+    "family": "credit",
+    "title": "Immutable roaming debit followed by a matching credit and correction evidence",
+    "file": "examples/journeys/credit-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J08",
+      "J10",
+      "J11"
+    ],
+    "assertion": "ASK { ex:RecordCorrection cd:originalRecord ex:ChargeDetailRecord; cd:correctingRecord ex:CreditCDR; cd:correctionEvidence ?e. ex:CreditCDR cd:recordKind cd:recordKind_Credit; cd:originalChargeRecord ex:ChargeDetailRecord; cd:grossAmount ?credit. ex:ChargeDetailRecord cd:grossAmount ?original. FILTER(?credit = -?original) }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-CREDIT-REJECT",
+    "family": "credit",
+    "title": "Immutable roaming debit followed by a matching credit and correction evidence",
+    "file": "examples/journeys/credit-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B133",
+    "journeys": [
+      "J08",
+      "J10",
+      "J11"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-OFFLINE-PASS",
+    "family": "offline",
+    "title": "Policy-limited offline authorization with accepted local-cache decision",
+    "file": "examples/journeys/offline-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J05",
+      "J06"
+    ],
+    "assertion": "ASK { ex:OfflineAuthorizationAssessment cd:authorizationDecision ex:AuthorizationDecision; cd:offlineDecision cd:offlineDecision_Allow; cd:accountableParty ?p. ex:AuthorizationDecision cd:decision cd:decision_Accepted; cd:decisionSource cd:decisionSource_LocalCache. ex:ChargingSession cd:authorizationDecision ex:AuthorizationDecision. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-OFFLINE-REJECT",
+    "family": "offline",
+    "title": "Policy-limited offline authorization with accepted local-cache decision",
+    "file": "examples/journeys/offline-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B125",
+    "journeys": [
+      "J05",
+      "J06"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-REIMBURSEMENT-PASS",
+    "family": "reimbursement",
+    "title": "Eligible personal charging, approved employer claim and confirmed payout",
+    "file": "examples/journeys/reimbursement-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J13",
+      "J14"
+    ],
+    "assertion": "ASK { ex:ReimbursementApproval cd:approvalState cd:approvalState_Approved; cd:reimbursementRecord ex:ReimbursementRecord; cd:entitledAccount ?employee. ex:ReimbursementRecord cd:beneficiaryAccount ?employee; cd:session ex:ChargingSession; cd:payout ex:Payout; cd:reimbursementState cd:reimbursementState_Paid. ex:Payout cd:payoutState cd:payoutState_Confirmed. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-REIMBURSEMENT-REJECT",
+    "family": "reimbursement",
+    "title": "Eligible personal charging, approved employer claim and confirmed payout",
+    "file": "examples/journeys/reimbursement-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B147",
+    "journeys": [
+      "J13",
+      "J14"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-PRIVACY-PASS",
+    "family": "privacy",
+    "title": "Verified erasure request, released scoped hold and evidenced disposition",
+    "file": "examples/journeys/privacy-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J16",
+      "J17"
+    ],
+    "assertion": "ASK { ex:DataSubjectRequest cd:subjectAccount ?a; cd:requestState cd:requestState_Fulfilled; cd:responseEvidence ?e. ex:DataDisposition cd:subjectAccount ?a; cd:dispositionState cd:dispositionState_Completed; cd:legalHold/cd:holdState cd:holdState_Released. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-PRIVACY-REJECT",
+    "family": "privacy",
+    "title": "Verified erasure request, released scoped hold and evidenced disposition",
+    "file": "examples/journeys/privacy-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B154",
+    "journeys": [
+      "J16",
+      "J17"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ENERGY-PASS",
+    "family": "energy",
+    "title": "Export permission and feasible power below safety and contract limits",
+    "file": "examples/journeys/energy-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J15"
+    ],
+    "assertion": "ASK { ex:ControlDecision cd:controlDecision cd:controlDecision_Limited; cd:exportAgreement ex:ExportAgreement; cd:feasiblePowerKW ?p; cd:safetyLimitKW ?limit. ex:ExportAgreement cd:exportPermitted true; cd:exportBeneficiary ?beneficiary. FILTER(?p<=?limit) }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ENERGY-REJECT",
+    "family": "energy",
+    "title": "Export permission and feasible power below safety and contract limits",
+    "file": "examples/journeys/energy-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B149",
+    "journeys": [
+      "J15"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-MIGRATION-PASS",
+    "family": "migration",
+    "title": "Measured recovery and reconciled provider exit with source credentials revoked",
+    "file": "examples/journeys/migration-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J18",
+      "J19"
+    ],
+    "assertion": "ASK { ex:RecoveryExercise cd:recoveryResult cd:recoveryResult_Passed; cd:recoveryEvidence ?e. ex:MigrationBatch cd:migrationState cd:migrationState_Completed; cd:sourceCredentialsRevoked true; cd:reconciliationEvidence ?e. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-MIGRATION-REJECT",
+    "family": "migration",
+    "title": "Measured recovery and reconciled provider exit with source credentials revoked",
+    "file": "examples/journeys/migration-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B162",
+    "journeys": [
+      "J18",
+      "J19"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ASSET-PASS",
+    "family": "asset",
+    "title": "Operating station has accepted safety, protocol, meter and maintenance handover",
+    "file": "examples/journeys/asset-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J03",
+      "J18"
+    ],
+    "assertion": "ASK { ex:ChargingStation cd:assetLifecycle cd:assetLifecycle_Operating; cd:operationalAcceptance ?handover. ?handover cd:station ex:ChargingStation; cd:acceptanceState cd:acceptanceState_Accepted; cd:maintenanceProvider ?owner; cd:acceptanceEvidence ?e. ex:AssetLifecycleEvent cd:station ex:ChargingStation; cd:accountableParty ?owner. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ASSET-REJECT",
+    "family": "asset",
+    "title": "Operating station has accepted safety, protocol, meter and maintenance handover",
+    "file": "examples/journeys/asset-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B117",
+    "journeys": [
+      "J03",
+      "J18"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ALLOWANCE-PASS",
+    "family": "allowance",
+    "title": "Period allowance reconciles rollover, grant, actual use, active reservation and expiry",
+    "file": "examples/journeys/allowance-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J14"
+    ],
+    "assertion": "ASK { ex:AllowanceConsumption cd:allowanceBalance ex:AllowanceBalance; cd:session ?used; cd:consumedValue ?usage. ex:BenefitReservation cd:allowanceBalance ex:AllowanceBalance; cd:reservationState cd:reservationState_Active; cd:reservedValue ?reserved. ex:AllowanceBalance cd:customer ?payer; cd:consumedValue ?usage; cd:reservedValue ?reserved; cd:closingValue ?available. FILTER(?available=14 && ?usage=4 && ?reserved=3) }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ALLOWANCE-REJECT",
+    "family": "allowance",
+    "title": "Period allowance reconciles rollover, grant, actual use, active reservation and expiry",
+    "file": "examples/journeys/allowance-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B171",
+    "journeys": [
+      "J14"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ACCESS-PASS",
+    "family": "access",
+    "title": "Time-valid scoped permission is the basis of an operational access decision",
+    "file": "examples/journeys/access-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J17"
+    ],
+    "assertion": "ASK { ex:AccessDecision cd:accessDecision cd:accessDecision_Permit; cd:grantee ?principal; cd:scopeRecord ?scope; cd:permission ?permission; cd:accessGrant ?grant. ?grant cd:grantee ?principal; cd:scopeRecord ?scope; cd:securityRole/cd:permission ?permission; cd:grantState cd:grantState_Active. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-ACCESS-REJECT",
+    "family": "access",
+    "title": "Time-valid scoped permission is the basis of an operational access decision",
+    "file": "examples/journeys/access-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B157",
+    "journeys": [
+      "J17"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-SETTLEMENT-PASS",
+    "family": "settlement",
+    "title": "Partner settlement release retains reconciled approval and contract ownership",
+    "file": "examples/journeys/settlement-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J12"
+    ],
+    "assertion": "ASK { ex:SettlementApproval cd:settlementBatch ex:SettlementBatch; cd:approvalState cd:approvalState_Approved; cd:approvalEvidence ?e. ex:SettlementBatch cd:serviceAgreement ?agreement; cd:settlementItem ?item; cd:settlementState cd:settlementState_Approved. ?agreement cd:financialOwner ?owner. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-SETTLEMENT-REJECT",
+    "family": "settlement",
+    "title": "Partner settlement release retains reconciled approval and contract ownership",
+    "file": "examples/journeys/settlement-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B144",
+    "journeys": [
+      "J12"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-PROCESS-PASS",
+    "family": "process",
+    "title": "Completed exception journey retains responsibility and correction for compensated step",
+    "file": "examples/journeys/process-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "journeys": [
+      "J20"
+    ],
+    "assertion": "ASK { ex:ProcessExecution cd:processState cd:processState_Completed; cd:financialOwner ?owner; cd:processStep ex:ProcessStep. ex:ProcessStep cd:responsibleParty ?owner; cd:stepState cd:stepState_Compensated; cd:compensationRecord/cd:correctionEvidence ?e. }",
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  },
+  {
+    "id": "JOURNEY-PROCESS-REJECT",
+    "family": "process",
+    "title": "Completed exception journey retains responsibility and correction for compensated step",
+    "file": "examples/journeys/process-reject.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B167",
+    "journeys": [
+      "J20"
+    ],
+    "assertion": null,
+    "validationScope": "Full structural and business SHACL over a complete synthetic graph; no external service execution."
+  }
+]

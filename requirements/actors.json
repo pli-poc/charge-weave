@@ -1,0 +1,293 @@
+[
+  {
+    "id": "Driver",
+    "businessNeed": "Discover, purchase, charge, receive evidence, dispute and exercise data rights.",
+    "journeys": [
+      "J02",
+      "J04",
+      "J05",
+      "J06",
+      "J07",
+      "J08",
+      "J09",
+      "J11",
+      "J14",
+      "J15",
+      "J16",
+      "J20"
+    ]
+  },
+  {
+    "id": "AccessibilityUser",
+    "businessNeed": "Receive accessible discovery, purchase, support and price information; human/interface accessibility needs usability verification.",
+    "journeys": [
+      "J04",
+      "J20"
+    ]
+  },
+  {
+    "id": "Employee",
+    "businessNeed": "Charge within employer rights, claim eligible home energy and separate personal data.",
+    "journeys": [
+      "J13",
+      "J16",
+      "J20"
+    ]
+  },
+  {
+    "id": "FleetManager",
+    "businessNeed": "Assign vehicles, credentials, budgets and employee entitlements; suspend and offboard safely.",
+    "journeys": [
+      "J02",
+      "J05",
+      "J13",
+      "J14",
+      "J15",
+      "J20"
+    ]
+  },
+  {
+    "id": "Employer",
+    "businessNeed": "Fund and approve eligible corporate and home charging while preserving payroll/tax accountability.",
+    "journeys": [
+      "J02",
+      "J13",
+      "J14",
+      "J20"
+    ]
+  },
+  {
+    "id": "Sponsor",
+    "businessNeed": "Fund benefit allowances with a defined scope and financial liability.",
+    "journeys": [
+      "J14",
+      "J20"
+    ]
+  },
+  {
+    "id": "CPO",
+    "businessNeed": "Commission and operate physical charging service, meter and issue reliable charge records.",
+    "journeys": [
+      "J01",
+      "J03",
+      "J04",
+      "J05",
+      "J06",
+      "J07",
+      "J08",
+      "J10",
+      "J12",
+      "J18",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "eMSP",
+    "businessNeed": "Provide mobility service, customer prices, authorization, billing and roaming access.",
+    "journeys": [
+      "J01",
+      "J04",
+      "J05",
+      "J08",
+      "J10",
+      "J12",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "SiteHost",
+    "businessNeed": "Provide site access, capacity and operating conditions under explicit agreements.",
+    "journeys": [
+      "J01",
+      "J03",
+      "J12",
+      "J15",
+      "J20"
+    ]
+  },
+  {
+    "id": "AssetOwner",
+    "businessNeed": "Own asset investment, handover, transfer and retirement responsibilities.",
+    "journeys": [
+      "J01",
+      "J03",
+      "J07",
+      "J12",
+      "J18",
+      "J20"
+    ]
+  },
+  {
+    "id": "Installer",
+    "businessNeed": "Install and evidence commissioning and operational handover.",
+    "journeys": [
+      "J03",
+      "J18",
+      "J20"
+    ]
+  },
+  {
+    "id": "Maintainer",
+    "businessNeed": "Resolve faults and document safety, repair, firmware and recovery outcomes.",
+    "journeys": [
+      "J03",
+      "J18",
+      "J20"
+    ]
+  },
+  {
+    "id": "OEM",
+    "businessNeed": "Supply hardware, protocol capabilities, firmware, certificate and diagnostic evidence.",
+    "journeys": [
+      "J03",
+      "J05",
+      "J06",
+      "J17",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "MetrologyProvider",
+    "businessNeed": "Provide meter identity, calibration, signatures and reset/replacement evidence.",
+    "journeys": [
+      "J07",
+      "J20"
+    ]
+  },
+  {
+    "id": "GridOperator",
+    "businessNeed": "Define grid import/export constraints and connection rights.",
+    "journeys": [
+      "J15",
+      "J20"
+    ]
+  },
+  {
+    "id": "EnergySupplier",
+    "businessNeed": "Supply or purchase energy with explicit import/export and settlement terms.",
+    "journeys": [
+      "J15",
+      "J20"
+    ]
+  },
+  {
+    "id": "Aggregator",
+    "businessNeed": "Coordinate flexibility and retain dispatch, baseline and delivery evidence.",
+    "journeys": [
+      "J15",
+      "J20"
+    ]
+  },
+  {
+    "id": "RoamingHub",
+    "businessNeed": "Route party-owned data and commands under negotiated roles and versions.",
+    "journeys": [
+      "J10",
+      "J12",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "PaymentProvider",
+    "businessNeed": "Authorize, capture, refund and confirm asynchronous financial outcomes.",
+    "journeys": [
+      "J04",
+      "J09",
+      "J11",
+      "J13",
+      "J20"
+    ]
+  },
+  {
+    "id": "Finance",
+    "businessNeed": "Issue documents, reconcile balances, allocate collections, settle and control write-offs.",
+    "journeys": [
+      "J01",
+      "J08",
+      "J09",
+      "J10",
+      "J11",
+      "J12",
+      "J13",
+      "J14",
+      "J20"
+    ]
+  },
+  {
+    "id": "TaxAuthority",
+    "businessNeed": "Receive fiscal evidence; country-specific obligations require a configured applicability assessment.",
+    "journeys": [
+      "J08",
+      "J09",
+      "J20"
+    ]
+  },
+  {
+    "id": "SupportAgent",
+    "businessNeed": "Investigate service complaints and communicate traceable remedies.",
+    "journeys": [
+      "J11",
+      "J18",
+      "J20"
+    ]
+  },
+  {
+    "id": "PrivacyController",
+    "businessNeed": "Determine purpose, retention and rights decisions and account for processors.",
+    "journeys": [
+      "J02",
+      "J16",
+      "J20"
+    ]
+  },
+  {
+    "id": "DataProcessor",
+    "businessNeed": "Process data under documented purpose, safeguards and controller instructions.",
+    "journeys": [
+      "J16",
+      "J17",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "SecurityAdmin",
+    "businessNeed": "Grant, rotate, revoke and audit scoped operational access.",
+    "journeys": [
+      "J17",
+      "J20"
+    ]
+  },
+  {
+    "id": "PlatformOperator",
+    "businessNeed": "Maintain isolation, event durability, recovery and integration boundaries.",
+    "journeys": [
+      "J06",
+      "J17",
+      "J18",
+      "J19",
+      "J20"
+    ]
+  },
+  {
+    "id": "Auditor",
+    "businessNeed": "Inspect responsibilities, evidence lineage, control results and unresolved exceptions.",
+    "journeys": [
+      "J16",
+      "J17",
+      "J20"
+    ]
+  },
+  {
+    "id": "Partner",
+    "businessNeed": "Exercise contractual service and settlement rights without assuming corporate identity equals business role.",
+    "journeys": [
+      "J11",
+      "J20"
+    ]
+  }
+]
