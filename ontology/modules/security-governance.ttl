@@ -8,26 +8,32 @@ cd:AccessDecision a owl:Class ;
     rdfs:label "Access Decision"@en ;
     rdfs:comment "Time-specific authorization decision for a principal, permission and record scope; an account identity alone grants no operational authority."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:decisionEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:decidedAt ],
+            owl:allValuesFrom cd:Permission ;
+            owl:onProperty cd:permission ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AccessDecisionCode ;
             owl:onProperty cd:accessDecision ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:grantee ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccessGrant ;
-            owl:onProperty cd:accessGrant ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:scopeRecord ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Permission ;
-            owl:onProperty cd:permission ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:decisionEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:grantee ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AuthorizationSnapshot ;
+            owl:onProperty cd:authorizationSnapshot ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:decidedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DecisionContextCode ;
+            owl:onProperty cd:decisionContext ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccessGrant ;
+            owl:onProperty cd:accessGrant ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -36,26 +42,26 @@ cd:AccessTokenLease a owl:Class ;
     rdfs:label "Access Token Lease"@en ;
     rdfs:comment "Metadata for an issued API access token; token material is stored in a secret manager and is never the RDF identifier."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:tokenFingerprint ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccessTokenStateCode ;
+            owl:onProperty cd:accessTokenState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Permission ;
+            owl:onProperty cd:permission ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ApiClient ;
             owl:onProperty cd:apiClient ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:tokenFingerprint ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:revokedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:issuedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccessTokenStateCode ;
-            owl:onProperty cd:accessTokenState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:expiresAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Permission ;
-            owl:onProperty cd:permission ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -64,29 +70,29 @@ cd:AuditEntry a owl:Class ;
     rdfs:label "Audit Entry"@en ;
     rdfs:comment "Append-only actor-action-result evidence for privileged or business-significant changes."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:eventAt ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:auditedRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SourceEvent ;
             owl:onProperty cd:sourceEvent ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:previousDigest ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:AuditResultCode ;
             owl:onProperty cd:auditResult ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:auditedRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:previousDigest ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:eventAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:actionCode ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:newDigest ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:actor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:newDigest ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -95,20 +101,20 @@ cd:CertificateLifecycleEvent a owl:Class ;
     rdfs:label "Certificate Lifecycle Event"@en ;
     rdfs:comment "Issuance, installation, renewal or revocation evidence for a certificate."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingStation ;
-            owl:onProperty cd:station ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CertificateActionCode ;
-            owl:onProperty cd:certificateAction ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:command ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CertificateRecord ;
             owl:onProperty cd:certificate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CertificateActionCode ;
+            owl:onProperty cd:certificateAction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:eventAt ],
@@ -120,32 +126,32 @@ cd:ComplianceAssessment a owl:Class ;
     rdfs:label "Compliance Assessment"@en ;
     rdfs:comment "Provision-specific applicability and evidence assessment; no automatic legal conclusion."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:assessor ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:assessedRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:jurisdictionCode ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:AssessmentResultCode ;
-            owl:onProperty cd:assessmentResult ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:regulationReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:assessedAt ],
+            owl:allValuesFrom cd:AssessmentResultCode ;
+            owl:onProperty cd:assessmentResult ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:provisionReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:applicable ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:assessor ],
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:regulationReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:assessedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:provisionReference ],
+            owl:onProperty cd:jurisdictionCode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -154,23 +160,23 @@ cd:ConsentDecision a owl:Class ;
     rdfs:label "Consent Decision"@en ;
     rdfs:comment "Recorded grant or withdrawal for a specific person, purpose and document version."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:consentPurpose ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:decidedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ConsentChoiceCode ;
-            owl:onProperty cd:consentChoice ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:PolicyDocument ;
             owl:onProperty cd:policyDocument ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:consentPurpose ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:decidedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ConsentChoiceCode ;
+            owl:onProperty cd:consentChoice ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -179,26 +185,29 @@ cd:DataDisposition a owl:Class ;
     rdfs:label "Data Disposition"@en ;
     rdfs:comment "Evidence of a requested or completed deletion/anonymization action."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalHold ;
-            owl:onProperty cd:legalHold ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RetentionPolicy ;
-            owl:onProperty cd:retentionPolicy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:DispositionStateCode ;
-            owl:onProperty cd:dispositionState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:dispositionEvidence ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:completedAt ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:disposedRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:subjectAccount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DispositionStateCode ;
+            owl:onProperty cd:dispositionState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RetentionPolicy ;
+            owl:onProperty cd:retentionPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:completedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalHold ;
+            owl:onProperty cd:legalHold ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -208,37 +217,40 @@ cd:DataSubjectRequest a owl:Class ;
     rdfs:comment "Verified data-subject request with separately recorded eligibility, due date, response and justified refusal or retention decisions."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:responseDueAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:receivedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:legalBasisAssessment ],
+            owl:allValuesFrom cd:RequestKindCode ;
+            owl:onProperty cd:requestKind ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:identityVerified ],
+            owl:allValuesFrom cd:RequestOutcomeCode ;
+            owl:onProperty cd:requestOutcome ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:responsibleController ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RequestStateCode ;
+            owl:onProperty cd:requestState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:completedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:legalBasisAssessment ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:refusalReason ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RequestStateCode ;
-            owl:onProperty cd:requestState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RequestKindCode ;
-            owl:onProperty cd:requestKind ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:responsibleController ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:responseEvidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:subjectAccount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:responseDueAt ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:responseEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:identityVerified ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -247,23 +259,23 @@ cd:EvidenceVerification a owl:Class ;
     rdfs:label "Evidence Verification"@en ;
     rdfs:comment "Result of retrieving and verifying an evidence artifact, distinguishing claimed evidence from successful digest/signature verification."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:artifact ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:verifier ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:verificationEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:computedDigest ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:VerificationStateCode ;
-            owl:onProperty cd:verificationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:checkedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:artifact ],
+            owl:onProperty cd:verificationEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VerificationStateCode ;
+            owl:onProperty cd:verificationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:computedDigest ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -272,32 +284,32 @@ cd:ProcessingPurpose a owl:Class ;
     rdfs:label "Processing Purpose"@en ;
     rdfs:comment "Purpose-bound data-processing contract recording controller, processor, categories, lawful basis, retention and cross-border safeguards."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:transferSafeguardEvidence ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:processingScope ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:purposeDescription ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RetentionPolicy ;
+            owl:onProperty cd:retentionPolicy ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:lawfulBasis ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:processor ],
+            owl:onProperty cd:controller ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:dataCategory ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:processor ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:internationalTransfer ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:transferSafeguardEvidence ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:purposeDescription ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:processingScope ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RetentionPolicy ;
-            owl:onProperty cd:retentionPolicy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:controller ],
+            owl:onProperty cd:dataCategory ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -306,23 +318,60 @@ cd:SecurityEvent a owl:Class ;
     rdfs:label "Security Event"@en ;
     rdfs:comment "Detected security-relevant event with source evidence and triage status."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:eventAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SourceEvent ;
-            owl:onProperty cd:sourceEvent ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Issue ;
-            owl:onProperty cd:issue ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:affectedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:eventAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SeverityCode ;
             owl:onProperty cd:severity ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:Issue ;
+            owl:onProperty cd:issue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:securityEventCode ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "security-governance" .
+
+cd:AuthorizationSnapshot a owl:Class ;
+    rdfs:label "Authorization Snapshot"@en ;
+    rdfs:comment "Immutable evidence of principal status and exact grant, permission and scope as assessed at a historical access decision; current revocation does not rewrite this evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccessGrant ;
+            owl:onProperty cd:sourceGrant ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:capturedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:scopeRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Permission ;
+            owl:onProperty cd:permission ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:grantActive ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:snapshotEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:principalEnabled ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:grantee ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -331,32 +380,32 @@ cd:CertificateRecord a owl:Class ;
     rdfs:label "Certificate Record"@en ;
     rdfs:comment "Certificate identity, validity and trust metadata with key material held externally."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:certificateArtifact ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:subjectName ],
+            owl:allValuesFrom cd:CertificatePurposeCode ;
+            owl:onProperty cd:certificatePurpose ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:privateKeyReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:CertificateStateCode ;
-            owl:onProperty cd:certificateState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:certificateFingerprint ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:issuerName ],
+            owl:onProperty cd:subjectName ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:CertificatePurposeCode ;
-            owl:onProperty cd:certificatePurpose ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:certificateArtifact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CertificateStateCode ;
+            owl:onProperty cd:certificateState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:issuerName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -365,14 +414,14 @@ cd:LegalHold a owl:Class ;
     rdfs:label "Legal Hold"@en ;
     rdfs:comment "Scoped evidence-preservation obligation with review date, authority and legal basis; does not justify indefinite retention of all account data."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:HoldStateCode ;
             owl:onProperty cd:holdState ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:holdingParty ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:reviewAt ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:heldRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:releasedAt ],
@@ -381,13 +430,13 @@ cd:LegalHold a owl:Class ;
             owl:onProperty cd:holdEvidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:onProperty cd:reviewAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:legalBasis ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:heldRecord ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:holdingParty ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -396,23 +445,23 @@ cd:PolicyDocument a owl:Class ;
     rdfs:label "Policy Document"@en ;
     rdfs:comment "Versioned legal or operational policy with purpose and effective interval."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:PolicyPurposeCode ;
-            owl:onProperty cd:policyPurpose ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:policyTitle ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:policyVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:policyArtifact ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PolicyPurposeCode ;
+            owl:onProperty cd:policyPurpose ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:policyTitle ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .
@@ -421,8 +470,11 @@ cd:RetentionPolicy a owl:Class ;
     rdfs:label "Retention Policy"@en ;
     rdfs:comment "Purpose- and jurisdiction-specific retention rule with legal-hold handling."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:DispositionCode ;
-            owl:onProperty cd:disposition ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:retentionPurpose ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:legalBasis ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:retentionDays ],
@@ -430,11 +482,8 @@ cd:RetentionPolicy a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:jurisdictionCode ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:legalBasis ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:retentionPurpose ],
+            owl:allValuesFrom cd:DispositionCode ;
+            owl:onProperty cd:disposition ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "security-governance" .

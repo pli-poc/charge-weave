@@ -1,0 +1,1009 @@
+[
+  {
+    "id": "COMPLETE-HISTORICAL-PERMIT-PASS",
+    "family": "access",
+    "title": "historical-permit",
+    "file": "examples/completion/historical-permit-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:AccessDecision cd:decisionContext cd:decisionContext_Historical; cd:accessDecision cd:accessDecision_Permit; cd:authorizationSnapshot/cd:grantActive true. ex:Principal cd:principalState cd:principalState_Disabled. ex:AccessGrant cd:grantState cd:grantState_Revoked.}",
+    "requirements": [
+      "BR-173",
+      "BR-157"
+    ]
+  },
+  {
+    "id": "COMPLETE-HISTORICAL-PERMIT-1",
+    "family": "access",
+    "title": "historical-permit",
+    "file": "examples/completion/historical-permit-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B173",
+    "assertion": null,
+    "requirements": [
+      "BR-173",
+      "BR-157"
+    ]
+  },
+  {
+    "id": "COMPLETE-HISTORICAL-PERMIT-2",
+    "family": "access",
+    "title": "historical-permit",
+    "file": "examples/completion/historical-permit-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B157",
+    "assertion": null,
+    "requirements": [
+      "BR-173",
+      "BR-157"
+    ]
+  },
+  {
+    "id": "COMPLETE-SPONSORED-ALLOWANCE-PASS",
+    "family": "access",
+    "title": "sponsored-allowance",
+    "file": "examples/completion/sponsored-allowance-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:AllowanceBalance cd:customer ex:CustomerAccount; cd:allowanceSponsorship/cd:beneficiaryCustomer ex:SponsoredCustomer; cd:closingValue ?expectedNumber0. ex:ChargingSession cd:customer ex:SponsoredCustomer. ex:BenefitReservation cd:reservationState cd:reservationState_Active; cd:reservedValue ?expectedNumber1. FILTER(?expectedNumber0=13 && ?expectedNumber1=2) }",
+    "requirements": [
+      "BR-174",
+      "BR-171"
+    ]
+  },
+  {
+    "id": "COMPLETE-SPONSORED-ALLOWANCE-1",
+    "family": "access",
+    "title": "sponsored-allowance",
+    "file": "examples/completion/sponsored-allowance-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B174",
+    "assertion": null,
+    "requirements": [
+      "BR-174",
+      "BR-171"
+    ]
+  },
+  {
+    "id": "COMPLETE-SPONSORED-ALLOWANCE-2",
+    "family": "access",
+    "title": "sponsored-allowance",
+    "file": "examples/completion/sponsored-allowance-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B171",
+    "assertion": null,
+    "requirements": [
+      "BR-174",
+      "BR-171"
+    ]
+  },
+  {
+    "id": "COMPLETE-MONEY-RECONCILIATION-PASS",
+    "family": "finance",
+    "title": "money-reconciliation",
+    "file": "examples/completion/money-reconciliation-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:FinancialPosition cd:collectedAmount ?expectedNumber0; cd:writtenOffAmount ?expectedNumber1; cd:outstandingAmount ?expectedNumber2. ex:PaymentAllocation cd:allocatedAmount ?expectedNumber3. ex:Wallet cd:openingBalance ?expectedNumber4; cd:balanceAmount ?expectedNumber5. FILTER(?expectedNumber0=4 && ?expectedNumber1=1 && ?expectedNumber2=5 && ?expectedNumber3=4 && ?expectedNumber4=10 && ?expectedNumber5=7.5) }",
+    "requirements": [
+      "BR-175",
+      "BR-176",
+      "BR-177"
+    ]
+  },
+  {
+    "id": "COMPLETE-MONEY-RECONCILIATION-1",
+    "family": "finance",
+    "title": "money-reconciliation",
+    "file": "examples/completion/money-reconciliation-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B175",
+    "assertion": null,
+    "requirements": [
+      "BR-175",
+      "BR-176",
+      "BR-177"
+    ]
+  },
+  {
+    "id": "COMPLETE-MONEY-RECONCILIATION-2",
+    "family": "finance",
+    "title": "money-reconciliation",
+    "file": "examples/completion/money-reconciliation-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B176",
+    "assertion": null,
+    "requirements": [
+      "BR-175",
+      "BR-176",
+      "BR-177"
+    ]
+  },
+  {
+    "id": "COMPLETE-MONEY-RECONCILIATION-3",
+    "family": "finance",
+    "title": "money-reconciliation",
+    "file": "examples/completion/money-reconciliation-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B177",
+    "assertion": null,
+    "requirements": [
+      "BR-175",
+      "BR-176",
+      "BR-177"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-PASS",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:ServiceAgreement cd:agreementState cd:agreementState_Terminated. ex:AccountingPeriod cd:periodState cd:periodState_Closed. ex:PeriodAdjustment cd:postingPeriod ex:NextPeriod; cd:commercialResponsibility ex:CommercialResponsibility; cd:adjustmentState cd:adjustmentState_Posted; cd:adjustmentAmount ?expectedNumber0. ex:NextPeriod cd:periodState cd:periodState_Open. FILTER(?expectedNumber0=-1) }",
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-1",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B178",
+    "assertion": null,
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-2",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B179",
+    "assertion": null,
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-3",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B180",
+    "assertion": null,
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-4",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-4.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B180",
+    "assertion": null,
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-LATE-CORRECTION-5",
+    "family": "finance",
+    "title": "late-correction",
+    "file": "examples/completion/late-correction-5.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B207",
+    "assertion": null,
+    "requirements": [
+      "BR-178",
+      "BR-179",
+      "BR-180",
+      "BR-207"
+    ]
+  },
+  {
+    "id": "COMPLETE-HISTORICAL-POSTING-PERIOD-PASS",
+    "family": "finance",
+    "title": "historical-posting-period",
+    "file": "examples/completion/historical-posting-period-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:PeriodAdjustment cd:adjustmentState cd:adjustmentState_Posted; cd:postingPeriod ex:NextPeriod; cd:postedAt ?posted. ex:NextPeriod cd:periodState cd:periodState_Closed; cd:closedAt ?closed. FILTER(?posted < ?closed)}",
+    "requirements": [
+      "BR-180"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-PASS",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:CurrencyConversion cd:sourceCurrency ex:USDCurrency; cd:sourceAmount ?expectedNumber0; cd:targetAmount ?expectedNumber1. ex:AmountRounding cd:rawAmount ?expectedNumber2; cd:roundedAmount ?expectedNumber3. ex:RatingCalculation cd:netAmount ?expectedNumber4. FILTER(?expectedNumber0=10 && ?expectedNumber1=9.13 && ?expectedNumber2=9.125 && ?expectedNumber3=9.13 && ?expectedNumber4=9.13) }",
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-1",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B181",
+    "assertion": null,
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-2",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B182",
+    "assertion": null,
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-3",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B183",
+    "assertion": null,
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-4",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-4.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B184",
+    "assertion": null,
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-CONVERSION-AND-ROUNDING-5",
+    "family": "pricing",
+    "title": "conversion-and-rounding",
+    "file": "examples/completion/conversion-and-rounding-5.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B185",
+    "assertion": null,
+    "requirements": [
+      "BR-181",
+      "BR-182",
+      "BR-183",
+      "BR-184",
+      "BR-185"
+    ]
+  },
+  {
+    "id": "COMPLETE-REPEATED-LOCAL-HOUR-PASS",
+    "family": "pricing",
+    "title": "repeated-local-hour",
+    "file": "examples/completion/repeated-local-hour-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:PricingTimeResolution cd:repeatedHourPolicy cd:repeatedHourPolicy_Second; cd:timezoneName ?zone. FILTER(STR(?zone)=\"Europe/Amsterdam\")}",
+    "requirements": [
+      "BR-186"
+    ]
+  },
+  {
+    "id": "COMPLETE-REPEATED-LOCAL-HOUR-1",
+    "family": "pricing",
+    "title": "repeated-local-hour",
+    "file": "examples/completion/repeated-local-hour-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B186",
+    "assertion": null,
+    "requirements": [
+      "BR-186"
+    ]
+  },
+  {
+    "id": "COMPLETE-REPEATED-LOCAL-HOUR-2",
+    "family": "pricing",
+    "title": "repeated-local-hour",
+    "file": "examples/completion/repeated-local-hour-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "IanaTimeResolutionConstraint",
+    "assertion": null,
+    "requirements": [
+      "BR-186"
+    ]
+  },
+  {
+    "id": "COMPLETE-MULTI-PARTY-LEGS-PASS",
+    "family": "settlement",
+    "title": "multi-party-legs",
+    "file": "examples/completion/multi-party-legs-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:SettlementLeg cd:liableParty ex:Intermediary; cd:entitledParty ex:LegalEntity; cd:chargeRecord ?cdr; cd:grossAmount ?expectedNumber0. ex:RetailLeg cd:liableParty ex:Retailer; cd:entitledParty ex:Intermediary; cd:chargeRecord ?cdr; cd:grossAmount ?expectedNumber1. FILTER(?expectedNumber0=4 && ?expectedNumber1=5) }",
+    "requirements": [
+      "BR-187",
+      "BR-188"
+    ]
+  },
+  {
+    "id": "COMPLETE-MULTI-PARTY-LEGS-1",
+    "family": "settlement",
+    "title": "multi-party-legs",
+    "file": "examples/completion/multi-party-legs-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B187",
+    "assertion": null,
+    "requirements": [
+      "BR-187",
+      "BR-188"
+    ]
+  },
+  {
+    "id": "COMPLETE-MULTI-PARTY-LEGS-2",
+    "family": "settlement",
+    "title": "multi-party-legs",
+    "file": "examples/completion/multi-party-legs-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B188",
+    "assertion": null,
+    "requirements": [
+      "BR-187",
+      "BR-188"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSED-RIGHTS-REQUEST-PASS",
+    "family": "governance",
+    "title": "closed-rights-request",
+    "file": "examples/completion/closed-rights-request-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:DataSubjectRequest cd:requestState cd:requestState_Closed; cd:requestOutcome cd:requestOutcome_Fulfilled. ex:DataDisposition cd:disposedRecord ex:Invoice. ex:LegalHold cd:heldRecord ex:Invoice; cd:holdState cd:holdState_Released.}",
+    "requirements": [
+      "BR-189",
+      "BR-190"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSED-RIGHTS-REQUEST-1",
+    "family": "governance",
+    "title": "closed-rights-request",
+    "file": "examples/completion/closed-rights-request-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B189",
+    "assertion": null,
+    "requirements": [
+      "BR-189",
+      "BR-190"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSED-RIGHTS-REQUEST-2",
+    "family": "governance",
+    "title": "closed-rights-request",
+    "file": "examples/completion/closed-rights-request-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B190",
+    "assertion": null,
+    "requirements": [
+      "BR-189",
+      "BR-190"
+    ]
+  },
+  {
+    "id": "COMPLETE-ORDERED-ACCOUNTABILITY-PASS",
+    "family": "governance",
+    "title": "ordered-accountability",
+    "file": "examples/completion/ordered-accountability-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:ProcessExecution cd:processState cd:processState_Completed; cd:processStep ex:ProcessStep,ex:FollowingStep. ex:FollowingStep cd:previousStep ex:ProcessStep; cd:requiredStep true.}",
+    "requirements": [
+      "BR-191",
+      "BR-192"
+    ]
+  },
+  {
+    "id": "COMPLETE-ORDERED-ACCOUNTABILITY-1",
+    "family": "governance",
+    "title": "ordered-accountability",
+    "file": "examples/completion/ordered-accountability-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B191",
+    "assertion": null,
+    "requirements": [
+      "BR-191",
+      "BR-192"
+    ]
+  },
+  {
+    "id": "COMPLETE-ORDERED-ACCOUNTABILITY-2",
+    "family": "governance",
+    "title": "ordered-accountability",
+    "file": "examples/completion/ordered-accountability-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B192",
+    "assertion": null,
+    "requirements": [
+      "BR-191",
+      "BR-192"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-PASS",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:CustomerAccount cd:accountState cd:accountState_Closed. ex:AccountClosure cd:closureState cd:closureState_Completed. ex:Issue cd:billingBlocking true; cd:issueState cd:issueState_Resolved. ex:ChargingSession cd:sessionState cd:sessionState_Completed. ex:AssetLifecycleEvent cd:assetAction cd:assetAction_Decommission.}",
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-1",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B193",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-2",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B194",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-3",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B195",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-4",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-4.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B196",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-5",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-5.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B197",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-6",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-6.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B198",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-CLOSURE-AND-EVIDENCE-7",
+    "family": "lifecycle",
+    "title": "closure-and-evidence",
+    "file": "examples/completion/closure-and-evidence-7.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B199",
+    "assertion": null,
+    "requirements": [
+      "BR-193",
+      "BR-194",
+      "BR-195",
+      "BR-196",
+      "BR-197",
+      "BR-198",
+      "BR-199"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-PASS",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:Refund cd:refundState cd:refundState_Confirmed; cd:refundAmount ?expectedNumber0. ex:Chargeback cd:disputedAmount ?expectedNumber1. ex:FlexibilityDelivery cd:deliveredAdjustmentKWh ?expectedNumber2. ex:PowerModuleAllocation cd:interval/cd:endsAt ?end. ex:SecondAllocation cd:interval/cd:startsAt ?end. FILTER(?expectedNumber0=2 && ?expectedNumber1=5 && ?expectedNumber2=-3) }",
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-1",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B200",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-2",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B201",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-3",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B202",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-4",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-4.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B203",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-5",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-5.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B204",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-6",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-6.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B205",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-7",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-7.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B206",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-FINANCIAL-AND-ENERGY-BOUNDARIES-8",
+    "family": "operations",
+    "title": "financial-and-energy-boundaries",
+    "file": "examples/completion/financial-and-energy-boundaries-8.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B208",
+    "assertion": null,
+    "requirements": [
+      "BR-200",
+      "BR-201",
+      "BR-202",
+      "BR-203",
+      "BR-204",
+      "BR-205",
+      "BR-206",
+      "BR-208"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-PASS",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:Invoice cd:invoiceState cd:invoiceState_Paid; cd:grossAmount ?expectedNumber0. ex:FinancialPosition cd:creditedAmount ?expectedNumber1; cd:collectedAmount ?expectedNumber2; cd:outstandingAmount ?expectedNumber3. ex:PaymentCapture cd:capturedAmount ?expectedNumber4. ex:Refund cd:refundAmount ?expectedNumber5; cd:refundState cd:refundState_Confirmed. FILTER(?expectedNumber0=10 && ?expectedNumber1=2 && ?expectedNumber2=8 && ?expectedNumber3=0 && ?expectedNumber4=10 && ?expectedNumber5=2) }",
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-1",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B209",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-2",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B210",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-3",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-3.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B211",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-4",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-4.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B212",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-5",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-5.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B213",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-6",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-6.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B214",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-PARTIAL-REFUND-AND-PAID-INVOICE-7",
+    "family": "financial-state",
+    "title": "partial-refund-and-paid-invoice",
+    "file": "examples/completion/partial-refund-and-paid-invoice-7.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B215",
+    "assertion": null,
+    "requirements": [
+      "BR-209",
+      "BR-210",
+      "BR-211",
+      "BR-212",
+      "BR-213",
+      "BR-214",
+      "BR-215"
+    ]
+  },
+  {
+    "id": "COMPLETE-SUBSCRIPTION-EXIT-PASS",
+    "family": "access",
+    "title": "subscription-exit",
+    "file": "examples/completion/subscription-exit-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:Subscription cd:subscriptionState cd:subscriptionState_Cancelled; cd:renewAutomatically false. ex:BillingPeriod cd:billingPeriodState cd:billingPeriodState_Billed; cd:invoice/cd:invoiceState cd:invoiceState_Issued.}",
+    "requirements": [
+      "BR-216",
+      "BR-217"
+    ]
+  },
+  {
+    "id": "COMPLETE-SUBSCRIPTION-EXIT-1",
+    "family": "access",
+    "title": "subscription-exit",
+    "file": "examples/completion/subscription-exit-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B216",
+    "assertion": null,
+    "requirements": [
+      "BR-216",
+      "BR-217"
+    ]
+  },
+  {
+    "id": "COMPLETE-SUBSCRIPTION-EXIT-2",
+    "family": "access",
+    "title": "subscription-exit",
+    "file": "examples/completion/subscription-exit-2.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B217",
+    "assertion": null,
+    "requirements": [
+      "BR-216",
+      "BR-217"
+    ]
+  },
+  {
+    "id": "COMPLETE-RECONCILED-SETTLEMENT-APPROVAL-PASS",
+    "family": "settlement",
+    "title": "reconciled-settlement-approval",
+    "file": "examples/completion/reconciled-settlement-approval-pass.ttl",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "assertion": "ASK {ex:SettlementApproval cd:approvalState cd:approvalState_Approved; cd:openDifferenceCount ?expectedNumber0. ex:ReconciliationCase cd:expectedRecord ex:Invoice. FILTER(?expectedNumber0=0) }",
+    "requirements": [
+      "BR-218"
+    ]
+  },
+  {
+    "id": "COMPLETE-RECONCILED-SETTLEMENT-APPROVAL-1",
+    "family": "settlement",
+    "title": "reconciled-settlement-approval",
+    "file": "examples/completion/reconciled-settlement-approval-1.ttl",
+    "expectedConformance": false,
+    "expectedRule": "B218",
+    "assertion": null,
+    "requirements": [
+      "BR-218"
+    ]
+  }
+]

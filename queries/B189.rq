@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:DataSubjectRequest . ?this cd:requestState ?state; cd:requestOutcome ?outcome. FILTER(?state IN (cd:requestState_Fulfilled,cd:requestState_Refused,cd:requestState_Closed)) FILTER((?state=cd:requestState_Fulfilled && ?outcome!=cd:requestOutcome_Fulfilled) || (?state=cd:requestState_Refused && ?outcome!=cd:requestOutcome_Refused) || ?outcome=cd:requestOutcome_Pending || !EXISTS {?this cd:responseEvidence ?e; cd:completedAt ?at} || (?outcome=cd:requestOutcome_Fulfilled && !EXISTS {?this cd:identityVerified true}) || (?outcome=cd:requestOutcome_Refused && !EXISTS {?this cd:refusalReason ?reason})) }

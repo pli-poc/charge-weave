@@ -15,6 +15,7 @@ rules = {r['id']:r for r in read('model/rules.json')}
 cases = read('tests/business-acceptance.json')
 adversarial_cases = read('tests/adversarial-cases.json')
 journey_cases = read('tests/journey-snapshots.json')
+completion_cases = read('tests/completion-scenarios.json')
 journey_ids = {c['id'] for c in journey_cases}
 scenario_ids = {c['id'] for c in cases + adversarial_cases} | {'UNIT-'+k+'-REJECT' for k in read('tests/negative-cases.json')} | {'REF-PASS'}
 rows = []
@@ -39,6 +40,8 @@ for r in requirements:
         selected = [c for c in cases if c['requirement'] == r['id']]
         result(r['id']+':positive-and-negative', {c['expectedConformance'] for c in selected} == {True,False})
         result(r['id']+':scenario-rules', all(c['rule'] in r['rules'] for c in selected))
+    for identity in r.get('completionScenarios',[]):
+        result(r['id']+':integration:'+identity, any(c['id']==identity and r['id'] in c['requirements'] for c in completion_cases))
 for case in adversarial_cases:
     requirement = next((r for r in requirements if r['id']==case['requirement']),None)
     result(case['id']+':requirement-traceability', requirement is not None and case['id'] in requirement['scenarios'])

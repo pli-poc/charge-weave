@@ -473,8 +473,8 @@
     "id": "B157",
     "requirement": "BR-157",
     "target": "AccessDecision",
-    "title": "Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal.",
-    "body": "{ $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} } UNION { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee/cd:principalState cd:principalState_Disabled. }",
+    "title": "A current permit requires an enabled principal and an active, time-valid grant for the exact permission and scope.",
+    "body": "{ { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} } UNION { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee/cd:principalState cd:principalState_Disabled. } } FILTER NOT EXISTS {$this cd:decisionContext cd:decisionContext_Historical}",
     "journey": "J17",
     "phase": "operation",
     "source": "CW-POLICY"
@@ -614,7 +614,7 @@
     "requirement": "BR-171",
     "target": "AllowanceBalance",
     "title": "Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer.",
-    "body": "{ $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) } UNION { $this cd:customer ?owner. ?item cd:allowanceBalance $this; cd:session ?session. FILTER NOT EXISTS {?session cd:customer ?owner} }",
+    "body": "{ $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) } UNION { $this cd:customer ?owner. ?item cd:allowanceBalance $this; cd:session ?session. FILTER NOT EXISTS {?session cd:customer ?owner} FILTER NOT EXISTS {$this cd:allowanceSponsorship ?sponsor. ?session cd:customer ?beneficiary; cd:startedAt ?at. ?sponsor cd:sponsoringCustomer ?owner; cd:beneficiaryCustomer ?beneficiary; cd:scopeRecord ?scope; cd:validFrom ?from; cd:validUntil ?until. FILTER(?at>=?from && ?at<?until && (?scope=?beneficiary || ?scope=?session))} }",
     "journey": "J14",
     "phase": "operation",
     "source": "CW-POLICY"
@@ -626,6 +626,466 @@
     "title": "Money-denominated allowances identify a currency instead of being treated as energy credits.",
     "body": "$this cd:allowance/cd:allowanceDimension cd:allowanceDimension_Money. FILTER NOT EXISTS {$this cd:currency ?c}",
     "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B173",
+    "requirement": "BR-173",
+    "target": "AccessDecision",
+    "title": "Historical permits retain matching decision-time principal, grant, permission, scope and validity evidence.",
+    "body": "$this cd:decisionContext cd:decisionContext_Historical; cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:authorizationSnapshot ?s; cd:accessGrant ?g. ?s cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:sourceGrant ?g; cd:principalEnabled true; cd:grantActive true; cd:validFrom ?a; cd:validUntil ?b; cd:capturedAt ?captured. FILTER(?a<=?t && ?t<?b && ?captured=?t)}",
+    "journey": "J17",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B174",
+    "requirement": "BR-174",
+    "target": "AllowanceSponsorship",
+    "title": "Sponsored allowance validity is contained in the funding agreement period.",
+    "body": "$this cd:validFrom ?a; cd:validUntil ?b; cd:serviceAgreement ?agreement. ?agreement cd:validFrom ?start. OPTIONAL {?agreement cd:validUntil ?end} FILTER(?b<=?a || ?a<?start || (BOUND(?end) && ?b>?end))",
+    "journey": "J14",
+    "phase": "contracting",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B175",
+    "requirement": "BR-175",
+    "target": "FinancialPosition",
+    "title": "Collected balances reconcile to posted allocations or retain explicit external collection evidence.",
+    "body": "{$this cd:collectionBasis cd:collectionBasis_Uncollected; cd:collectedAmount ?v. FILTER(?v!=0 || EXISTS {?a a cd:PaymentAllocation; cd:financialPosition $this; cd:allocationState cd:allocationState_Posted})} UNION {$this cd:collectionBasis cd:collectionBasis_ExternalEvidence. FILTER NOT EXISTS {$this cd:collectionEvidence ?e}} UNION {$this cd:collectionBasis cd:collectionBasis_PaymentAllocations; cd:collectedAmount ?v. {SELECT $this (SUM(?amount) AS ?total) WHERE {OPTIONAL {?a a cd:PaymentAllocation; cd:financialPosition $this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?amount}} GROUP BY $this} FILTER(?v!=COALESCE(?total,0))}",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B176",
+    "requirement": "BR-176",
+    "target": "FinancialPosition",
+    "title": "A write-off has attributable approval evidence.",
+    "body": "$this cd:writtenOffAmount ?v. FILTER(?v>0) FILTER NOT EXISTS {$this cd:writeOffEvidence ?e}",
+    "journey": "J09",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B177",
+    "requirement": "BR-177",
+    "target": "Wallet",
+    "title": "Wallet balance equals opening balance plus entries in its inclusive statement interval.",
+    "body": "$this cd:openingBalance ?opening; cd:balanceAmount ?balance; cd:balanceFrom ?start; cd:balanceAsOf ?end. {SELECT $this (SUM(?amount) AS ?total) WHERE {$this cd:balanceFrom ?from; cd:balanceAsOf ?until. OPTIONAL {?entry a cd:WalletEntry; cd:wallet $this; cd:signedAmount ?amount; cd:recordedAt ?time. FILTER(?time>=?from && ?time<=?until)}} GROUP BY $this} FILTER(?end<?start || ?balance!=?opening+COALESCE(?total,0))",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B178",
+    "requirement": "BR-178",
+    "target": "AccountingPeriod",
+    "title": "A closed accounting period retains evidence and a close time no earlier than its end.",
+    "body": "$this cd:periodState cd:periodState_Closed; cd:period/cd:endsAt ?end. FILTER NOT EXISTS {$this cd:closedAt ?at; cd:closingEvidence ?e. FILTER(?at>=?end)}",
+    "journey": "J09",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B179",
+    "requirement": "BR-179",
+    "target": "Journal",
+    "title": "Posted journal timestamps belong to their accounting period and do not follow its close time.",
+    "body": "$this cd:journalState ?state; cd:postedAt ?at; cd:accountingPeriod ?p. FILTER(?state IN (cd:journalState_Posted,cd:journalState_Reversed)) ?p cd:period/cd:startsAt ?start; cd:period/cd:endsAt ?end. FILTER(?at<?start || ?at>=?end || EXISTS {?p cd:closedAt ?close. FILTER(?at>?close)})",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B180",
+    "requirement": "BR-180",
+    "target": "PeriodAdjustment",
+    "title": "Late corrections preserve original usage responsibility and use a distinct period that was open at posting time.",
+    "body": "$this cd:adjustmentState cd:adjustmentState_Posted; cd:originalPeriod ?old; cd:postingPeriod ?new; cd:sourceRecord ?source; cd:correctingRecord ?correction; cd:postedAt ?at; cd:effectiveUsageAt ?usage; cd:commercialResponsibility ?r. FILTER(?old=?new || ?source=?correction || !EXISTS {$this cd:correction ?case. ?case cd:originalRecord ?source; cd:correctingRecord ?correction} || !EXISTS {?old cd:periodState cd:periodState_Closed; cd:closedAt ?closed; cd:period/cd:startsAt ?oldStart; cd:period/cd:endsAt ?oldEnd. ?new cd:periodState ?postingState; cd:period/cd:startsAt ?start; cd:period/cd:endsAt ?end. OPTIONAL {?new cd:closedAt ?newClose} FILTER((?postingState=cd:periodState_Open || (?postingState=cd:periodState_Closed && BOUND(?newClose) && ?at<=?newClose)) && ?usage>=?oldStart && ?usage<?oldEnd && ?at>=?closed && ?at>=?start && ?at<?end)} || !EXISTS {?r cd:validFrom ?rstart; cd:serviceAgreement ?a. OPTIONAL {?r cd:validUntil ?rend} ?a cd:validFrom ?astart. OPTIONAL {?a cd:validUntil ?aend} FILTER(?usage>=?rstart && (!BOUND(?rend)||?usage<?rend) && ?usage>=?astart && (!BOUND(?aend)||?usage<?aend))})",
+    "journey": "J09",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B181",
+    "requirement": "BR-181",
+    "target": "AmountRounding",
+    "title": "Monetary rounding reproduces the declared signed decimal mode and scale from zero through six places.",
+    "body": "$this cd:rawAmount ?raw; cd:roundedAmount ?actual; cd:roundingPolicy ?policy. ?policy cd:roundingMode ?mode; cd:decimalPlaces ?places.\nBIND(IF(?places=0,1,IF(?places=1,10,IF(?places=2,100,IF(?places=3,1000,IF(?places=4,10000,IF(?places=5,100000,1000000)))))) AS ?factor)\nBIND(ABS(?raw)*?factor AS ?scaled) BIND(FLOOR(?scaled) AS ?lower)\nBIND(IF(?mode=cd:roundingMode_Down,?lower,IF(?mode=cd:roundingMode_Up,CEIL(?scaled),IF(?mode=cd:roundingMode_HalfUp,FLOOR(?scaled+0.5),IF(?scaled-?lower<0.5,?lower,IF(?scaled-?lower>0.5,?lower+1,IF(FLOOR(?lower/2)*2=?lower,?lower,?lower+1)))))) AS ?rounded)\nBIND(IF(?raw<0,-?rounded,?rounded)/?factor AS ?expected)\nFILTER(?places>6 || ?places<0 || ?actual!=?expected)",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "PY-DECIMAL"
+  },
+  {
+    "id": "B182",
+    "requirement": "BR-182",
+    "target": "CurrencyConversion",
+    "title": "Currency conversion preserves quote direction, positive rate, calculation time and rounded output evidence.",
+    "body": "$this cd:exchangeRate ?q; cd:sourceCurrency ?from; cd:targetCurrency ?to; cd:sourceAmount ?source; cd:unroundedTargetAmount ?raw; cd:targetAmount ?target; cd:amountRounding ?r; cd:convertedAt ?at. FILTER(!EXISTS {?q cd:baseCurrency ?from; cd:quoteCurrency ?to; cd:conversionRate ?rate; cd:quotedAt ?quoted. FILTER(?rate>0 && ?at>=?quoted && ?raw=?source*?rate)} || !EXISTS {?r cd:rawAmount ?raw; cd:roundedAmount ?target; cd:currency ?to})",
+    "journey": "J12",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B183",
+    "requirement": "BR-183",
+    "target": "RatingCalculation",
+    "title": "Rating totals sum every rated line in one declared currency.",
+    "body": "$this cd:currency ?cur; cd:netAmount ?net; cd:taxAmount ?tax; cd:grossAmount ?gross. {SELECT $this (SUM(?n) AS ?sn) (SUM(?t) AS ?st) (SUM(?g) AS ?sg) WHERE {$this cd:ratedLine ?line. ?line cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g} GROUP BY $this} FILTER(?net!=?sn || ?tax!=?st || ?gross!=?sg || EXISTS {$this cd:ratedLine/cd:currency ?other. FILTER(?other!=?cur)})",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B184",
+    "requirement": "BR-184",
+    "target": "RatedLine",
+    "title": "A rated line using rounding evidence agrees with its amount, currency and policy.",
+    "body": "$this cd:amountRounding ?r; cd:netAmount ?net; cd:currency ?cur; cd:roundingPolicy ?policy. FILTER NOT EXISTS {?r cd:roundedAmount ?net; cd:currency ?cur; cd:roundingPolicy ?policy}",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B185",
+    "requirement": "BR-185",
+    "target": "TaxDetermination",
+    "title": "Tax rule validity is assessed at the taxable supply time, including later corrections.",
+    "body": "$this cd:taxableAt ?at; cd:taxRule ?r. ?r cd:validFrom ?start. OPTIONAL {?r cd:validUntil ?end} FILTER(?at<?start || (BOUND(?end)&&?at>=?end))",
+    "journey": "J08",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B186",
+    "requirement": "BR-186",
+    "target": "PricingTimeResolution",
+    "title": "An offset-bearing price instant and its UTC interpretation identify the same instant.",
+    "body": "$this cd:sourceLocalTime ?local; cd:resolvedUtcTime ?utc. FILTER(?local!=?utc || !REGEX(STR(?local),\"(Z|[+-][0-9]{2}:[0-9]{2})$\") || !REGEX(STR(?utc),\"(Z|[+]00:00)$\"))",
+    "journey": "J08",
+    "phase": "operation",
+    "source": "PY-ZONEINFO"
+  },
+  {
+    "id": "B187",
+    "requirement": "BR-187",
+    "target": "SettlementLeg",
+    "title": "Posted settlement legs match their batch agreement and currency, balance amounts and name distinct liable and entitled parties.",
+    "body": "$this cd:legState cd:legState_Posted; cd:settlementBatch ?batch; cd:serviceAgreement ?agreement; cd:currency ?cur; cd:netAmount ?net; cd:taxAmount ?tax; cd:grossAmount ?gross; cd:liableParty ?liable; cd:entitledParty ?entitled. FILTER(?gross!=?net+?tax || ?liable=?entitled || !EXISTS {?batch cd:serviceAgreement ?agreement; cd:currency ?cur})",
+    "journey": "J12",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B188",
+    "requirement": "BR-188",
+    "target": "SettlementLeg",
+    "title": "A posted economic leg has one reference within its tenant and settlement batch.",
+    "body": "$this cd:legState cd:legState_Posted; cd:tenant ?tenant; cd:settlementBatch ?batch; cd:legReference ?key. ?other a cd:SettlementLeg; cd:legState cd:legState_Posted; cd:tenant ?tenant; cd:settlementBatch ?batch; cd:legReference ?key. FILTER(?other!=$this)",
+    "journey": "J12",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B189",
+    "requirement": "BR-189",
+    "target": "DataSubjectRequest",
+    "title": "Closing a rights request preserves fulfilment or refusal, identity checks where fulfilled, and a response with completion time.",
+    "body": "$this cd:requestState ?state; cd:requestOutcome ?outcome. FILTER(?state IN (cd:requestState_Fulfilled,cd:requestState_Refused,cd:requestState_Closed)) FILTER((?state=cd:requestState_Fulfilled && ?outcome!=cd:requestOutcome_Fulfilled) || (?state=cd:requestState_Refused && ?outcome!=cd:requestOutcome_Refused) || ?outcome=cd:requestOutcome_Pending || !EXISTS {$this cd:responseEvidence ?e; cd:completedAt ?at} || (?outcome=cd:requestOutcome_Fulfilled && !EXISTS {$this cd:identityVerified true}) || (?outcome=cd:requestOutcome_Refused && !EXISTS {$this cd:refusalReason ?reason}))",
+    "journey": "J16",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B190",
+    "requirement": "BR-190",
+    "target": "DataDisposition",
+    "title": "Deletion cannot omit an active hold on an explicitly disposed record.",
+    "body": "$this cd:dispositionState cd:dispositionState_Completed; cd:disposedRecord ?record. ?hold a cd:LegalHold; cd:heldRecord ?record; cd:holdState cd:holdState_Active.",
+    "journey": "J16",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B191",
+    "requirement": "BR-191",
+    "target": "ProcessStep",
+    "title": "A required business step cannot be skipped.",
+    "body": "$this cd:requiredStep true; cd:stepState cd:stepState_Skipped.",
+    "journey": "J20",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B192",
+    "requirement": "BR-192",
+    "target": "ProcessStep",
+    "title": "Predecessors belong to the same process, have lower sequence numbers and finish before a dependent step succeeds.",
+    "body": "{$this cd:previousStep+ $this} UNION {$this cd:previousStep ?prev; cd:stepSequence ?n; cd:stepState ?state. FILTER(!EXISTS {?process cd:processStep $this,?prev. ?prev cd:stepSequence ?p. FILTER(?p<?n)} || (?state=cd:stepState_Succeeded && !EXISTS {?prev cd:stepState ?s. FILTER(?s IN (cd:stepState_Succeeded,cd:stepState_Compensated,cd:stepState_Skipped))}))}",
+    "journey": "J20",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B193",
+    "requirement": "BR-193",
+    "target": "BillingReadinessAssessment",
+    "title": "Billing readiness considers actual unresolved blocking issues against the session.",
+    "body": "$this cd:readinessState cd:readinessState_Ready; cd:session ?session. ?issue a cd:Issue; cd:affectedRecord ?session; cd:billingBlocking true; cd:issueState ?state. FILTER(?state NOT IN (cd:issueState_Resolved,cd:issueState_Closed))",
+    "journey": "J07",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B194",
+    "requirement": "BR-194",
+    "target": "ServiceEntitlement",
+    "title": "An entitlement cannot outlive its finite funding agreement.",
+    "body": "$this cd:serviceAgreement/cd:validUntil ?limit. FILTER NOT EXISTS {$this cd:validUntil ?end. FILTER(?end<=?limit)}",
+    "journey": "J02",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B195",
+    "requirement": "BR-195",
+    "target": "AccountClosure",
+    "title": "Completed closure agrees with the account state, chronology and actual scoped access grants.",
+    "body": "$this cd:closureState cd:closureState_Completed; cd:customer ?account; cd:requestedAt ?requested; cd:completedAt ?completed. FILTER(?completed<?requested || !EXISTS {?account cd:accountState cd:accountState_Closed} || EXISTS {?grant a cd:AccessGrant; cd:scopeRecord ?account; cd:grantState cd:grantState_Active})",
+    "journey": "J02",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B196",
+    "requirement": "BR-196",
+    "target": "AssetLifecycleEvent",
+    "title": "Retirement or replacement cannot hide an unfinished session on the station.",
+    "body": "$this cd:assetAction ?action; cd:station ?station. FILTER(?action IN (cd:assetAction_Replace,cd:assetAction_Decommission,cd:assetAction_Dispose)) ?session a cd:ChargingSession; cd:chargingUnit/cd:station ?station; cd:sessionState ?state. FILTER(?state NOT IN (cd:sessionState_Completed,cd:sessionState_Failed))",
+    "journey": "J03",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B197",
+    "requirement": "BR-197",
+    "target": "OwnershipTransfer",
+    "title": "An ownership transfer identifies different previous and succeeding owners.",
+    "body": "$this cd:previousOwner ?owner; cd:nextOwner ?owner.",
+    "journey": "J03",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B198",
+    "requirement": "BR-198",
+    "target": "EventProcessingOutcome",
+    "title": "Applied and duplicate outcomes retain processing time no earlier than receipt.",
+    "body": "$this cd:processingState ?state; cd:sourceEvent/cd:receivedAt ?received. FILTER(?state IN (cd:processingState_Applied,cd:processingState_Duplicate)) FILTER NOT EXISTS {$this cd:processedAt ?processed. FILTER(?processed>=?received)}",
+    "journey": "J06",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B199",
+    "requirement": "BR-199",
+    "target": "CommercialOffer",
+    "title": "The disclosed price currency and optional display tariff agree with the commercial offer.",
+    "body": "$this cd:currency ?cur; cd:selectedTariff ?tariff; cd:priceDisplay ?display. FILTER(!EXISTS {?display cd:displayCurrency ?cur} || !EXISTS {?tariff cd:currency ?cur} || EXISTS {?display cd:selectedTariff ?other. FILTER(?other!=?tariff)})",
+    "journey": "J04",
+    "phase": "contracting",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B200",
+    "requirement": "BR-200",
+    "target": "Refund",
+    "title": "Refunds have positive amounts and confirmation requires an originally confirmed capture.",
+    "body": "$this cd:refundAmount ?amount; cd:refundState ?state; cd:paymentCapture ?capture. FILTER(?amount<=0 || (?state=cd:refundState_Confirmed && !EXISTS {?capture cd:captureState cd:captureState_Confirmed}))",
+    "journey": "J09",
+    "phase": "change",
+    "source": "PSP-REFUND"
+  },
+  {
+    "id": "B201",
+    "requirement": "BR-201",
+    "target": "Chargeback",
+    "title": "A chargeback disputes a positive amount no greater than its confirmed capture in the same currency.",
+    "body": "$this cd:disputedAmount ?amount; cd:currency ?cur; cd:paymentCapture ?capture. FILTER(?amount<=0 || !EXISTS {?capture cd:capturedAmount ?limit; cd:currency ?cur; cd:captureState cd:captureState_Confirmed. FILTER(?amount<=?limit)})",
+    "journey": "J11",
+    "phase": "operation",
+    "source": "PSP-DISPUTE"
+  },
+  {
+    "id": "B202",
+    "requirement": "BR-202",
+    "target": "Payout",
+    "title": "A confirmed payout is positive, pays the account holder and retains a confirmation no earlier than scheduling.",
+    "body": "$this cd:payoutState cd:payoutState_Confirmed; cd:payoutAmount ?amount; cd:beneficiary ?party; cd:financialAccount ?account; cd:scheduledAt ?scheduled. FILTER(?amount<=0 || !EXISTS {?account cd:accountHolder ?party} || !EXISTS {$this cd:confirmedAt ?at. FILTER(?at>=?scheduled)})",
+    "journey": "J13",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B203",
+    "requirement": "BR-203",
+    "target": "FlexibilityDelivery",
+    "title": "Flexibility delivery records signed actual-minus-baseline energy; reduction is negative.",
+    "body": "$this cd:actualEnergyKWh ?actual; cd:baselineEnergyKWh ?baseline; cd:deliveredAdjustmentKWh ?adjustment. FILTER(?adjustment!=?actual-?baseline)",
+    "journey": "J15",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B204",
+    "requirement": "BR-204",
+    "target": "PowerCabinet",
+    "title": "Simultaneous module allocations cannot exceed shared cabinet capacity; touching half-open intervals do not overlap.",
+    "body": "$this cd:totalCabinetPowerKW ?capacity. {SELECT $this ?probe (SUM(?power) AS ?total) WHERE {{SELECT DISTINCT $this ?probe WHERE {?edge a cd:PowerModuleAllocation; cd:powerCabinet $this; cd:interval/cd:startsAt ?probe}} ?allocation a cd:PowerModuleAllocation; cd:powerCabinet $this; cd:allocatedPowerKW ?power; cd:interval ?window. ?window cd:startsAt ?start; cd:endsAt ?end. FILTER(?start<=?probe && ?probe<?end)} GROUP BY $this ?probe} FILTER(?total>?capacity)",
+    "journey": "J15",
+    "phase": "onboarding",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B205",
+    "requirement": "BR-205",
+    "target": "ServiceLevelBreach",
+    "title": "Closed service-level breaches retain evidence of the accepted resolution.",
+    "body": "$this cd:breachState cd:breachState_Closed. FILTER NOT EXISTS {$this cd:closureEvidence ?e}",
+    "journey": "J18",
+    "phase": "termination",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B206",
+    "requirement": "BR-206",
+    "target": "SynchronizationCursor",
+    "title": "A synchronization watermark cannot be later than its successful synchronization time.",
+    "body": "$this cd:watermarkAt ?mark; cd:lastSuccessfulAt ?success. FILTER(?mark>?success)",
+    "journey": "J19",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B207",
+    "requirement": "BR-207",
+    "target": "CommercialResponsibility",
+    "title": "Commercial responsibility is bounded by its agreement while remaining usable for historical usage.",
+    "body": "$this cd:validFrom ?start; cd:serviceAgreement ?a. ?a cd:validFrom ?from. OPTIONAL {?a cd:validUntil ?until} FILTER(?start<?from || (BOUND(?until) && !EXISTS {$this cd:validUntil ?end. FILTER(?end<=?until)}))",
+    "journey": "J01",
+    "phase": "change",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B208",
+    "requirement": "BR-208",
+    "target": "ChargingSession",
+    "title": "Accepted session authorization precedes start and has not expired at start.",
+    "body": "$this cd:sessionState ?state; cd:startedAt ?start; cd:authorizationDecision ?decision. FILTER(?state IN (cd:sessionState_Active,cd:sessionState_Suspended,cd:sessionState_Completed)) ?decision cd:decidedAt ?at. OPTIONAL {?decision cd:expiresAt ?expires} FILTER(?at>?start || (BOUND(?expires)&&?start>=?expires))",
+    "journey": "J05",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B209",
+    "requirement": "BR-209",
+    "target": "PaymentIntent",
+    "title": "Payment state agrees with confirmed capture totals, including partial and fully refunded outcomes.",
+    "body": "$this cd:paymentState ?state; cd:requestedAmount ?requested. {SELECT $this (SUM(?amount) AS ?captured) WHERE {OPTIONAL {?c a cd:PaymentCapture; cd:paymentIntent $this; cd:captureState cd:captureState_Confirmed; cd:capturedAmount ?amount}} GROUP BY $this} {SELECT $this (SUM(?refund) AS ?refunded) WHERE {OPTIONAL {?c a cd:PaymentCapture; cd:paymentIntent $this; cd:captureState cd:captureState_Confirmed. ?r a cd:Refund; cd:paymentCapture ?c; cd:refundState cd:refundState_Confirmed; cd:refundAmount ?refund}} GROUP BY $this} BIND(COALESCE(?captured,0) AS ?total) FILTER((?state IN (cd:paymentState_Created,cd:paymentState_Authorized,cd:paymentState_Failed,cd:paymentState_Cancelled) && ?total!=0) || (?state=cd:paymentState_Captured && (?total<=0 || ?total!=?requested)) || (?state=cd:paymentState_PartiallyCaptured && (?total<=0 || ?total>=?requested)) || (?state=cd:paymentState_Refunded && (?total<=0 || COALESCE(?refunded,0)!=?total)))",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B210",
+    "requirement": "BR-210",
+    "target": "PaymentCapture",
+    "title": "Confirmed capture records represent a positive collected amount.",
+    "body": "$this cd:captureState cd:captureState_Confirmed; cd:capturedAmount ?amount. FILTER(?amount<=0)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B211",
+    "requirement": "BR-211",
+    "target": "Refund",
+    "title": "Refund requests do not precede the original capture.",
+    "body": "$this cd:requestedAt ?requested; cd:paymentCapture/cd:capturedAt ?captured. FILTER(?requested<?captured)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B212",
+    "requirement": "BR-212",
+    "target": "Invoice",
+    "title": "Paid invoice status is backed by a settled same-currency position with collections and credits covering its gross amount.",
+    "body": "$this cd:invoiceState cd:invoiceState_Paid; cd:currency ?cur; cd:grossAmount ?gross. FILTER NOT EXISTS {?p a cd:FinancialPosition; cd:sourceRecord $this; cd:currency ?cur; cd:positionState cd:positionState_Settled; cd:outstandingAmount ?outstanding; cd:originalAmount ?original; cd:collectedAmount ?collected; cd:creditedAmount ?credited; cd:writtenOffAmount ?written. FILTER(?outstanding=0 && ?original=?gross && ?collected+?credited=?gross && ?written=0)}",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B213",
+    "requirement": "BR-213",
+    "target": "PaymentAllocation",
+    "title": "An invoice-specific collection cannot be allocated to a different source obligation.",
+    "body": "$this cd:allocationState cd:allocationState_Posted; cd:paymentCapture/cd:paymentIntent/cd:invoice ?invoice; cd:financialPosition/cd:sourceRecord ?source. FILTER(?invoice!=?source)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B214",
+    "requirement": "BR-214",
+    "target": "CreditNote",
+    "title": "An invoice credit is a positive reduction; negative credits cannot offset cumulative credit limits.",
+    "body": "$this cd:creditAmount ?amount. FILTER(?amount<=0)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B215",
+    "requirement": "BR-215",
+    "target": "PaymentCapture",
+    "title": "Posted allocations cannot retain money already returned by confirmed refunds.",
+    "body": "$this cd:capturedAmount ?captured. {SELECT $this (SUM(?v) AS ?allocated) WHERE {OPTIONAL {?a a cd:PaymentAllocation; cd:paymentCapture $this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v}} GROUP BY $this} {SELECT $this (SUM(?v) AS ?refunded) WHERE {OPTIONAL {?r a cd:Refund; cd:paymentCapture $this; cd:refundState cd:refundState_Confirmed; cd:refundAmount ?v}} GROUP BY $this} FILTER(COALESCE(?allocated,0)+COALESCE(?refunded,0)>?captured)",
+    "journey": "J09",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B216",
+    "requirement": "BR-216",
+    "target": "Subscription",
+    "title": "Cancelled subscriptions retain cancellation evidence time and disable renewal; ended periods have positive duration.",
+    "body": "{$this cd:startsAt ?start; cd:endsAt ?end. FILTER(?end<=?start)} UNION {$this cd:subscriptionState cd:subscriptionState_Cancelled. FILTER(!EXISTS {$this cd:cancelledAt ?at} || !EXISTS {$this cd:renewAutomatically false})}",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B217",
+    "requirement": "BR-217",
+    "target": "BillingPeriod",
+    "title": "A billed subscription period retains a non-draft, non-void invoice in its currency.",
+    "body": "$this cd:billingPeriodState cd:billingPeriodState_Billed; cd:currency ?cur. FILTER NOT EXISTS {$this cd:invoice ?invoice. ?invoice cd:currency ?cur; cd:invoiceState ?state. FILTER(?state NOT IN (cd:invoiceState_Draft,cd:invoiceState_Voided))}",
+    "journey": "J14",
+    "phase": "operation",
+    "source": "CW-POLICY"
+  },
+  {
+    "id": "B218",
+    "requirement": "BR-218",
+    "target": "SettlementApproval",
+    "title": "Settlement approval cannot conceal unresolved reconciliation cases directly against the batch or its items.",
+    "body": "$this cd:approvalState cd:approvalState_Approved; cd:settlementBatch ?batch. ?case a cd:ReconciliationCase; cd:caseState ?state. FILTER(?state!=cd:caseState_Resolved) {?case cd:expectedRecord ?record} UNION {?case cd:observedRecord ?record} FILTER(?record=?batch || EXISTS {?batch cd:settlementItem ?record})",
+    "journey": "J12",
     "phase": "operation",
     "source": "CW-POLICY"
   }

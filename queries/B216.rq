@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:Subscription . {?this cd:startsAt ?start; cd:endsAt ?end. FILTER(?end<=?start)} UNION {?this cd:subscriptionState cd:subscriptionState_Cancelled. FILTER(!EXISTS {?this cd:cancelledAt ?at} || !EXISTS {?this cd:renewAutomatically false})} }

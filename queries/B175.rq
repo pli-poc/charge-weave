@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:FinancialPosition . {?this cd:collectionBasis cd:collectionBasis_Uncollected; cd:collectedAmount ?v. FILTER(?v!=0 || EXISTS {?a a cd:PaymentAllocation; cd:financialPosition ?this; cd:allocationState cd:allocationState_Posted})} UNION {?this cd:collectionBasis cd:collectionBasis_ExternalEvidence. FILTER NOT EXISTS {?this cd:collectionEvidence ?e}} UNION {?this cd:collectionBasis cd:collectionBasis_PaymentAllocations; cd:collectedAmount ?v. {SELECT ?this (SUM(?amount) AS ?total) WHERE {OPTIONAL {?a a cd:PaymentAllocation; cd:financialPosition ?this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?amount}} GROUP BY ?this} FILTER(?v!=COALESCE(?total,0))} }

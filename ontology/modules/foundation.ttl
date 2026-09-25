@@ -9,7 +9,7 @@ cd:Address a owl:Class ;
     rdfs:comment "Structured postal address; optional fields accommodate national differences."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:postalCode ],
+            owl:onProperty cd:countryCode ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:regionCode ],
@@ -21,7 +21,7 @@ cd:Address a owl:Class ;
             owl:onProperty cd:streetAddress ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:countryCode ],
+            owl:onProperty cd:postalCode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
@@ -33,14 +33,14 @@ cd:ExchangeRate a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:conversionRate ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:quotedAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:quoteCurrency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:rateProvider ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:quotedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:baseCurrency ],
@@ -53,10 +53,10 @@ cd:GeoPosition a owl:Class ;
     rdfs:comment "Geodetic position in WGS84 decimal degrees."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:altitudeMetres ],
+            owl:onProperty cd:latitude ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:latitude ],
+            owl:onProperty cd:altitudeMetres ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:longitude ],
@@ -68,11 +68,11 @@ cd:Quantity a owl:Class ;
     rdfs:label "Quantity"@en ;
     rdfs:comment "Numerical quantity with explicit unit and physical dimension."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:quantityKind ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:numericValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:quantityKind ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
@@ -81,23 +81,23 @@ cd:RecurringWindow a owl:Class ;
     rdfs:label "Recurring Window"@en ;
     rdfs:comment "Local recurring opening or pricing window with explicit timezone and overnight semantics."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:weekday ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:localStart ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:timezoneName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:spansMidnight ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:weekday ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:localEnd ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:exceptionWindow ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:timezoneName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
@@ -106,17 +106,17 @@ cd:Annotation a owl:Class ;
     rdfs:label "Annotation"@en ;
     rdfs:comment "Authored note attached to a domain record; stored independently from controlled classifications."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:noteText ],
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:author ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:notedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:author ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:VisibilityCode ;
             owl:onProperty cd:visibility ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:noteText ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
@@ -154,17 +154,17 @@ cd:EvidenceDocument a owl:Class ;
     rdfs:label "Evidence Document"@en ;
     rdfs:comment "Retained evidence described by content digest and storage reference, without embedding credentials."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:capturedAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:RetentionPolicy ;
             owl:onProperty cd:retentionPolicy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:mediaType ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:storageReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:capturedAt ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:mediaType ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:contentDigest ],
@@ -176,11 +176,11 @@ cd:ExternalIdentifier a owl:Class ;
     rdfs:label "External Identifier"@en ;
     rdfs:comment "Identifier qualified by scheme, assigning authority and validity; equality does not imply entity equivalence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:identifierScheme ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:assigningAuthority ],
@@ -188,8 +188,8 @@ cd:ExternalIdentifier a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:identifierValue ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:identifierScheme ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
@@ -224,10 +224,10 @@ cd:Tenant a owl:Class ;
     rdfs:comment "Administrative data-isolation boundary, independent of legal entities and brands."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:tenantName ],
+            owl:onProperty cd:tenantKey ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:tenantKey ] ;
+            owl:onProperty cd:tenantName ] ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .
 
@@ -261,9 +261,6 @@ cd:Record a owl:Class ;
     rdfs:label "Record"@en ;
     rdfs:comment "Identifiable tenant-owned domain record with explicit provenance and version metadata."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:label ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
@@ -273,20 +270,23 @@ cd:Record a owl:Class ;
             owl:allValuesFrom cd:ExternalIdentifier ;
             owl:onProperty cd:externalIdentifier ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:createdAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Annotation ;
-            owl:onProperty cd:annotation ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:revision ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:canonicalId ],
         [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:createdAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Tenant ;
-            owl:onProperty cd:tenant ] ;
+            owl:onProperty cd:tenant ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Annotation ;
+            owl:onProperty cd:annotation ] ;
     cd:abstract true ;
     cd:definitionStatus "Defined" ;
     cd:module "foundation" .

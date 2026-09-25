@@ -4,7 +4,7 @@
 
 A modular business ontology for charging management: CPO and eMSP services, public and ad hoc charging, fleet/workplace and home charging, roaming, payments, settlement, energy control and governance.
 
-Version **1.1.1** includes **277 classes in 18 modules, 1,165 properties, 206 controlled code schemes and 172 SHACL-SPARQL business rules**. The independent business review defines **91 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
+Version **1.2.0** contains **285 classes in 18 modules, 1,216 properties, 213 controlled code schemes and 218 SHACL-SPARQL business rules**. Its declared semantic completion baseline reviews **137 requirements, 28 actor roles and 20 journeys**, with a field-level review for every concept. All business rules have valid and invalid focused evidence: **438 acceptance decisions**, plus **65 new complete interaction scenarios**, the original 26 journey graphs and 14 earlier adversarial cases. Independent decimal and timezone oracles add 1,023 checks. Read the [completion review](docs/completion-review.md) and [migration guide](docs/migration-to-v1.2.md).
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 
@@ -12,6 +12,8 @@ Each journey covers contracting, onboarding, operation, change, suspension and t
 
 | Purpose | File |
 |---|---|
+| Current checkpoint and next review stage | [Work status](WORK_STATUS.md) |
+| Current completion criteria and evidence | [Completion review](docs/completion-review.md) |
 | Audit scope, findings and limitations | [Business-domain audit](docs/business-domain-audit.md) |
 | Requirement-to-validation traceability | [Business requirements](docs/business-requirements.md) |
 | Actors, journeys and lifecycles | [Actor journeys](docs/actor-journeys.md) |
@@ -40,9 +42,9 @@ To validate a complete authorized business snapshot:
 python tools/validate.py /absolute/path/to/tenant-snapshot.ttl
 ```
 
-Exit status 0 means conforming and 1 means rejected. Validation includes structural contracts, controlled vocabularies, business invariants and declared lifecycle policies. Full verification takes several minutes. `make verify` runs every gate; GitHub Actions runs the gates in parallel and packages only after all pass, retaining fresh reports and commit/hash provenance.
+Exit status 0 means conforming and 1 means rejected. Validation includes structural contracts, controlled vocabularies, business invariants, declared lifecycle policies and the pinned IANA timezone check. Exported SHACL alone does not perform the additional timezone-database validation. Full verification takes several minutes. `make verify` runs every gate; GitHub Actions runs the gates in parallel and packages only after all pass, retaining fresh reports and commit/hash provenance.
 
-The build uses committed sources and does not fetch moving documentation. It never manufactures passing test reports. The 26 full-graph journey snapshots and all other fixtures are synthetic; they execute semantic validation, not chargers, payment services or legal processes.
+The build uses committed sources and does not fetch moving documentation. It never manufactures passing test reports. All complete journey/interaction graphs and other fixtures are synthetic; they execute semantic validation, not chargers, payment services or legal processes.
 
 ## Scope and provenance
 

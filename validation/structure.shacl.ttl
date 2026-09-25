@@ -8,7 +8,9 @@ cd:AccessDecisionShape a sh:NodeShape ;
     sh:nodeKind sh:IRI ;
     sh:property cd:AccessDecision_accessDecisionShape,
         cd:AccessDecision_accessGrantShape,
+        cd:AccessDecision_authorizationSnapshotShape,
         cd:AccessDecision_decidedAtShape,
+        cd:AccessDecision_decisionContextShape,
         cd:AccessDecision_decisionEvidenceShape,
         cd:AccessDecision_granteeShape,
         cd:AccessDecision_permissionShape,
@@ -53,6 +55,17 @@ cd:AccountClosureShape a sh:NodeShape ;
         cd:AccountClosure_revokedGrantCountShape ;
     sh:targetClass cd:AccountClosure .
 
+cd:AccountingPeriodShape a sh:NodeShape ;
+    sh:description "Named accounting interval with explicit closing time and evidence; later corrections are posted to a distinct open period." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AccountingPeriod_closedAtShape,
+        cd:AccountingPeriod_closingEvidenceShape,
+        cd:AccountingPeriod_financialOwnerShape,
+        cd:AccountingPeriod_periodReferenceShape,
+        cd:AccountingPeriod_periodShape,
+        cd:AccountingPeriod_periodStateShape ;
+    sh:targetClass cd:AccountingPeriod .
+
 cd:ActionApprovalShape a sh:NodeShape ;
     sh:description "Human approval or rejection of an assistant-proposed operation; never implied by a suggestion." ;
     sh:nodeKind sh:IRI ;
@@ -90,6 +103,7 @@ cd:AllowanceBalanceShape a sh:NodeShape ;
     sh:description "Per-customer, per-period allowance accounting with explicit opening rollover, grant, consumed usage, active reservations, expiry and remaining value." ;
     sh:nodeKind sh:IRI ;
     sh:property cd:AllowanceBalance_allowanceShape,
+        cd:AllowanceBalance_allowanceSponsorshipShape,
         cd:AllowanceBalance_billingPeriodShape,
         cd:AllowanceBalance_closingValueShape,
         cd:AllowanceBalance_consumedValueShape,
@@ -112,6 +126,27 @@ cd:AllowanceConsumptionShape a sh:NodeShape ;
         cd:AllowanceConsumption_recordedAtShape,
         cd:AllowanceConsumption_sessionShape ;
     sh:targetClass cd:AllowanceConsumption .
+
+cd:AllowanceSponsorshipShape a sh:NodeShape ;
+    sh:description "Explicit authorization for a named beneficiary to consume another account's balance within a contract and validity interval." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AllowanceSponsorship_beneficiaryCustomerShape,
+        cd:AllowanceSponsorship_scopeRecordShape,
+        cd:AllowanceSponsorship_serviceAgreementShape,
+        cd:AllowanceSponsorship_sponsoringCustomerShape,
+        cd:AllowanceSponsorship_sponsorshipEvidenceShape,
+        cd:AllowanceSponsorship_validFromShape,
+        cd:AllowanceSponsorship_validUntilShape ;
+    sh:targetClass cd:AllowanceSponsorship .
+
+cd:AmountRoundingShape a sh:NodeShape ;
+    sh:description "Reproducible decimal monetary rounding using an explicit mode, scale and retained raw amount; supports signed corrections." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AmountRounding_currencyShape,
+        cd:AmountRounding_rawAmountShape,
+        cd:AmountRounding_roundedAmountShape,
+        cd:AmountRounding_roundingPolicyShape ;
+    sh:targetClass cd:AmountRounding .
 
 cd:AnnotationShape a sh:NodeShape ;
     sh:description "Authored note attached to a domain record; stored independently from controlled classifications." ;
@@ -203,6 +238,21 @@ cd:AuthorizationRequestShape a sh:NodeShape ;
         cd:AuthorizationRequest_requestedAtShape,
         cd:AuthorizationRequest_sourceEventShape ;
     sh:targetClass cd:AuthorizationRequest .
+
+cd:AuthorizationSnapshotShape a sh:NodeShape ;
+    sh:description "Immutable evidence of principal status and exact grant, permission and scope as assessed at a historical access decision; current revocation does not rewrite this evidence." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AuthorizationSnapshot_capturedAtShape,
+        cd:AuthorizationSnapshot_grantActiveShape,
+        cd:AuthorizationSnapshot_granteeShape,
+        cd:AuthorizationSnapshot_permissionShape,
+        cd:AuthorizationSnapshot_principalEnabledShape,
+        cd:AuthorizationSnapshot_scopeRecordShape,
+        cd:AuthorizationSnapshot_snapshotEvidenceShape,
+        cd:AuthorizationSnapshot_sourceGrantShape,
+        cd:AuthorizationSnapshot_validFromShape,
+        cd:AuthorizationSnapshot_validUntilShape ;
+    sh:targetClass cd:AuthorizationSnapshot .
 
 cd:AvailabilityPolicyShape a sh:NodeShape ;
     sh:description "Versioned definition of downtime inclusion, exclusions and freshness." ;
@@ -360,6 +410,7 @@ cd:ChargeDetailRecordShape a sh:NodeShape ;
     sh:nodeKind sh:IRI ;
     sh:property cd:ChargeDetailRecord_artifactShape,
         cd:ChargeDetailRecord_billingReadinessShape,
+        cd:ChargeDetailRecord_commercialResponsibilityShape,
         cd:ChargeDetailRecord_correctionOfShape,
         cd:ChargeDetailRecord_currencyShape,
         cd:ChargeDetailRecord_exportedEnergyKWhShape,
@@ -847,6 +898,20 @@ cd:CreditNoteShape a sh:NodeShape ;
         cd:CreditNote_originalInvoiceShape ;
     sh:targetClass cd:CreditNote .
 
+cd:CurrencyConversionShape a sh:NodeShape ;
+    sh:description "Directional conversion calculation with source amount, retained exchange quote and explicitly rounded target amount." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:CurrencyConversion_amountRoundingShape,
+        cd:CurrencyConversion_conversionEvidenceShape,
+        cd:CurrencyConversion_convertedAtShape,
+        cd:CurrencyConversion_exchangeRateShape,
+        cd:CurrencyConversion_sourceAmountShape,
+        cd:CurrencyConversion_sourceCurrencyShape,
+        cd:CurrencyConversion_targetAmountShape,
+        cd:CurrencyConversion_targetCurrencyShape,
+        cd:CurrencyConversion_unroundedTargetAmountShape ;
+    sh:targetClass cd:CurrencyConversion .
+
 cd:CurrencyShape a sh:NodeShape ;
     sh:description "Tenant-enabled monetary currency with ISO code and minor-unit precision." ;
     sh:nodeKind sh:IRI ;
@@ -921,6 +986,7 @@ cd:DataDispositionShape a sh:NodeShape ;
     sh:description "Evidence of a requested or completed deletion/anonymization action." ;
     sh:nodeKind sh:IRI ;
     sh:property cd:DataDisposition_completedAtShape,
+        cd:DataDisposition_disposedRecordShape,
         cd:DataDisposition_dispositionEvidenceShape,
         cd:DataDisposition_dispositionStateShape,
         cd:DataDisposition_legalHoldShape,
@@ -938,6 +1004,7 @@ cd:DataSubjectRequestShape a sh:NodeShape ;
         cd:DataSubjectRequest_receivedAtShape,
         cd:DataSubjectRequest_refusalReasonShape,
         cd:DataSubjectRequest_requestKindShape,
+        cd:DataSubjectRequest_requestOutcomeShape,
         cd:DataSubjectRequest_requestStateShape,
         cd:DataSubjectRequest_responseDueAtShape,
         cd:DataSubjectRequest_responseEvidenceShape,
@@ -1292,6 +1359,8 @@ cd:FinancialPositionShape a sh:NodeShape ;
     sh:description "Currency-specific receivable or payable preserving original amount, credits, collections, write-offs and remaining liability." ;
     sh:nodeKind sh:IRI ;
     sh:property cd:FinancialPosition_collectedAmountShape,
+        cd:FinancialPosition_collectionBasisShape,
+        cd:FinancialPosition_collectionEvidenceShape,
         cd:FinancialPosition_creditedAmountShape,
         cd:FinancialPosition_creditorShape,
         cd:FinancialPosition_currencyShape,
@@ -1301,6 +1370,7 @@ cd:FinancialPositionShape a sh:NodeShape ;
         cd:FinancialPosition_outstandingAmountShape,
         cd:FinancialPosition_positionStateShape,
         cd:FinancialPosition_sourceRecordShape,
+        cd:FinancialPosition_writeOffEvidenceShape,
         cd:FinancialPosition_writtenOffAmountShape ;
     sh:targetClass cd:FinancialPosition .
 
@@ -1490,6 +1560,7 @@ cd:IssueShape a sh:NodeShape ;
     sh:description "Operational problem with affected assets, chronology, severity and resolution evidence." ;
     sh:nodeKind sh:IRI ;
     sh:property cd:Issue_affectedRecordShape,
+        cd:Issue_billingBlockingShape,
         cd:Issue_issueKindShape,
         cd:Issue_issueStateShape,
         cd:Issue_openedAtShape,
@@ -1511,7 +1582,8 @@ cd:JournalLineShape a sh:NodeShape ;
 cd:JournalShape a sh:NodeShape ;
     sh:description "Balanced accounting posting group; posted entries are immutable." ;
     sh:nodeKind sh:IRI ;
-    sh:property cd:Journal_journalLineShape,
+    sh:property cd:Journal_accountingPeriodShape,
+        cd:Journal_journalLineShape,
         cd:Journal_journalStateShape,
         cd:Journal_postedAtShape,
         cd:Journal_postingReferenceShape,
@@ -1934,6 +2006,24 @@ cd:PayoutShape a sh:NodeShape ;
         cd:Payout_settlementBatchShape ;
     sh:targetClass cd:Payout .
 
+cd:PeriodAdjustmentShape a sh:NodeShape ;
+    sh:description "Approved correction posted after an original accounting period closes, retaining original commercial responsibility at the effective usage time." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:PeriodAdjustment_adjustmentAmountShape,
+        cd:PeriodAdjustment_adjustmentEvidenceShape,
+        cd:PeriodAdjustment_adjustmentStateShape,
+        cd:PeriodAdjustment_approvedByShape,
+        cd:PeriodAdjustment_commercialResponsibilityShape,
+        cd:PeriodAdjustment_correctingRecordShape,
+        cd:PeriodAdjustment_correctionShape,
+        cd:PeriodAdjustment_currencyShape,
+        cd:PeriodAdjustment_effectiveUsageAtShape,
+        cd:PeriodAdjustment_originalPeriodShape,
+        cd:PeriodAdjustment_postedAtShape,
+        cd:PeriodAdjustment_postingPeriodShape,
+        cd:PeriodAdjustment_sourceRecordShape ;
+    sh:targetClass cd:PeriodAdjustment .
+
 cd:PermissionShape a sh:NodeShape ;
     sh:description "Named action permission for a class or bounded resource scope." ;
     sh:nodeKind sh:IRI ;
@@ -2046,6 +2136,7 @@ cd:PriceComponentShape a sh:NodeShape ;
         cd:PriceComponent_priceFreezePolicyShape,
         cd:PriceComponent_priceTierShape,
         cd:PriceComponent_pricingConditionShape,
+        cd:PriceComponent_pricingTimeResolutionShape,
         cd:PriceComponent_taxRuleShape,
         cd:PriceComponent_unitIriShape,
         cd:PriceComponent_unitPriceShape ;
@@ -2058,7 +2149,8 @@ cd:PriceDisplayShape a sh:NodeShape ;
         cd:PriceDisplay_displayCurrencyShape,
         cd:PriceDisplay_displayTextShape,
         cd:PriceDisplay_effectiveAtShape,
-        cd:PriceDisplay_includesTaxShape ;
+        cd:PriceDisplay_includesTaxShape,
+        cd:PriceDisplay_selectedTariffShape ;
     sh:targetClass cd:PriceDisplay .
 
 cd:PriceFreezePolicyShape a sh:NodeShape ;
@@ -2091,6 +2183,16 @@ cd:PricingConditionShape a sh:NodeShape ;
         cd:PricingCondition_relatedRecordShape,
         cd:PricingCondition_unitIriShape ;
     sh:targetClass cd:PricingCondition .
+
+cd:PricingTimeResolutionShape a sh:NodeShape ;
+    sh:description "UTC interpretation of an offset-bearing local price instant using an IANA zone, explicit repeated-hour policy and retained source evidence." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:PricingTimeResolution_repeatedHourPolicyShape,
+        cd:PricingTimeResolution_resolvedUtcTimeShape,
+        cd:PricingTimeResolution_sourceLocalTimeShape,
+        cd:PricingTimeResolution_timeResolutionEvidenceShape,
+        cd:PricingTimeResolution_timezoneNameShape ;
+    sh:targetClass cd:PricingTimeResolution .
 
 cd:PrincipalShape a sh:NodeShape ;
     sh:description "Human or machine security subject linked to an identity provider by opaque reference." ;
@@ -2134,6 +2236,7 @@ cd:ProcessStepShape a sh:NodeShape ;
         cd:ProcessStep_inputRecordShape,
         cd:ProcessStep_outputRecordShape,
         cd:ProcessStep_previousStepShape,
+        cd:ProcessStep_requiredStepShape,
         cd:ProcessStep_responsiblePartyShape,
         cd:ProcessStep_stepEvidenceShape,
         cd:ProcessStep_stepKindShape,
@@ -2242,7 +2345,8 @@ cd:QuantityShape a sh:NodeShape ;
 cd:RatedLineShape a sh:NodeShape ;
     sh:description "Priced usage or fee component with quantity, rounding and tax evidence." ;
     sh:nodeKind sh:IRI ;
-    sh:property cd:RatedLine_chargingIntervalShape,
+    sh:property cd:RatedLine_amountRoundingShape,
+        cd:RatedLine_chargingIntervalShape,
         cd:RatedLine_currencyShape,
         cd:RatedLine_grossAmountShape,
         cd:RatedLine_netAmountShape,
@@ -2719,6 +2823,7 @@ cd:ServiceLevelBreachShape a sh:NodeShape ;
     sh:property cd:ServiceLevelBreach_availabilityResultShape,
         cd:ServiceLevelBreach_breachEvidenceShape,
         cd:ServiceLevelBreach_breachStateShape,
+        cd:ServiceLevelBreach_closureEvidenceShape,
         cd:ServiceLevelBreach_detectedAtShape,
         cd:ServiceLevelBreach_remedyRecordShape,
         cd:ServiceLevelBreach_serviceLevelCommitmentShape,
@@ -2829,6 +2934,23 @@ cd:SettlementItemShape a sh:NodeShape ;
         cd:SettlementItem_serviceAgreementShape,
         cd:SettlementItem_taxAmountShape ;
     sh:targetClass cd:SettlementItem .
+
+cd:SettlementLegShape a sh:NodeShape ;
+    sh:description "A separately identified economic leg in a multi-party settlement, retaining liable and entitled parties, contract, currency and original usage evidence." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:SettlementLeg_chargeRecordShape,
+        cd:SettlementLeg_currencyShape,
+        cd:SettlementLeg_entitledPartyShape,
+        cd:SettlementLeg_grossAmountShape,
+        cd:SettlementLeg_legEvidenceShape,
+        cd:SettlementLeg_legReferenceShape,
+        cd:SettlementLeg_legStateShape,
+        cd:SettlementLeg_liablePartyShape,
+        cd:SettlementLeg_netAmountShape,
+        cd:SettlementLeg_serviceAgreementShape,
+        cd:SettlementLeg_settlementBatchShape,
+        cd:SettlementLeg_taxAmountShape ;
+    sh:targetClass cd:SettlementLeg .
 
 cd:SettlementOverrideShape a sh:NodeShape ;
     sh:description "Time-scoped exception to a contract settlement rule with authorization evidence." ;
@@ -3063,7 +3185,8 @@ cd:TaxDeterminationShape a sh:NodeShape ;
         cd:TaxDetermination_supplierShape,
         cd:TaxDetermination_taxAmountShape,
         cd:TaxDetermination_taxBasisAmountShape,
-        cd:TaxDetermination_taxRuleShape ;
+        cd:TaxDetermination_taxRuleShape,
+        cd:TaxDetermination_taxableAtShape ;
     sh:targetClass cd:TaxDetermination .
 
 cd:TaxIdentifierShape a sh:NodeShape ;
@@ -3236,8 +3359,10 @@ cd:WalletShape a sh:NodeShape ;
     sh:nodeKind sh:IRI ;
     sh:property cd:Wallet_balanceAmountShape,
         cd:Wallet_balanceAsOfShape,
+        cd:Wallet_balanceFromShape,
         cd:Wallet_currencyShape,
         cd:Wallet_customerShape,
+        cd:Wallet_openingBalanceShape,
         cd:Wallet_walletStateShape ;
     sh:targetClass cd:Wallet .
 
@@ -3272,6 +3397,14 @@ cd:AccessDecision_accessGrantShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:accessGrant .
 
+cd:AccessDecision_authorizationSnapshotShape a sh:PropertyShape ;
+    sh:class cd:AuthorizationSnapshot ;
+    sh:maxCount 1 ;
+    sh:message "AccessDecision.authorizationSnapshot violates its domain contract." ;
+    sh:name "authorization Snapshot" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:authorizationSnapshot .
+
 cd:AccessDecision_decidedAtShape a sh:PropertyShape ;
     sh:datatype xsd:dateTime ;
     sh:maxCount 1 ;
@@ -3280,6 +3413,16 @@ cd:AccessDecision_decidedAtShape a sh:PropertyShape ;
     sh:name "decided At" ;
     sh:path cd:decidedAt ;
     sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AccessDecision_decisionContextShape a sh:PropertyShape ;
+    sh:class cd:DecisionContextCode ;
+    sh:in ( cd:decisionContext_Current cd:decisionContext_Historical ) ;
+    sh:maxCount 1 ;
+    sh:message "AccessDecision.decisionContext violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "decision Context" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:decisionContext .
 
 cd:AccessDecision_decisionEvidenceShape a sh:PropertyShape ;
     sh:class cd:EvidenceDocument ;
@@ -3519,6 +3662,59 @@ cd:AccountClosure_revokedGrantCountShape a sh:PropertyShape ;
     sh:name "revoked Grant Count" ;
     sh:path cd:revokedGrantCount .
 
+cd:AccountingPeriod_closedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.closedAt violates its domain contract." ;
+    sh:name "closed At" ;
+    sh:path cd:closedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AccountingPeriod_closingEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.closingEvidence violates its domain contract." ;
+    sh:name "closing Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:closingEvidence .
+
+cd:AccountingPeriod_financialOwnerShape a sh:PropertyShape ;
+    sh:class cd:LegalEntity ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.financialOwner violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "financial Owner" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:financialOwner .
+
+cd:AccountingPeriod_periodReferenceShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.periodReference violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "period Reference" ;
+    sh:path cd:periodReference .
+
+cd:AccountingPeriod_periodShape a sh:PropertyShape ;
+    sh:class cd:TimeWindow ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.period violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "period" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:period .
+
+cd:AccountingPeriod_periodStateShape a sh:PropertyShape ;
+    sh:class cd:PeriodStateCode ;
+    sh:in ( cd:periodState_Open cd:periodState_Closed ) ;
+    sh:maxCount 1 ;
+    sh:message "AccountingPeriod.periodState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "period State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:periodState .
+
 cd:ActionApproval_approvalDecisionShape a sh:PropertyShape ;
     sh:class cd:ApprovalDecisionCode ;
     sh:in ( cd:approvalDecision_Approved cd:approvalDecision_Rejected ) ;
@@ -3685,6 +3881,14 @@ cd:AllowanceBalance_allowanceShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:allowance .
 
+cd:AllowanceBalance_allowanceSponsorshipShape a sh:PropertyShape ;
+    sh:class cd:AllowanceSponsorship ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceBalance.allowanceSponsorship violates its domain contract." ;
+    sh:name "allowance Sponsorship" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:allowanceSponsorship .
+
 cd:AllowanceBalance_billingPeriodShape a sh:PropertyShape ;
     sh:class cd:BillingPeriod ;
     sh:maxCount 1 ;
@@ -3821,6 +4025,103 @@ cd:AllowanceConsumption_sessionShape a sh:PropertyShape ;
     sh:name "session" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:session .
+
+cd:AllowanceSponsorship_beneficiaryCustomerShape a sh:PropertyShape ;
+    sh:class cd:CustomerAccount ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.beneficiaryCustomer violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "beneficiary Customer" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:beneficiaryCustomer .
+
+cd:AllowanceSponsorship_scopeRecordShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.scopeRecord violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "scope Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:scopeRecord .
+
+cd:AllowanceSponsorship_serviceAgreementShape a sh:PropertyShape ;
+    sh:class cd:ServiceAgreement ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.serviceAgreement violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "service Agreement" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:serviceAgreement .
+
+cd:AllowanceSponsorship_sponsoringCustomerShape a sh:PropertyShape ;
+    sh:class cd:CustomerAccount ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.sponsoringCustomer violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "sponsoring Customer" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sponsoringCustomer .
+
+cd:AllowanceSponsorship_sponsorshipEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.sponsorshipEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "sponsorship Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sponsorshipEvidence .
+
+cd:AllowanceSponsorship_validFromShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.validFrom violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid From" ;
+    sh:path cd:validFrom ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AllowanceSponsorship_validUntilShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AllowanceSponsorship.validUntil violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid Until" ;
+    sh:path cd:validUntil ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AmountRounding_currencyShape a sh:PropertyShape ;
+    sh:class cd:Currency ;
+    sh:maxCount 1 ;
+    sh:message "AmountRounding.currency violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "currency" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:currency .
+
+cd:AmountRounding_rawAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AmountRounding.rawAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "raw Amount" ;
+    sh:path cd:rawAmount .
+
+cd:AmountRounding_roundedAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AmountRounding.roundedAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "rounded Amount" ;
+    sh:path cd:roundedAmount .
+
+cd:AmountRounding_roundingPolicyShape a sh:PropertyShape ;
+    sh:class cd:RoundingPolicy ;
+    sh:maxCount 1 ;
+    sh:message "AmountRounding.roundingPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "rounding Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:roundingPolicy .
 
 cd:Annotation_authorShape a sh:PropertyShape ;
     sh:class cd:Principal ;
@@ -4270,6 +4571,94 @@ cd:AuthorizationRequest_sourceEventShape a sh:PropertyShape ;
     sh:name "source Event" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:sourceEvent .
+
+cd:AuthorizationSnapshot_capturedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.capturedAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "captured At" ;
+    sh:path cd:capturedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AuthorizationSnapshot_grantActiveShape a sh:PropertyShape ;
+    sh:datatype xsd:boolean ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.grantActive violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "grant Active" ;
+    sh:path cd:grantActive .
+
+cd:AuthorizationSnapshot_granteeShape a sh:PropertyShape ;
+    sh:class cd:Principal ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.grantee violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "grantee" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:grantee .
+
+cd:AuthorizationSnapshot_permissionShape a sh:PropertyShape ;
+    sh:class cd:Permission ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.permission violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "permission" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:permission .
+
+cd:AuthorizationSnapshot_principalEnabledShape a sh:PropertyShape ;
+    sh:datatype xsd:boolean ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.principalEnabled violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "principal Enabled" ;
+    sh:path cd:principalEnabled .
+
+cd:AuthorizationSnapshot_scopeRecordShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.scopeRecord violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "scope Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:scopeRecord .
+
+cd:AuthorizationSnapshot_snapshotEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.snapshotEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "snapshot Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:snapshotEvidence .
+
+cd:AuthorizationSnapshot_sourceGrantShape a sh:PropertyShape ;
+    sh:class cd:AccessGrant ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.sourceGrant violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Grant" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sourceGrant .
+
+cd:AuthorizationSnapshot_validFromShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.validFrom violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid From" ;
+    sh:path cd:validFrom ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AuthorizationSnapshot_validUntilShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AuthorizationSnapshot.validUntil violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid Until" ;
+    sh:path cd:validUntil ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
 
 cd:AvailabilityPolicy_calculationExpressionShape a sh:PropertyShape ;
     sh:datatype xsd:string ;
@@ -5045,6 +5434,14 @@ cd:ChargeDetailRecord_billingReadinessShape a sh:PropertyShape ;
     sh:name "billing Readiness" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:billingReadiness .
+
+cd:ChargeDetailRecord_commercialResponsibilityShape a sh:PropertyShape ;
+    sh:class cd:CommercialResponsibility ;
+    sh:maxCount 1 ;
+    sh:message "ChargeDetailRecord.commercialResponsibility violates its domain contract." ;
+    sh:name "commercial Responsibility" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:commercialResponsibility .
 
 cd:ChargeDetailRecord_correctionOfShape a sh:PropertyShape ;
     sh:class cd:ChargeDetailRecord ;
@@ -7653,6 +8050,84 @@ cd:CreditNote_originalInvoiceShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:originalInvoice .
 
+cd:CurrencyConversion_amountRoundingShape a sh:PropertyShape ;
+    sh:class cd:AmountRounding ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.amountRounding violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "amount Rounding" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:amountRounding .
+
+cd:CurrencyConversion_conversionEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.conversionEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "conversion Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:conversionEvidence .
+
+cd:CurrencyConversion_convertedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.convertedAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "converted At" ;
+    sh:path cd:convertedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:CurrencyConversion_exchangeRateShape a sh:PropertyShape ;
+    sh:class cd:ExchangeRate ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.exchangeRate violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "exchange Rate" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:exchangeRate .
+
+cd:CurrencyConversion_sourceAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.sourceAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Amount" ;
+    sh:path cd:sourceAmount .
+
+cd:CurrencyConversion_sourceCurrencyShape a sh:PropertyShape ;
+    sh:class cd:Currency ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.sourceCurrency violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Currency" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sourceCurrency .
+
+cd:CurrencyConversion_targetAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.targetAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "target Amount" ;
+    sh:path cd:targetAmount .
+
+cd:CurrencyConversion_targetCurrencyShape a sh:PropertyShape ;
+    sh:class cd:Currency ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.targetCurrency violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "target Currency" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:targetCurrency .
+
+cd:CurrencyConversion_unroundedTargetAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "CurrencyConversion.unroundedTargetAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "unrounded Target Amount" ;
+    sh:path cd:unroundedTargetAmount .
+
 cd:Currency_currencyCodeShape a sh:PropertyShape ;
     sh:datatype xsd:string ;
     sh:maxCount 1 ;
@@ -7968,6 +8443,13 @@ cd:DataDisposition_completedAtShape a sh:PropertyShape ;
     sh:path cd:completedAt ;
     sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
 
+cd:DataDisposition_disposedRecordShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:message "DataDisposition.disposedRecord violates its domain contract." ;
+    sh:name "disposed Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:disposedRecord .
+
 cd:DataDisposition_dispositionEvidenceShape a sh:PropertyShape ;
     sh:class cd:EvidenceDocument ;
     sh:maxCount 1 ;
@@ -8071,6 +8553,16 @@ cd:DataSubjectRequest_requestKindShape a sh:PropertyShape ;
     sh:name "request Kind" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:requestKind .
+
+cd:DataSubjectRequest_requestOutcomeShape a sh:PropertyShape ;
+    sh:class cd:RequestOutcomeCode ;
+    sh:in ( cd:requestOutcome_Pending cd:requestOutcome_Fulfilled cd:requestOutcome_Refused ) ;
+    sh:maxCount 1 ;
+    sh:message "DataSubjectRequest.requestOutcome violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "request Outcome" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:requestOutcome .
 
 cd:DataSubjectRequest_requestStateShape a sh:PropertyShape ;
     sh:class cd:RequestStateCode ;
@@ -9751,6 +10243,24 @@ cd:FinancialPosition_collectedAmountShape a sh:PropertyShape ;
     sh:name "collected Amount" ;
     sh:path cd:collectedAmount .
 
+cd:FinancialPosition_collectionBasisShape a sh:PropertyShape ;
+    sh:class cd:CollectionBasisCode ;
+    sh:in ( cd:collectionBasis_Uncollected cd:collectionBasis_PaymentAllocations cd:collectionBasis_ExternalEvidence ) ;
+    sh:maxCount 1 ;
+    sh:message "FinancialPosition.collectionBasis violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "collection Basis" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:collectionBasis .
+
+cd:FinancialPosition_collectionEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "FinancialPosition.collectionEvidence violates its domain contract." ;
+    sh:name "collection Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:collectionEvidence .
+
 cd:FinancialPosition_creditedAmountShape a sh:PropertyShape ;
     sh:datatype xsd:decimal ;
     sh:maxCount 1 ;
@@ -9829,6 +10339,14 @@ cd:FinancialPosition_sourceRecordShape a sh:PropertyShape ;
     sh:name "source Record" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:sourceRecord .
+
+cd:FinancialPosition_writeOffEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "FinancialPosition.writeOffEvidence violates its domain contract." ;
+    sh:name "write Off Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:writeOffEvidence .
 
 cd:FinancialPosition_writtenOffAmountShape a sh:PropertyShape ;
     sh:datatype xsd:decimal ;
@@ -10733,6 +11251,14 @@ cd:Issue_affectedRecordShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:affectedRecord .
 
+cd:Issue_billingBlockingShape a sh:PropertyShape ;
+    sh:datatype xsd:boolean ;
+    sh:maxCount 1 ;
+    sh:message "Issue.billingBlocking violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "billing Blocking" ;
+    sh:path cd:billingBlocking .
+
 cd:Issue_issueKindShape a sh:PropertyShape ;
     sh:class cd:IssueKindCode ;
     sh:in ( cd:issueKind_Hardware cd:issueKind_Connectivity cd:issueKind_Payment cd:issueKind_Roaming cd:issueKind_Security cd:issueKind_Other ) ;
@@ -10830,6 +11356,15 @@ cd:JournalLine_signedAmountShape a sh:PropertyShape ;
     sh:minCount 1 ;
     sh:name "signed Amount" ;
     sh:path cd:signedAmount .
+
+cd:Journal_accountingPeriodShape a sh:PropertyShape ;
+    sh:class cd:AccountingPeriod ;
+    sh:maxCount 1 ;
+    sh:message "Journal.accountingPeriod violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "accounting Period" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:accountingPeriod .
 
 cd:Journal_journalLineShape a sh:PropertyShape ;
     sh:class cd:JournalLine ;
@@ -12943,6 +13478,123 @@ cd:Payout_settlementBatchShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:settlementBatch .
 
+cd:PeriodAdjustment_adjustmentAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.adjustmentAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "adjustment Amount" ;
+    sh:path cd:adjustmentAmount .
+
+cd:PeriodAdjustment_adjustmentEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.adjustmentEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "adjustment Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:adjustmentEvidence .
+
+cd:PeriodAdjustment_adjustmentStateShape a sh:PropertyShape ;
+    sh:class cd:AdjustmentStateCode ;
+    sh:in ( cd:adjustmentState_Draft cd:adjustmentState_Posted ) ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.adjustmentState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "adjustment State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:adjustmentState .
+
+cd:PeriodAdjustment_approvedByShape a sh:PropertyShape ;
+    sh:class cd:Principal ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.approvedBy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "approved By" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:approvedBy .
+
+cd:PeriodAdjustment_commercialResponsibilityShape a sh:PropertyShape ;
+    sh:class cd:CommercialResponsibility ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.commercialResponsibility violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "commercial Responsibility" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:commercialResponsibility .
+
+cd:PeriodAdjustment_correctingRecordShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.correctingRecord violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "correcting Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:correctingRecord .
+
+cd:PeriodAdjustment_correctionShape a sh:PropertyShape ;
+    sh:class cd:RecordCorrection ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.correction violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "correction" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:correction .
+
+cd:PeriodAdjustment_currencyShape a sh:PropertyShape ;
+    sh:class cd:Currency ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.currency violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "currency" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:currency .
+
+cd:PeriodAdjustment_effectiveUsageAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.effectiveUsageAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "effective Usage At" ;
+    sh:path cd:effectiveUsageAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:PeriodAdjustment_originalPeriodShape a sh:PropertyShape ;
+    sh:class cd:AccountingPeriod ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.originalPeriod violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "original Period" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:originalPeriod .
+
+cd:PeriodAdjustment_postedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.postedAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "posted At" ;
+    sh:path cd:postedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:PeriodAdjustment_postingPeriodShape a sh:PropertyShape ;
+    sh:class cd:AccountingPeriod ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.postingPeriod violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "posting Period" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:postingPeriod .
+
+cd:PeriodAdjustment_sourceRecordShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:maxCount 1 ;
+    sh:message "PeriodAdjustment.sourceRecord violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sourceRecord .
+
 cd:Permission_descriptionTextShape a sh:PropertyShape ;
     sh:datatype xsd:string ;
     sh:maxCount 1 ;
@@ -13459,6 +14111,13 @@ cd:PriceComponent_pricingConditionShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:pricingCondition .
 
+cd:PriceComponent_pricingTimeResolutionShape a sh:PropertyShape ;
+    sh:class cd:PricingTimeResolution ;
+    sh:message "PriceComponent.pricingTimeResolution violates its domain contract." ;
+    sh:name "pricing Time Resolution" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:pricingTimeResolution .
+
 cd:PriceComponent_taxRuleShape a sh:PropertyShape ;
     sh:class cd:TaxRule ;
     sh:maxCount 1 ;
@@ -13527,6 +14186,14 @@ cd:PriceDisplay_includesTaxShape a sh:PropertyShape ;
     sh:minCount 1 ;
     sh:name "includes Tax" ;
     sh:path cd:includesTax .
+
+cd:PriceDisplay_selectedTariffShape a sh:PropertyShape ;
+    sh:class cd:TariffVersion ;
+    sh:maxCount 1 ;
+    sh:message "PriceDisplay.selectedTariff violates its domain contract." ;
+    sh:name "selected Tariff" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:selectedTariff .
 
 cd:PriceFreezePolicy_freezeMomentShape a sh:PropertyShape ;
     sh:class cd:FreezeMomentCode ;
@@ -13663,6 +14330,52 @@ cd:PricingCondition_unitIriShape a sh:PropertyShape ;
     sh:name "unit Iri" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:unitIri .
+
+cd:PricingTimeResolution_repeatedHourPolicyShape a sh:PropertyShape ;
+    sh:class cd:RepeatedHourPolicyCode ;
+    sh:in ( cd:repeatedHourPolicy_Unambiguous cd:repeatedHourPolicy_First cd:repeatedHourPolicy_Second ) ;
+    sh:maxCount 1 ;
+    sh:message "PricingTimeResolution.repeatedHourPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "repeated Hour Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:repeatedHourPolicy .
+
+cd:PricingTimeResolution_resolvedUtcTimeShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "PricingTimeResolution.resolvedUtcTime violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "resolved Utc Time" ;
+    sh:path cd:resolvedUtcTime ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:PricingTimeResolution_sourceLocalTimeShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "PricingTimeResolution.sourceLocalTime violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Local Time" ;
+    sh:path cd:sourceLocalTime ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:PricingTimeResolution_timeResolutionEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "PricingTimeResolution.timeResolutionEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "time Resolution Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:timeResolutionEvidence .
+
+cd:PricingTimeResolution_timezoneNameShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "PricingTimeResolution.timezoneName violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "timezone Name" ;
+    sh:path cd:timezoneName .
 
 cd:Principal_identityProviderShape a sh:PropertyShape ;
     sh:datatype xsd:string ;
@@ -13870,6 +14583,14 @@ cd:ProcessStep_previousStepShape a sh:PropertyShape ;
     sh:name "previous Step" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:previousStep .
+
+cd:ProcessStep_requiredStepShape a sh:PropertyShape ;
+    sh:datatype xsd:boolean ;
+    sh:maxCount 1 ;
+    sh:message "ProcessStep.requiredStep violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "required Step" ;
+    sh:path cd:requiredStep .
 
 cd:ProcessStep_responsiblePartyShape a sh:PropertyShape ;
     sh:class cd:LegalEntity ;
@@ -14417,6 +15138,14 @@ cd:Quantity_unitIriShape a sh:PropertyShape ;
     sh:name "unit Iri" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:unitIri .
+
+cd:RatedLine_amountRoundingShape a sh:PropertyShape ;
+    sh:class cd:AmountRounding ;
+    sh:maxCount 1 ;
+    sh:message "RatedLine.amountRounding violates its domain contract." ;
+    sh:name "amount Rounding" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:amountRounding .
 
 cd:RatedLine_chargingIntervalShape a sh:PropertyShape ;
     sh:class cd:ChargingInterval ;
@@ -16895,6 +17624,14 @@ cd:ServiceLevelBreach_breachStateShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:breachState .
 
+cd:ServiceLevelBreach_closureEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "ServiceLevelBreach.closureEvidence violates its domain contract." ;
+    sh:name "closure Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:closureEvidence .
+
 cd:ServiceLevelBreach_detectedAtShape a sh:PropertyShape ;
     sh:datatype xsd:dateTime ;
     sh:maxCount 1 ;
@@ -17440,6 +18177,112 @@ cd:SettlementItem_taxAmountShape a sh:PropertyShape ;
     sh:datatype xsd:decimal ;
     sh:maxCount 1 ;
     sh:message "SettlementItem.taxAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "tax Amount" ;
+    sh:path cd:taxAmount .
+
+cd:SettlementLeg_chargeRecordShape a sh:PropertyShape ;
+    sh:class cd:ChargeDetailRecord ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.chargeRecord violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "charge Record" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:chargeRecord .
+
+cd:SettlementLeg_currencyShape a sh:PropertyShape ;
+    sh:class cd:Currency ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.currency violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "currency" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:currency .
+
+cd:SettlementLeg_entitledPartyShape a sh:PropertyShape ;
+    sh:class cd:LegalEntity ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.entitledParty violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "entitled Party" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:entitledParty .
+
+cd:SettlementLeg_grossAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.grossAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "gross Amount" ;
+    sh:path cd:grossAmount .
+
+cd:SettlementLeg_legEvidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.legEvidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "leg Evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:legEvidence .
+
+cd:SettlementLeg_legReferenceShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.legReference violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "leg Reference" ;
+    sh:path cd:legReference .
+
+cd:SettlementLeg_legStateShape a sh:PropertyShape ;
+    sh:class cd:LegStateCode ;
+    sh:in ( cd:legState_Pending cd:legState_Posted cd:legState_Reversed ) ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.legState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "leg State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:legState .
+
+cd:SettlementLeg_liablePartyShape a sh:PropertyShape ;
+    sh:class cd:LegalEntity ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.liableParty violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "liable Party" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:liableParty .
+
+cd:SettlementLeg_netAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.netAmount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "net Amount" ;
+    sh:path cd:netAmount .
+
+cd:SettlementLeg_serviceAgreementShape a sh:PropertyShape ;
+    sh:class cd:ServiceAgreement ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.serviceAgreement violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "service Agreement" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:serviceAgreement .
+
+cd:SettlementLeg_settlementBatchShape a sh:PropertyShape ;
+    sh:class cd:SettlementBatch ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.settlementBatch violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "settlement Batch" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:settlementBatch .
+
+cd:SettlementLeg_taxAmountShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "SettlementLeg.taxAmount violates its domain contract." ;
     sh:minCount 1 ;
     sh:name "tax Amount" ;
     sh:path cd:taxAmount .
@@ -18655,6 +19498,15 @@ cd:TaxDetermination_taxRuleShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:taxRule .
 
+cd:TaxDetermination_taxableAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TaxDetermination.taxableAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "taxable At" ;
+    sh:path cd:taxableAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
 cd:TaxIdentifier_jurisdictionCodeShape a sh:PropertyShape ;
     sh:datatype xsd:string ;
     sh:maxCount 1 ;
@@ -19419,6 +20271,15 @@ cd:Wallet_balanceAsOfShape a sh:PropertyShape ;
     sh:path cd:balanceAsOf ;
     sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
 
+cd:Wallet_balanceFromShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "Wallet.balanceFrom violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "balance From" ;
+    sh:path cd:balanceFrom ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
 cd:Wallet_currencyShape a sh:PropertyShape ;
     sh:class cd:Currency ;
     sh:maxCount 1 ;
@@ -19436,6 +20297,14 @@ cd:Wallet_customerShape a sh:PropertyShape ;
     sh:name "customer" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:customer .
+
+cd:Wallet_openingBalanceShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "Wallet.openingBalance violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "opening Balance" ;
+    sh:path cd:openingBalance .
 
 cd:Wallet_walletStateShape a sh:PropertyShape ;
     sh:class cd:WalletStateCode ;

@@ -1,0 +1,544 @@
+{
+  "profileVersion": "1.2.0",
+  "reviewedOn": "2026-09-25",
+  "reviewBoundary": "All declared journeys, concepts and business invariants. A finite engineering baseline; metadata links alone do not establish business truth or stakeholder acceptance.",
+  "journeys": [
+    {
+      "journey": "J01",
+      "normalOutcome": "A versioned accepted agreement allocates supplier, obligations and financial ownership.",
+      "changeAndTermination": "Amendment preserves prior terms; termination retains residual ownership and historical usage responsibility.",
+      "exceptionOutcome": "Reject missing acceptance, unsupported fulfilled duties and responsibility outside contract validity.",
+      "accountableParty": "Contract supplier",
+      "financialOwner": "Contract financial owner",
+      "lifecycleTreatments": {
+        "contracting": "Offer versioned scope and duties",
+        "onboarding": "Capture acceptance and allocate obligations",
+        "operation": "Assess fulfilment and liability",
+        "change": "Issue successor terms without overwriting history",
+        "suspension": "Suspend future entitlement while preserving existing claims",
+        "termination": "Assign residual liability and final settlement cutoff"
+      },
+      "requirements": [
+        "BR-110",
+        "BR-111",
+        "BR-112",
+        "BR-113",
+        "BR-124",
+        "BR-207"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J02",
+      "normalOutcome": "A customer can receive scoped entitlements, operate and close with remaining liability assigned.",
+      "changeAndTermination": "Suspension or revocation stops current access; account closure agrees with actual scoped grants.",
+      "exceptionOutcome": "Reject entitlement beyond funding validity, retained active grants and unowned residual debt.",
+      "accountableParty": "Service provider",
+      "financialOwner": "Creditor or designated successor",
+      "lifecycleTreatments": {
+        "contracting": "Disclose account terms and billing responsibility",
+        "onboarding": "Verify account and establish entitlement",
+        "operation": "Authorize within active entitlement",
+        "change": "Amend vehicle, employer and billing assignments with dates",
+        "suspension": "Revoke future access without erasing historical charges",
+        "termination": "Close access, transfer residual liabilities and apply retention"
+      },
+      "requirements": [
+        "BR-114",
+        "BR-115",
+        "BR-194",
+        "BR-195"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J03",
+      "normalOutcome": "An identified station and topology have compatible equipment and evidence-backed operational acceptance.",
+      "changeAndTermination": "Ownership transfer, replacement and retirement preserve identity and reconcile unfinished charging.",
+      "exceptionOutcome": "Reject missing acceptance, self-transfer, topology contradictions and concealed unfinished sessions.",
+      "accountableParty": "CPO",
+      "financialOwner": "Asset owner",
+      "lifecycleTreatments": {
+        "contracting": "Procure rated hardware and assign maintenance responsibility",
+        "onboarding": "Verify safety, meter and protocol handover",
+        "operation": "Operate accepted assets with current site topology",
+        "change": "Relocate, replace or transfer with identity and metering boundaries",
+        "suspension": "Disable service and reconcile active sessions",
+        "termination": "Retire after final sessions, revoke access and retain evidence"
+      },
+      "requirements": [
+        "BR-003",
+        "BR-116",
+        "BR-117",
+        "BR-118",
+        "BR-196",
+        "BR-197"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J04",
+      "normalOutcome": "A driver can discover a compatible offer, see a matching price/currency and accept it within validity.",
+      "changeAndTermination": "Offer versions and reservation expiry preserve the exact accepted terms, including ad hoc purchase.",
+      "exceptionOutcome": "Reject mandatory ad hoc registration, wrong tariff/currency, expired acceptance and incompatible connectors.",
+      "accountableParty": "Selling operator",
+      "financialOwner": "Merchant of record",
+      "lifecycleTreatments": {
+        "contracting": "Expose compatible connector, access conditions and complete offer",
+        "onboarding": "Choose payment without mandatory registration for ad hoc use",
+        "operation": "Accept the exact valid price and start the matching session",
+        "change": "Issue a new offer when commercial terms change",
+        "suspension": "Expire or withdraw an unusable offer without charging it",
+        "termination": "Issue receipt or preserve a failure/remedy record"
+      },
+      "requirements": [
+        "BR-005",
+        "BR-021",
+        "BR-026",
+        "BR-119",
+        "BR-120",
+        "BR-121",
+        "BR-122",
+        "BR-123",
+        "BR-199"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J05",
+      "normalOutcome": "Credential or free-access identity and unit scope produce time-valid charging authorization.",
+      "changeAndTermination": "Offline policy bounds cache age, revocation, unknown credentials and economic exposure.",
+      "exceptionOutcome": "Reject wrong-unit, expired, revoked or over-exposure admission.",
+      "accountableParty": "CPO or delegated eMSP",
+      "financialOwner": "Offline exposure owner",
+      "lifecycleTreatments": {
+        "contracting": "Define accepted credentials, cache freshness and exposure policy",
+        "onboarding": "Provision and bind credentials or contract certificates",
+        "operation": "Authorize the requested unit under active rights",
+        "change": "Rotate or reassign credentials with explicit authority",
+        "suspension": "Deny revoked, stale or over-limit offline admission",
+        "termination": "Revoke rights and reconcile any offline usage"
+      },
+      "requirements": [
+        "BR-006",
+        "BR-125",
+        "BR-208"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J06",
+      "normalOutcome": "Charging state, commands and event processing distinguish acknowledged, completed, failed and recovered work.",
+      "changeAndTermination": "Duplicate and quarantined deliveries retain original identity and produce no repeated business effect.",
+      "exceptionOutcome": "Reject premature success, illegal transitions, duplicate application and processing before receipt.",
+      "accountableParty": "CPO",
+      "financialOwner": "Commercial service supplier",
+      "lifecycleTreatments": {
+        "contracting": "Agree start/stop, offline and recovery responsibilities",
+        "onboarding": "Correlate request, endpoint, boot epoch and business session",
+        "operation": "Apply metering and state events once despite delivery order",
+        "change": "Resume or reconcile gaps without overwriting source evidence",
+        "suspension": "Quarantine incompatible payloads and unknown completion",
+        "termination": "Finalize with evidence or retain an unresolved case"
+      },
+      "requirements": [
+        "BR-007",
+        "BR-024",
+        "BR-126",
+        "BR-127",
+        "BR-128",
+        "BR-198"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J07",
+      "normalOutcome": "Measured or estimated usage retains meter epoch, unit, direction, multiplier, ordering and evidence.",
+      "changeAndTermination": "Clock anomalies, resets and reconciliation remain explicit rather than silently inventing usage.",
+      "exceptionOutcome": "Reject mismatched epochs, invalid deltas and billability with unresolved blocking issues.",
+      "accountableParty": "Metering responsible party",
+      "financialOwner": "Billing supplier",
+      "lifecycleTreatments": {
+        "contracting": "Identify unit, direction, register and calibration responsibilities",
+        "onboarding": "Establish register epoch and signed evidence capability",
+        "operation": "Derive usage from ordered readings in one epoch",
+        "change": "Start a new epoch for reset or replacement",
+        "suspension": "Quarantine suspect values and disclose estimates",
+        "termination": "Close usage evidence with final readings and retention"
+      },
+      "requirements": [
+        "BR-009",
+        "BR-129",
+        "BR-130",
+        "BR-193"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J08",
+      "normalOutcome": "Immutable tariff selection, rated lines, tax, rounding and readiness support an attributable charge record.",
+      "changeAndTermination": "Credits and corrections preserve lineage; taxable time and repeated local hours remain reconstructable.",
+      "exceptionOutcome": "Reject wrong totals/currency, invalid rounding, DST ambiguity, unresolved billing and duplicate or mismatched credits.",
+      "accountableParty": "Billing supplier",
+      "financialOwner": "Merchant of record",
+      "lifecycleTreatments": {
+        "contracting": "Version price, tax, rounding and evidence policies",
+        "onboarding": "Resolve selected terms and commercial responsibility",
+        "operation": "Assess billability then rate and issue immutable debit records",
+        "change": "Credit erroneous records and issue distinct corrected records",
+        "suspension": "Block unresolved usage, tax, price or responsibility",
+        "termination": "Retain correction lineage and communicate to affected parties"
+      },
+      "requirements": [
+        "BR-008",
+        "BR-010",
+        "BR-131",
+        "BR-132",
+        "BR-133",
+        "BR-134",
+        "BR-181",
+        "BR-183",
+        "BR-184",
+        "BR-185",
+        "BR-186"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J09",
+      "normalOutcome": "Invoices, confirmed collection allocations, wallet movements and journals reconcile within currencies.",
+      "changeAndTermination": "Partial credit, refund, write-off and late adjustments retain original evidence and posting-period responsibility.",
+      "exceptionOutcome": "Reject overcollection, unsupported write-off, unbalanced journals, fictitious collected totals and closed-period posting.",
+      "accountableParty": "Issuer and collector",
+      "financialOwner": "Creditor",
+      "lifecycleTreatments": {
+        "contracting": "Define supplier, payer, collection routing and document policy",
+        "onboarding": "Create invoice and collection references in one currency",
+        "operation": "Reconcile charges, credits, captures and allocations",
+        "change": "Issue credit note, partial refund or reversal with lineage",
+        "suspension": "Stop disputed collection and expose residual balances",
+        "termination": "Close zero balance or record an approved write-off"
+      },
+      "requirements": [
+        "BR-013",
+        "BR-014",
+        "BR-015",
+        "BR-020",
+        "BR-135",
+        "BR-136",
+        "BR-137",
+        "BR-138",
+        "BR-169",
+        "BR-175",
+        "BR-176",
+        "BR-177",
+        "BR-178",
+        "BR-179",
+        "BR-180",
+        "BR-200",
+        "BR-209",
+        "BR-210",
+        "BR-211",
+        "BR-212",
+        "BR-213",
+        "BR-214",
+        "BR-215"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J10",
+      "normalOutcome": "Roaming parties, negotiated modules, exchanges and qualified identities support financial reconciliation.",
+      "changeAndTermination": "A missing side remains genuinely absent with a locator; replay and correction retain source evidence.",
+      "exceptionOutcome": "Reject invented counterpart records, unresolved closure and corrections without immutable lineage.",
+      "accountableParty": "Local roaming party",
+      "financialOwner": "Contract financial owner",
+      "lifecycleTreatments": {
+        "contracting": "Agree versions, roles, modules and settlement scope",
+        "onboarding": "Exchange credentials and synchronize party-owned data",
+        "operation": "Match sessions, CDRs, invoices and payments by authority-qualified identity",
+        "change": "Replay missed records or apply explicit credit/correction",
+        "suspension": "Represent a genuinely missing side and isolate duplicates",
+        "termination": "Close differences with disposition and residual owner"
+      },
+      "requirements": [
+        "BR-139",
+        "BR-140",
+        "BR-141"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J11",
+      "normalOutcome": "A claimant can lodge a service dispute or payment-network chargeback with accountable response evidence.",
+      "changeAndTermination": "Remedy and closure retain a decision; unresolved liability suspends collection escalation.",
+      "exceptionOutcome": "Reject escalation around an omitted dispute link, unsupported remedy and capture/currency contradictions.",
+      "accountableParty": "Accountable service provider",
+      "financialOwner": "Named financial owner",
+      "lifecycleTreatments": {
+        "contracting": "State support, response and dispute responsibilities",
+        "onboarding": "Accept complaint with claimant and disputed record",
+        "operation": "Investigate service facts separately from network chargebacks",
+        "change": "Provide correction, refund or reasoned rejection",
+        "suspension": "Pause escalation while liability is unresolved",
+        "termination": "Record remedy, response evidence and closure"
+      },
+      "requirements": [
+        "BR-142",
+        "BR-143",
+        "BR-201"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J12",
+      "normalOutcome": "Settlement batches and distinct economic legs identify parties, agreement, currency and item totals.",
+      "changeAndTermination": "Multiple intermediaries and directional currency conversion preserve each economic obligation.",
+      "exceptionOutcome": "Reject wrong-party or duplicate legs, unbalanced batches and approval with unresolved differences.",
+      "accountableParty": "Contract supplier",
+      "financialOwner": "Named settlement owner",
+      "lifecycleTreatments": {
+        "contracting": "Set revenue, cost, tax and beneficiary allocation rules",
+        "onboarding": "Bind partner, agreement, currency and period",
+        "operation": "Calculate balanced itemized settlement and reconcile differences",
+        "change": "Carry explicit adjustments with evidence",
+        "suspension": "Withhold approval while blocking differences remain",
+        "termination": "Approve, invoice and pay with traceable confirmation"
+      },
+      "requirements": [
+        "BR-027",
+        "BR-144",
+        "BR-145",
+        "BR-182",
+        "BR-187",
+        "BR-188",
+        "BR-218"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J13",
+      "normalOutcome": "Eligible home charging binds employee, personal station, measured energy, rate, amount and payout beneficiary.",
+      "changeAndTermination": "Claim approval and correction preserve the exact entitlement; paid status needs confirmed disbursement.",
+      "exceptionOutcome": "Reject overclaimed energy, changed approval facts and payout to a different account holder.",
+      "accountableParty": "Employer",
+      "financialOwner": "Employer or mandated payer",
+      "lifecycleTreatments": {
+        "contracting": "Agree home eligibility, rate source and tax treatment",
+        "onboarding": "Bind employee, personal station, claim and beneficiary",
+        "operation": "Validate measured energy and approved monetary amount",
+        "change": "Correct rate or claim with preserved history",
+        "suspension": "Hold disputed, duplicated or unsupported claims",
+        "termination": "Pay the approved beneficiary with confirmed payout"
+      },
+      "requirements": [
+        "BR-016",
+        "BR-025",
+        "BR-146",
+        "BR-147",
+        "BR-202"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J14",
+      "normalOutcome": "Subscription and benefit contracts define dimension, billing period, balance, reservation and consumption.",
+      "changeAndTermination": "Renewal, expiry and sponsorship preserve period and beneficiary scope while releasing or reconciling exposure.",
+      "exceptionOutcome": "Reject missing money currency, inconsistent balances, unbacked consumption and unauthorized sponsorship.",
+      "accountableParty": "Service provider",
+      "financialOwner": "Benefit funder",
+      "lifecycleTreatments": {
+        "contracting": "Define allowance dimension, renewal, funding and rollover policy",
+        "onboarding": "Activate plan and scoped benefit entitlement",
+        "operation": "Reserve and consume energy, money, time or session benefits",
+        "change": "Version renewal and plan replacement without changing prior periods",
+        "suspension": "Suspend entitlement and release unconsumed reservations",
+        "termination": "Expire or cancel plan and reconcile remaining value"
+      },
+      "requirements": [
+        "BR-017",
+        "BR-148",
+        "BR-170",
+        "BR-171",
+        "BR-172",
+        "BR-174",
+        "BR-216",
+        "BR-217"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J15",
+      "normalOutcome": "Energy topology, schedules and control decisions obey safety, contract, hardware and export constraints.",
+      "changeAndTermination": "Override authorization is scoped and bounded; flexibility delivery records signed baseline difference.",
+      "exceptionOutcome": "Reject overlapping cabinet over-allocation, infeasible power, out-of-window controls and unauthorized export.",
+      "accountableParty": "Site energy responsible party",
+      "financialOwner": "Import payer or export beneficiary",
+      "lifecycleTreatments": {
+        "contracting": "Specify grid, contractual, driver and export rights",
+        "onboarding": "Bind physical topology, meter direction and adapter capabilities",
+        "operation": "Apply feasible schedules within safety and contract limits",
+        "change": "Reforecast and authorize bounded preference overrides",
+        "suspension": "Reject infeasible control or unauthorized export",
+        "termination": "Close dispatch evidence, delivery and energy settlement"
+      },
+      "requirements": [
+        "BR-004",
+        "BR-011",
+        "BR-012",
+        "BR-149",
+        "BR-150",
+        "BR-151",
+        "BR-203",
+        "BR-204"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J16",
+      "normalOutcome": "A controller can record verified rights fulfilment or reasoned refusal with purpose and retention evidence.",
+      "changeAndTermination": "Closure preserves the outcome; account-scoped and explicitly record-scoped holds survive omitted direct links.",
+      "exceptionOutcome": "Reject unsupported completion, false identity verification and disposition under an active applicable hold.",
+      "accountableParty": "Data controller",
+      "financialOwner": "Contractually allocated data liability owner",
+      "lifecycleTreatments": {
+        "contracting": "Document purpose, lawful basis, retention and transfer safeguards",
+        "onboarding": "Bind verified subject and controller responsibilities",
+        "operation": "Process scoped access, correction, portability or erasure request",
+        "change": "Record changes and review scoped preservation holds",
+        "suspension": "Restrict disclosure or erasure where justified",
+        "termination": "Communicate fulfilment or refusal and retain scoped evidence"
+      },
+      "requirements": [
+        "BR-152",
+        "BR-153",
+        "BR-154",
+        "BR-155",
+        "BR-156",
+        "BR-189",
+        "BR-190"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J17",
+      "normalOutcome": "Tenant-isolated principals, permissions, scopes, certificates and evidence support attributable authorization.",
+      "changeAndTermination": "Revocation blocks current permits without rewriting valid historical decision-time snapshots.",
+      "exceptionOutcome": "Reject disabled-principal current permits, scope mismatch, forged schema metadata and unsupported historical permits.",
+      "accountableParty": "Platform controller",
+      "financialOwner": "Accountable organization",
+      "lifecycleTreatments": {
+        "contracting": "Define principal, permission, scope, secret and certificate policies",
+        "onboarding": "Provision least-privilege grants and verified artifact sources",
+        "operation": "Evaluate time-valid explicit authorization and log decisions",
+        "change": "Rotate certificates, grants and API leases with evidence",
+        "suspension": "Revoke compromised access and quarantine unverified evidence",
+        "termination": "Remove operational access while preserving required audit records"
+      },
+      "requirements": [
+        "BR-001",
+        "BR-022",
+        "BR-028",
+        "BR-157",
+        "BR-158",
+        "BR-173"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J18",
+      "normalOutcome": "Installation, maintenance and service-level measurements retain accepted work and accountable remedies.",
+      "changeAndTermination": "Firmware compatibility, downtime treatment and restoration exercises preserve evidence of recovery.",
+      "exceptionOutcome": "Reject unsupported completed work, inaccurate availability, missing closure evidence and missed recovery objectives.",
+      "accountableParty": "Maintenance/service provider",
+      "financialOwner": "SLA remedy owner",
+      "lifecycleTreatments": {
+        "contracting": "Agree availability windows, exclusions, remedy and recovery objectives",
+        "onboarding": "Assign maintenance capability and exercise restoration",
+        "operation": "Measure downtime, identify faults and track repair work",
+        "change": "Deploy compatible firmware with rollback and retest",
+        "suspension": "Suspend unsafe operation and communicate disruption",
+        "termination": "Close work/SLA remedy and retain recovery proof"
+      },
+      "requirements": [
+        "BR-018",
+        "BR-019",
+        "BR-159",
+        "BR-160",
+        "BR-161",
+        "BR-205"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J19",
+      "normalOutcome": "Versioned integrations declare supported features, identity mappings and successful synchronization state.",
+      "changeAndTermination": "Migration reconciles expected records and revokes obsolete credentials while preserving source evidence.",
+      "exceptionOutcome": "Reject contradictory capabilities, impossible watermarks, unreconciled imports and unrevoked source access.",
+      "accountableParty": "Platform operator",
+      "financialOwner": "Contract residual owner",
+      "lifecycleTreatments": {
+        "contracting": "Agree protocol version, ownership and supported features",
+        "onboarding": "Negotiate credentials and prove adapter capability",
+        "operation": "Synchronize with identity, cursor and evidence preservation",
+        "change": "Version mappings or migrate source/target with counts",
+        "suspension": "Quarantine unmapped fields or failed imports",
+        "termination": "Reconcile migrated data and revoke obsolete credentials"
+      },
+      "requirements": [
+        "BR-002",
+        "BR-023",
+        "BR-162",
+        "BR-165",
+        "BR-206"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    },
+    {
+      "journey": "J20",
+      "normalOutcome": "An accountable process links ordered required steps to concrete inputs, outputs, obligations and evidence.",
+      "changeAndTermination": "Failures retain compensation and history; current snapshots agree with valid acyclic transitions.",
+      "exceptionOutcome": "Reject skipped required work, circular or foreign predecessors, duplicate sequences and unsupported completion.",
+      "accountableParty": "Named accountable party",
+      "financialOwner": "Named financial owner",
+      "lifecycleTreatments": {
+        "contracting": "Allocate accountable party, obligations and financial ownership",
+        "onboarding": "Instantiate ordered steps with responsible actors",
+        "operation": "Link concrete domain inputs, outputs and evidence",
+        "change": "Preserve valid state transitions and predecessor lineage",
+        "suspension": "Record failure, compensation or explicit skip",
+        "termination": "Close only terminal successful/compensated steps with evidence"
+      },
+      "requirements": [
+        "BR-163",
+        "BR-164",
+        "BR-166",
+        "BR-167",
+        "BR-168",
+        "BR-191",
+        "BR-192"
+      ],
+      "status": "reviewed",
+      "evidenceBoundary": "Executable semantic decisions and complete synthetic snapshots. External execution is assigned to runtime owners in scope.json."
+    }
+  ]
+}

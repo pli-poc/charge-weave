@@ -21,7 +21,7 @@ GENERATED_FILES = (
     'docs/validation-rules.md', 'docs/external-platform-resource-crosswalk.md',
     'docs/external-platform-endpoint-crosswalk.md', 'docs/pricing-field-crosswalk.md',
     'docs/competency-questions.md', 'docs/business-requirements.md',
-    'docs/actor-journeys.md', 'docs/business-research-sources.md', 'tests/journey-snapshots.json',
+    'docs/actor-journeys.md', 'docs/business-research-sources.md', 'tests/journey-snapshots.json', 'tests/completion-scenarios.json', 'docs/completion-review.md',
 )
 FORMATS = {'.ttl': 'turtle', '.owl': 'xml', '.jsonld': 'json-ld'}
 

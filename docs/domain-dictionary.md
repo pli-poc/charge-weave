@@ -297,6 +297,7 @@ Parent: Record. Shape: `TaxDeterminationShape`.
 | currency | Currency | ! |
 | determinationReason | string | ! |
 | determinedAt | dateTime | ! |
+| taxableAt | dateTime | ! |
 
 ### RatingCalculation
 
@@ -336,6 +337,7 @@ Parent: Record. Shape: `RatedLineShape`.
 | roundingPolicy | RoundingPolicy | ! |
 | taxDetermination | TaxDetermination | ? |
 | chargingInterval | ChargingInterval | ? |
+| amountRounding | AmountRounding | ? |
 
 ### Invoice
 
@@ -1837,6 +1839,7 @@ Parent: Record. Shape: `ProcessStepShape`.
 | compensationRecord | Record | ? |
 | stepEvidence | EvidenceDocument | ? |
 | previousStep | ProcessStep | ? |
+| requiredStep | boolean | ! |
 
 ## operations
 
@@ -1870,6 +1873,7 @@ Parent: Record. Shape: `IssueShape`.
 | resolvedAt | dateTime | ? |
 | vendorFault | VendorFaultDefinition | ? |
 | resolutionNote | string | ? |
+| billingBlocking | boolean | ! |
 
 ### RecoveryPolicy
 
@@ -2023,6 +2027,7 @@ Parent: Record. Shape: `ServiceLevelBreachShape`.
 | workOrder | WorkOrder | ? |
 | remedyRecord | Record | ? |
 | breachEvidence | EvidenceDocument | ! |
+| closureEvidence | EvidenceDocument | ? |
 
 ### RecoveryExercise
 
@@ -2043,6 +2048,27 @@ Parent: Record. Shape: `RecoveryExerciseShape`.
 | recoveryEvidence | EvidenceDocument | ! |
 
 ## partners-settlement
+
+### SettlementLeg
+
+A separately identified economic leg in a multi-party settlement, retaining liable and entitled parties, contract, currency and original usage evidence.
+
+Parent: Record. Shape: `SettlementLegShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| settlementBatch | SettlementBatch | ! |
+| chargeRecord | ChargeDetailRecord | ! |
+| serviceAgreement | ServiceAgreement | ! |
+| liableParty | LegalEntity | ! |
+| entitledParty | LegalEntity | ! |
+| legReference | string | ! |
+| legState | Pending, Posted, Reversed | ! |
+| currency | Currency | ! |
+| netAmount | decimal | ! |
+| taxAmount | decimal | ! |
+| grossAmount | decimal | ! |
+| legEvidence | EvidenceDocument | ! |
 
 ### ServiceAgreement
 
@@ -2401,6 +2427,61 @@ Parent: Record. Shape: `ReimbursementApprovalShape`.
 
 ## payments-ledger
 
+### AccountingPeriod
+
+Named accounting interval with explicit closing time and evidence; later corrections are posted to a distinct open period.
+
+Parent: Record. Shape: `AccountingPeriodShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| period | TimeWindow | ! |
+| periodReference | string | ! |
+| periodState | Open, Closed | ! |
+| closedAt | dateTime | ? |
+| closingEvidence | EvidenceDocument | ? |
+| financialOwner | LegalEntity | ! |
+
+### PeriodAdjustment
+
+Approved correction posted after an original accounting period closes, retaining original commercial responsibility at the effective usage time.
+
+Parent: Record. Shape: `PeriodAdjustmentShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| originalPeriod | AccountingPeriod | ! |
+| postingPeriod | AccountingPeriod | ! |
+| sourceRecord | Record | ! |
+| correctingRecord | Record | ! |
+| commercialResponsibility | CommercialResponsibility | ! |
+| effectiveUsageAt | dateTime | ! |
+| postedAt | dateTime | ! |
+| adjustmentState | Draft, Posted | ! |
+| adjustmentAmount | decimal | ! |
+| currency | Currency | ! |
+| approvedBy | Principal | ! |
+| adjustmentEvidence | EvidenceDocument | ! |
+| correction | RecordCorrection | ! |
+
+### CurrencyConversion
+
+Directional conversion calculation with source amount, retained exchange quote and explicitly rounded target amount.
+
+Parent: Record. Shape: `CurrencyConversionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| exchangeRate | ExchangeRate | ! |
+| sourceCurrency | Currency | ! |
+| targetCurrency | Currency | ! |
+| sourceAmount | decimal | ! |
+| unroundedTargetAmount | decimal | ! |
+| targetAmount | decimal | ! |
+| amountRounding | AmountRounding | ! |
+| convertedAt | dateTime | ! |
+| conversionEvidence | EvidenceDocument | ! |
+
 ### PaymentInstrument
 
 PSP or account reference for payment; never a primary card number or secret.
@@ -2514,6 +2595,8 @@ Parent: Record. Shape: `WalletShape`.
 | balanceAmount | decimal | ! |
 | balanceAsOf | dateTime | ! |
 | walletState | Active, Frozen, Closed | ! |
+| openingBalance | decimal | ! |
+| balanceFrom | dateTime | ! |
 
 ### WalletEntry
 
@@ -2556,6 +2639,7 @@ Parent: Record. Shape: `JournalShape`.
 | journalLine | JournalLine | + |
 | postingReference | string | ! |
 | reversalOf | Journal | ? |
+| accountingPeriod | AccountingPeriod | ! |
 
 ### JournalLine
 
@@ -2715,6 +2799,9 @@ Parent: Record. Shape: `FinancialPositionShape`.
 | outstandingAmount | decimal | ! |
 | positionState | Open, PartiallySettled, Settled, Disputed, WrittenOff | ! |
 | sourceRecord | Record | ! |
+| collectionBasis | Uncollected, PaymentAllocations, ExternalEvidence | ! |
+| collectionEvidence | EvidenceDocument | ? |
+| writeOffEvidence | EvidenceDocument | ? |
 
 ### PaymentAllocation
 
@@ -2923,6 +3010,33 @@ Parent: Record. Shape: `SharingInvitationShape`.
 
 ## pricing
 
+### AmountRounding
+
+Reproducible decimal monetary rounding using an explicit mode, scale and retained raw amount; supports signed corrections.
+
+Parent: Record. Shape: `AmountRoundingShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| rawAmount | decimal | ! |
+| roundedAmount | decimal | ! |
+| roundingPolicy | RoundingPolicy | ! |
+| currency | Currency | ! |
+
+### PricingTimeResolution
+
+UTC interpretation of an offset-bearing local price instant using an IANA zone, explicit repeated-hour policy and retained source evidence.
+
+Parent: Record. Shape: `PricingTimeResolutionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| sourceLocalTime | dateTime | ! |
+| resolvedUtcTime | dateTime | ! |
+| timezoneName | string | ! |
+| repeatedHourPolicy | Unambiguous, First, Second | ! |
+| timeResolutionEvidence | EvidenceDocument | ! |
+
 ### Tariff
 
 Stable identity of a commercial pricing offer whose versions hold the immutable terms.
@@ -2984,6 +3098,7 @@ Parent: Record. Shape: `PriceComponentShape`.
 | priceTier | PriceTier | * |
 | priceFreezePolicy | PriceFreezePolicy | ? |
 | graceMode | FromStart, AfterCharging, AfterGrace | ? |
+| pricingTimeResolution | PricingTimeResolution | * |
 
 ### PricingCondition
 
@@ -3148,6 +3263,7 @@ Parent: Record. Shape: `PriceDisplayShape`.
 | includesTax | boolean | ! |
 | disclosureChannel | App, Web, Terminal, StationDisplay, Printed | ! |
 | effectiveAt | dateTime | ! |
+| selectedTariff | TariffVersion | ? |
 
 ### RoundingPolicy
 
@@ -3498,6 +3614,25 @@ Parent: Record. Shape: `RoamingBehaviorPolicyShape`.
 
 ## security-governance
 
+### AuthorizationSnapshot
+
+Immutable evidence of principal status and exact grant, permission and scope as assessed at a historical access decision; current revocation does not rewrite this evidence.
+
+Parent: Record. Shape: `AuthorizationSnapshotShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| grantee | Principal | ! |
+| scopeRecord | Record | ! |
+| permission | Permission | ! |
+| sourceGrant | AccessGrant | ! |
+| principalEnabled | boolean | ! |
+| grantActive | boolean | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ! |
+| capturedAt | dateTime | ! |
+| snapshotEvidence | EvidenceDocument | ! |
+
 ### CertificateRecord
 
 Certificate identity, validity and trust metadata with key material held externally.
@@ -3622,6 +3757,7 @@ Parent: Record. Shape: `DataDispositionShape`.
 | completedAt | dateTime | ? |
 | dispositionEvidence | EvidenceDocument | ? |
 | legalHold | LegalHold | * |
+| disposedRecord | Record | * |
 
 ### ComplianceAssessment
 
@@ -3676,6 +3812,7 @@ Parent: Record. Shape: `DataSubjectRequestShape`.
 | responseEvidence | EvidenceDocument | ? |
 | refusalReason | string | ? |
 | completedAt | dateTime | ? |
+| requestOutcome | Pending, Fulfilled, Refused | ! |
 
 ### LegalHold
 
@@ -3727,6 +3864,8 @@ Parent: Record. Shape: `AccessDecisionShape`.
 | decidedAt | dateTime | ! |
 | accessGrant | AccessGrant | ? |
 | decisionEvidence | EvidenceDocument | ! |
+| decisionContext | Current, Historical | ! |
+| authorizationSnapshot | AuthorizationSnapshot | ? |
 
 ### EvidenceVerification
 
@@ -3924,6 +4063,7 @@ Parent: Record. Shape: `ChargeDetailRecordShape`.
 | recordKind | Debit, Credit | ! |
 | originalChargeRecord | ChargeDetailRecord | ? |
 | billingReadiness | BillingReadinessAssessment | ? |
+| commercialResponsibility | CommercialResponsibility | ? |
 
 ### ClockAssessment
 
@@ -4029,6 +4169,22 @@ Parent: Record. Shape: `RecordCorrectionShape`.
 | notifiedParty | LegalEntity | + |
 
 ## subscriptions-benefits
+
+### AllowanceSponsorship
+
+Explicit authorization for a named beneficiary to consume another account's balance within a contract and validity interval.
+
+Parent: Record. Shape: `AllowanceSponsorshipShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| sponsoringCustomer | CustomerAccount | ! |
+| beneficiaryCustomer | CustomerAccount | ! |
+| serviceAgreement | ServiceAgreement | ! |
+| scopeRecord | Record | ! |
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ! |
+| sponsorshipEvidence | EvidenceDocument | ! |
 
 ### SubscriptionPlan
 
@@ -4213,6 +4369,7 @@ Parent: Record. Shape: `AllowanceBalanceShape`.
 | closingValue | decimal | ! |
 | currency | Currency | ? |
 | unitIri | IRI | ! |
+| allowanceSponsorship | AllowanceSponsorship | ? |
 
 ## vehicles-authorization
 

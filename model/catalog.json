@@ -4491,6 +4491,94 @@
         "range": "BillingReadinessAssessment",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "commercialResponsibility",
+        "type": "object",
+        "range": "CommercialResponsibility",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "AmountRounding": {
+    "module": "pricing",
+    "parent": "Record",
+    "definition": "Reproducible decimal monetary rounding using an explicit mode, scale and retained raw amount; supports signed corrections.",
+    "fields": [
+      {
+        "property": "rawAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "roundedAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "roundingPolicy",
+        "type": "object",
+        "range": "RoundingPolicy",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "PricingTimeResolution": {
+    "module": "pricing",
+    "parent": "Record",
+    "definition": "UTC interpretation of an offset-bearing local price instant using an IANA zone, explicit repeated-hour policy and retained source evidence.",
+    "fields": [
+      {
+        "property": "sourceLocalTime",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "resolvedUtcTime",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "timezoneName",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "repeatedHourPolicy",
+        "type": "enum",
+        "range": "RepeatedHourPolicyCode",
+        "cardinality": "!",
+        "values": [
+          "Unambiguous",
+          "First",
+          "Second"
+        ]
+      },
+      {
+        "property": "timeResolutionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -4789,6 +4877,13 @@
           "AfterCharging",
           "AfterGrace"
         ]
+      },
+      {
+        "property": "pricingTimeResolution",
+        "type": "object",
+        "range": "PricingTimeResolution",
+        "cardinality": "*",
+        "values": null
       }
     ]
   },
@@ -5371,6 +5466,13 @@
         "range": "dateTime",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "selectedTariff",
+        "type": "object",
+        "range": "TariffVersion",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -5668,6 +5770,13 @@
         "range": "dateTime",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "taxableAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -5827,6 +5936,13 @@
         "property": "chargingInterval",
         "type": "object",
         "range": "ChargingInterval",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "amountRounding",
+        "type": "object",
+        "range": "AmountRounding",
         "cardinality": "?",
         "values": null
       }
@@ -6317,6 +6433,229 @@
       }
     ]
   },
+  "AccountingPeriod": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Named accounting interval with explicit closing time and evidence; later corrections are posted to a distinct open period.",
+    "fields": [
+      {
+        "property": "period",
+        "type": "object",
+        "range": "TimeWindow",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "periodReference",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "periodState",
+        "type": "enum",
+        "range": "PeriodStateCode",
+        "cardinality": "!",
+        "values": [
+          "Open",
+          "Closed"
+        ]
+      },
+      {
+        "property": "closedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "closingEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "financialOwner",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "PeriodAdjustment": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Approved correction posted after an original accounting period closes, retaining original commercial responsibility at the effective usage time.",
+    "fields": [
+      {
+        "property": "originalPeriod",
+        "type": "object",
+        "range": "AccountingPeriod",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "postingPeriod",
+        "type": "object",
+        "range": "AccountingPeriod",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correctingRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "commercialResponsibility",
+        "type": "object",
+        "range": "CommercialResponsibility",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "effectiveUsageAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "postedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "adjustmentState",
+        "type": "enum",
+        "range": "AdjustmentStateCode",
+        "cardinality": "!",
+        "values": [
+          "Draft",
+          "Posted"
+        ]
+      },
+      {
+        "property": "adjustmentAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "approvedBy",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "adjustmentEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "correction",
+        "type": "object",
+        "range": "RecordCorrection",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "CurrencyConversion": {
+    "module": "payments-ledger",
+    "parent": "Record",
+    "definition": "Directional conversion calculation with source amount, retained exchange quote and explicitly rounded target amount.",
+    "fields": [
+      {
+        "property": "exchangeRate",
+        "type": "object",
+        "range": "ExchangeRate",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceCurrency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "targetCurrency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "unroundedTargetAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "targetAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "amountRounding",
+        "type": "object",
+        "range": "AmountRounding",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "convertedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "conversionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
   "PaymentInstrument": {
     "module": "payments-ledger",
     "parent": "Record",
@@ -6761,6 +7100,20 @@
           "Frozen",
           "Closed"
         ]
+      },
+      {
+        "property": "openingBalance",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "balanceFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -6902,6 +7255,13 @@
         "type": "object",
         "range": "Journal",
         "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "accountingPeriod",
+        "type": "object",
+        "range": "AccountingPeriod",
+        "cardinality": "!",
         "values": null
       }
     ]
@@ -7173,6 +7533,62 @@
         "type": "object",
         "range": "ContentTemplate",
         "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "AllowanceSponsorship": {
+    "module": "subscriptions-benefits",
+    "parent": "Record",
+    "definition": "Explicit authorization for a named beneficiary to consume another account's balance within a contract and validity interval.",
+    "fields": [
+      {
+        "property": "sponsoringCustomer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "beneficiaryCustomer",
+        "type": "object",
+        "range": "CustomerAccount",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sponsorshipEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
         "values": null
       }
     ]
@@ -7658,6 +8074,101 @@
         "type": "object",
         "range": "CouponConsumption",
         "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "SettlementLeg": {
+    "module": "partners-settlement",
+    "parent": "Record",
+    "definition": "A separately identified economic leg in a multi-party settlement, retaining liable and entitled parties, contract, currency and original usage evidence.",
+    "fields": [
+      {
+        "property": "settlementBatch",
+        "type": "object",
+        "range": "SettlementBatch",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "chargeRecord",
+        "type": "object",
+        "range": "ChargeDetailRecord",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "serviceAgreement",
+        "type": "object",
+        "range": "ServiceAgreement",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "liableParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "entitledParty",
+        "type": "object",
+        "range": "LegalEntity",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "legReference",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "legState",
+        "type": "enum",
+        "range": "LegStateCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Posted",
+          "Reversed"
+        ]
+      },
+      {
+        "property": "currency",
+        "type": "object",
+        "range": "Currency",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "netAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "taxAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "grossAmount",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "legEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "!",
         "values": null
       }
     ]
@@ -10319,6 +10830,13 @@
         "range": "string",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "billingBlocking",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -10741,6 +11259,83 @@
         "property": "calculatedAt",
         "type": "datatype",
         "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "AuthorizationSnapshot": {
+    "module": "security-governance",
+    "parent": "Record",
+    "definition": "Immutable evidence of principal status and exact grant, permission and scope as assessed at a historical access decision; current revocation does not rewrite this evidence.",
+    "fields": [
+      {
+        "property": "grantee",
+        "type": "object",
+        "range": "Principal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "scopeRecord",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "permission",
+        "type": "object",
+        "range": "Permission",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceGrant",
+        "type": "object",
+        "range": "AccessGrant",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "principalEnabled",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "grantActive",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "capturedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "snapshotEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
         "cardinality": "!",
         "values": null
       }
@@ -11215,6 +11810,13 @@
         "property": "legalHold",
         "type": "object",
         "range": "LegalHold",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "disposedRecord",
+        "type": "object",
+        "range": "Record",
         "cardinality": "*",
         "values": null
       }
@@ -14680,6 +15282,31 @@
         "range": "Record",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "collectionBasis",
+        "type": "enum",
+        "range": "CollectionBasisCode",
+        "cardinality": "!",
+        "values": [
+          "Uncollected",
+          "PaymentAllocations",
+          "ExternalEvidence"
+        ]
+      },
+      {
+        "property": "collectionEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "writeOffEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -15318,6 +15945,17 @@
         "range": "dateTime",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "requestOutcome",
+        "type": "enum",
+        "range": "RequestOutcomeCode",
+        "cardinality": "!",
+        "values": [
+          "Pending",
+          "Fulfilled",
+          "Refused"
+        ]
       }
     ]
   },
@@ -15514,6 +16152,23 @@
         "range": "EvidenceDocument",
         "cardinality": "!",
         "values": null
+      },
+      {
+        "property": "decisionContext",
+        "type": "enum",
+        "range": "DecisionContextCode",
+        "cardinality": "!",
+        "values": [
+          "Current",
+          "Historical"
+        ]
+      },
+      {
+        "property": "authorizationSnapshot",
+        "type": "object",
+        "range": "AuthorizationSnapshot",
+        "cardinality": "?",
+        "values": null
       }
     ]
   },
@@ -15684,6 +16339,13 @@
         "type": "object",
         "range": "EvidenceDocument",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "closureEvidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "?",
         "values": null
       }
     ]
@@ -16126,6 +16788,13 @@
         "range": "ProcessStep",
         "cardinality": "?",
         "values": null
+      },
+      {
+        "property": "requiredStep",
+        "type": "datatype",
+        "range": "boolean",
+        "cardinality": "!",
+        "values": null
       }
     ]
   },
@@ -16209,6 +16878,13 @@
         "type": "iri",
         "range": "IRI",
         "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "allowanceSponsorship",
+        "type": "object",
+        "range": "AllowanceSponsorship",
+        "cardinality": "?",
         "values": null
       }
     ]

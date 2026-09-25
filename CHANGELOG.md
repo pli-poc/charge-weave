@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — Declared semantic completion baseline — 2026-09-25
+
+- Review every declared concept and journey; add source-contract fingerprints and a completeness gate.
+- Add 8 concepts and 46 business invariants for historical evidence, sponsored allowances, financial reconciliation, late corrections, rounding/time, settlement legs and accountable closure.
+- Supply valid and invalid focused evidence for every rule: 438 decisions; add 65 complete interaction scenarios and 1,023 independent decimal/timezone checks.
+- Require all 40 verification jobs before packaging; preserve the earlier adversarial evidence and current-tree naming guard.
+- This revision requires new importer fields and a pinned timezone dependency; see `docs/migration-to-v1.2.md`.
+
 ## 1.1.1 — Adversarial cross-record review — 2026-09-25
 
 - Preserve full-validator baseline evidence for six previously accepted business contradictions.
