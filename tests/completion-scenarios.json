@@ -45,7 +45,7 @@
     "file": "examples/completion/sponsored-allowance-pass.ttl",
     "expectedConformance": true,
     "expectedRule": null,
-    "assertion": "ASK {ex:AllowanceBalance cd:customer ex:CustomerAccount; cd:allowanceSponsorship/cd:beneficiaryCustomer ex:SponsoredCustomer; cd:closingValue ?expectedNumber0. ex:ChargingSession cd:customer ex:SponsoredCustomer. FILTER(?expectedNumber0=13) }",
+    "assertion": "ASK {ex:AllowanceBalance cd:customer ex:CustomerAccount; cd:allowanceSponsorship/cd:beneficiaryCustomer ex:SponsoredCustomer; cd:closingValue ?expectedNumber0. ex:ChargingSession cd:customer ex:SponsoredCustomer. ex:BenefitReservation cd:reservationState cd:reservationState_Active; cd:reservedValue ?expectedNumber1. FILTER(?expectedNumber0=13 && ?expectedNumber1=2) }",
     "requirements": [
       "BR-174",
       "BR-171"
@@ -338,7 +338,7 @@
     "file": "examples/completion/repeated-local-hour-pass.ttl",
     "expectedConformance": true,
     "expectedRule": null,
-    "assertion": "ASK {ex:PricingTimeResolution cd:repeatedHourPolicy cd:repeatedHourPolicy_Second; cd:timezoneName \"Europe/Amsterdam\".}",
+    "assertion": "ASK {ex:PricingTimeResolution cd:repeatedHourPolicy cd:repeatedHourPolicy_Second; cd:timezoneName ?zone. FILTER(STR(?zone)=\"Europe/Amsterdam\")}",
     "requirements": [
       "BR-186"
     ]

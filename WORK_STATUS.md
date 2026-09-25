@@ -8,6 +8,15 @@ The objective is a complete, independently defined CPMS business ontology, with 
 
 The interrupted 1.2 candidate has been recovered. Its sources and generated artifacts are retained together. Treat this checkpoint as verified only when all 40 verification jobs and the package job pass for its exact GitHub commit; earlier reports and the 1.1.1 run are not evidence for this candidate.
 
+The candidate is maintained on `review/semantic-baseline-1.2` in [PR #1](https://github.com/pli-poc/charge-weave/pull/1). Resume from that branch while the PR remains unmerged. Direct publication to `main` was rejected by automatic approval review; the review branch preserves the work without bypassing that decision.
+
+The first complete run at `f58998b9daff96433575d74f610fc58e904504de` exposed two test-data problems, preserved in Actions run `36169560141`:
+
+- `COMPLETE-SPONSORED-ALLOWANCE-PASS` claimed two reserved units while its reservation was still Pending. B171 correctly rejected that snapshot. The generator now makes the intended reservation Active and the positive ASK assertion requires that state and amount. B171 and its rejected counterparts remain unchanged.
+- `COMPLETE-REPEATED-LOCAL-HOUR-PASS` conformed to the complete validator, but its ASK used a plain string triple against a stored `xsd:string` literal. The assertion now compares the zone's string value, and the generator explicitly selects the intended IANA zone. The offset, occurrence and invalid-time constraints remain unchanged.
+
+These are fixture/assertion corrections, not relaxed business rules. Regenerated examples and both complete scenario families must pass with the other release gates.
+
 Implemented in this checkpoint:
 
 - 285 concepts across 18 modules; 1,216 properties and 218 business invariants.

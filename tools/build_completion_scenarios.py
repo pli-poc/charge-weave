@@ -49,8 +49,9 @@ time(g,'ServiceAgreement','validUntil',14)
 time(g,'ServiceEntitlement','validUntil',14);time(g,'CommercialResponsibility','validUntil',14)
 for p,v in [('openingValue',20),('consumedValue',5),('reservedValue',2),('closingValue',13)]:dec(g,'AllowanceBalance',p,v)
 dec(g,'AllowanceConsumption','consumedValue',5);dec(g,'BenefitReservation','reservedValue',2)
+code(g,'BenefitReservation','reservationState','Active')
 scenario('access','sponsored-allowance',g,
- 'ASK {ex:AllowanceBalance cd:customer ex:CustomerAccount; cd:allowanceSponsorship/cd:beneficiaryCustomer ex:SponsoredCustomer; cd:closingValue 13. ex:ChargingSession cd:customer ex:SponsoredCustomer.}',
+ 'ASK {ex:AllowanceBalance cd:customer ex:CustomerAccount; cd:allowanceSponsorship/cd:beneficiaryCustomer ex:SponsoredCustomer; cd:closingValue 13. ex:ChargingSession cd:customer ex:SponsoredCustomer. ex:BenefitReservation cd:reservationState cd:reservationState_Active; cd:reservedValue 2.}',
  ['BR-174','BR-171'],[('B174',lambda d:time(d,'AllowanceSponsorship','validUntil',15)),('B171',lambda d:d.remove((E.AllowanceBalance,C.allowanceSponsorship,None)))])
 
 g=base+Graph()
@@ -98,9 +99,10 @@ scenario('pricing','conversion-and-rounding',g,
 g=base+Graph()
 setv(g,'PricingTimeResolution','sourceLocalTime',Literal('2026-10-25T02:30:00+01:00',datatype=XSD.dateTime))
 setv(g,'PricingTimeResolution','resolvedUtcTime',Literal('2026-10-25T01:30:00Z',datatype=XSD.dateTime))
+text(g,'PricingTimeResolution','timezoneName','Europe/Amsterdam')
 code(g,'PricingTimeResolution','repeatedHourPolicy','Second')
 scenario('pricing','repeated-local-hour',g,
- 'ASK {ex:PricingTimeResolution cd:repeatedHourPolicy cd:repeatedHourPolicy_Second; cd:timezoneName "Europe/Amsterdam".}',
+ 'ASK {ex:PricingTimeResolution cd:repeatedHourPolicy cd:repeatedHourPolicy_Second; cd:timezoneName ?zone. FILTER(STR(?zone)="Europe/Amsterdam")}',
  ['BR-186'],[('B186',lambda d:setv(d,'PricingTimeResolution','resolvedUtcTime',Literal('2026-10-25T00:30:00Z',datatype=XSD.dateTime))),('IanaTimeResolutionConstraint',lambda d:code(d,'PricingTimeResolution','repeatedHourPolicy','First'))])
 
 g=base+Graph();clone(g,'LegalEntity','Intermediary');clone(g,'LegalEntity','Retailer')

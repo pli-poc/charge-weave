@@ -154,7 +154,7 @@ ex:BenefitReservation a cd:BenefitReservation ;
     cd:canonicalId "BenefitReservation-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:expiresAt "2026-09-25T14:00:00+00:00"^^xsd:dateTime ;
-    cd:reservationState cd:reservationState_Pending ;
+    cd:reservationState cd:reservationState_Active ;
     cd:reservedValue 2.0 ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:session ex:ChargingSession ;
