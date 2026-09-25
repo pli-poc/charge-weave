@@ -1,0 +1,5636 @@
+{
+  "tenantName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "tenantKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "tenant": [
+    [
+      "object",
+      "Tenant"
+    ]
+  ],
+  "canonicalId": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "createdAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "revision": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "label": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "externalIdentifier": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "evidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "customValue": [
+    [
+      "object",
+      "CustomFieldValue"
+    ]
+  ],
+  "annotation": [
+    [
+      "object",
+      "Annotation"
+    ]
+  ],
+  "identifierValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "identifierScheme": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "assigningAuthority": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "validFrom": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "validUntil": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "contentDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "mediaType": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "storageReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "capturedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "retentionPolicy": [
+    [
+      "object",
+      "RetentionPolicy"
+    ]
+  ],
+  "startsAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "endsAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "timezoneName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "weekday": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "localStart": [
+    [
+      "datatype",
+      "time"
+    ]
+  ],
+  "localEnd": [
+    [
+      "datatype",
+      "time"
+    ]
+  ],
+  "spansMidnight": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "exceptionWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "countryCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "locality": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "postalCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "streetAddress": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "regionCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "latitude": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "longitude": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "altitudeMetres": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "currencyCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "minorUnitDigits": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "baseCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "quoteCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "conversionRate": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "quotedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "rateProvider": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "numericValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "unitIri": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "quantityKind": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "noteText": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "author": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "notedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "visibility": [
+    [
+      "enum",
+      "VisibilityCode"
+    ]
+  ],
+  "fieldKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "fieldDatatype": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "applicableClass": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "requiredField": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "definitionVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "fieldDefinition": [
+    [
+      "object",
+      "CustomFieldDefinition"
+    ]
+  ],
+  "lexicalValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "valueDatatype": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "legalName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "registeredAddress": [
+    [
+      "object",
+      "Address"
+    ]
+  ],
+  "registrationNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "taxIdentifier": [
+    [
+      "object",
+      "TaxIdentifier"
+    ]
+  ],
+  "contact": [
+    [
+      "object",
+      "ContactProfile"
+    ]
+  ],
+  "financialAccount": [
+    [
+      "object",
+      "FinancialAccountReference"
+    ]
+  ],
+  "personReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "preferredLanguage": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "contactPurpose": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "emailAddress": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "telephoneNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "contactAddress": [
+    [
+      "object",
+      "Address"
+    ]
+  ],
+  "party": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "businessRole": [
+    [
+      "enum",
+      "BusinessRoleCode"
+    ]
+  ],
+  "operatorService": [
+    [
+      "object",
+      "OperatorService"
+    ]
+  ],
+  "serviceProvider": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "serviceName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "serviceRole": [
+    [
+      "enum",
+      "ServiceRoleCode"
+    ]
+  ],
+  "parentService": [
+    [
+      "object",
+      "OperatorService"
+    ]
+  ],
+  "brand": [
+    [
+      "object",
+      "BrandProfile"
+    ]
+  ],
+  "defaultCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "subjectReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "identityProvider": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "principalKind": [
+    [
+      "enum",
+      "PrincipalKindCode"
+    ]
+  ],
+  "principalState": [
+    [
+      "enum",
+      "PrincipalStateCode"
+    ]
+  ],
+  "person": [
+    [
+      "object",
+      "Person"
+    ]
+  ],
+  "permissionAction": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "resourceClass": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "descriptionText": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "roleName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "permission": [
+    [
+      "object",
+      "Permission"
+    ]
+  ],
+  "grantee": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "securityRole": [
+    [
+      "object",
+      "SecurityRole"
+    ]
+  ],
+  "scopeRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "grantState": [
+    [
+      "enum",
+      "GrantStateCode"
+    ]
+  ],
+  "delegator": [
+    [
+      "object",
+      "OperatorService"
+    ]
+  ],
+  "delegate": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "accessGrant": [
+    [
+      "object",
+      "AccessGrant"
+    ]
+  ],
+  "accountKind": [
+    [
+      "enum",
+      "AccountKindCode"
+    ]
+  ],
+  "accountState": [
+    [
+      "enum",
+      "AccountStateCode"
+    ]
+  ],
+  "organization": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "billingProfile": [
+    [
+      "object",
+      "BillingProfile"
+    ]
+  ],
+  "groupName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "groupingPurpose": [
+    [
+      "enum",
+      "GroupingPurposeCode"
+    ]
+  ],
+  "customer": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "customerGroup": [
+    [
+      "object",
+      "CustomerGroup"
+    ]
+  ],
+  "deviceReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "platformName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "pushTokenReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "lastSeenAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "siteName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "address": [
+    [
+      "object",
+      "Address"
+    ]
+  ],
+  "position": [
+    [
+      "object",
+      "GeoPosition"
+    ]
+  ],
+  "siteHost": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "openingWindow": [
+    [
+      "object",
+      "RecurringWindow"
+    ]
+  ],
+  "serviceNotice": [
+    [
+      "object",
+      "ServiceNotice"
+    ]
+  ],
+  "siteAccessPolicy": [
+    [
+      "object",
+      "SiteAccessPolicy"
+    ]
+  ],
+  "site": [
+    [
+      "object",
+      "ChargingSite"
+    ]
+  ],
+  "areaName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "parkingSpace": [
+    [
+      "object",
+      "ParkingSpace"
+    ]
+  ],
+  "terminal": [
+    [
+      "object",
+      "PaymentTerminal"
+    ]
+  ],
+  "area": [
+    [
+      "object",
+      "ChargingArea"
+    ]
+  ],
+  "bayReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "accessibleBay": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "servesUnit": [
+    [
+      "object",
+      "ChargingUnit"
+    ]
+  ],
+  "occupancy": [
+    [
+      "enum",
+      "OccupancyCode"
+    ]
+  ],
+  "occupancyObservedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "listingState": [
+    [
+      "enum",
+      "ListingStateCode"
+    ]
+  ],
+  "publicName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "accessibility": [
+    [
+      "enum",
+      "AccessibilityCode"
+    ]
+  ],
+  "parkingCategory": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "facilityCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paymentOptionCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paymentOptionsKnowledge": [
+    [
+      "enum",
+      "PaymentOptionsKnowledgeCode"
+    ]
+  ],
+  "paymentBrandCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "media": [
+    [
+      "object",
+      "MediaAsset"
+    ]
+  ],
+  "publishedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "accessMode": [
+    [
+      "enum",
+      "AccessModeCode"
+    ]
+  ],
+  "eligibleGroup": [
+    [
+      "object",
+      "CustomerGroup"
+    ]
+  ],
+  "credentialMethod": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "stopOutsideOpening": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "noticeText": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "noticeSeverity": [
+    [
+      "enum",
+      "NoticeSeverityCode"
+    ]
+  ],
+  "affectedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "mediaUrl": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "altText": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "rightsStatement": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "sharedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "sharingParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "beneficiary": [
+    [
+      "object",
+      "LegalEntity"
+    ],
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "inviter": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "inviteeReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "invitationState": [
+    [
+      "enum",
+      "InvitationStateCode"
+    ]
+  ],
+  "expiresAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "invitationSecretReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "sharingAgreement": [
+    [
+      "object",
+      "SharingAgreement"
+    ]
+  ],
+  "manufacturerParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "manufacturerName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "manufacturer": [
+    [
+      "object",
+      "Manufacturer"
+    ]
+  ],
+  "modelCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "modelRevision": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "capability": [
+    [
+      "object",
+      "DeviceCapability"
+    ]
+  ],
+  "manual": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "capabilityCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "protocolVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "firmware": [
+    [
+      "object",
+      "FirmwareRelease"
+    ]
+  ],
+  "verificationState": [
+    [
+      "enum",
+      "VerificationStateCode"
+    ]
+  ],
+  "stationName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "equipmentModel": [
+    [
+      "object",
+      "EquipmentModel"
+    ]
+  ],
+  "stationUse": [
+    [
+      "enum",
+      "StationUseCode"
+    ]
+  ],
+  "communicationMode": [
+    [
+      "enum",
+      "CommunicationModeCode"
+    ]
+  ],
+  "gatewayStation": [
+    [
+      "object",
+      "ChargingStation"
+    ]
+  ],
+  "protocolEndpoint": [
+    [
+      "object",
+      "ProtocolEndpoint"
+    ]
+  ],
+  "ownerAccount": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "assetOwner": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "administrationState": [
+    [
+      "enum",
+      "AdministrationStateCode"
+    ]
+  ],
+  "monitoringEnabled": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "recoveryEnabled": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "electricitySchedule": [
+    [
+      "object",
+      "ElectricityPriceSchedule"
+    ]
+  ],
+  "reimbursementPolicy": [
+    [
+      "object",
+      "ReimbursementPolicy"
+    ]
+  ],
+  "maintenanceProvider": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "commissionedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "manufacturedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "sharingSecretReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "nationalStationIdentifier": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "powerCabinet": [
+    [
+      "object",
+      "PowerCabinet"
+    ]
+  ],
+  "chargingProfile": [
+    [
+      "object",
+      "ChargingProfile"
+    ]
+  ],
+  "station": [
+    [
+      "object",
+      "ChargingStation"
+    ]
+  ],
+  "physicalReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "currentKind": [
+    [
+      "enum",
+      "CurrentKindCode"
+    ]
+  ],
+  "maximumPowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "minimumCurrentA": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumCurrentA": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "tariffSet": [
+    [
+      "object",
+      "TariffSet"
+    ]
+  ],
+  "reservable": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "bookable": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "calibration": [
+    [
+      "object",
+      "CalibrationRecord"
+    ]
+  ],
+  "electricalConnection": [
+    [
+      "object",
+      "ElectricalConnection"
+    ]
+  ],
+  "chargingUnit": [
+    [
+      "object",
+      "ChargingUnit"
+    ]
+  ],
+  "connectorReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "connectorStandard": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "connectorFormat": [
+    [
+      "enum",
+      "ConnectorFormatCode"
+    ]
+  ],
+  "ratedVoltageV": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "ratedCurrentA": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "meterSerial": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "measurandCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "integration": [
+    [
+      "object",
+      "IntegrationConnection"
+    ]
+  ],
+  "jurisdictionCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "certificateEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "parentCircuit": [
+    [
+      "object",
+      "ElectricalCircuit"
+    ]
+  ],
+  "phaseSystem": [
+    [
+      "enum",
+      "PhaseSystemCode"
+    ]
+  ],
+  "phaseRotation": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "protectiveDeviceReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "circuit": [
+    [
+      "object",
+      "ElectricalCircuit"
+    ]
+  ],
+  "connectedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "conductorCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "voltageV": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "transferredAsset": [
+    [
+      "object",
+      "ChargingStation"
+    ]
+  ],
+  "previousOwner": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "nextOwner": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "effectiveAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "transferEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "endpointIdentity": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "protocolName": [
+    [
+      "enum",
+      "ProtocolNameCode"
+    ]
+  ],
+  "endpointUrl": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "credentialReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "securityProfile": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "componentName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "variableName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "attributeType": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "desiredValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "observedValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "configurationState": [
+    [
+      "enum",
+      "ConfigurationStateCode"
+    ]
+  ],
+  "observedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "templateName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "templateVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "templateEntry": [
+    [
+      "object",
+      "ConfigurationTemplateEntry"
+    ]
+  ],
+  "configurationTemplate": [
+    [
+      "object",
+      "ConfigurationTemplate"
+    ]
+  ],
+  "requestedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "applicationState": [
+    [
+      "enum",
+      "ApplicationStateCode"
+    ]
+  ],
+  "command": [
+    [
+      "object",
+      "RemoteCommand"
+    ]
+  ],
+  "firmwareVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "firmwareArtifact": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "compatibleModel": [
+    [
+      "object",
+      "EquipmentModel"
+    ]
+  ],
+  "releaseDate": [
+    [
+      "datatype",
+      "date"
+    ]
+  ],
+  "signatureVerified": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "deploymentState": [
+    [
+      "enum",
+      "DeploymentStateCode"
+    ]
+  ],
+  "completedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "rollbackFirmware": [
+    [
+      "object",
+      "FirmwareRelease"
+    ]
+  ],
+  "observedAsset": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "hardwareState": [
+    [
+      "enum",
+      "HardwareStateCode"
+    ]
+  ],
+  "sourceEvent": [
+    [
+      "object",
+      "SourceEvent"
+    ]
+  ],
+  "vendorFault": [
+    [
+      "object",
+      "VendorFaultDefinition"
+    ]
+  ],
+  "connectionState": [
+    [
+      "enum",
+      "ConnectionStateCode"
+    ]
+  ],
+  "lastHeartbeatAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "artifact": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "diagnosticState": [
+    [
+      "enum",
+      "DiagnosticStateCode"
+    ]
+  ],
+  "vehicleReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "vehicleCategory": [
+    [
+      "enum",
+      "VehicleCategoryCode"
+    ]
+  ],
+  "batteryCapacityKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumChargePowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "vehicleIdentificationReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "telematicsIntegration": [
+    [
+      "object",
+      "IntegrationConnection"
+    ]
+  ],
+  "vehicle": [
+    [
+      "object",
+      "Vehicle"
+    ]
+  ],
+  "assignmentRole": [
+    [
+      "enum",
+      "AssignmentRoleCode"
+    ]
+  ],
+  "stateOfChargePercent": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "odometerKm": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "credentialKind": [
+    [
+      "enum",
+      "CredentialKindCode"
+    ]
+  ],
+  "credentialIdentifier": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "credentialState": [
+    [
+      "enum",
+      "CredentialStateCode"
+    ]
+  ],
+  "paymentInstrument": [
+    [
+      "object",
+      "PaymentInstrument"
+    ]
+  ],
+  "homeOnly": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "credential": [
+    [
+      "object",
+      "ChargingCredential"
+    ]
+  ],
+  "authorizationMethod": [
+    [
+      "enum",
+      "AuthorizationMethodCode"
+    ]
+  ],
+  "authorizationRequest": [
+    [
+      "object",
+      "AuthorizationRequest"
+    ]
+  ],
+  "decision": [
+    [
+      "enum",
+      "DecisionCode"
+    ]
+  ],
+  "reasonCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "decidedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "decisionSource": [
+    [
+      "enum",
+      "DecisionSourceCode"
+    ]
+  ],
+  "appliedPolicy": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "listVersion": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "localListEntry": [
+    [
+      "object",
+      "LocalAuthorizationEntry"
+    ]
+  ],
+  "generatedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "provisioningCertificate": [
+    [
+      "object",
+      "ProvisioningCertificate"
+    ]
+  ],
+  "contractCertificate": [
+    [
+      "object",
+      "CertificateRecord"
+    ]
+  ],
+  "emaid": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "enrollmentState": [
+    [
+      "enum",
+      "EnrollmentStateCode"
+    ]
+  ],
+  "provisioningIdentifier": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "certificate": [
+    [
+      "object",
+      "CertificateRecord"
+    ]
+  ],
+  "provisioningState": [
+    [
+      "enum",
+      "ProvisioningStateCode"
+    ]
+  ],
+  "commandKind": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "targetRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "requestedBy": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "correlationId": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "idempotencyKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "commandState": [
+    [
+      "enum",
+      "CommandStateCode"
+    ]
+  ],
+  "commandParameter": [
+    [
+      "object",
+      "CommandParameter"
+    ]
+  ],
+  "parameterKey": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "referencedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "outcomeKind": [
+    [
+      "enum",
+      "OutcomeKindCode"
+    ]
+  ],
+  "outcomeState": [
+    [
+      "enum",
+      "OutcomeStateCode"
+    ]
+  ],
+  "reportedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "requestedWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "requestKind": [
+    [
+      "enum",
+      "RequestKindCode"
+    ]
+  ],
+  "previousBooking": [
+    [
+      "object",
+      "Booking"
+    ]
+  ],
+  "requestedEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "requestState": [
+    [
+      "enum",
+      "RequestStateCode"
+    ]
+  ],
+  "bookingRequest": [
+    [
+      "object",
+      "BookingRequest"
+    ]
+  ],
+  "bookingWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "bookingState": [
+    [
+      "enum",
+      "BookingStateCode"
+    ]
+  ],
+  "reservedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "reservationState": [
+    [
+      "enum",
+      "ReservationStateCode"
+    ]
+  ],
+  "booking": [
+    [
+      "object",
+      "Booking"
+    ]
+  ],
+  "session": [
+    [
+      "object",
+      "ChargingSession"
+    ]
+  ],
+  "eventKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "sourceSystem": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "occurredAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "receivedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "schemaVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "payloadEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "sequenceNumber": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "clockAssessment": [
+    [
+      "object",
+      "ClockAssessment"
+    ]
+  ],
+  "authorizationDecision": [
+    [
+      "object",
+      "AuthorizationDecision"
+    ]
+  ],
+  "sessionState": [
+    [
+      "enum",
+      "SessionStateCode"
+    ]
+  ],
+  "startedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "endedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "importedEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "exportedEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "commercialMode": [
+    [
+      "enum",
+      "CommercialModeCode"
+    ]
+  ],
+  "selectedTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "endEvidence": [
+    [
+      "object",
+      "SessionEndEvidence"
+    ]
+  ],
+  "reservation": [
+    [
+      "object",
+      "Reservation"
+    ]
+  ],
+  "endpoint": [
+    [
+      "object",
+      "ProtocolEndpoint"
+    ]
+  ],
+  "transactionIdentifier": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "bootEpoch": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "sessionEventKind": [
+    [
+      "enum",
+      "SessionEventKindCode"
+    ]
+  ],
+  "interval": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "intervalKind": [
+    [
+      "enum",
+      "IntervalKindCode"
+    ]
+  ],
+  "averagePowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "meter": [
+    [
+      "object",
+      "ElectricityMeter"
+    ]
+  ],
+  "phaseCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "energyDirection": [
+    [
+      "enum",
+      "EnergyDirectionCode"
+    ]
+  ],
+  "readingKind": [
+    [
+      "enum",
+      "ReadingKindCode"
+    ]
+  ],
+  "quality": [
+    [
+      "enum",
+      "QualityCode"
+    ]
+  ],
+  "signedEvidence": [
+    [
+      "object",
+      "SignedMeterEvidence"
+    ]
+  ],
+  "signingCertificate": [
+    [
+      "object",
+      "CertificateRecord"
+    ]
+  ],
+  "signatureAlgorithm": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "signatureVerification": [
+    [
+      "enum",
+      "SignatureVerificationCode"
+    ]
+  ],
+  "verifiedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "finalizationBasis": [
+    [
+      "enum",
+      "FinalizationBasisCode"
+    ]
+  ],
+  "finalizedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "completeness": [
+    [
+      "enum",
+      "CompletenessCode"
+    ]
+  ],
+  "finalMeterObservation": [
+    [
+      "object",
+      "MeterObservation"
+    ]
+  ],
+  "aggregationMethod": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "issuer": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "recipient": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "recordOrigin": [
+    [
+      "enum",
+      "RecordOriginCode"
+    ]
+  ],
+  "recordVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "period": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "currency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "netAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "taxAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "grossAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "correctionOf": [
+    [
+      "object",
+      "ChargeDetailRecord"
+    ],
+    [
+      "object",
+      "ReimbursementRecord"
+    ]
+  ],
+  "tariffName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "tariffPurpose": [
+    [
+      "enum",
+      "TariffPurposeCode"
+    ]
+  ],
+  "tariffState": [
+    [
+      "enum",
+      "TariffStateCode"
+    ]
+  ],
+  "tariff": [
+    [
+      "object",
+      "Tariff"
+    ]
+  ],
+  "versionTag": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "tariffMode": [
+    [
+      "enum",
+      "TariffModeCode"
+    ]
+  ],
+  "priceComponent": [
+    [
+      "object",
+      "PriceComponent"
+    ]
+  ],
+  "pricingCondition": [
+    [
+      "object",
+      "PricingCondition"
+    ]
+  ],
+  "baseTariffVersion": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "dynamicPriceFormula": [
+    [
+      "object",
+      "DynamicPriceFormula"
+    ]
+  ],
+  "priceDisplay": [
+    [
+      "object",
+      "PriceDisplay"
+    ]
+  ],
+  "roundingPolicy": [
+    [
+      "object",
+      "RoundingPolicy"
+    ]
+  ],
+  "snapshotDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "discountRule": [
+    [
+      "object",
+      "DiscountRule"
+    ]
+  ],
+  "sessionPricingPolicy": [
+    [
+      "object",
+      "SessionPricingPolicy"
+    ]
+  ],
+  "preauthorizationPolicy": [
+    [
+      "object",
+      "PreauthorizationPolicy"
+    ]
+  ],
+  "subsidyRule": [
+    [
+      "object",
+      "SubsidyRule"
+    ]
+  ],
+  "baseTariffSelection": [
+    [
+      "enum",
+      "BaseTariffSelectionCode"
+    ]
+  ],
+  "priceDimension": [
+    [
+      "enum",
+      "PriceDimensionCode"
+    ]
+  ],
+  "unitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "billingStep": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "taxRule": [
+    [
+      "object",
+      "TaxRule"
+    ]
+  ],
+  "minimumQuantity": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumQuantity": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "graceQuantity": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "feeBounds": [
+    [
+      "object",
+      "FeeBounds"
+    ]
+  ],
+  "priceTier": [
+    [
+      "object",
+      "PriceTier"
+    ]
+  ],
+  "priceFreezePolicy": [
+    [
+      "object",
+      "PriceFreezePolicy"
+    ]
+  ],
+  "graceMode": [
+    [
+      "enum",
+      "GraceModeCode"
+    ]
+  ],
+  "conditionDimension": [
+    [
+      "enum",
+      "ConditionDimensionCode"
+    ]
+  ],
+  "comparisonOperator": [
+    [
+      "enum",
+      "ComparisonOperatorCode"
+    ]
+  ],
+  "comparisonValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "comparisonDatatype": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "relatedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "priority": [
+    [
+      "datatype",
+      "integer"
+    ]
+  ],
+  "measurementAggregation": [
+    [
+      "enum",
+      "MeasurementAggregationCode"
+    ]
+  ],
+  "measurementWindowSeconds": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "setName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "defaultTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "offlineTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "tariffAssignment": [
+    [
+      "object",
+      "TariffAssignment"
+    ]
+  ],
+  "selectionStrategy": [
+    [
+      "enum",
+      "SelectionStrategyCode"
+    ]
+  ],
+  "assignedTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "resolvedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "resolverVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "decisionExplanation": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "resolvedBaseTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "nextTariffVersion": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "changeState": [
+    [
+      "enum",
+      "ChangeStateCode"
+    ]
+  ],
+  "formulaExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "formulaLanguage": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "fallbackUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "minimumUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "calculationVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "fixedMarkup": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "percentageMarkup": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "fallbackSchedule": [
+    [
+      "object",
+      "ElectricityPriceSchedule"
+    ]
+  ],
+  "scheduleName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "utilityParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "pricingMode": [
+    [
+      "enum",
+      "PricingModeCode"
+    ]
+  ],
+  "defaultUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "priceInterval": [
+    [
+      "object",
+      "ElectricityPriceInterval"
+    ]
+  ],
+  "energyMix": [
+    [
+      "object",
+      "EnergyMix"
+    ]
+  ],
+  "recurringWindow": [
+    [
+      "object",
+      "RecurringWindow"
+    ]
+  ],
+  "mixName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "sourceShare": [
+    [
+      "object",
+      "EnergySourceShare"
+    ]
+  ],
+  "reportingPeriod": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "energySource": [
+    [
+      "enum",
+      "EnergySourceCode"
+    ]
+  ],
+  "shareFraction": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "displayText": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "displayCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "includesTax": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "disclosureChannel": [
+    [
+      "enum",
+      "DisclosureChannelCode"
+    ]
+  ],
+  "roundingMode": [
+    [
+      "enum",
+      "RoundingModeCode"
+    ]
+  ],
+  "decimalPlaces": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "roundingStage": [
+    [
+      "enum",
+      "RoundingStageCode"
+    ]
+  ],
+  "limitDimension": [
+    [
+      "enum",
+      "LimitDimensionCode"
+    ]
+  ],
+  "limitValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "enforcement": [
+    [
+      "enum",
+      "EnforcementCode"
+    ]
+  ],
+  "applicableTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "billToName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "billToAddress": [
+    [
+      "object",
+      "Address"
+    ]
+  ],
+  "receiptEmail": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "billingParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "taxNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "taxIdentifierType": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "taxName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "taxFraction": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "taxCategory": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "supplier": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "customerParty": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "taxBasisAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "determinationReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "determinedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "ratingVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "calculatedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "ratedLine": [
+    [
+      "object",
+      "RatedLine"
+    ]
+  ],
+  "tariffResolution": [
+    [
+      "object",
+      "TariffResolution"
+    ]
+  ],
+  "quantityValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "taxDetermination": [
+    [
+      "object",
+      "TaxDetermination"
+    ]
+  ],
+  "chargingInterval": [
+    [
+      "object",
+      "ChargingInterval"
+    ]
+  ],
+  "invoiceNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "issuedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "dueAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "invoiceState": [
+    [
+      "enum",
+      "InvoiceStateCode"
+    ]
+  ],
+  "invoiceLine": [
+    [
+      "object",
+      "InvoiceLine"
+    ]
+  ],
+  "numberSequence": [
+    [
+      "object",
+      "DocumentNumberSequence"
+    ]
+  ],
+  "lineDescription": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "chargeRecord": [
+    [
+      "object",
+      "ChargeDetailRecord"
+    ]
+  ],
+  "serviceAgreement": [
+    [
+      "object",
+      "ServiceAgreement"
+    ]
+  ],
+  "originalInvoice": [
+    [
+      "object",
+      "Invoice"
+    ]
+  ],
+  "creditNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "creditReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "creditAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "paymentCapture": [
+    [
+      "object",
+      "PaymentCapture"
+    ]
+  ],
+  "receiptNumber": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "receivedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "invoice": [
+    [
+      "object",
+      "Invoice"
+    ]
+  ],
+  "documentKind": [
+    [
+      "enum",
+      "DocumentKindCode"
+    ]
+  ],
+  "numberPrefix": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "nextSequence": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "numberWidth": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "attemptedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "attemptNumber": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "fiscalizationState": [
+    [
+      "enum",
+      "FiscalizationStateCode"
+    ]
+  ],
+  "authorityReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "fiscalDocument": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "failureCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "feeReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "assessedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "instrumentKind": [
+    [
+      "enum",
+      "InstrumentKindCode"
+    ]
+  ],
+  "provider": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "providerInstrumentReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "instrumentState": [
+    [
+      "enum",
+      "InstrumentStateCode"
+    ]
+  ],
+  "expiryMonth": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "requestedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "paymentState": [
+    [
+      "enum",
+      "PaymentStateCode"
+    ]
+  ],
+  "providerOrderReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paymentRouting": [
+    [
+      "object",
+      "PaymentRouting"
+    ]
+  ],
+  "paymentIntent": [
+    [
+      "object",
+      "PaymentIntent"
+    ]
+  ],
+  "authorizedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "authorizedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "providerReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "authorizationState": [
+    [
+      "enum",
+      "AuthorizationStateCode"
+    ]
+  ],
+  "paymentAuthorization": [
+    [
+      "object",
+      "PaymentAuthorization"
+    ]
+  ],
+  "capturedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "captureState": [
+    [
+      "enum",
+      "CaptureStateCode"
+    ]
+  ],
+  "refundAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "refundReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "refundState": [
+    [
+      "enum",
+      "RefundStateCode"
+    ]
+  ],
+  "disputedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "responseDueAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "disputeState": [
+    [
+      "enum",
+      "DisputeStateCode"
+    ]
+  ],
+  "balanceAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "balanceAsOf": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "walletState": [
+    [
+      "enum",
+      "WalletStateCode"
+    ]
+  ],
+  "wallet": [
+    [
+      "object",
+      "Wallet"
+    ]
+  ],
+  "signedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "recordedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "entryReason": [
+    [
+      "enum",
+      "EntryReasonCode"
+    ]
+  ],
+  "journal": [
+    [
+      "object",
+      "Journal"
+    ]
+  ],
+  "accountCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "accountCategory": [
+    [
+      "enum",
+      "AccountCategoryCode"
+    ]
+  ],
+  "ownerParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "postedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "journalState": [
+    [
+      "enum",
+      "JournalStateCode"
+    ]
+  ],
+  "journalLine": [
+    [
+      "object",
+      "JournalLine"
+    ]
+  ],
+  "postingReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "reversalOf": [
+    [
+      "object",
+      "CouponConsumption"
+    ],
+    [
+      "object",
+      "Journal"
+    ]
+  ],
+  "ledgerAccount": [
+    [
+      "object",
+      "LedgerAccount"
+    ]
+  ],
+  "offerName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "purchaseAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "voucherCodeReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "faceValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "redemptionLimit": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "voucherState": [
+    [
+      "enum",
+      "VoucherStateCode"
+    ]
+  ],
+  "voucher": [
+    [
+      "object",
+      "Voucher"
+    ]
+  ],
+  "redeemedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "redeemedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "walletEntry": [
+    [
+      "object",
+      "WalletEntry"
+    ]
+  ],
+  "terminalName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "terminalSerial": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "terminalType": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "preauthorizationAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "supportedLanguage": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "displayTemplate": [
+    [
+      "object",
+      "ContentTemplate"
+    ]
+  ],
+  "planName": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "planVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "billingMode": [
+    [
+      "enum",
+      "BillingModeCode"
+    ]
+  ],
+  "billingCycle": [
+    [
+      "enum",
+      "BillingCycleCode"
+    ]
+  ],
+  "baseFee": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "perHomeStationFee": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "freeInitialPeriods": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "benefit": [
+    [
+      "object",
+      "BenefitAllowance"
+    ]
+  ],
+  "visibilityPolicy": [
+    [
+      "object",
+      "SiteAccessPolicy"
+    ]
+  ],
+  "externalBilling": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "subscriptionBillingPolicy": [
+    [
+      "object",
+      "SubscriptionBillingPolicy"
+    ]
+  ],
+  "subscriptionPlan": [
+    [
+      "object",
+      "SubscriptionPlan"
+    ]
+  ],
+  "subscriptionState": [
+    [
+      "enum",
+      "SubscriptionStateCode"
+    ]
+  ],
+  "renewAutomatically": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "cancelledAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "subscription": [
+    [
+      "object",
+      "Subscription"
+    ]
+  ],
+  "billingPeriodState": [
+    [
+      "enum",
+      "BillingPeriodStateCode"
+    ]
+  ],
+  "accruedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "allowanceDimension": [
+    [
+      "enum",
+      "AllowanceDimensionCode"
+    ]
+  ],
+  "allowanceValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "resetRule": [
+    [
+      "enum",
+      "ResetRuleCode"
+    ]
+  ],
+  "rolloverAllowed": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "allowance": [
+    [
+      "object",
+      "BenefitAllowance"
+    ]
+  ],
+  "billingPeriod": [
+    [
+      "object",
+      "BillingPeriod"
+    ]
+  ],
+  "consumedValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "energyAllowanceKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumRedemptions": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "validityMode": [
+    [
+      "enum",
+      "ValidityModeCode"
+    ]
+  ],
+  "validityDays": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "couponState": [
+    [
+      "enum",
+      "CouponStateCode"
+    ]
+  ],
+  "couponTemplate": [
+    [
+      "object",
+      "EnergyCouponTemplate"
+    ]
+  ],
+  "energyCoupon": [
+    [
+      "object",
+      "EnergyCoupon"
+    ]
+  ],
+  "consumedEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "consumedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "counterparty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "agreementReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "agreementVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "coveredRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "revenueShareRule": [
+    [
+      "object",
+      "RevenueShareRule"
+    ]
+  ],
+  "costAllocationRule": [
+    [
+      "object",
+      "CostAllocationRule"
+    ]
+  ],
+  "agreementEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "autoRenewal": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "platformFee": [
+    [
+      "object",
+      "CustomFee"
+    ]
+  ],
+  "revenueBasis": [
+    [
+      "enum",
+      "RevenueBasisCode"
+    ]
+  ],
+  "fixedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "responsibleParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "costCategory": [
+    [
+      "enum",
+      "CostCategoryCode"
+    ]
+  ],
+  "allocationFraction": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "overrideReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "approvedBy": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "settlementItem": [
+    [
+      "object",
+      "SettlementItem"
+    ]
+  ],
+  "settlementState": [
+    [
+      "enum",
+      "SettlementStateCode"
+    ]
+  ],
+  "adjustmentReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "expectedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "observedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "mismatchKind": [
+    [
+      "enum",
+      "MismatchKindCode"
+    ]
+  ],
+  "caseState": [
+    [
+      "enum",
+      "CaseStateCode"
+    ]
+  ],
+  "openedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "resolutionNote": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "partner": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "accessPolicy": [
+    [
+      "object",
+      "SiteAccessPolicy"
+    ]
+  ],
+  "corporateBillingPolicy": [
+    [
+      "object",
+      "CorporateBillingPolicy"
+    ]
+  ],
+  "sponsor": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "policyName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "policyVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "coverageMode": [
+    [
+      "enum",
+      "CoverageModeCode"
+    ]
+  ],
+  "individualPeriodLimit": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "costCapPerKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "corporateChargerRule": [
+    [
+      "object",
+      "CorporateChargerRule"
+    ]
+  ],
+  "policyState": [
+    [
+      "enum",
+      "PolicyStateCode"
+    ]
+  ],
+  "maximumEnergyUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumIdleUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumFlatFee": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "corporateSnapshot": [
+    [
+      "object",
+      "CorporateBillingSnapshot"
+    ]
+  ],
+  "totalAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "sponsorAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "driverAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "reimbursementRateSource": [
+    [
+      "enum",
+      "ReimbursementRateSourceCode"
+    ]
+  ],
+  "validFromDate": [
+    [
+      "datatype",
+      "date"
+    ]
+  ],
+  "validUntilDate": [
+    [
+      "datatype",
+      "date"
+    ]
+  ],
+  "beneficiaryAccount": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "reimbursableEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "reimbursementRate": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "reimbursementAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "reimbursementState": [
+    [
+      "enum",
+      "ReimbursementStateCode"
+    ]
+  ],
+  "reimbursementTaxCalculation": [
+    [
+      "object",
+      "ReimbursementTaxCalculation"
+    ]
+  ],
+  "payout": [
+    [
+      "object",
+      "Payout"
+    ]
+  ],
+  "payer": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "reimbursementRecord": [
+    [
+      "object",
+      "ReimbursementRecord"
+    ]
+  ],
+  "reportState": [
+    [
+      "enum",
+      "ReportStateCode"
+    ]
+  ],
+  "networkName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "supportedVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "roamingRole": [
+    [
+      "enum",
+      "RoamingRoleCode"
+    ]
+  ],
+  "partyCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "roamingNetwork": [
+    [
+      "object",
+      "RoamingNetwork"
+    ]
+  ],
+  "localPartner": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "localService": [
+    [
+      "object",
+      "OperatorService"
+    ]
+  ],
+  "remoteParty": [
+    [
+      "object",
+      "RoamingParty"
+    ]
+  ],
+  "moduleAgreement": [
+    [
+      "object",
+      "RoamingModuleAgreement"
+    ]
+  ],
+  "roamingBehaviorPolicy": [
+    [
+      "object",
+      "RoamingBehaviorPolicy"
+    ]
+  ],
+  "moduleName": [
+    [
+      "enum",
+      "ModuleNameCode"
+    ]
+  ],
+  "moduleVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "localRole": [
+    [
+      "enum",
+      "LocalRoleCode"
+    ]
+  ],
+  "roamingConnection": [
+    [
+      "object",
+      "RoamingConnection"
+    ]
+  ],
+  "exchangedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "exchangeDirection": [
+    [
+      "enum",
+      "ExchangeDirectionCode"
+    ]
+  ],
+  "exchangeState": [
+    [
+      "enum",
+      "ExchangeStateCode"
+    ]
+  ],
+  "acknowledgedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "remoteCommandReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "remoteCommandState": [
+    [
+      "enum",
+      "RemoteCommandStateCode"
+    ]
+  ],
+  "callbackUrl": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "streamModuleName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "cursorValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "lastSuccessfulAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "watermarkAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "remoteTariffIdentifier": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "importedTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "retailTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "sourceEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "importedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "resultingTariff": [
+    [
+      "object",
+      "TariffVersion"
+    ]
+  ],
+  "filterState": [
+    [
+      "enum",
+      "FilterStateCode"
+    ]
+  ],
+  "listing": [
+    [
+      "object",
+      "PublicListing"
+    ]
+  ],
+  "publicationSchema": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "destinationUrl": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "publicationEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "gridOperator": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "importLimitKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "exportLimitKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "effectiveWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "connectionIdentifier": [
+    [
+      "object",
+      "ExternalIdentifier"
+    ]
+  ],
+  "parentControlGroup": [
+    [
+      "object",
+      "LoadControlGroup"
+    ]
+  ],
+  "controlStrategy": [
+    [
+      "enum",
+      "ControlStrategyCode"
+    ]
+  ],
+  "offlineReserveCurrentA": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "externalControlIntegration": [
+    [
+      "object",
+      "IntegrationConnection"
+    ]
+  ],
+  "controlGroup": [
+    [
+      "object",
+      "LoadControlGroup"
+    ]
+  ],
+  "controlledAsset": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "constraintOrigin": [
+    [
+      "enum",
+      "ConstraintOriginCode"
+    ]
+  ],
+  "minimumStateOfChargePercent": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumStateOfChargePercent": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "boostUntil": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "strategy": [
+    [
+      "enum",
+      "StrategyCode"
+    ]
+  ],
+  "departureAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "requiredEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "targetStateOfChargePercent": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "randomizedDelaySeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "schedulePurpose": [
+    [
+      "enum",
+      "SchedulePurposeCode"
+    ]
+  ],
+  "scheduleKind": [
+    [
+      "enum",
+      "ScheduleKindCode"
+    ]
+  ],
+  "scheduleUnit": [
+    [
+      "enum",
+      "ScheduleUnitCode"
+    ]
+  ],
+  "schedulePeriod": [
+    [
+      "object",
+      "SchedulePeriod"
+    ]
+  ],
+  "stackLevel": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "periodStart": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "periodEnd": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "numberOfPhases": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "chargingSchedule": [
+    [
+      "object",
+      "ChargingSchedule"
+    ]
+  ],
+  "appliedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "observedCompliance": [
+    [
+      "enum",
+      "ObservedComplianceCode"
+    ]
+  ],
+  "powerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "phaseCurrentA": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "forecastTarget": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "horizon": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "forecastMethod": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "forecastPoint": [
+    [
+      "object",
+      "ForecastPoint"
+    ]
+  ],
+  "predictedValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "lowerBound": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "upperBound": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "programProvider": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "programReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "settlementUnit": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "demandResponseProgram": [
+    [
+      "object",
+      "DemandResponseProgram"
+    ]
+  ],
+  "assetState": [
+    [
+      "enum",
+      "AssetStateCode"
+    ]
+  ],
+  "flexibilityAsset": [
+    [
+      "object",
+      "FlexibilityAsset"
+    ]
+  ],
+  "requestedPowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "activationState": [
+    [
+      "enum",
+      "ActivationStateCode"
+    ]
+  ],
+  "baseline": [
+    [
+      "object",
+      "EnergyForecast"
+    ]
+  ],
+  "flexibilityActivation": [
+    [
+      "object",
+      "FlexibilityActivation"
+    ]
+  ],
+  "actualEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "baselineEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "deliveredAdjustmentKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "energyAssetKind": [
+    [
+      "enum",
+      "EnergyAssetKindCode"
+    ]
+  ],
+  "ratedPowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "capacityKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "bidirectional": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "faultCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "faultDescription": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "recommendedAction": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "faultSeverity": [
+    [
+      "enum",
+      "FaultSeverityCode"
+    ]
+  ],
+  "issueKind": [
+    [
+      "enum",
+      "IssueKindCode"
+    ]
+  ],
+  "issueState": [
+    [
+      "enum",
+      "IssueStateCode"
+    ]
+  ],
+  "severity": [
+    [
+      "enum",
+      "SeverityCode"
+    ]
+  ],
+  "triggeringFault": [
+    [
+      "object",
+      "VendorFaultDefinition"
+    ]
+  ],
+  "recoveryAction": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "maximumAttempts": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "cooldownSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "escalationRole": [
+    [
+      "object",
+      "SecurityRole"
+    ]
+  ],
+  "issue": [
+    [
+      "object",
+      "Issue"
+    ]
+  ],
+  "recoveryPolicy": [
+    [
+      "object",
+      "RecoveryPolicy"
+    ]
+  ],
+  "recoveryResult": [
+    [
+      "enum",
+      "RecoveryResultCode"
+    ]
+  ],
+  "assignedPrincipal": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "workState": [
+    [
+      "enum",
+      "WorkStateCode"
+    ]
+  ],
+  "completionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "installationCompany": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "jobState": [
+    [
+      "enum",
+      "JobStateCode"
+    ]
+  ],
+  "scheduledAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "commissioningEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "availabilityPolicy": [
+    [
+      "object",
+      "AvailabilityPolicy"
+    ]
+  ],
+  "downtimeKind": [
+    [
+      "enum",
+      "DowntimeKindCode"
+    ]
+  ],
+  "downtimeState": [
+    [
+      "enum",
+      "DowntimeStateCode"
+    ]
+  ],
+  "includePlannedDowntime": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "staleAfterSeconds": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "calculationExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "eligibleSeconds": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "unavailableSeconds": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "availabilityFraction": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "certificateFingerprint": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "certificatePurpose": [
+    [
+      "enum",
+      "CertificatePurposeCode"
+    ]
+  ],
+  "issuerName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "subjectName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "certificateState": [
+    [
+      "enum",
+      "CertificateStateCode"
+    ]
+  ],
+  "certificateArtifact": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "privateKeyReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "certificateAction": [
+    [
+      "enum",
+      "CertificateActionCode"
+    ]
+  ],
+  "eventAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "securityEventCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "actor": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "auditedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "actionCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "auditResult": [
+    [
+      "enum",
+      "AuditResultCode"
+    ]
+  ],
+  "previousDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "newDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "policyTitle": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "policyPurpose": [
+    [
+      "enum",
+      "PolicyPurposeCode"
+    ]
+  ],
+  "policyArtifact": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "policyDocument": [
+    [
+      "object",
+      "PolicyDocument"
+    ]
+  ],
+  "consentPurpose": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "consentChoice": [
+    [
+      "enum",
+      "ConsentChoiceCode"
+    ]
+  ],
+  "retentionPurpose": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "retentionDays": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "disposition": [
+    [
+      "enum",
+      "DispositionCode"
+    ]
+  ],
+  "legalBasis": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "subjectAccount": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "dispositionState": [
+    [
+      "enum",
+      "DispositionStateCode"
+    ]
+  ],
+  "dispositionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "assessedRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "regulationReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "provisionReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "applicable": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "assessmentResult": [
+    [
+      "enum",
+      "AssessmentResultCode"
+    ]
+  ],
+  "assessor": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "integrationName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "integrationKind": [
+    [
+      "enum",
+      "IntegrationKindCode"
+    ]
+  ],
+  "contractVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "integrationState": [
+    [
+      "enum",
+      "IntegrationStateCode"
+    ]
+  ],
+  "principal": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "allowedNetwork": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "requestsPerMinute": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "requestsPerDay": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "subscriber": [
+    [
+      "object",
+      "ApiClient"
+    ]
+  ],
+  "eventType": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "deliveryTransport": [
+    [
+      "enum",
+      "DeliveryTransportCode"
+    ]
+  ],
+  "destinationReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "signingKeyReference": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "includeTimestampInSignature": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "suppressOwnEvents": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "includeRoamingAssets": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "eventSubscription": [
+    [
+      "object",
+      "EventSubscription"
+    ]
+  ],
+  "deliveryState": [
+    [
+      "enum",
+      "DeliveryStateCode"
+    ]
+  ],
+  "responseCode": [
+    [
+      "datatype",
+      "integer"
+    ]
+  ],
+  "nextRetryAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "wireProtocol": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "direction": [
+    [
+      "enum",
+      "DirectionCode"
+    ]
+  ],
+  "messageType": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "protocolResponseCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "settingKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "settingValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "brandName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "defaultLanguage": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "logo": [
+    [
+      "object",
+      "MediaAsset"
+    ]
+  ],
+  "primaryColour": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "supportContact": [
+    [
+      "object",
+      "ContactProfile"
+    ]
+  ],
+  "channelKind": [
+    [
+      "enum",
+      "ChannelKindCode"
+    ]
+  ],
+  "channelUrl": [
+    [
+      "datatype",
+      "anyURI"
+    ]
+  ],
+  "templateKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "templateBody": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "placeholderName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "question": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "answer": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "displayOrder": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "contentState": [
+    [
+      "enum",
+      "ContentStateCode"
+    ]
+  ],
+  "contentTemplate": [
+    [
+      "object",
+      "ContentTemplate"
+    ]
+  ],
+  "notificationChannel": [
+    [
+      "enum",
+      "NotificationChannelCode"
+    ]
+  ],
+  "notificationState": [
+    [
+      "enum",
+      "NotificationStateCode"
+    ]
+  ],
+  "applicationName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "applicationVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "installationState": [
+    [
+      "enum",
+      "InstallationStateCode"
+    ]
+  ],
+  "metricName": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "metricVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "metricExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "expressionLanguage": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "scopeClass": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "metricDefinition": [
+    [
+      "object",
+      "MetricDefinition"
+    ]
+  ],
+  "recommendationText": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "modelReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "proposedCommand": [
+    [
+      "object",
+      "RemoteCommand"
+    ]
+  ],
+  "recommendation": [
+    [
+      "object",
+      "AssistantRecommendation"
+    ]
+  ],
+  "approver": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "approvalDecision": [
+    [
+      "enum",
+      "ApprovalDecisionCode"
+    ]
+  ],
+  "approvedCommand": [
+    [
+      "object",
+      "RemoteCommand"
+    ]
+  ],
+  "stateProperty": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "previousState": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "nextState": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "transitionedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "discountBasis": [
+    [
+      "enum",
+      "DiscountBasisCode"
+    ]
+  ],
+  "discountMagnitude": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "affectedDimension": [
+    [
+      "enum",
+      "AffectedDimensionCode"
+    ]
+  ],
+  "discountOrder": [
+    [
+      "datatype",
+      "integer"
+    ]
+  ],
+  "minimumCharge": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumCharge": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumBillableQuantity": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "tierLowerBound": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "tierUpperBound": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "tierUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "tierMode": [
+    [
+      "enum",
+      "TierModeCode"
+    ]
+  ],
+  "freezeMoment": [
+    [
+      "enum",
+      "FreezeMomentCode"
+    ]
+  ],
+  "minimumSessionCharge": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "maximumSessionCharge": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "minimumConnectionDurationSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "minimumConnectionEnergyKWh": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "optimizedPriceThreshold": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "optimizedUnitPrice": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "optimizedLabel": [
+    [
+      "datatype",
+      "langString"
+    ]
+  ],
+  "evaluationVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "initialHoldAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "incrementalHoldAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "holdTimeoutSeconds": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "failureAction": [
+    [
+      "enum",
+      "FailureActionCode"
+    ]
+  ],
+  "fundingParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "subsidyBasis": [
+    [
+      "enum",
+      "SubsidyBasisCode"
+    ]
+  ],
+  "subsidyValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "subsidyPolicyVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "integrationConnection": [
+    [
+      "object",
+      "IntegrationConnection"
+    ]
+  ],
+  "accountHolder": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "accountReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "accountScheme": [
+    [
+      "enum",
+      "AccountSchemeCode"
+    ]
+  ],
+  "maskedAccount": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "bankCountryCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "bankIdentifierCode": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "merchantAccountReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "routePriority": [
+    [
+      "datatype",
+      "integer"
+    ]
+  ],
+  "payoutAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "payoutState": [
+    [
+      "enum",
+      "PayoutStateCode"
+    ]
+  ],
+  "payoutReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "confirmedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "settlementBatch": [
+    [
+      "object",
+      "SettlementBatch"
+    ]
+  ],
+  "batchTotal": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "totalCabinetPowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "moduleSizeKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "sharingMode": [
+    [
+      "enum",
+      "SharingModeCode"
+    ]
+  ],
+  "servedUnit": [
+    [
+      "object",
+      "ChargingUnit"
+    ]
+  ],
+  "allocatedModules": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "allocatedPowerKW": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "profilePurpose": [
+    [
+      "enum",
+      "ProfilePurposeCode"
+    ]
+  ],
+  "profileKind": [
+    [
+      "enum",
+      "ProfileKindCode"
+    ]
+  ],
+  "recurrenceKind": [
+    [
+      "enum",
+      "RecurrenceKindCode"
+    ]
+  ],
+  "protocolTransaction": [
+    [
+      "object",
+      "ProtocolTransaction"
+    ]
+  ],
+  "relativeAnchor": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "mappingMode": [
+    [
+      "enum",
+      "MappingModeCode"
+    ]
+  ],
+  "unknownUnitStatus": [
+    [
+      "enum",
+      "UnknownUnitStatusCode"
+    ]
+  ],
+  "periodicMeterUpdates": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "phasePowerFormula": [
+    [
+      "enum",
+      "PhasePowerFormulaCode"
+    ]
+  ],
+  "overrideExplicitTariff": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "apiClient": [
+    [
+      "object",
+      "ApiClient"
+    ]
+  ],
+  "tokenFingerprint": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "accessTokenState": [
+    [
+      "enum",
+      "AccessTokenStateCode"
+    ]
+  ],
+  "revokedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "billingType": [
+    [
+      "enum",
+      "BillingTypeCode"
+    ]
+  ],
+  "renewalIntervalMonths": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "freeRenewalPeriods": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "feePerPersonalStation": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "applyBaseFeePerStation": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "usageBillingThreshold": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "accumulateChargingCharges": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "replacementPlan": [
+    [
+      "object",
+      "SubscriptionPlan"
+    ]
+  ],
+  "taxBasis": [
+    [
+      "enum",
+      "TaxBasisCode"
+    ]
+  ],
+  "taxRatePercent": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "offsetSeconds": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "correctionMethod": [
+    [
+      "datatype",
+      "string"
+    ]
+  ]
+}

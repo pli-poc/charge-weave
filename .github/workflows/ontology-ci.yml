@@ -1,0 +1,113 @@
+name: Ontology CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ontology-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  verify:
+    name: ${{ matrix.gate }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gate: Generated artifact consistency
+            id: generated
+            command: python tools/check_generated.py
+          - gate: SHACL and reference graph
+            id: shacl
+            command: python tools/validate.py --meta
+          - gate: SPARQL business rules
+            id: business
+            command: python tools/test_business.py
+          - gate: Structural boundary cases
+            id: boundaries
+            command: python tools/test_boundaries.py
+          - gate: Input trust boundaries
+            id: trust
+            command: python tools/test_trust_boundary.py
+          - gate: OWL consistency and satisfiability
+            id: owl
+            command: python tools/check_owl.py
+          - gate: Coverage formats and competency queries
+            id: release
+            command: python tools/check_release.py
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-ci.txt
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        if: matrix.id == 'owl'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements-ci.txt
+      - name: Run verification gate
+        run: ${{ matrix.command }}
+      - name: Save fresh gate reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reports-${{ matrix.id }}
+          path: reports/*
+          if-no-files-found: warn
+          retention-days: 30
+
+  package:
+    name: Verified ontology package
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-ci.txt
+      - run: python -m pip install -r requirements-ci.txt
+      - name: Collect reports from this workflow run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: reports-*
+          path: reports
+          merge-multiple: true
+      - name: Package verified source, schemas and reports
+        run: python tools/package.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chargeweave-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
+      - name: Explain evidence boundary
+        run: |
+          echo 'All technical ontology gates passed for this commit.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'The package includes the source, generated schemas, fresh reports and a commit/hash manifest.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Independent business-domain completeness is still an open audit.' >> "$GITHUB_STEP_SUMMARY"

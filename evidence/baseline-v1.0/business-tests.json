@@ -1,0 +1,553 @@
+{
+  "scope": "Isolated adverse fixture for every SHACL-SPARQL business rule; structural shapes excluded in these unit tests.",
+  "passed": 109,
+  "total": 109,
+  "elapsedSeconds": 105.11,
+  "tests": [
+    {
+      "rule": "B001",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B002",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B003",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B004",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B005",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B006",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B007",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B008",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B009",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B010",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B011",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B012",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B013",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B014",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B015",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B016",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B017",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B018",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B019",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B020",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B021",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B022",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B023",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B024",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B025",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B026",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B027",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B028",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B029",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B030",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B031",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B032",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B033",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B034",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B035",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B036",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B037",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B038",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B039",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B040",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B041",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B042",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B043",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B044",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B045",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B046",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B047",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B048",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B049",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B050",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B051",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B052",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B053",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B054",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B055",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B056",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B057",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B058",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B059",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B060",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B061",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B062",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B063",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B064",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B065",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B066",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B067",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B068",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B069",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B070",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B071",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B072",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B073",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B074",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B075",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B076",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B077",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B078",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B079",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B080",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B081",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B082",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B083",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B084",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B085",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B086",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B087",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B088",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B089",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B090",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B091",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B092",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B093",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B094",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B095",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B096",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B097",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B098",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B099",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B100",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B101",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B102",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B103",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B104",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B105",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B106",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B107",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B108",
+      "passed": true,
+      "reportedExpectedShape": true
+    },
+    {
+      "rule": "B109",
+      "passed": true,
+      "reportedExpectedShape": true
+    }
+  ]
+}

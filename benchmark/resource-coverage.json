@@ -1,0 +1,1134 @@
+[
+  {
+    "family": "admins",
+    "classes": [
+      "Principal",
+      "AccessGrant",
+      "SecurityRole",
+      "Permission"
+    ],
+    "source": "https://developers.ampeco.com/reference/adminread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PrincipalShape",
+      "AccessGrantShape",
+      "SecurityRoleShape",
+      "PermissionShape"
+    ]
+  },
+  {
+    "family": "authorizations",
+    "classes": [
+      "AuthorizationRequest",
+      "AuthorizationDecision"
+    ],
+    "source": "https://developers.ampeco.com/reference/authorizationreadv2_1",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "AuthorizationRequestShape",
+      "AuthorizationDecisionShape"
+    ]
+  },
+  {
+    "family": "booking requests",
+    "classes": [
+      "BookingRequest"
+    ],
+    "source": "https://developers.ampeco.com/reference/bookingrequestcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "BookingRequestShape"
+    ]
+  },
+  {
+    "family": "bookings",
+    "classes": [
+      "Booking"
+    ],
+    "source": "https://developers.ampeco.com/reference/bookingread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "BookingShape"
+    ]
+  },
+  {
+    "family": "cdrs",
+    "classes": [
+      "ChargeDetailRecord"
+    ],
+    "source": "https://developers.ampeco.com/reference/cdrread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargeDetailRecordShape"
+    ]
+  },
+  {
+    "family": "charge point downtime periods",
+    "classes": [
+      "DowntimePeriod",
+      "OperationalPeriod"
+    ],
+    "source": "https://developers.ampeco.com/reference/chargepointdowntimeperiodcreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "DowntimePeriodShape",
+      "OperationalPeriodShape"
+    ]
+  },
+  {
+    "family": "charge point models",
+    "classes": [
+      "EquipmentModel",
+      "DeviceCapability"
+    ],
+    "source": "https://developers.ampeco.com/reference/chargepointmodelcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "EquipmentModelShape",
+      "DeviceCapabilityShape"
+    ]
+  },
+  {
+    "family": "charge point vendors",
+    "classes": [
+      "Manufacturer"
+    ],
+    "source": "https://developers.ampeco.com/reference/chargepointvendorcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ManufacturerShape"
+    ]
+  },
+  {
+    "family": "charge points",
+    "classes": [
+      "ChargingStation",
+      "ProtocolEndpoint",
+      "ConfigurationVariable",
+      "HardwareStatusObservation",
+      "ConnectionObservation"
+    ],
+    "source": "https://developers.ampeco.com/reference/chargepointcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingStationShape",
+      "ProtocolEndpointShape",
+      "ConfigurationVariableShape",
+      "HardwareStatusObservationShape",
+      "ConnectionObservationShape"
+    ]
+  },
+  {
+    "family": "circuits",
+    "classes": [
+      "LoadControlGroup",
+      "ControlGroupMembership",
+      "PowerConstraint",
+      "PhaseCurrentConstraint"
+    ],
+    "source": "https://developers.ampeco.com/reference/circuitcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "LoadControlGroupShape",
+      "ControlGroupMembershipShape",
+      "PowerConstraintShape",
+      "PhaseCurrentConstraintShape"
+    ]
+  },
+  {
+    "family": "configuration templates",
+    "classes": [
+      "ConfigurationTemplate",
+      "ConfigurationTemplateEntry",
+      "TemplateApplication"
+    ],
+    "source": "https://developers.ampeco.com/reference/configurationtemplatevariablecreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ConfigurationTemplateShape",
+      "ConfigurationTemplateEntryShape",
+      "TemplateApplicationShape"
+    ]
+  },
+  {
+    "family": "consent-history",
+    "classes": [
+      "ConsentDecision"
+    ],
+    "source": "https://developers.ampeco.com/reference/consenthistorylisting",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ConsentDecisionShape"
+    ]
+  },
+  {
+    "family": "consents",
+    "classes": [
+      "ConsentDecision"
+    ],
+    "source": "https://developers.ampeco.com/reference/consentscreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ConsentDecisionShape"
+    ]
+  },
+  {
+    "family": "contact details",
+    "classes": [
+      "ContactProfile"
+    ],
+    "source": "https://developers.ampeco.com/reference/contactdetailsread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ContactProfileShape"
+    ]
+  },
+  {
+    "family": "currencies",
+    "classes": [
+      "Currency"
+    ],
+    "source": "https://developers.ampeco.com/reference/currencycreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CurrencyShape"
+    ]
+  },
+  {
+    "family": "currency rates",
+    "classes": [
+      "ExchangeRate"
+    ],
+    "source": "https://developers.ampeco.com/reference/createcurrencyrate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ExchangeRateShape"
+    ]
+  },
+  {
+    "family": "custom fees",
+    "classes": [
+      "CustomFee"
+    ],
+    "source": "https://developers.ampeco.com/reference/customfeeread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CustomFeeShape"
+    ]
+  },
+  {
+    "family": "downtime period notices",
+    "classes": [
+      "ServiceNotice"
+    ],
+    "source": "https://developers.ampeco.com/reference/postdowntimeperiodnotice",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ServiceNoticeShape"
+    ]
+  },
+  {
+    "family": "electricity meters",
+    "classes": [
+      "ElectricityMeter",
+      "MeterObservation"
+    ],
+    "source": "https://developers.ampeco.com/reference/electricitymetercreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ElectricityMeterShape",
+      "MeterObservationShape"
+    ]
+  },
+  {
+    "family": "electricity rates",
+    "classes": [
+      "ElectricityPriceSchedule",
+      "ElectricityPriceInterval",
+      "EnergyMix"
+    ],
+    "source": "https://developers.ampeco.com/reference/electricityratecreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ElectricityPriceScheduleShape",
+      "ElectricityPriceIntervalShape",
+      "EnergyMixShape"
+    ]
+  },
+  {
+    "family": "energy coupon templates",
+    "classes": [
+      "EnergyCouponTemplate"
+    ],
+    "source": "https://developers.ampeco.com/reference/energycoupontemplatecreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "EnergyCouponTemplateShape"
+    ]
+  },
+  {
+    "family": "energy coupons",
+    "classes": [
+      "EnergyCoupon",
+      "CouponConsumption"
+    ],
+    "source": "https://developers.ampeco.com/reference/energycouponcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "EnergyCouponShape",
+      "CouponConsumptionShape"
+    ]
+  },
+  {
+    "family": "evse downtime periods",
+    "classes": [
+      "DowntimePeriod"
+    ],
+    "source": "https://developers.ampeco.com/reference/evsedowntimeperiodcreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "DowntimePeriodShape"
+    ]
+  },
+  {
+    "family": "evses",
+    "classes": [
+      "ChargingUnit",
+      "Connector"
+    ],
+    "source": "https://developers.ampeco.com/reference/evsecreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingUnitShape",
+      "ConnectorShape"
+    ]
+  },
+  {
+    "family": "faqs",
+    "classes": [
+      "HelpArticle"
+    ],
+    "source": "https://developers.ampeco.com/reference/faqcreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "HelpArticleShape"
+    ]
+  },
+  {
+    "family": "firmware versions",
+    "classes": [
+      "FirmwareRelease"
+    ],
+    "source": "https://developers.ampeco.com/reference/firmwareversionread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "FirmwareReleaseShape"
+    ]
+  },
+  {
+    "family": "flexibility activation requests",
+    "classes": [
+      "FlexibilityActivation",
+      "FlexibilityDelivery"
+    ],
+    "source": "https://developers.ampeco.com/reference/getflexibilityactivationrequest",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "FlexibilityActivationShape",
+      "FlexibilityDeliveryShape"
+    ]
+  },
+  {
+    "family": "flexibility assets",
+    "classes": [
+      "FlexibilityAsset",
+      "EnergyForecast"
+    ],
+    "source": "https://developers.ampeco.com/reference/createflexibilityasset",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "FlexibilityAssetShape",
+      "EnergyForecastShape"
+    ]
+  },
+  {
+    "family": "id tags",
+    "classes": [
+      "ChargingCredential",
+      "CredentialAssignment"
+    ],
+    "source": "https://developers.ampeco.com/reference/idtagcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingCredentialShape",
+      "CredentialAssignmentShape"
+    ]
+  },
+  {
+    "family": "installation and maintenance companies",
+    "classes": [
+      "LegalEntity",
+      "PartyRole"
+    ],
+    "source": "https://developers.ampeco.com/reference/createinstallationandmaintenancecompany",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "LegalEntityShape",
+      "PartyRoleShape"
+    ]
+  },
+  {
+    "family": "installer jobs",
+    "classes": [
+      "InstallationJob"
+    ],
+    "source": "https://developers.ampeco.com/reference/createinstallerjob",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "InstallationJobShape"
+    ]
+  },
+  {
+    "family": "invoices",
+    "classes": [
+      "Invoice",
+      "InvoiceLine",
+      "FiscalizationAttempt"
+    ],
+    "source": "https://developers.ampeco.com/reference/invoiceread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "InvoiceShape",
+      "InvoiceLineShape",
+      "FiscalizationAttemptShape"
+    ]
+  },
+  {
+    "family": "issues",
+    "classes": [
+      "Issue",
+      "RecoveryAttempt"
+    ],
+    "source": "https://developers.ampeco.com/reference/issuescreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "IssueShape",
+      "RecoveryAttemptShape"
+    ]
+  },
+  {
+    "family": "locations",
+    "classes": [
+      "ChargingSite",
+      "PublicListing",
+      "ChargingArea"
+    ],
+    "source": "https://developers.ampeco.com/reference/locationcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingSiteShape",
+      "PublicListingShape",
+      "ChargingAreaShape"
+    ]
+  },
+  {
+    "family": "ocpi commands",
+    "classes": [
+      "RoamingCommand"
+    ],
+    "source": "https://developers.ampeco.com/reference/ocpicommandread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingCommandShape"
+    ]
+  },
+  {
+    "family": "operators",
+    "classes": [
+      "OperatorService"
+    ],
+    "source": "https://developers.ampeco.com/reference/operatorread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "OperatorServiceShape"
+    ]
+  },
+  {
+    "family": "parking spaces",
+    "classes": [
+      "ParkingSpace"
+    ],
+    "source": "https://developers.ampeco.com/reference/createparkingspace",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ParkingSpaceShape"
+    ]
+  },
+  {
+    "family": "partner contracts",
+    "classes": [
+      "ServiceAgreement",
+      "RevenueShareRule",
+      "CostAllocationRule",
+      "SettlementOverride"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnercontractcreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ServiceAgreementShape",
+      "RevenueShareRuleShape",
+      "CostAllocationRuleShape",
+      "SettlementOverrideShape"
+    ]
+  },
+  {
+    "family": "partner invite access policies",
+    "classes": [
+      "SiteAccessPolicy"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnerinviteaccesspolicydelete",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SiteAccessPolicyShape"
+    ]
+  },
+  {
+    "family": "partner invite corporate billing policies",
+    "classes": [
+      "CorporateBillingPolicy",
+      "CorporateChargerRule"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicycreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CorporateBillingPolicyShape",
+      "CorporateChargerRuleShape"
+    ]
+  },
+  {
+    "family": "partner invite corporate billing policy snapshots",
+    "classes": [
+      "CorporateBillingSnapshot"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicysnapshotread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CorporateBillingSnapshotShape"
+    ]
+  },
+  {
+    "family": "partner invites",
+    "classes": [
+      "PartnerInvitation"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnerinvitecreatev2_0",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PartnerInvitationShape"
+    ]
+  },
+  {
+    "family": "partner invoices",
+    "classes": [
+      "Invoice",
+      "CreditNote"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnerinvoiceread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "InvoiceShape",
+      "CreditNoteShape"
+    ]
+  },
+  {
+    "family": "partner settlement reports",
+    "classes": [
+      "SettlementBatch",
+      "SettlementItem"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnersettlementreportread",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SettlementBatchShape",
+      "SettlementItemShape"
+    ]
+  },
+  {
+    "family": "partners",
+    "classes": [
+      "LegalEntity",
+      "PartyRole",
+      "ServiceAgreement"
+    ],
+    "source": "https://developers.ampeco.com/reference/partnercreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "LegalEntityShape",
+      "PartyRoleShape",
+      "ServiceAgreementShape"
+    ]
+  },
+  {
+    "family": "payment terminals",
+    "classes": [
+      "PaymentTerminal"
+    ],
+    "source": "https://developers.ampeco.com/reference/createpaymentterminalv1_1",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PaymentTerminalShape"
+    ]
+  },
+  {
+    "family": "provisioning certificate",
+    "classes": [
+      "ProvisioningCertificate",
+      "PlugAndChargeEnrollment"
+    ],
+    "source": "https://developers.ampeco.com/reference/createpcid",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ProvisioningCertificateShape",
+      "PlugAndChargeEnrollmentShape"
+    ]
+  },
+  {
+    "family": "receipts",
+    "classes": [
+      "Receipt"
+    ],
+    "source": "https://developers.ampeco.com/reference/receiptread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ReceiptShape"
+    ]
+  },
+  {
+    "family": "reimbursement policies",
+    "classes": [
+      "ReimbursementPolicy"
+    ],
+    "source": "https://developers.ampeco.com/reference/reimbursementpolicycreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ReimbursementPolicyShape"
+    ]
+  },
+  {
+    "family": "reimbursement records",
+    "classes": [
+      "ReimbursementRecord"
+    ],
+    "source": "https://developers.ampeco.com/reference/reimbursementrecordread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ReimbursementRecordShape"
+    ]
+  },
+  {
+    "family": "reimbursement reports",
+    "classes": [
+      "ReimbursementReport"
+    ],
+    "source": "https://developers.ampeco.com/reference/reimbursementreportread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ReimbursementReportShape"
+    ]
+  },
+  {
+    "family": "reservations",
+    "classes": [
+      "Reservation"
+    ],
+    "source": "https://developers.ampeco.com/reference/reservationread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ReservationShape"
+    ]
+  },
+  {
+    "family": "revenues & expenses",
+    "classes": [
+      "RatedLine",
+      "SettlementItem",
+      "LedgerAccount",
+      "JournalLine"
+    ],
+    "source": "https://developers.ampeco.com/reference/revenuesv1_2listing",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RatedLineShape",
+      "SettlementItemShape",
+      "LedgerAccountShape",
+      "JournalLineShape"
+    ]
+  },
+  {
+    "family": "rfids",
+    "classes": [
+      "ChargingCredential"
+    ],
+    "source": "https://developers.ampeco.com/reference/rfidtagcreatedeprecated",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingCredentialShape"
+    ]
+  },
+  {
+    "family": "roaming connections",
+    "classes": [
+      "RoamingConnection",
+      "RoamingModuleAgreement"
+    ],
+    "source": "https://developers.ampeco.com/reference/getroamingconnection",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingConnectionShape",
+      "RoamingModuleAgreementShape"
+    ]
+  },
+  {
+    "family": "roaming cpos",
+    "classes": [
+      "RoamingParty"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingcporead",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingPartyShape"
+    ]
+  },
+  {
+    "family": "roaming emsps",
+    "classes": [
+      "RoamingParty"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingemspcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingPartyShape"
+    ]
+  },
+  {
+    "family": "roaming operators",
+    "classes": [
+      "RoamingParty",
+      "RoamingTariffFilter"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingoperatorread",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingPartyShape",
+      "RoamingTariffFilterShape"
+    ]
+  },
+  {
+    "family": "roaming platforms",
+    "classes": [
+      "RoamingNetwork"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingplatformreaddeprecated",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "RoamingNetworkShape"
+    ]
+  },
+  {
+    "family": "roaming providers",
+    "classes": [
+      "LegalEntity",
+      "RoamingNetwork"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingprovidercreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "LegalEntityShape",
+      "RoamingNetworkShape"
+    ]
+  },
+  {
+    "family": "roaming tariffs",
+    "classes": [
+      "TariffVersion",
+      "RoamingTariffMapping"
+    ],
+    "source": "https://developers.ampeco.com/reference/roamingtariffread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "TariffVersionShape",
+      "RoamingTariffMappingShape"
+    ]
+  },
+  {
+    "family": "security event logs",
+    "classes": [
+      "SecurityEvent"
+    ],
+    "source": "https://developers.ampeco.com/reference/securityeventlogreaddeprecated",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SecurityEventShape"
+    ]
+  },
+  {
+    "family": "security events",
+    "classes": [
+      "SecurityEvent"
+    ],
+    "source": "https://developers.ampeco.com/reference/securityeventread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SecurityEventShape"
+    ]
+  },
+  {
+    "family": "sessions",
+    "classes": [
+      "ChargingSession",
+      "ChargingInterval",
+      "SessionEvent",
+      "UsageAggregate"
+    ],
+    "source": "https://developers.ampeco.com/reference/sessionread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ChargingSessionShape",
+      "ChargingIntervalShape",
+      "SessionEventShape",
+      "UsageAggregateShape"
+    ]
+  },
+  {
+    "family": "settings",
+    "classes": [
+      "PlatformSetting"
+    ],
+    "source": "https://developers.ampeco.com/reference/settingslisting",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PlatformSettingShape"
+    ]
+  },
+  {
+    "family": "sharing invites",
+    "classes": [
+      "SharingInvitation"
+    ],
+    "source": "https://developers.ampeco.com/reference/sharinginviteread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SharingInvitationShape"
+    ]
+  },
+  {
+    "family": "sub operators",
+    "classes": [
+      "OperatorService",
+      "ManagementDelegation"
+    ],
+    "source": "https://developers.ampeco.com/reference/suboperatorcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "OperatorServiceShape",
+      "ManagementDelegationShape"
+    ]
+  },
+  {
+    "family": "subscription-plans",
+    "classes": [
+      "SubscriptionPlan",
+      "BenefitAllowance"
+    ],
+    "source": "https://developers.ampeco.com/reference/subscriptionplancreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SubscriptionPlanShape",
+      "BenefitAllowanceShape"
+    ]
+  },
+  {
+    "family": "subscriptions",
+    "classes": [
+      "Subscription",
+      "BillingPeriod"
+    ],
+    "source": "https://developers.ampeco.com/reference/subscriptionread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "SubscriptionShape",
+      "BillingPeriodShape"
+    ]
+  },
+  {
+    "family": "tariffs",
+    "classes": [
+      "Tariff",
+      "TariffVersion",
+      "PriceComponent",
+      "PricingCondition",
+      "TariffSet",
+      "TariffAssignment",
+      "ScheduledTariffChange"
+    ],
+    "source": "https://developers.ampeco.com/reference/tariffcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "TariffShape",
+      "TariffVersionShape",
+      "PriceComponentShape",
+      "PricingConditionShape",
+      "TariffSetShape",
+      "TariffAssignmentShape",
+      "ScheduledTariffChangeShape"
+    ]
+  },
+  {
+    "family": "tax identification numbers",
+    "classes": [
+      "TaxIdentifier"
+    ],
+    "source": "https://developers.ampeco.com/reference/taxidentificationnumbercreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "TaxIdentifierShape"
+    ]
+  },
+  {
+    "family": "taxes",
+    "classes": [
+      "TaxRule",
+      "TaxDetermination"
+    ],
+    "source": "https://developers.ampeco.com/reference/taxcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "TaxRuleShape",
+      "TaxDeterminationShape"
+    ]
+  },
+  {
+    "family": "templates",
+    "classes": [
+      "ContentTemplate"
+    ],
+    "source": "https://developers.ampeco.com/reference/templateslisting",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "ContentTemplateShape"
+    ]
+  },
+  {
+    "family": "terms and policies",
+    "classes": [
+      "PolicyDocument"
+    ],
+    "source": "https://developers.ampeco.com/reference/termsandpoliciesread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PolicyDocumentShape"
+    ]
+  },
+  {
+    "family": "top-up packages",
+    "classes": [
+      "TopUpOffer"
+    ],
+    "source": "https://developers.ampeco.com/reference/topuppackagcreate",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "TopUpOfferShape"
+    ]
+  },
+  {
+    "family": "transactions",
+    "classes": [
+      "PaymentIntent",
+      "PaymentAuthorization",
+      "PaymentCapture"
+    ],
+    "source": "https://developers.ampeco.com/reference/transactionscreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "PaymentIntentShape",
+      "PaymentAuthorizationShape",
+      "PaymentCaptureShape"
+    ]
+  },
+  {
+    "family": "user-devices",
+    "classes": [
+      "UserDevice"
+    ],
+    "source": "https://developers.ampeco.com/reference/userdeviceread",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "UserDeviceShape"
+    ]
+  },
+  {
+    "family": "user-groups",
+    "classes": [
+      "CustomerGroup",
+      "GroupMembership"
+    ],
+    "source": "https://developers.ampeco.com/reference/usergroupcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CustomerGroupShape",
+      "GroupMembershipShape"
+    ]
+  },
+  {
+    "family": "users",
+    "classes": [
+      "CustomerAccount",
+      "Person",
+      "BillingProfile",
+      "PaymentInstrument"
+    ],
+    "source": "https://developers.ampeco.com/reference/usercreatev1_1",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "CustomerAccountShape",
+      "PersonShape",
+      "BillingProfileShape",
+      "PaymentInstrumentShape"
+    ]
+  },
+  {
+    "family": "utilities",
+    "classes": [
+      "LegalEntity",
+      "PartyRole"
+    ],
+    "source": "https://developers.ampeco.com/reference/createutility",
+    "evidenceLevel": "Navigation only; body retrieval failed",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "LegalEntityShape",
+      "PartyRoleShape"
+    ]
+  },
+  {
+    "family": "vehicles",
+    "classes": [
+      "Vehicle",
+      "VehicleAssignment",
+      "VehicleTelemetry"
+    ],
+    "source": "https://developers.ampeco.com/reference/vehicletelemetryreadingcreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "VehicleShape",
+      "VehicleAssignmentShape",
+      "VehicleTelemetryShape"
+    ]
+  },
+  {
+    "family": "vendor error codes",
+    "classes": [
+      "VendorFaultDefinition"
+    ],
+    "source": "https://developers.ampeco.com/reference/vendorerrorcodecreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "VendorFaultDefinitionShape"
+    ]
+  },
+  {
+    "family": "vouchers",
+    "classes": [
+      "Voucher",
+      "VoucherRedemption"
+    ],
+    "source": "https://developers.ampeco.com/reference/vouchercreate",
+    "evidenceLevel": "Retrieved body",
+    "mappingStatus": "Represented",
+    "shapeCoverage": [
+      "VoucherShape",
+      "VoucherRedemptionShape"
+    ]
+  }
+]

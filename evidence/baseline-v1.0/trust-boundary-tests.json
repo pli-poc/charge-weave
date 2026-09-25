@@ -1,0 +1,34 @@
+{
+  "passed": 7,
+  "total": 7,
+  "tests": [
+    {
+      "test": "invent-controlled-property",
+      "passed": true
+    },
+    {
+      "test": "invent-transition",
+      "passed": true
+    },
+    {
+      "test": "invent-command-kind",
+      "passed": true
+    },
+    {
+      "test": "change-controlled-individual",
+      "passed": true
+    },
+    {
+      "test": "reference-does-not-redefine-schema",
+      "passed": true
+    },
+    {
+      "test": "empty-graph-rejected",
+      "passed": true
+    },
+    {
+      "test": "untyped-payload-rejected",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+cd:EventSubscriptionVocabularyShape a sh:NodeShape ;
+    sh:property cd:EventSubscriptionVocabularyPropertyShape ;
+    sh:targetClass cd:EventSubscription .
+
+cd:RemoteCommandVocabularyShape a sh:NodeShape ;
+    sh:property cd:RemoteCommandVocabularyPropertyShape ;
+    sh:targetClass cd:RemoteCommand .
+
+cd:EventSubscriptionVocabularyPropertyShape sh:class cd:EventKind ;
+    sh:path cd:eventType .
+
+cd:RemoteCommandVocabularyPropertyShape sh:class cd:CommandKind ;
+    sh:path cd:commandKind .
+

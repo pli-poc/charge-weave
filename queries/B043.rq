@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:Invoice . ?this cd:netAmount ?net; cd:taxAmount ?tax; cd:grossAmount ?gross. {SELECT ?this (SUM(?n) AS ?ns) (SUM(?t) AS ?ts) (SUM(?g) AS ?gs) WHERE {?this cd:invoiceLine ?l. ?l cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g} GROUP BY ?this} FILTER(?net != ?ns || ?tax != ?ts || ?gross != ?gs) }

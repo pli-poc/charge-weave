@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?delivery ?subscription ?event ?attempt ?state WHERE {?delivery a cd:EventDelivery; cd:eventSubscription ?subscription; cd:sourceEvent ?event; cd:attemptNumber ?attempt; cd:deliveryState ?state}

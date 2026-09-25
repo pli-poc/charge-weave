@@ -1,0 +1,794 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+cd:action_Actions_Assign_Stations a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Actions / Assign Stations"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/assigninstallerjobchargepoints> ;
+    cd:operationTarget cd:InstallationJob .
+
+cd:action_Actions_Change_Status a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Actions / Change Status"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/changeinstallerjobstatus> ;
+    cd:operationTarget cd:InstallationJob .
+
+cd:action_Business_Partner_Settlement_Report_Update_External_ID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner Settlement Report / Update External ID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnersettlementreportupdateexternalid> ;
+    cd:operationTarget cd:SettlementBatch .
+
+cd:action_Business_Partner_invite_corporate_billing_policy_Disable a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner invite corporate billing policy / Disable"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicydisable> ;
+    cd:operationTarget cd:CorporateBillingPolicy .
+
+cd:action_Business_Partner_invite_corporate_billing_policy_Enable a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner invite corporate billing policy / Enable"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnerinvitecorporatebillingpolicyenable> ;
+    cd:operationTarget cd:CorporateBillingPolicy .
+
+cd:action_Business_Partner_invoice_Issue_credit_note a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner invoice / Issue credit note"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnerinvoiceissuecreditnote> ;
+    cd:operationTarget cd:Invoice .
+
+cd:action_Business_Partner_invoice_Update_external_ID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner invoice / Update external ID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnerinvoiceupdateexternalid> ;
+    cd:operationTarget cd:Invoice .
+
+cd:action_Business_Partner_set_custom_fields a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner / set custom fields"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnersetcustomfieldsv1_0> ;
+    cd:operationTarget cd:LegalEntity .
+
+cd:action_Business_Partner_settlement_report_Issue_partner_invoice a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner settlement report / Issue partner invoice"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnersettlementreportissuepartnerinvoice> ;
+    cd:operationTarget cd:SettlementBatch .
+
+cd:action_Business_Partner_settlement_report_set_custom_fields a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Business Partner settlement report / set custom fields"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/partnersettlementreportsetcustomfields> ;
+    cd:operationTarget cd:SettlementBatch .
+
+cd:action_Certificate_Issue_an_EMAID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Certificate / Issue an EMAID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/certificateissueanemaid> ;
+    cd:operationTarget cd:PlugAndChargeEnrollment .
+
+cd:action_Certificate_Reissue_an_EMAID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Certificate / Reissue an EMAID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/certificatereissueanemaid> ;
+    cd:operationTarget cd:PlugAndChargeEnrollment .
+
+cd:action_Charging_Unit_Start_Charging_with_Charging_Unit_ID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Charging Unit / Start Charging with Charging Unit ID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/evsestartchargingwithevseid> ;
+    cd:operationTarget cd:ChargingUnit .
+
+cd:action_Charging_Unit_Trigger_Message a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Charging Unit / Trigger Message"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/evsetriggermessage> ;
+    cd:operationTarget cd:ChargingUnit .
+
+cd:action_Charging_Units_Bulk_Assign_Tariff_Groups a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Charging Units / Bulk Assign Tariff Groups"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/evsebulkassigntariffgroups> ;
+    cd:operationTarget cd:TariffSet .
+
+cd:action_Configuration_Template_Apply_to_Stations a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Configuration Template / Apply to Stations"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/configurationtemplateapplytochargepoints> ;
+    cd:operationTarget cd:ConfigurationTemplate .
+
+cd:action_Configuration_Template_Bulk_Create_Variables a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Configuration Template / Bulk Create Variables"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/configurationtemplatebulkcreatevariables> ;
+    cd:operationTarget cd:ConfigurationTemplate .
+
+cd:action_Custom_Tariff_Filters_Set_Pricing_Data a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Custom Tariff Filters / Set Pricing Data"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/updatecustomtarifffiltertariff> ;
+    cd:operationTarget cd:RoamingTariffFilter .
+
+cd:action_Customer_Activate_subscription a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Activate subscription"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/useractivatesubscription> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Add_Balance a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Add Balance"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/useraddbalance> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Apply_Custom_Fee a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Apply Custom Fee"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userapplycustomfee> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Cancel_subscription a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Cancel subscription"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/usercancelsubscription> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Change_Status a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Change Status"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userchangestatus> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Clear_subscription_amount_due a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Clear subscription amount due"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userclearsubscriptionamountdue> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Export_All_Private_Data a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Export All Private Data"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userexportallprivatedata> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Get_total_eligible_coupon_energy a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Get total eligible coupon energy"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/usergettotaleligiblecouponenergy> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Redeem_Voucher a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Redeem Voucher"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userredeemvoucher> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Revoke_marketing_consent a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Revoke marketing consent"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/userrevokemarketingconsent> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Customer_Subscribe_to_plan a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Customer / Subscribe to plan"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/usersubscribetoplan> ;
+    cd:operationTarget cd:CustomerAccount .
+
+cd:action_Electricity_Meter_Report_Consumption a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Electricity Meter / Report Consumption"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/electricitymeterreportconsumption> ;
+    cd:operationTarget cd:ElectricityMeter .
+
+cd:action_Energy_coupon_Cancel a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Energy coupon / Cancel"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/energycouponcancel> ;
+    cd:operationTarget cd:EnergyCoupon .
+
+cd:action_Energy_coupon_Redeem_code a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Energy coupon / Redeem code"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/energycouponredeemcode> ;
+    cd:operationTarget cd:EnergyCoupon .
+
+cd:action_Energy_coupon_template_Deactivate a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Energy coupon template / Deactivate"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/energycoupontemplatedeactivate> ;
+    cd:operationTarget cd:EnergyCouponTemplate .
+
+cd:action_Flexibility_Asset_Change_Status a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Flexibility Asset / Change Status"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/changeflexibilityassetstatus> ;
+    cd:operationTarget cd:FlexibilityAsset .
+
+cd:action_Flexibility_Asset_Create_Activation_Request a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Flexibility Asset / Create Activation Request"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/flexibilityassetcreateactivationrequest> ;
+    cd:operationTarget cd:FlexibilityAsset .
+
+cd:action_Invoice_Update_External_ID a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Invoice / Update External ID"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/invoiceupdateexternalid> ;
+    cd:operationTarget cd:Invoice .
+
+cd:action_Load_Control_Group_Attach_Station a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Attach Station"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitattachchargepoint> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Detach_Station a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Detach Station"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitdetachchargepoint> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Set_Load_Control_Group_SoC_Priority a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Set Load Control Group SoC Priority"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitsetcircuitsocpriority> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Set_Session_Boost a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Set Session Boost"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitsetsessionboost> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Set_Session_Priority a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Set Session Priority"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitsetsessionpriority> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Set_Station_Charging_Unit_Priority a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Set Station Charging Unit Priority"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitsetchargepointevsepriority> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Load_Control_Group_Set_Station_Priority a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Load Control Group / Set Station Priority"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/circuitsetchargepointpriority> ;
+    cd:operationTarget cd:LoadControlGroup .
+
+cd:action_Location_Check_Booking_Availability a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Location / Check Booking Availability"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/locationcheckbookingavailability> ;
+    cd:operationTarget cd:ChargingSite .
+
+cd:action_Notifications_Resend_Failed a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Notifications / Resend Failed"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationsresendfailed> ;
+    cd:operationTarget cd:EventSubscription .
+
+cd:action_Parking_Space_Update_occupancy_status a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Parking Space / Update occupancy status"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/parkingspaceupdateoccupancystatus> ;
+    cd:operationTarget cd:ParkingSpace .
+
+cd:action_Payment_Intent_Create_Pre_Authorization a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Payment Intent / Create Pre-Authorization"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/transactioncreatepreauthorization> ;
+    cd:operationTarget cd:PaymentIntent .
+
+cd:action_Payment_Intent_Issue_Invoice a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Payment Intent / Issue Invoice"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/transactionissueinvoice> ;
+    cd:operationTarget cd:PaymentIntent .
+
+cd:action_Payment_Intent_Resend_Invoice a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Payment Intent / Resend Invoice"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/transactionresendinvoice> ;
+    cd:operationTarget cd:PaymentIntent .
+
+cd:action_Payment_Intent_Update_Payment_Reference a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Payment Intent / Update Payment Reference"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/transactionupdatepaymentreference> ;
+    cd:operationTarget cd:PaymentIntent .
+
+cd:action_Payment_terminal_set_custom_fields a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Payment terminal / set custom fields"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/paymentterminalsetcustomfields> ;
+    cd:operationTarget cd:PaymentTerminal .
+
+cd:action_Reimbursement_record_Issue_credit a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Reimbursement record / Issue credit"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/reimbursementrecordissuecredit> ;
+    cd:operationTarget cd:ReimbursementRecord .
+
+cd:action_Reimbursement_report_Regenerate a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Reimbursement report / Regenerate"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/reimbursementreportregenerate> ;
+    cd:operationTarget cd:ReimbursementReport .
+
+cd:action_Reservation_Cancel a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Reservation / Cancel"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/reservationcancel> ;
+    cd:operationTarget cd:Reservation .
+
+cd:action_Roaming_EMSP_Assign_Business_Partner a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Roaming EMSP / Assign Business Partner"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/roamingemspassignpartner> ;
+    cd:operationTarget cd:RoamingParty .
+
+cd:action_Session_Assign_to_user a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Session / Assign to user"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/sessionassigntouser> ;
+    cd:operationTarget cd:ChargingSession .
+
+cd:action_Session_Change_tariff a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Session / Change tariff"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/sessionchangetariff> ;
+    cd:operationTarget cd:ChargingSession .
+
+cd:action_Session_Retry_Payment a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Session / Retry Payment"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/sessionretrypayment> ;
+    cd:operationTarget cd:ChargingSession .
+
+cd:action_Session_set_custom_fields a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Session / set custom fields"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/sessionsetcustomfields> ;
+    cd:operationTarget cd:ChargingSession .
+
+cd:action_Station_Change_Availability a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Change Availability"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointchangeavailability> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Change_Owner a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Change Owner"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointchangeowner> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Change_sharing_code a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Change sharing code"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointchangesharingcode> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Charging_Unit_Unlock a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Charging Unit / Unlock"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointevseunlock> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Check_Tariff_Display_Support a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Check Tariff Display Support"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointchecktariffdisplaysupport> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Clear_Charging_Profile a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Clear Charging Profile"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointclearchargingprofile> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Clear_cache a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Clear cache"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointclearcache> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Delete_Certificate a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Delete Certificate"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointdeletecertificate> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Disconnect a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Disconnect"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointdisconnect> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Get_Composite_Schedule a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Get Composite Schedule"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointgetcompositeschedule> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Get_Diagnostics a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Get Diagnostics"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointgetdiagnostics> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Get_Installed_Certificate_IDs a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Get Installed Certificate IDs"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointgetinstalledcertificateids> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Get_Local_List_Version a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Get Local List Version"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointgetlocallistversion> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Get_Security_Log a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Get Security Log"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointgetsecuritylog> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Install_Certificate a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Install Certificate"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointinstallcertificate> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Move_Charging_Units_to_Satellite a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Move Charging Units to Satellite"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointmoveevsestosatellite> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Reserve a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Reserve"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointreserve> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Reset a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Reset"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointreset> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Reset_Security_Profile a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Reset Security Profile"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointresetsecurityprofile> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Send_Custom_OCPP_Command a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Send Custom OCPP Command"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsendcustomocpp> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Send_Data_Transfer a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Send Data Transfer"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsenddatatransfer> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Set_Charging_Profile a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Set Charging Profile"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsetchargingprofile> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Set_Configuration a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Set Configuration"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsetconfiguration> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Set_Security_Profile a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Set Security Profile"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsetsecurityprofile> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Start_Charging_Session a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Start Charging Session"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointstartchargingsession> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Start_Charging_Session_Without_Charging_Unit a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Start Charging Session Without Charging Unit"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointstartchargingsessionwithoutevse> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Stop_Charging_Session a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Stop Charging Session"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointstopchargingsession> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Sync_configuration a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Sync configuration"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointsyncconfiguration> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Trigger_Message_Station a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Trigger Message Station"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointtriggermessagechargepoint> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Station_Update_Firmware a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Station / Update Firmware"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/chargepointupdatefirmware> ;
+    cd:operationTarget cd:ChargingStation .
+
+cd:action_Subscription_billing_period_Retry_payment a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Subscription billing period / Retry payment"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/subscriptionbillingperiodretrypayment> ;
+    cd:operationTarget cd:BillingPeriod .
+
+cd:action_Subscription_plan_Replace a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Subscription plan / Replace"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/subscriptionplanreplace> ;
+    cd:operationTarget cd:SubscriptionPlan .
+
+cd:action_Tariff_Set_Display_Information a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Tariff / Set Display Information"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/tariffsetdisplayinformation> ;
+    cd:operationTarget cd:TariffVersion .
+
+cd:action_Taxes_Validate_VAT_number a skos:Concept,
+        cd:CommandKind ;
+    skos:prefLabel "Taxes / Validate VAT number"@en ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/validatetaxnumber> ;
+    cd:operationTarget cd:TaxIdentifier .
+
+cd:event_AuthorizationNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "AuthorizationNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_BootNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "BootNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_ChargePointChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "ChargePointChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_ChargePointSyncConfigurationNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "ChargePointSyncConfigurationNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_CircuitConsumptionNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "CircuitConsumptionNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_DiagnosticsStatusNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "DiagnosticsStatusNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_FirmwareStatusNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "FirmwareStatusNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_HardwareStatusNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "HardwareStatusNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_LocationChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "LocationChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_NetworkStatusNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "NetworkStatusNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_PartnerChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "PartnerChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_SecurityEventNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "SecurityEventNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_SessionMeterValuesNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "SessionMeterValuesNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_SessionStartStopNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "SessionStartStopNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_SessionUpdateNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "SessionUpdateNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_SubOperatorChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "SubOperatorChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_TariffChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "TariffChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_TariffGroupChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "TariffGroupChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_UserChangedNotification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "UserChangedNotification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_authorization_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "authorization.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_cdr_received a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "cdr.received" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_chargePoint_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "chargePoint.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_chargePoint_dataTransferReceived a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "chargePoint.dataTransferReceived" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_chargingProfile_applied a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "chargingProfile.applied" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_circuit_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "circuit.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_corporateBilling_limitReached a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "corporateBilling.limitReached" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_evse_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "evse.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_idTag_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "idTag.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_installerJob_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "installerJob.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_issue_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "issue.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_parkingSpace_occupancyStatus_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "parkingSpace.occupancyStatus.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_partnerInviteCorporateBillingPolicy_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "partnerInviteCorporateBillingPolicy.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_partnerInvite_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "partnerInvite.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_partner_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "partner.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_reservation_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "reservation.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_roamingPlatform_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "roamingPlatform.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_session_chargingPeriod_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "session.chargingPeriod.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_session_start_stop_notification a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "session.start.stop.notification" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_settlementReport_created a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "settlementReport.created" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_transaction_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "transaction.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_userBalance_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "userBalance.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_user_invoiceDetails_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "user.invoiceDetails.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_user_paymentMethod_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "user.paymentMethod.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_user_subscriptionChanged a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "user.subscriptionChanged" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:event_user_subscription_changed a skos:Concept,
+        cd:EventKind ;
+    skos:prefLabel "user.subscription.changed" ;
+    cd:benchmarkSource <https://developers.ampeco.com/reference/notificationssubscribe> .
+
+cd:EventKind a owl:Class ;
+    rdfs:subClassOf skos:Concept .
+
+cd:CommandKind a owl:Class ;
+    rdfs:subClassOf skos:Concept .
+

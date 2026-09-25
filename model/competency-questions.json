@@ -1,0 +1,122 @@
+[
+  {
+    "id": "CQ01",
+    "question": "Station inventory",
+    "query": "queries/CQ01.rq"
+  },
+  {
+    "id": "CQ02",
+    "question": "Session and wire transaction identity",
+    "query": "queries/CQ02.rq"
+  },
+  {
+    "id": "CQ03",
+    "question": "Authorization evidence",
+    "query": "queries/CQ03.rq"
+  },
+  {
+    "id": "CQ04",
+    "question": "Selected immutable tariff",
+    "query": "queries/CQ04.rq"
+  },
+  {
+    "id": "CQ05",
+    "question": "Rating components",
+    "query": "queries/CQ05.rq"
+  },
+  {
+    "id": "CQ06",
+    "question": "Invoice totals and currency",
+    "query": "queries/CQ06.rq"
+  },
+  {
+    "id": "CQ07",
+    "question": "Payment collection evidence",
+    "query": "queries/CQ07.rq"
+  },
+  {
+    "id": "CQ08",
+    "question": "Wallet balance from movements",
+    "query": "queries/CQ08.rq"
+  },
+  {
+    "id": "CQ09",
+    "question": "Ledger balance per currency",
+    "query": "queries/CQ09.rq"
+  },
+  {
+    "id": "CQ10",
+    "question": "Corporate payer allocation and policy version",
+    "query": "queries/CQ10.rq"
+  },
+  {
+    "id": "CQ11",
+    "question": "Home reimbursement rate evidence",
+    "query": "queries/CQ11.rq"
+  },
+  {
+    "id": "CQ12",
+    "question": "Coupon consumption including reversals",
+    "query": "queries/CQ12.rq"
+  },
+  {
+    "id": "CQ13",
+    "question": "Roaming negotiation",
+    "query": "queries/CQ13.rq"
+  },
+  {
+    "id": "CQ14",
+    "question": "Meter evidence and quality",
+    "query": "queries/CQ14.rq"
+  },
+  {
+    "id": "CQ15",
+    "question": "Power schedule and observed application",
+    "query": "queries/CQ15.rq"
+  },
+  {
+    "id": "CQ16",
+    "question": "Flexibility request evidence",
+    "query": "queries/CQ16.rq"
+  },
+  {
+    "id": "CQ17",
+    "question": "Recovery audit",
+    "query": "queries/CQ17.rq"
+  },
+  {
+    "id": "CQ18",
+    "question": "Availability denominator",
+    "query": "queries/CQ18.rq"
+  },
+  {
+    "id": "CQ19",
+    "question": "Consent evidence by versioned document",
+    "query": "queries/CQ19.rq"
+  },
+  {
+    "id": "CQ20",
+    "question": "Delegated access scope",
+    "query": "queries/CQ20.rq"
+  },
+  {
+    "id": "CQ21",
+    "question": "Event delivery status",
+    "query": "queries/CQ21.rq"
+  },
+  {
+    "id": "CQ22",
+    "question": "Assisted action approval binding",
+    "query": "queries/CQ22.rq"
+  },
+  {
+    "id": "CQ23",
+    "question": "Payout obligation",
+    "query": "queries/CQ23.rq"
+  },
+  {
+    "id": "CQ24",
+    "question": "Documented state transition",
+    "query": "queries/CQ24.rq"
+  }
+]

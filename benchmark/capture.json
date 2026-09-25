@@ -1,0 +1,15 @@
+{
+  "capturedDate": "2026-09-25",
+  "displayedVersion": "v3.253.0",
+  "source": "https://developers.ampeco.com/reference/authorization-1",
+  "navigationLinks": 777,
+  "candidateSidebarEntries": 652,
+  "excludedSectionHeadings": 1,
+  "operationPages": 651,
+  "uniqueOperationURLs": 651,
+  "authenticationOperationsIncluded": 2,
+  "resourceFamilies": 83,
+  "endpointEntries": 651,
+  "scope": "All endpoint entries in the observed public sidebar; no claim of private feature or field-level API equivalence",
+  "navigationSha256": "a9b6e4be5af2d073ba970fb7a8f8c8c7d2e70972e9dc2294421c506fb645d7b0"
+}

@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ChargingSession . ?this cd:sessionState ?s; cd:authorizationDecision/cd:decision ?d. FILTER(?s IN (cd:sessionState_Active,cd:sessionState_Suspended,cd:sessionState_Completed) && ?d != cd:decision_Accepted) }

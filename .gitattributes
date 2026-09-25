@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.ttl text
+*.owl text
+*.jsonld text
+*.rq text

@@ -1,0 +1,33 @@
+from runtime import *
+import json
+questions=[
+('Station inventory','SELECT ?station (COUNT(DISTINCT ?unit) AS ?units) (COUNT(DISTINCT ?connector) AS ?connectors) WHERE {?station a cd:ChargingStation. OPTIONAL {?unit a cd:ChargingUnit; cd:station ?station. OPTIONAL {?connector a cd:Connector; cd:chargingUnit ?unit}}} GROUP BY ?station'),
+('Session and wire transaction identity','SELECT ?session ?state ?transaction ?wireId ?boot WHERE {?session a cd:ChargingSession; cd:sessionState ?state. ?transaction a cd:ProtocolTransaction; cd:session ?session; cd:transactionIdentifier ?wireId; cd:bootEpoch ?boot}'),
+('Authorization evidence','SELECT ?session ?decision ?reason ?method WHERE {?session a cd:ChargingSession; cd:authorizationDecision ?d. ?d cd:decision ?decision; cd:reasonCode ?reason; cd:authorizationRequest/cd:authorizationMethod ?method}'),
+('Selected immutable tariff','SELECT ?session ?tariff ?version ?currency WHERE {?session a cd:ChargingSession; cd:selectedTariff ?tariff. ?tariff cd:versionTag ?version; cd:currency/cd:currencyCode ?currency}'),
+('Rating components','SELECT ?calculation ?line ?dimension ?quantity ?price ?gross WHERE {?calculation a cd:RatingCalculation; cd:ratedLine ?line. ?line cd:priceComponent/cd:priceDimension ?dimension; cd:quantityValue ?quantity; cd:unitPrice ?price; cd:grossAmount ?gross}'),
+('Invoice totals and currency','SELECT ?invoice ?number ?net ?tax ?gross ?currency WHERE {?invoice a cd:Invoice; cd:invoiceNumber ?number; cd:netAmount ?net; cd:taxAmount ?tax; cd:grossAmount ?gross; cd:currency/cd:currencyCode ?currency}'),
+('Payment collection evidence','SELECT ?intent ?requested ?capture ?captured ?state WHERE {?intent a cd:PaymentIntent; cd:requestedAmount ?requested. ?capture a cd:PaymentCapture; cd:paymentIntent ?intent; cd:capturedAmount ?captured; cd:captureState ?state}'),
+('Wallet balance from movements','SELECT ?wallet (SUM(?amount) AS ?balance) WHERE {?entry a cd:WalletEntry; cd:wallet ?wallet; cd:signedAmount ?amount} GROUP BY ?wallet'),
+('Ledger balance per currency','SELECT ?journal ?currency (SUM(?amount) AS ?balance) WHERE {?journal a cd:Journal; cd:journalLine ?line. ?line cd:currency ?currency; cd:signedAmount ?amount} GROUP BY ?journal ?currency'),
+('Corporate payer allocation and policy version','SELECT ?allocation ?session ?version ?sponsor ?driver WHERE {?allocation a cd:CorporateCostAllocation; cd:session ?session; cd:sponsorAmount ?sponsor; cd:driverAmount ?driver; cd:corporateSnapshot/cd:policyVersion ?version}'),
+('Home reimbursement rate evidence','SELECT ?record ?session ?rate ?amount ?source WHERE {?record a cd:ReimbursementRecord; cd:session ?session; cd:reimbursementRate ?rate; cd:reimbursementAmount ?amount; cd:reimbursementPolicy/cd:reimbursementRateSource ?source}'),
+('Coupon consumption including reversals','SELECT ?coupon (SUM(?signed) AS ?netEnergy) WHERE {?use a cd:CouponConsumption; cd:energyCoupon ?coupon; cd:consumedEnergyKWh ?energy. BIND(IF(EXISTS {?use cd:reversalOf ?original},-?energy,?energy) AS ?signed)} GROUP BY ?coupon'),
+('Roaming negotiation','SELECT ?connection ?protocol ?version ?module WHERE {?connection a cd:RoamingConnection; cd:protocolName ?protocol; cd:protocolVersion ?version; cd:moduleAgreement ?module}'),
+('Meter evidence and quality','SELECT ?reading ?value ?unit ?direction ?quality WHERE {?reading a cd:MeterObservation; cd:numericValue ?value; cd:unitIri ?unit; cd:energyDirection ?direction; cd:quality ?quality}'),
+('Power schedule and observed application','SELECT ?schedule ?period ?start ?end ?application ?state WHERE {?schedule a cd:ChargingSchedule; cd:schedulePeriod ?period. ?period cd:periodStart ?start; cd:periodEnd ?end. ?application a cd:ScheduleApplication; cd:chargingSchedule ?schedule; cd:applicationState ?state}'),
+('Flexibility request evidence','SELECT ?activation ?asset ?power ?state WHERE {?activation a cd:FlexibilityActivation; cd:flexibilityAsset ?asset; cd:requestedPowerKW ?power; cd:activationState ?state}'),
+('Recovery audit','SELECT ?issue ?attempt ?command ?outcome WHERE {?attempt a cd:RecoveryAttempt; cd:issue ?issue; cd:command ?command; cd:recoveryResult ?outcome}'),
+('Availability denominator','SELECT ?asset ?eligible ?unavailable ?fraction WHERE {?result a cd:AvailabilityResult; cd:observedAsset ?asset; cd:eligibleSeconds ?eligible; cd:unavailableSeconds ?unavailable; cd:availabilityFraction ?fraction}'),
+('Consent evidence by versioned document','SELECT ?customer ?document ?purpose ?choice ?time WHERE {?decision a cd:ConsentDecision; cd:customer ?customer; cd:policyDocument ?document; cd:consentPurpose ?purpose; cd:consentChoice ?choice; cd:decidedAt ?time}'),
+('Delegated access scope','SELECT ?grant ?principal ?role ?scope ?state WHERE {?grant a cd:AccessGrant; cd:grantee ?principal; cd:securityRole ?role; cd:scopeRecord ?scope; cd:grantState ?state}'),
+('Event delivery status','SELECT ?delivery ?subscription ?event ?attempt ?state WHERE {?delivery a cd:EventDelivery; cd:eventSubscription ?subscription; cd:sourceEvent ?event; cd:attemptNumber ?attempt; cd:deliveryState ?state}'),
+('Assisted action approval binding','SELECT ?approval ?recommendation ?proposed ?approved ?decision WHERE {?approval a cd:ActionApproval; cd:recommendation ?recommendation; cd:approvalDecision ?decision. ?recommendation cd:proposedCommand ?proposed. OPTIONAL {?approval cd:approvedCommand ?approved}}'),
+('Payout obligation','SELECT ?payout ?beneficiary ?amount ?currency ?state WHERE {?payout a cd:Payout; cd:beneficiary ?beneficiary; cd:payoutAmount ?amount; cd:currency/cd:currencyCode ?currency; cd:payoutState ?state}'),
+('Documented state transition','SELECT ?change ?target ?property ?from ?to ?time WHERE {?change a cd:StateTransition; cd:targetRecord ?target; cd:stateProperty ?property; cd:previousState ?from; cd:nextState ?to; cd:transitionedAt ?time}')]
+prefix='PREFIX cd: <https://example.org/charge-domain#>\n';rows=[]
+for i,(question,query) in enumerate(questions,1):
+ key=f'CQ{i:02d}';(P/f'queries/{key}.rq').write_text(prefix+query+'\n');rows.append({'id':key,'question':question,'query':f'queries/{key}.rq'})
+(P/'model/competency-questions.json').write_text(json.dumps(rows,indent=2))
+(P/'docs/competency-questions.md').write_text('# Executable competency questions\n\nLoad the complete ontology and the reference graph together. These queries inspect the domain; they are not violation queries. Tenant authorization must constrain production query datasets. The test suite requires each to return at least one row on the integration fixture.\n\n| Query | Question |\n|---|---|\n'+'\n'.join('| '+r['id']+' | '+r['question']+' |' for r in rows)+'\n')
+print(len(rows),'competency queries')

@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?grant ?principal ?role ?scope ?state WHERE {?grant a cd:AccessGrant; cd:grantee ?principal; cd:securityRole ?role; cd:scopeRecord ?scope; cd:grantState ?state}

@@ -1,0 +1,346 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:ChargingInterval a owl:Class ;
+    rdfs:label "Charging Interval"@en ;
+    rdfs:comment "Segment of a session with phase of activity and interval usage."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:averagePowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntervalKindCode ;
+            owl:onProperty cd:intervalKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:exportedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:importedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:ProtocolTransaction a owl:Class ;
+    rdfs:label "Protocol Transaction"@en ;
+    rdfs:comment "Wire-protocol transaction scoped to endpoint and boot epoch; may be one fragment of a session."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:startedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:transactionIdentifier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:protocolVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolEndpoint ;
+            owl:onProperty cd:endpoint ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:endedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:bootEpoch ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:SessionEvent a owl:Class ;
+    rdfs:label "Session Event"@en ;
+    rdfs:comment "Ordered lifecycle evidence for a canonical session, with a source envelope."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SessionEventKindCode ;
+            owl:onProperty cd:sessionEventKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:sequenceNumber ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:UsageAggregate a owl:Class ;
+    rdfs:label "Usage Aggregate"@en ;
+    rdfs:comment "Reproducible time-bucketed usage with direction and aggregation policy."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:aggregationMethod ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:importedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:scopeRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:exportedEnergyKWh ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:ChargeDetailRecord a owl:Class ;
+    rdfs:label "Charge Detail Record"@en ;
+    rdfs:comment "Immutable commercial usage record; can represent local or external charging and correction lineage."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:exportedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RecordOriginCode ;
+            owl:onProperty cd:recordOrigin ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExternalIdentifier ;
+            owl:onProperty cd:externalIdentifier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:period ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:recipient ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargeDetailRecord ;
+            owl:onProperty cd:correctionOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:netAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:selectedTariff ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:receivedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:importedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:artifact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:issuer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:recordVersion ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:ClockAssessment a owl:Class ;
+    rdfs:label "Clock Assessment"@en ;
+    rdfs:comment "Recorded clock offset applied to a source timestamp, including method and evidence; preserves the unmodified source time."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:offsetSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:assessedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:correctionMethod ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:MeterObservation a owl:Class ;
+    rdfs:label "Meter Observation"@en ;
+    rdfs:comment "One measured value preserving measurand, unit, phase, direction and measurement quality."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:QualityCode ;
+            owl:onProperty cd:quality ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EnergyDirectionCode ;
+            owl:onProperty cd:energyDirection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:numericValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SignedMeterEvidence ;
+            owl:onProperty cd:signedEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:measurandCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:observedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricityMeter ;
+            owl:onProperty cd:meter ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReadingKindCode ;
+            owl:onProperty cd:readingKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:phaseCode ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:SessionEndEvidence a owl:Class ;
+    rdfs:label "Session End Evidence"@en ;
+    rdfs:comment "Basis and quality of session finalization, allowing physical or administrative closure to be distinguished."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:finalizedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FinalizationBasisCode ;
+            owl:onProperty cd:finalizationBasis ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CompletenessCode ;
+            owl:onProperty cd:completeness ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MeterObservation ;
+            owl:onProperty cd:finalMeterObservation ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:SignedMeterEvidence a owl:Class ;
+    rdfs:label "Signed Meter Evidence"@en ;
+    rdfs:comment "Cryptographically signed metering evidence with signing identity and verification result."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:verifiedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CertificateRecord ;
+            owl:onProperty cd:signingCertificate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:signatureAlgorithm ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SignatureVerificationCode ;
+            owl:onProperty cd:signatureVerification ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:artifact ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:SourceEvent a owl:Class ;
+    rdfs:label "Source Event"@en ;
+    rdfs:comment "Immutable source envelope identifying event time, receipt time, producer and retained payload."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:eventKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:payloadEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:sequenceNumber ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:schemaVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:sourceSystem ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:receivedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ClockAssessment ;
+            owl:onProperty cd:clockAssessment ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:correlationId ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:occurredAt ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+
+cd:ChargingSession a owl:Class ;
+    rdfs:label "Charging Session"@en ;
+    rdfs:comment "Canonical charging lifecycle independent of wire transactions and financial settlement."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CommercialModeCode ;
+            owl:onProperty cd:commercialMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SessionStateCode ;
+            owl:onProperty cd:sessionState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:exportedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:selectedTariff ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Reservation ;
+            owl:onProperty cd:reservation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:startedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AuthorizationDecision ;
+            owl:onProperty cd:authorizationDecision ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:endedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:importedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SessionEndEvidence ;
+            owl:onProperty cd:endEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "sessions-metering" .
+

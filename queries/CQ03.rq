@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?session ?decision ?reason ?method WHERE {?session a cd:ChargingSession; cd:authorizationDecision ?d. ?d cd:decision ?decision; cd:reasonCode ?reason; cd:authorizationRequest/cd:authorizationMethod ?method}

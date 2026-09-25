@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?payout ?beneficiary ?amount ?currency ?state WHERE {?payout a cd:Payout; cd:beneficiary ?beneficiary; cd:payoutAmount ?amount; cd:currency/cd:currencyCode ?currency; cd:payoutState ?state}

@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?schedule ?period ?start ?end ?application ?state WHERE {?schedule a cd:ChargingSchedule; cd:schedulePeriod ?period. ?period cd:periodStart ?start; cd:periodEnd ?end. ?application a cd:ScheduleApplication; cd:chargingSchedule ?schedule; cd:applicationState ?state}

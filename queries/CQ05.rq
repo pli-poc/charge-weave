@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?calculation ?line ?dimension ?quantity ?price ?gross WHERE {?calculation a cd:RatingCalculation; cd:ratedLine ?line. ?line cd:priceComponent/cd:priceDimension ?dimension; cd:quantityValue ?quantity; cd:unitPrice ?price; cd:grossAmount ?gross}

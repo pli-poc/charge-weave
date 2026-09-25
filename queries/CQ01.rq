@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?station (COUNT(DISTINCT ?unit) AS ?units) (COUNT(DISTINCT ?connector) AS ?connectors) WHERE {?station a cd:ChargingStation. OPTIONAL {?unit a cd:ChargingUnit; cd:station ?station. OPTIONAL {?connector a cd:Connector; cd:chargingUnit ?unit}}} GROUP BY ?station

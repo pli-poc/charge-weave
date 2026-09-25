@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?change ?target ?property ?from ?to ?time WHERE {?change a cd:StateTransition; cd:targetRecord ?target; cd:stateProperty ?property; cd:previousState ?from; cd:nextState ?to; cd:transitionedAt ?time}

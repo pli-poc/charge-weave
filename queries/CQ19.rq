@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?customer ?document ?purpose ?choice ?time WHERE {?decision a cd:ConsentDecision; cd:customer ?customer; cd:policyDocument ?document; cd:consentPurpose ?purpose; cd:consentChoice ?choice; cd:decidedAt ?time}

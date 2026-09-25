@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?allocation ?session ?version ?sponsor ?driver WHERE {?allocation a cd:CorporateCostAllocation; cd:session ?session; cd:sponsorAmount ?sponsor; cd:driverAmount ?driver; cd:corporateSnapshot/cd:policyVersion ?version}

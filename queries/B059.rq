@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:EnergyCoupon . ?this cd:energyAllowanceKWh ?limit. {SELECT ?this (SUM(?signed) AS ?total) WHERE {?c cd:energyCoupon ?this; a cd:CouponConsumption; cd:consumedEnergyKWh ?e. BIND(IF(EXISTS {?c cd:reversalOf ?r},-?e,?e) AS ?signed)} GROUP BY ?this} FILTER(?total > ?limit || ?total < 0) }

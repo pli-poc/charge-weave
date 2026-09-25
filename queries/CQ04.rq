@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?session ?tariff ?version ?currency WHERE {?session a cd:ChargingSession; cd:selectedTariff ?tariff. ?tariff cd:versionTag ?version; cd:currency/cd:currencyCode ?currency}

@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?activation ?asset ?power ?state WHERE {?activation a cd:FlexibilityActivation; cd:flexibilityAsset ?asset; cd:requestedPowerKW ?power; cd:activationState ?state}

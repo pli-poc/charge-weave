@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?coupon (SUM(?signed) AS ?netEnergy) WHERE {?use a cd:CouponConsumption; cd:energyCoupon ?coupon; cd:consumedEnergyKWh ?energy. BIND(IF(EXISTS {?use cd:reversalOf ?original},-?energy,?energy) AS ?signed)} GROUP BY ?coupon

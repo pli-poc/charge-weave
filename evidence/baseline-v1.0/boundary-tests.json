@@ -1,0 +1,286 @@
+{
+  "passed": 50,
+  "total": 50,
+  "tests": [
+    {
+      "test": "deferred-roaming-base-at-configuration",
+      "kind": "business-boundary",
+      "rule": "B035",
+      "passed": true
+    },
+    {
+      "test": "resolved-base-at-rating",
+      "kind": "business-boundary",
+      "rule": "B109",
+      "passed": true
+    },
+    {
+      "test": "same-tenant-reference",
+      "kind": "business-boundary",
+      "rule": "B001",
+      "passed": true
+    },
+    {
+      "test": "id-reuse-across-tenants",
+      "kind": "business-boundary",
+      "rule": "B002",
+      "passed": true
+    },
+    {
+      "test": "terminal-area-only",
+      "kind": "business-boundary",
+      "rule": "B014",
+      "passed": true
+    },
+    {
+      "test": "equal-current-bound",
+      "kind": "business-boundary",
+      "rule": "B019",
+      "passed": true
+    },
+    {
+      "test": "local-free-no-credential",
+      "kind": "business-boundary",
+      "rule": "B021",
+      "passed": true
+    },
+    {
+      "test": "tariff-start-inclusive",
+      "kind": "business-boundary",
+      "rule": "B027",
+      "passed": true
+    },
+    {
+      "test": "clock-skew-assessed",
+      "kind": "business-boundary",
+      "rule": "B029",
+      "passed": true
+    },
+    {
+      "test": "roaming-cdr-without-local-session",
+      "kind": "business-boundary",
+      "rule": "B031",
+      "passed": true
+    },
+    {
+      "test": "free-tariff-no-components",
+      "kind": "business-boundary",
+      "rule": "B034",
+      "passed": true
+    },
+    {
+      "test": "negative-wholesale-price",
+      "kind": "business-boundary",
+      "rule": "B041",
+      "passed": true
+    },
+    {
+      "test": "decimal-monetary-equality",
+      "kind": "business-boundary",
+      "rule": "B042",
+      "passed": true
+    },
+    {
+      "test": "aggregate-refund-at-cap",
+      "kind": "business-boundary",
+      "rule": "B048",
+      "passed": true
+    },
+    {
+      "test": "capture-at-authorized-intent",
+      "kind": "business-boundary",
+      "rule": "B049",
+      "passed": true
+    },
+    {
+      "test": "journal-balanced-same-currency",
+      "kind": "business-boundary",
+      "rule": "B050",
+      "passed": true
+    },
+    {
+      "test": "corporate-split-at-total",
+      "kind": "business-boundary",
+      "rule": "B052",
+      "passed": true
+    },
+    {
+      "test": "coupon-reversal-offset",
+      "kind": "business-boundary",
+      "rule": "B059",
+      "passed": true
+    },
+    {
+      "test": "coupon-start-inclusive",
+      "kind": "business-boundary",
+      "rule": "B060",
+      "passed": true
+    },
+    {
+      "test": "adjacent-schedule-periods",
+      "kind": "business-boundary",
+      "rule": "B063",
+      "passed": true
+    },
+    {
+      "test": "availability-exact-quarter",
+      "kind": "business-boundary",
+      "rule": "B066",
+      "passed": true
+    },
+    {
+      "test": "matching-approved-command",
+      "kind": "business-boundary",
+      "rule": "B071",
+      "passed": true
+    },
+    {
+      "test": "completion-proves-success",
+      "kind": "business-boundary",
+      "rule": "B073",
+      "passed": true
+    },
+    {
+      "test": "allowed-session-transition",
+      "kind": "business-boundary",
+      "rule": "B074",
+      "passed": true
+    },
+    {
+      "test": "inclusive-one-day-reimbursement",
+      "kind": "business-boundary",
+      "rule": "B079",
+      "passed": true
+    },
+    {
+      "test": "overnight-local-window",
+      "kind": "business-boundary",
+      "rule": "B082",
+      "passed": true
+    },
+    {
+      "test": "full-percentage-discount",
+      "kind": "business-boundary",
+      "rule": "B091",
+      "passed": true
+    },
+    {
+      "test": "exact-power-module-allocation",
+      "kind": "business-boundary",
+      "rule": "B098",
+      "passed": true
+    },
+    {
+      "test": "adjacent-price-tiers",
+      "kind": "business-boundary",
+      "rule": "B102",
+      "passed": true
+    },
+    {
+      "test": "zero-payment-hold",
+      "kind": "business-boundary",
+      "rule": "B103",
+      "passed": true
+    },
+    {
+      "test": "missing-session-start",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "multiple-session-states",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "undefined-session-state",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "wrong-unit-class",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "datetime-without-timezone",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "literal-object-reference",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "negative-import-energy",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "float-money-rejected",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "invalid-currency-code",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "invalid-country-code",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "impossible-latitude",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "impossible-longitude",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "invalid-digest",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "untagged-translation",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "zero-revision",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "zero-billing-step",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "weekday-out-of-range",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "fraction-above-one",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "malformed-calendar-date",
+      "kind": "structural-adverse",
+      "passed": true
+    },
+    {
+      "test": "malformed-local-time",
+      "kind": "structural-adverse",
+      "passed": true
+    }
+  ]
+}

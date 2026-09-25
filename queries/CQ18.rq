@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?asset ?eligible ?unavailable ?fraction WHERE {?result a cd:AvailabilityResult; cd:observedAsset ?asset; cd:eligibleSeconds ?eligible; cd:unavailableSeconds ?unavailable; cd:availabilityFraction ?fraction}

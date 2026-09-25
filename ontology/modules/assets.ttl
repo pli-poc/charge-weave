@@ -1,0 +1,322 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:Connector a owl:Class ;
+    rdfs:label "Connector"@en ;
+    rdfs:comment "Physical vehicle interface attached to a charging unit."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:ratedCurrentA ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumPowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:connectorStandard ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:connectorReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:ratedVoltageV ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ConnectorFormatCode ;
+            owl:onProperty cd:connectorFormat ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:ElectricityMeter a owl:Class ;
+    rdfs:label "Electricity Meter"@en ;
+    rdfs:comment "Meter measuring site or charging energy; sensor role is separate from commercial evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:measurandCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integration ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:meterSerial ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CalibrationRecord ;
+            owl:onProperty cd:calibration ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:OwnershipTransfer a owl:Class ;
+    rdfs:label "Ownership Transfer"@en ;
+    rdfs:comment "Effective-time transfer of asset ownership retaining previous accountability."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:transferEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:transferredAsset ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:effectiveAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:nextOwner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:previousOwner ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:DeviceCapability a owl:Class ;
+    rdfs:label "Device Capability"@en ;
+    rdfs:comment "Capability assertion with source, firmware context and verification status."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FirmwareRelease ;
+            owl:onProperty cd:firmware ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VerificationStateCode ;
+            owl:onProperty cd:verificationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:capabilityCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:protocolVersion ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:ElectricalConnection a owl:Class ;
+    rdfs:label "Electrical Connection"@en ;
+    rdfs:comment "Physical attachment of charging equipment to a circuit and mapped conductors."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricalCircuit ;
+            owl:onProperty cd:circuit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:voltageV ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:connectedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:conductorCode ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:EquipmentModel a owl:Class ;
+    rdfs:label "Equipment Model"@en ;
+    rdfs:comment "Versioned hardware model and its declared electrical and communication capabilities."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:modelRevision ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DeviceCapability ;
+            owl:onProperty cd:capability ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Manufacturer ;
+            owl:onProperty cd:manufacturer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:modelCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:manual ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:Manufacturer a owl:Class ;
+    rdfs:label "Manufacturer"@en ;
+    rdfs:comment "Organization manufacturing charging equipment; identified separately from models."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:manufacturerParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:manufacturerName ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:CalibrationRecord a owl:Class ;
+    rdfs:label "Calibration Record"@en ;
+    rdfs:comment "Metrology certification and validity information, without assuming compliance from a label."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:jurisdictionCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:meterSerial ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VerificationStateCode ;
+            owl:onProperty cd:verificationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:certificateEvidence ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:ChargingUnit a owl:Class ;
+    rdfs:label "Charging Unit"@en ;
+    rdfs:comment "Logical EVSE capable of supplying one vehicle at a time; may expose multiple alternative connectors."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumPowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricalConnection ;
+            owl:onProperty cd:electricalConnection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:bookable ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CurrentKindCode ;
+            owl:onProperty cd:currentKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:minimumCurrentA ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CalibrationRecord ;
+            owl:onProperty cd:calibration ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:physicalReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:reservable ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffSet ;
+            owl:onProperty cd:tariffSet ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumCurrentA ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:ElectricalCircuit a owl:Class ;
+    rdfs:label "Electrical Circuit"@en ;
+    rdfs:comment "Physical circuit topology and conductor ratings; distinct from virtual allocation groups."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:ratedCurrentA ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:phaseRotation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricalCircuit ;
+            owl:onProperty cd:parentCircuit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:protectiveDeviceReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PhaseSystemCode ;
+            owl:onProperty cd:phaseSystem ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+
+cd:ChargingStation a owl:Class ;
+    rdfs:label "Charging Station"@en ;
+    rdfs:comment "Managed physical assembly that may host multiple charging units or use a gateway."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:ownerAccount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:commissionedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:stationName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:nationalStationIdentifier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolEndpoint ;
+            owl:onProperty cd:protocolEndpoint ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementPolicy ;
+            owl:onProperty cd:reimbursementPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:assetOwner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:gatewayStation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PowerCabinet ;
+            owl:onProperty cd:powerCabinet ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:StationUseCode ;
+            owl:onProperty cd:stationUse ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:sharingSecretReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CommunicationModeCode ;
+            owl:onProperty cd:communicationMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EquipmentModel ;
+            owl:onProperty cd:equipmentModel ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AdministrationStateCode ;
+            owl:onProperty cd:administrationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricityPriceSchedule ;
+            owl:onProperty cd:electricitySchedule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:monitoringEnabled ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:recoveryEnabled ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:operatorService ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingProfile ;
+            owl:onProperty cd:chargingProfile ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingArea ;
+            owl:onProperty cd:area ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:maintenanceProvider ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:manufacturedAt ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "assets" .
+

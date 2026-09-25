@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?intent ?requested ?capture ?captured ?state WHERE {?intent a cd:PaymentIntent; cd:requestedAmount ?requested. ?capture a cd:PaymentCapture; cd:paymentIntent ?intent; cd:capturedAmount ?captured; cd:captureState ?state}

@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?issue ?attempt ?command ?outcome WHERE {?attempt a cd:RecoveryAttempt; cd:issue ?issue; cd:command ?command; cd:recoveryResult ?outcome}

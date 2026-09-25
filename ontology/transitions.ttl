@@ -1,0 +1,411 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+cd:fromState a owl:ObjectProperty .
+
+cd:toState a owl:ObjectProperty .
+
+cd:transitionProperty a owl:ObjectProperty .
+
+cd:transition_activationState_Accepted_Active a cd:TransitionRule ;
+    cd:fromState cd:activationState_Accepted ;
+    cd:toState cd:activationState_Active ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_activationState_Accepted_Failed a cd:TransitionRule ;
+    cd:fromState cd:activationState_Accepted ;
+    cd:toState cd:activationState_Failed ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_activationState_Active_Completed a cd:TransitionRule ;
+    cd:fromState cd:activationState_Active ;
+    cd:toState cd:activationState_Completed ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_activationState_Active_Failed a cd:TransitionRule ;
+    cd:fromState cd:activationState_Active ;
+    cd:toState cd:activationState_Failed ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_activationState_Requested_Accepted a cd:TransitionRule ;
+    cd:fromState cd:activationState_Requested ;
+    cd:toState cd:activationState_Accepted ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_activationState_Requested_Rejected a cd:TransitionRule ;
+    cd:fromState cd:activationState_Requested ;
+    cd:toState cd:activationState_Rejected ;
+    cd:transitionProperty cd:activationState .
+
+cd:transition_commandState_Accepted_Expired a cd:TransitionRule ;
+    cd:fromState cd:commandState_Accepted ;
+    cd:toState cd:commandState_Expired ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Accepted_Failed a cd:TransitionRule ;
+    cd:fromState cd:commandState_Accepted ;
+    cd:toState cd:commandState_Failed ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Accepted_Succeeded a cd:TransitionRule ;
+    cd:fromState cd:commandState_Accepted ;
+    cd:toState cd:commandState_Succeeded ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Accepted_Unknown a cd:TransitionRule ;
+    cd:fromState cd:commandState_Accepted ;
+    cd:toState cd:commandState_Unknown ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Queued_Expired a cd:TransitionRule ;
+    cd:fromState cd:commandState_Queued ;
+    cd:toState cd:commandState_Expired ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Queued_Sent a cd:TransitionRule ;
+    cd:fromState cd:commandState_Queued ;
+    cd:toState cd:commandState_Sent ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Sent_Accepted a cd:TransitionRule ;
+    cd:fromState cd:commandState_Sent ;
+    cd:toState cd:commandState_Accepted ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Sent_Expired a cd:TransitionRule ;
+    cd:fromState cd:commandState_Sent ;
+    cd:toState cd:commandState_Expired ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Sent_Rejected a cd:TransitionRule ;
+    cd:fromState cd:commandState_Sent ;
+    cd:toState cd:commandState_Rejected ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Sent_Unknown a cd:TransitionRule ;
+    cd:fromState cd:commandState_Sent ;
+    cd:toState cd:commandState_Unknown ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Unknown_Expired a cd:TransitionRule ;
+    cd:fromState cd:commandState_Unknown ;
+    cd:toState cd:commandState_Expired ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Unknown_Failed a cd:TransitionRule ;
+    cd:fromState cd:commandState_Unknown ;
+    cd:toState cd:commandState_Failed ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_commandState_Unknown_Succeeded a cd:TransitionRule ;
+    cd:fromState cd:commandState_Unknown ;
+    cd:toState cd:commandState_Succeeded ;
+    cd:transitionProperty cd:commandState .
+
+cd:transition_deploymentState_Downloaded_Failed a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Downloaded ;
+    cd:toState cd:deploymentState_Failed ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Downloaded_Installing a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Downloaded ;
+    cd:toState cd:deploymentState_Installing ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Downloading_Downloaded a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Downloading ;
+    cd:toState cd:deploymentState_Downloaded ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Downloading_Failed a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Downloading ;
+    cd:toState cd:deploymentState_Failed ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Failed_RolledBack a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Failed ;
+    cd:toState cd:deploymentState_RolledBack ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Installing_Failed a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Installing ;
+    cd:toState cd:deploymentState_Failed ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Installing_Succeeded a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Installing ;
+    cd:toState cd:deploymentState_Succeeded ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Scheduled_Downloading a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Scheduled ;
+    cd:toState cd:deploymentState_Downloading ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Scheduled_Failed a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Scheduled ;
+    cd:toState cd:deploymentState_Failed ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_deploymentState_Succeeded_RolledBack a cd:TransitionRule ;
+    cd:fromState cd:deploymentState_Succeeded ;
+    cd:toState cd:deploymentState_RolledBack ;
+    cd:transitionProperty cd:deploymentState .
+
+cd:transition_invitationState_Pending_Accepted a cd:TransitionRule ;
+    cd:fromState cd:invitationState_Pending ;
+    cd:toState cd:invitationState_Accepted ;
+    cd:transitionProperty cd:invitationState .
+
+cd:transition_invitationState_Pending_Declined a cd:TransitionRule ;
+    cd:fromState cd:invitationState_Pending ;
+    cd:toState cd:invitationState_Declined ;
+    cd:transitionProperty cd:invitationState .
+
+cd:transition_invitationState_Pending_Expired a cd:TransitionRule ;
+    cd:fromState cd:invitationState_Pending ;
+    cd:toState cd:invitationState_Expired ;
+    cd:transitionProperty cd:invitationState .
+
+cd:transition_invitationState_Pending_Revoked a cd:TransitionRule ;
+    cd:fromState cd:invitationState_Pending ;
+    cd:toState cd:invitationState_Revoked ;
+    cd:transitionProperty cd:invitationState .
+
+cd:transition_issueState_Acknowledged_Investigating a cd:TransitionRule ;
+    cd:fromState cd:issueState_Acknowledged ;
+    cd:toState cd:issueState_Investigating ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Acknowledged_Resolved a cd:TransitionRule ;
+    cd:fromState cd:issueState_Acknowledged ;
+    cd:toState cd:issueState_Resolved ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Investigating_Resolved a cd:TransitionRule ;
+    cd:fromState cd:issueState_Investigating ;
+    cd:toState cd:issueState_Resolved ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Open_Acknowledged a cd:TransitionRule ;
+    cd:fromState cd:issueState_Open ;
+    cd:toState cd:issueState_Acknowledged ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Open_Investigating a cd:TransitionRule ;
+    cd:fromState cd:issueState_Open ;
+    cd:toState cd:issueState_Investigating ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Open_Resolved a cd:TransitionRule ;
+    cd:fromState cd:issueState_Open ;
+    cd:toState cd:issueState_Resolved ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Resolved_Closed a cd:TransitionRule ;
+    cd:fromState cd:issueState_Resolved ;
+    cd:toState cd:issueState_Closed ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_issueState_Resolved_Open a cd:TransitionRule ;
+    cd:fromState cd:issueState_Resolved ;
+    cd:toState cd:issueState_Open ;
+    cd:transitionProperty cd:issueState .
+
+cd:transition_paymentState_Authorized_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Authorized ;
+    cd:toState cd:paymentState_Cancelled ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Authorized_Captured a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Authorized ;
+    cd:toState cd:paymentState_Captured ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Authorized_Failed a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Authorized ;
+    cd:toState cd:paymentState_Failed ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Authorized_PartiallyCaptured a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Authorized ;
+    cd:toState cd:paymentState_PartiallyCaptured ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Captured_Refunded a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Captured ;
+    cd:toState cd:paymentState_Refunded ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Created_Authorized a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Created ;
+    cd:toState cd:paymentState_Authorized ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Created_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Created ;
+    cd:toState cd:paymentState_Cancelled ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_Created_Failed a cd:TransitionRule ;
+    cd:fromState cd:paymentState_Created ;
+    cd:toState cd:paymentState_Failed ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_PartiallyCaptured_Captured a cd:TransitionRule ;
+    cd:fromState cd:paymentState_PartiallyCaptured ;
+    cd:toState cd:paymentState_Captured ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_paymentState_PartiallyCaptured_Refunded a cd:TransitionRule ;
+    cd:fromState cd:paymentState_PartiallyCaptured ;
+    cd:toState cd:paymentState_Refunded ;
+    cd:transitionProperty cd:paymentState .
+
+cd:transition_reservationState_Active_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Active ;
+    cd:toState cd:reservationState_Cancelled ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_reservationState_Active_Consumed a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Active ;
+    cd:toState cd:reservationState_Consumed ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_reservationState_Active_Expired a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Active ;
+    cd:toState cd:reservationState_Expired ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_reservationState_Pending_Active a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Pending ;
+    cd:toState cd:reservationState_Active ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_reservationState_Pending_Expired a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Pending ;
+    cd:toState cd:reservationState_Expired ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_reservationState_Pending_Rejected a cd:TransitionRule ;
+    cd:fromState cd:reservationState_Pending ;
+    cd:toState cd:reservationState_Rejected ;
+    cd:transitionProperty cd:reservationState .
+
+cd:transition_sessionState_Active_Ending a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Active ;
+    cd:toState cd:sessionState_Ending ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Active_ReconciliationRequired a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Active ;
+    cd:toState cd:sessionState_ReconciliationRequired ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Active_Suspended a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Active ;
+    cd:toState cd:sessionState_Suspended ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Ending_Completed a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Ending ;
+    cd:toState cd:sessionState_Completed ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Ending_ReconciliationRequired a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Ending ;
+    cd:toState cd:sessionState_ReconciliationRequired ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Pending_Failed a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Pending ;
+    cd:toState cd:sessionState_Failed ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Pending_Starting a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Pending ;
+    cd:toState cd:sessionState_Starting ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_ReconciliationRequired_Completed a cd:TransitionRule ;
+    cd:fromState cd:sessionState_ReconciliationRequired ;
+    cd:toState cd:sessionState_Completed ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_ReconciliationRequired_Failed a cd:TransitionRule ;
+    cd:fromState cd:sessionState_ReconciliationRequired ;
+    cd:toState cd:sessionState_Failed ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Starting_Active a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Starting ;
+    cd:toState cd:sessionState_Active ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Starting_Failed a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Starting ;
+    cd:toState cd:sessionState_Failed ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Starting_ReconciliationRequired a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Starting ;
+    cd:toState cd:sessionState_ReconciliationRequired ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Suspended_Active a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Suspended ;
+    cd:toState cd:sessionState_Active ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Suspended_Ending a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Suspended ;
+    cd:toState cd:sessionState_Ending ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_sessionState_Suspended_ReconciliationRequired a cd:TransitionRule ;
+    cd:fromState cd:sessionState_Suspended ;
+    cd:toState cd:sessionState_ReconciliationRequired ;
+    cd:transitionProperty cd:sessionState .
+
+cd:transition_subscriptionState_Active_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Active ;
+    cd:toState cd:subscriptionState_Cancelled ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Active_Expired a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Active ;
+    cd:toState cd:subscriptionState_Expired ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Active_Suspended a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Active ;
+    cd:toState cd:subscriptionState_Suspended ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Pending_Active a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Pending ;
+    cd:toState cd:subscriptionState_Active ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Pending_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Pending ;
+    cd:toState cd:subscriptionState_Cancelled ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Suspended_Active a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Suspended ;
+    cd:toState cd:subscriptionState_Active ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Suspended_Cancelled a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Suspended ;
+    cd:toState cd:subscriptionState_Cancelled ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:transition_subscriptionState_Suspended_Expired a cd:TransitionRule ;
+    cd:fromState cd:subscriptionState_Suspended ;
+    cd:toState cd:subscriptionState_Expired ;
+    cd:transitionProperty cd:subscriptionState .
+
+cd:TransitionRule a owl:Class .
+

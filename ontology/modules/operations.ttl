@@ -1,0 +1,259 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:AvailabilityResult a owl:Class ;
+    rdfs:label "Availability Result"@en ;
+    rdfs:comment "Calculated uptime evidence using a stated denominator and policy."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:unavailableSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AvailabilityPolicy ;
+            owl:onProperty cd:availabilityPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:eligibleSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:availabilityFraction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:calculatedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:observedAsset ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:DowntimePeriod a owl:Class ;
+    rdfs:label "Downtime Period"@en ;
+    rdfs:comment "Planned or unplanned unavailability with cause and notice; exclusions are policy-specific."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:DowntimeStateCode ;
+            owl:onProperty cd:downtimeState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:reasonCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DowntimeKindCode ;
+            owl:onProperty cd:downtimeKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceNotice ;
+            owl:onProperty cd:serviceNotice ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:observedAsset ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:InstallationJob a owl:Class ;
+    rdfs:label "Installation Job"@en ;
+    rdfs:comment "Commissioning task with installer organization, location, equipment and acceptance result."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:scheduledAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:commissioningEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:completedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:assignedPrincipal ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:JobStateCode ;
+            owl:onProperty cd:jobState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:installationCompany ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:OperationalPeriod a owl:Class ;
+    rdfs:label "Operational Period"@en ;
+    rdfs:comment "Interval included in a precisely defined operational availability denominator."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AvailabilityPolicy ;
+            owl:onProperty cd:availabilityPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:observedAsset ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:RecoveryAttempt a owl:Class ;
+    rdfs:label "Recovery Attempt"@en ;
+    rdfs:comment "Audited recovery action linked to an issue and policy."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:RecoveryResultCode ;
+            owl:onProperty cd:recoveryResult ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Issue ;
+            owl:onProperty cd:issue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:attemptNumber ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:attemptedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RemoteCommand ;
+            owl:onProperty cd:command ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RecoveryPolicy ;
+            owl:onProperty cd:recoveryPolicy ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:WorkOrder a owl:Class ;
+    rdfs:label "Work Order"@en ;
+    rdfs:comment "Accountable maintenance assignment with scope, provider and completion evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:maintenanceProvider ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:assignedPrincipal ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Issue ;
+            owl:onProperty cd:issue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:completedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:dueAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:WorkStateCode ;
+            owl:onProperty cd:workState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:affectedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:completionEvidence ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:RecoveryPolicy a owl:Class ;
+    rdfs:label "Recovery Policy"@en ;
+    rdfs:comment "Bounded automated recovery procedure with eligibility, attempts and escalation."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:maximumAttempts ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:cooldownSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SecurityRole ;
+            owl:onProperty cd:escalationRole ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VendorFaultDefinition ;
+            owl:onProperty cd:triggeringFault ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:AvailabilityPolicy a owl:Class ;
+    rdfs:label "Availability Policy"@en ;
+    rdfs:comment "Versioned definition of downtime inclusion, exclusions and freshness."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:includePlannedDowntime ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:calculationExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:staleAfterSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyName ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:Issue a owl:Class ;
+    rdfs:label "Issue"@en ;
+    rdfs:comment "Operational problem with affected assets, chronology, severity and resolution evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:IssueKindCode ;
+            owl:onProperty cd:issueKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:resolvedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SeverityCode ;
+            owl:onProperty cd:severity ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VendorFaultDefinition ;
+            owl:onProperty cd:vendorFault ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IssueStateCode ;
+            owl:onProperty cd:issueState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:resolutionNote ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:openedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:affectedRecord ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+
+cd:VendorFaultDefinition a owl:Class ;
+    rdfs:label "Vendor Fault Definition"@en ;
+    rdfs:comment "Vendor-scoped fault meaning, severity and recommended customer or operator response."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Manufacturer ;
+            owl:onProperty cd:manufacturer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:faultDescription ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:faultCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FaultSeverityCode ;
+            owl:onProperty cd:faultSeverity ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:recommendedAction ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "operations" .
+

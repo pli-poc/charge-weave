@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?wallet (SUM(?amount) AS ?balance) WHERE {?entry a cd:WalletEntry; cd:wallet ?wallet; cd:signedAmount ?amount} GROUP BY ?wallet

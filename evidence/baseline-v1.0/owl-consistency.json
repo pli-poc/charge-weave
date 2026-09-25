@@ -1,0 +1,16 @@
+{
+  "reasoner": "HermiT via Owlready2",
+  "runs": [
+    {
+      "scope": "schema",
+      "consistent": true,
+      "unsatisfiableClasses": []
+    },
+    {
+      "scope": "schema-and-example",
+      "consistent": true,
+      "unsatisfiableClasses": []
+    }
+  ],
+  "elapsedSeconds": 160.04
+}

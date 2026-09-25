@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?approval ?recommendation ?proposed ?approved ?decision WHERE {?approval a cd:ActionApproval; cd:recommendation ?recommendation; cd:approvalDecision ?decision. ?recommendation cd:proposedCommand ?proposed. OPTIONAL {?approval cd:approvedCommand ?approved}}

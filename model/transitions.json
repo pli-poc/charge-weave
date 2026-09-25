@@ -1,0 +1,166 @@
+{
+  "sessionState": {
+    "Pending": [
+      "Starting",
+      "Failed"
+    ],
+    "Starting": [
+      "Active",
+      "Failed",
+      "ReconciliationRequired"
+    ],
+    "Active": [
+      "Suspended",
+      "Ending",
+      "ReconciliationRequired"
+    ],
+    "Suspended": [
+      "Active",
+      "Ending",
+      "ReconciliationRequired"
+    ],
+    "Ending": [
+      "Completed",
+      "ReconciliationRequired"
+    ],
+    "ReconciliationRequired": [
+      "Completed",
+      "Failed"
+    ]
+  },
+  "commandState": {
+    "Queued": [
+      "Sent",
+      "Expired"
+    ],
+    "Sent": [
+      "Accepted",
+      "Rejected",
+      "Unknown",
+      "Expired"
+    ],
+    "Accepted": [
+      "Succeeded",
+      "Failed",
+      "Unknown",
+      "Expired"
+    ],
+    "Unknown": [
+      "Succeeded",
+      "Failed",
+      "Expired"
+    ]
+  },
+  "paymentState": {
+    "Created": [
+      "Authorized",
+      "Failed",
+      "Cancelled"
+    ],
+    "Authorized": [
+      "PartiallyCaptured",
+      "Captured",
+      "Failed",
+      "Cancelled"
+    ],
+    "PartiallyCaptured": [
+      "Captured",
+      "Refunded"
+    ],
+    "Captured": [
+      "Refunded"
+    ]
+  },
+  "reservationState": {
+    "Pending": [
+      "Active",
+      "Rejected",
+      "Expired"
+    ],
+    "Active": [
+      "Consumed",
+      "Cancelled",
+      "Expired"
+    ]
+  },
+  "subscriptionState": {
+    "Pending": [
+      "Active",
+      "Cancelled"
+    ],
+    "Active": [
+      "Suspended",
+      "Cancelled",
+      "Expired"
+    ],
+    "Suspended": [
+      "Active",
+      "Cancelled",
+      "Expired"
+    ]
+  },
+  "issueState": {
+    "Open": [
+      "Acknowledged",
+      "Investigating",
+      "Resolved"
+    ],
+    "Acknowledged": [
+      "Investigating",
+      "Resolved"
+    ],
+    "Investigating": [
+      "Resolved"
+    ],
+    "Resolved": [
+      "Closed",
+      "Open"
+    ]
+  },
+  "deploymentState": {
+    "Scheduled": [
+      "Downloading",
+      "Failed"
+    ],
+    "Downloading": [
+      "Downloaded",
+      "Failed"
+    ],
+    "Downloaded": [
+      "Installing",
+      "Failed"
+    ],
+    "Installing": [
+      "Succeeded",
+      "Failed"
+    ],
+    "Succeeded": [
+      "RolledBack"
+    ],
+    "Failed": [
+      "RolledBack"
+    ]
+  },
+  "invitationState": {
+    "Pending": [
+      "Accepted",
+      "Declined",
+      "Expired",
+      "Revoked"
+    ]
+  },
+  "activationState": {
+    "Requested": [
+      "Accepted",
+      "Rejected"
+    ],
+    "Accepted": [
+      "Active",
+      "Failed"
+    ],
+    "Active": [
+      "Completed",
+      "Failed"
+    ]
+  }
+}

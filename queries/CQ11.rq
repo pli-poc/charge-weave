@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?record ?session ?rate ?amount ?source WHERE {?record a cd:ReimbursementRecord; cd:session ?session; cd:reimbursementRate ?rate; cd:reimbursementAmount ?amount; cd:reimbursementPolicy/cd:reimbursementRateSource ?source}

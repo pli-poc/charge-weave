@@ -1,0 +1,265 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:AuthorizationDecision a owl:Class ;
+    rdfs:label "Authorization Decision"@en ;
+    rdfs:comment "Explicit charging decision with reason, policy and offline or remote origin."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:decidedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AuthorizationRequest ;
+            owl:onProperty cd:authorizationRequest ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DecisionSourceCode ;
+            owl:onProperty cd:decisionSource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DecisionCode ;
+            owl:onProperty cd:decision ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:appliedPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:reasonCode ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:CredentialAssignment a owl:Class ;
+    rdfs:label "Credential Assignment"@en ;
+    rdfs:comment "Time-bound assignment of a charging credential to a customer or vehicle."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingCredential ;
+            owl:onProperty cd:credential ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:LocalAuthorizationList a owl:Class ;
+    rdfs:label "Local Authorization List"@en ;
+    rdfs:comment "Versioned local cache distributed to a charger, separate from online authorization."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:LocalAuthorizationEntry ;
+            owl:onProperty cd:localListEntry ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:listVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:generatedAt ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:PlugAndChargeEnrollment a owl:Class ;
+    rdfs:label "Plug And Charge Enrollment"@en ;
+    rdfs:comment "Enrollment joining a customer, vehicle provisioning identity and charging contract certificate."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExternalIdentifier ;
+            owl:onProperty cd:emaid ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EnrollmentStateCode ;
+            owl:onProperty cd:enrollmentState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProvisioningCertificate ;
+            owl:onProperty cd:provisioningCertificate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CertificateRecord ;
+            owl:onProperty cd:contractCertificate ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:VehicleAssignment a owl:Class ;
+    rdfs:label "Vehicle Assignment"@en ;
+    rdfs:comment "Time-qualified access of a customer account to a vehicle."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:AssignmentRoleCode ;
+            owl:onProperty cd:assignmentRole ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:VehicleTelemetry a owl:Class ;
+    rdfs:label "Vehicle Telemetry"@en ;
+    rdfs:comment "Timestamped vehicle values with provenance and units fixed by property names."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:observedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:odometerKm ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:stateOfChargePercent ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:AuthorizationRequest a owl:Class ;
+    rdfs:label "Authorization Request"@en ;
+    rdfs:comment "Request to authorize charging including context, source and requested target."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingCredential ;
+            owl:onProperty cd:credential ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:requestedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AuthorizationMethodCode ;
+            owl:onProperty cd:authorizationMethod ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:LocalAuthorizationEntry a owl:Class ;
+    rdfs:label "Local Authorization Entry"@en ;
+    rdfs:comment "Credential entry in a local authorization snapshot."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CredentialStateCode ;
+            owl:onProperty cd:credentialState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingCredential ;
+            owl:onProperty cd:credential ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:ProvisioningCertificate a owl:Class ;
+    rdfs:label "Provisioning Certificate"@en ;
+    rdfs:comment "Vehicle provisioning-certificate identifier and lifecycle, without private key material."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CertificateRecord ;
+            owl:onProperty cd:certificate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProvisioningStateCode ;
+            owl:onProperty cd:provisioningState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExternalIdentifier ;
+            owl:onProperty cd:provisioningIdentifier ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:ChargingCredential a owl:Class ;
+    rdfs:label "Charging Credential"@en ;
+    rdfs:comment "Opaque charging credential; RFID, Autocharge and certificate identities remain distinguishable."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentInstrument ;
+            owl:onProperty cd:paymentInstrument ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:homeOnly ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CredentialKindCode ;
+            owl:onProperty cd:credentialKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExternalIdentifier ;
+            owl:onProperty cd:credentialIdentifier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CredentialStateCode ;
+            owl:onProperty cd:credentialState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+
+cd:Vehicle a owl:Class ;
+    rdfs:label "Vehicle"@en ;
+    rdfs:comment "Vehicle reference with technical data and controlled identity information."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:telematicsIntegration ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:vehicleIdentificationReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:batteryCapacityKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:vehicleReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumChargePowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:VehicleCategoryCode ;
+            owl:onProperty cd:vehicleCategory ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "vehicles-authorization" .
+

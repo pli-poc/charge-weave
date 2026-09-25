@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?connection ?protocol ?version ?module WHERE {?connection a cd:RoamingConnection; cd:protocolName ?protocol; cd:protocolVersion ?version; cd:moduleAgreement ?module}

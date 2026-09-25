@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?session ?state ?transaction ?wireId ?boot WHERE {?session a cd:ChargingSession; cd:sessionState ?state. ?transaction a cd:ProtocolTransaction; cd:session ?session; cd:transactionIdentifier ?wireId; cd:bootEpoch ?boot}

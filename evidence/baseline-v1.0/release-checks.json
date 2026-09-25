@@ -1,0 +1,3373 @@
+{
+  "passed": 608,
+  "total": 608,
+  "checks": [
+    {
+      "check": "class-shape:Tenant",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Tenant",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Record",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ExternalIdentifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ExternalIdentifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EvidenceDocument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EvidenceDocument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TimeWindow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TimeWindow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RecurringWindow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RecurringWindow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Address",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Address",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:GeoPosition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:GeoPosition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Currency",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Currency",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ExchangeRate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ExchangeRate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Quantity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Quantity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Annotation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Annotation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomFieldDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomFieldDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomFieldValue",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomFieldValue",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:LegalEntity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:LegalEntity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Person",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Person",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ContactProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ContactProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PartyRole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PartyRole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:OperatorService",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:OperatorService",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Principal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Principal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Permission",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Permission",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SecurityRole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SecurityRole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AccessGrant",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AccessGrant",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ManagementDelegation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ManagementDelegation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomerAccount",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomerAccount",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomerGroup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomerGroup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:GroupMembership",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:GroupMembership",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:UserDevice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:UserDevice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingSite",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingSite",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingArea",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingArea",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ParkingSpace",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ParkingSpace",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PublicListing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PublicListing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SiteAccessPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SiteAccessPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ServiceNotice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ServiceNotice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:MediaAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:MediaAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SharingAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SharingAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SharingInvitation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SharingInvitation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Manufacturer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Manufacturer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EquipmentModel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EquipmentModel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DeviceCapability",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DeviceCapability",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingStation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingStation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingUnit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingUnit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Connector",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Connector",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ElectricityMeter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ElectricityMeter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CalibrationRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CalibrationRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ElectricalCircuit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ElectricalCircuit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ElectricalConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ElectricalConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:OwnershipTransfer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:OwnershipTransfer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ProtocolEndpoint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ProtocolEndpoint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ConfigurationVariable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ConfigurationVariable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ConfigurationTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ConfigurationTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ConfigurationTemplateEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ConfigurationTemplateEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TemplateApplication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TemplateApplication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FirmwareRelease",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FirmwareRelease",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FirmwareDeployment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FirmwareDeployment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:HardwareStatusObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:HardwareStatusObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ConnectionObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ConnectionObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DiagnosticArtifact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DiagnosticArtifact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Vehicle",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Vehicle",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:VehicleAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:VehicleAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:VehicleTelemetry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:VehicleTelemetry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingCredential",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingCredential",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CredentialAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CredentialAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AuthorizationRequest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AuthorizationRequest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AuthorizationDecision",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AuthorizationDecision",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:LocalAuthorizationList",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:LocalAuthorizationList",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:LocalAuthorizationEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:LocalAuthorizationEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PlugAndChargeEnrollment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PlugAndChargeEnrollment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ProvisioningCertificate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ProvisioningCertificate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RemoteCommand",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RemoteCommand",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CommandParameter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CommandParameter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CommandOutcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CommandOutcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:BookingRequest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:BookingRequest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Booking",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Booking",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Reservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Reservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SourceEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SourceEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingSession",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingSession",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ProtocolTransaction",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ProtocolTransaction",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SessionEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SessionEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingInterval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingInterval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:MeterObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:MeterObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SignedMeterEvidence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SignedMeterEvidence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SessionEndEvidence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SessionEndEvidence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:UsageAggregate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:UsageAggregate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargeDetailRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargeDetailRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Tariff",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Tariff",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TariffVersion",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TariffVersion",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PriceComponent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PriceComponent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PricingCondition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PricingCondition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TariffSet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TariffSet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TariffAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TariffAssignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TariffResolution",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TariffResolution",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ScheduledTariffChange",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ScheduledTariffChange",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DynamicPriceFormula",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DynamicPriceFormula",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ElectricityPriceSchedule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ElectricityPriceSchedule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ElectricityPriceInterval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ElectricityPriceInterval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EnergyMix",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EnergyMix",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EnergySourceShare",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EnergySourceShare",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PriceDisplay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PriceDisplay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoundingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoundingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SessionLimitPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SessionLimitPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:BillingProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:BillingProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TaxIdentifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TaxIdentifier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TaxRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TaxRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TaxDetermination",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TaxDetermination",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RatingCalculation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RatingCalculation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RatedLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RatedLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Invoice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Invoice",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:InvoiceLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:InvoiceLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CreditNote",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CreditNote",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Receipt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DocumentNumberSequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DocumentNumberSequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FiscalizationAttempt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FiscalizationAttempt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomFee",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomFee",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentInstrument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentInstrument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentIntent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentIntent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentAuthorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentAuthorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentCapture",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentCapture",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Refund",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Refund",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Chargeback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Chargeback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Wallet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Wallet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:WalletEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:WalletEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:LedgerAccount",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:LedgerAccount",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Journal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Journal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:JournalLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:JournalLine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:TopUpOffer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:TopUpOffer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Voucher",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Voucher",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:VoucherRedemption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:VoucherRedemption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentTerminal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentTerminal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SubscriptionPlan",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SubscriptionPlan",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Subscription",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Subscription",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:BillingPeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:BillingPeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:BenefitAllowance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:BenefitAllowance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AllowanceConsumption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AllowanceConsumption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EnergyCouponTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EnergyCouponTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EnergyCoupon",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EnergyCoupon",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CouponConsumption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CouponConsumption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ServiceAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ServiceAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RevenueShareRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RevenueShareRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CostAllocationRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CostAllocationRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SettlementOverride",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SettlementOverride",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SettlementBatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SettlementBatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SettlementItem",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SettlementItem",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ReconciliationCase",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ReconciliationCase",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PartnerInvitation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PartnerInvitation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CorporateBillingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CorporateBillingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CorporateChargerRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CorporateChargerRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CorporateBillingSnapshot",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CorporateBillingSnapshot",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CorporateCostAllocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CorporateCostAllocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ReimbursementPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ReimbursementPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ReimbursementRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ReimbursementRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ReimbursementReport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ReimbursementReport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingNetwork",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingNetwork",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingParty",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingParty",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingModuleAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingModuleAgreement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingExchange",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingExchange",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingCommand",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingCommand",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SynchronizationCursor",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SynchronizationCursor",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingTariffMapping",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingTariffMapping",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingTariffFilter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingTariffFilter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PublicDataPublication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PublicDataPublication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:GridConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:GridConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:LoadControlGroup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:LoadControlGroup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ControlGroupMembership",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ControlGroupMembership",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PowerConstraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PowerConstraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PhaseCurrentConstraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PhaseCurrentConstraint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PriorityRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PriorityRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SmartChargingPreference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SmartChargingPreference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingSchedule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingSchedule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SchedulePeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SchedulePeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ScheduleApplication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ScheduleApplication",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:UnmanagedLoadObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:UnmanagedLoadObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EnergyForecast",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EnergyForecast",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ForecastPoint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ForecastPoint",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DemandResponseProgram",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DemandResponseProgram",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FlexibilityAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FlexibilityAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FlexibilityActivation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FlexibilityActivation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FlexibilityDelivery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FlexibilityDelivery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DistributedEnergyAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DistributedEnergyAsset",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:VendorFaultDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:VendorFaultDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Issue",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Issue",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RecoveryPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RecoveryPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RecoveryAttempt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RecoveryAttempt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:WorkOrder",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:WorkOrder",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:InstallationJob",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:InstallationJob",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:OperationalPeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:OperationalPeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DowntimePeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DowntimePeriod",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AvailabilityPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AvailabilityPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AvailabilityResult",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AvailabilityResult",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CertificateRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CertificateRecord",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CertificateLifecycleEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CertificateLifecycleEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SecurityEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SecurityEvent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AuditEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AuditEntry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PolicyDocument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PolicyDocument",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ConsentDecision",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ConsentDecision",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RetentionPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RetentionPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DataDisposition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DataDisposition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ComplianceAssessment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ComplianceAssessment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:IntegrationConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:IntegrationConnection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ApiClient",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ApiClient",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EventSubscription",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EventSubscription",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:EventDelivery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:EventDelivery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CommunicationLog",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CommunicationLog",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PlatformSetting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PlatformSetting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:BrandProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:BrandProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ExperienceChannel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ExperienceChannel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ContentTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ContentTemplate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:HelpArticle",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:HelpArticle",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:CustomerNotification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:CustomerNotification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ApplicationInstallation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ApplicationInstallation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:MetricDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:MetricDefinition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:MetricObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:MetricObservation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AssistantRecommendation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AssistantRecommendation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ActionApproval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ActionApproval",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:StateTransition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:StateTransition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:DiscountRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:DiscountRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FeeBounds",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FeeBounds",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PriceTier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PriceTier",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PriceFreezePolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PriceFreezePolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SessionPricingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SessionPricingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PreauthorizationPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PreauthorizationPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SubsidyRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SubsidyRule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:FinancialAccountReference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:FinancialAccountReference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PaymentRouting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PaymentRouting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:Payout",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:Payout",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PayoutBatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PayoutBatch",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PowerCabinet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PowerCabinet",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:PowerModuleAllocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:PowerModuleAllocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ChargingProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ChargingProfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:RoamingBehaviorPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:RoamingBehaviorPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:AccessTokenLease",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:AccessTokenLease",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:SubscriptionBillingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:SubscriptionBillingPolicy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ReimbursementTaxCalculation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ReimbursementTaxCalculation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-shape:ClockAssessment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "class-example:ClockAssessment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "resource-all-mapped",
+      "passed": true,
+      "detail": 83
+    },
+    {
+      "check": "endpoint-all-mapped",
+      "passed": true,
+      "detail": 651
+    },
+    {
+      "check": "operation-urls-unique",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "serialization:charge-domain-complete.ttl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "serialization:charge-domain-complete.owl",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "serialization:charge-domain-complete.jsonld",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "query:B001",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B002",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B003",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B004",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B005",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B006",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B007",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B008",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B009",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B010",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B011",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B012",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B013",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B014",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B015",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B016",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B017",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B018",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B019",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B020",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B021",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B022",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B023",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B024",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B025",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B026",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B027",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B028",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B029",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B030",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B031",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B032",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B033",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B034",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B035",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B036",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B037",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B038",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B039",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B040",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B041",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B042",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B043",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B044",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B045",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B046",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B047",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B048",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B049",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B050",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B051",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B052",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B053",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B054",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B055",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B056",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B057",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B058",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B059",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B060",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B061",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B062",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B063",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B064",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B065",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B066",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B067",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B068",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B069",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B070",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B071",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B072",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B073",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B074",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B075",
+      "passed": true,
+      "detail": {
+        "focusNodes": 233,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B076",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B077",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B078",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B079",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B080",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B081",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B082",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B083",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B084",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B085",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B086",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B087",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B088",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B089",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B090",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B091",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B092",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B093",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B094",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B095",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B096",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B097",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B098",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B099",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B100",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B101",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B102",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B103",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B104",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B105",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B106",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B107",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B108",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:B109",
+      "passed": true,
+      "detail": {
+        "focusNodes": 1,
+        "violations": 0
+      }
+    },
+    {
+      "check": "query:CQ01",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ02",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ03",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ04",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ05",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ06",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ07",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ08",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ09",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ10",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ11",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ12",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ13",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ14",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ15",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ16",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ17",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ18",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ19",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ20",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ21",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ22",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ23",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "check": "query:CQ24",
+      "passed": true,
+      "detail": 1
+    }
+  ]
+}

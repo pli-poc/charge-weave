@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ChargingSchedule . ?this cd:schedulePeriod ?a,?b. ?a cd:periodStart ?s1; cd:periodEnd ?e1. ?b cd:periodStart ?s2; cd:periodEnd ?e2. FILTER(?a != ?b && ?s1 < ?e2 && ?s2 < ?e1) }

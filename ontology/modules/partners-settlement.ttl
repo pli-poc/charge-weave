@@ -1,0 +1,477 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:CorporateCostAllocation a owl:Class ;
+    rdfs:label "Corporate Cost Allocation"@en ;
+    rdfs:comment "Split of an eligible session charge between sponsor and driver."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:sponsorAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:totalAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:driverAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CorporateBillingSnapshot ;
+            owl:onProperty cd:corporateSnapshot ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:calculationVersion ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:PartnerInvitation a owl:Class ;
+    rdfs:label "Partner Invitation"@en ;
+    rdfs:comment "Invitation connecting a customer to a partner account and applicable access/billing policies."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:inviteeReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:partner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SiteAccessPolicy ;
+            owl:onProperty cd:accessPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CorporateBillingPolicy ;
+            owl:onProperty cd:corporateBillingPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:InvitationStateCode ;
+            owl:onProperty cd:invitationState ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ReconciliationCase a owl:Class ;
+    rdfs:label "Reconciliation Case"@en ;
+    rdfs:comment "Mismatch between expected and observed usage or money with resolution evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:expectedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:observedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:openedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MismatchKindCode ;
+            owl:onProperty cd:mismatchKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:resolvedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:resolutionNote ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CaseStateCode ;
+            owl:onProperty cd:caseState ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ReimbursementReport a owl:Class ;
+    rdfs:label "Reimbursement Report"@en ;
+    rdfs:comment "Period aggregation of reimbursement records for one payer and currency."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReportStateCode ;
+            owl:onProperty cd:reportState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:payer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:totalAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:period ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementRecord ;
+            owl:onProperty cd:reimbursementRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:SettlementBatch a owl:Class ;
+    rdfs:label "Settlement Batch"@en ;
+    rdfs:comment "Partner receivable/payable reconciliation over a defined period and currency."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:SettlementStateCode ;
+            owl:onProperty cd:settlementState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SettlementItem ;
+            owl:onProperty cd:settlementItem ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Invoice ;
+            owl:onProperty cd:invoice ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:period ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:netAmount ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:SettlementOverride a owl:Class ;
+    rdfs:label "Settlement Override"@en ;
+    rdfs:comment "Time-scoped exception to a contract settlement rule with authorization evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:approvedBy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RevenueShareRule ;
+            owl:onProperty cd:revenueShareRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CostAllocationRule ;
+            owl:onProperty cd:costAllocationRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:overrideReason ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:CorporateBillingSnapshot a owl:Class ;
+    rdfs:label "Corporate Billing Snapshot"@en ;
+    rdfs:comment "Immutable corporate policy selection captured for a charging session."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:snapshotDigest ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CorporateBillingPolicy ;
+            owl:onProperty cd:corporateBillingPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:capturedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyVersion ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:CorporateChargerRule a owl:Class ;
+    rdfs:label "Corporate Charger Rule"@en ;
+    rdfs:comment "AC/DC-specific sponsor coverage overriding general cost coverage terms."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumEnergyUnitPrice ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CoverageModeCode ;
+            owl:onProperty cd:coverageMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumFlatFee ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CurrentKindCode ;
+            owl:onProperty cd:currentKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:costCapPerKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumIdleUnitPrice ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ReimbursementPolicy a owl:Class ;
+    rdfs:label "Reimbursement Policy"@en ;
+    rdfs:comment "Date-based home-charge reimbursement rate selection policy."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementRateSourceCode ;
+            owl:onProperty cd:reimbursementRateSource ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricityPriceSchedule ;
+            owl:onProperty cd:electricitySchedule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:validFromDate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:partner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:validUntilDate ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ReimbursementTaxCalculation a owl:Class ;
+    rdfs:label "Reimbursement Tax Calculation"@en ;
+    rdfs:comment "Explicit tax interpretation and rounded monetary breakdown of a reimbursement."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:TaxDetermination ;
+            owl:onProperty cd:taxDetermination ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:netAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxRatePercent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TaxBasisCode ;
+            owl:onProperty cd:taxBasis ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:SettlementItem a owl:Class ;
+    rdfs:label "Settlement Item"@en ;
+    rdfs:comment "Individual charge or adjustment attributed under a contract."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:netAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grossAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:taxAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:adjustmentReason ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargeDetailRecord ;
+            owl:onProperty cd:chargeRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:beneficiary ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:CorporateBillingPolicy a owl:Class ;
+    rdfs:label "Corporate Billing Policy"@en ;
+    rdfs:comment "Versioned rules deciding which costs a corporate sponsor covers."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:PolicyStateCode ;
+            owl:onProperty cd:policyState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CorporateChargerRule ;
+            owl:onProperty cd:corporateChargerRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:sponsor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PricingCondition ;
+            owl:onProperty cd:pricingCondition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CoverageModeCode ;
+            owl:onProperty cd:coverageMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:costCapPerKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:individualPeriodLimit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerGroup ;
+            owl:onProperty cd:eligibleGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyVersion ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:CostAllocationRule a owl:Class ;
+    rdfs:label "Cost Allocation Rule"@en ;
+    rdfs:comment "Contract cost responsibility for a category and beneficiary."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CostCategoryCode ;
+            owl:onProperty cd:costCategory ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:allocationFraction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:fixedAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:responsibleParty ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ReimbursementRecord a owl:Class ;
+    rdfs:label "Reimbursement Record"@en ;
+    rdfs:comment "Home-charging reimbursement calculation with immutable rate evidence."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:reimbursementRate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:reimbursementAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementRecord ;
+            owl:onProperty cd:correctionOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:reimbursableEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementPolicy ;
+            owl:onProperty cd:reimbursementPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:calculatedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementStateCode ;
+            owl:onProperty cd:reimbursementState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Payout ;
+            owl:onProperty cd:payout ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementTaxCalculation ;
+            owl:onProperty cd:reimbursementTaxCalculation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:beneficiaryAccount ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:RevenueShareRule a owl:Class ;
+    rdfs:label "Revenue Share Rule"@en ;
+    rdfs:comment "Contractual allocation of a defined revenue base to a beneficiary."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:shareFraction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:fixedAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RevenueBasisCode ;
+            owl:onProperty cd:revenueBasis ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:beneficiary ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:applicableTariff ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+
+cd:ServiceAgreement a owl:Class ;
+    rdfs:label "Service Agreement"@en ;
+    rdfs:comment "Versioned contract defining supplier, counterparty, assets, responsibilities and charging economics."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:agreementEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:agreementVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:supplier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CostAllocationRule ;
+            owl:onProperty cd:costAllocationRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomFee ;
+            owl:onProperty cd:platformFee ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:counterparty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RevenueShareRule ;
+            owl:onProperty cd:revenueShareRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:agreementReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:coveredRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:autoRenewal ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "partners-settlement" .
+

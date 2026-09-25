@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?invoice ?number ?net ?tax ?gross ?currency WHERE {?invoice a cd:Invoice; cd:invoiceNumber ?number; cd:netAmount ?net; cd:taxAmount ?tax; cd:grossAmount ?gross; cd:currency/cd:currencyCode ?currency}

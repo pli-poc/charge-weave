@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?reading ?value ?unit ?direction ?quality WHERE {?reading a cd:MeterObservation; cd:numericValue ?value; cd:unitIri ?unit; cd:energyDirection ?direction; cd:quality ?quality}

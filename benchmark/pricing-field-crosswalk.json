@@ -1,0 +1,374 @@
+[
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "averagePowerIdleThreshold",
+    "path": "PriceComponent[IdleTime].pricingCondition",
+    "translation": "SOC and measured-power conditions determine idle classification; time alone is insufficient."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "averagePowerLevels",
+    "path": "PriceTier.pricingCondition / PricingCondition[Power].measurementAggregation",
+    "translation": "Use comparisonValue and comparisonDatatype; preserve average versus peak in the versioned condition definition."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "chargePointElectricityRate",
+    "path": "DynamicPriceFormula.electricitySchedule + ChargingStation.electricitySchedule",
+    "translation": "Resolve station-specific feed in a versioned formula implementation."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "connectionFee",
+    "path": "TariffVersion.priceComponent / PriceComponent[Flat].unitPrice",
+    "translation": "Represent separate flat components; retain connection eligibility conditions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "connectionFeeMinimumSessionDuration",
+    "path": "SessionPricingPolicy.minimumConnectionDurationSeconds",
+    "translation": "Convert minutes if specified by the source field contract."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "connectionFeeMinimumSessionEnergy",
+    "path": "SessionPricingPolicy.minimumConnectionEnergyKWh",
+    "translation": "Preserve energy threshold inclusivity in the pricing condition."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "dayIdleFeePerMinute",
+    "path": "PriceComponent[IdleTime].unitPrice + pricingCondition",
+    "translation": "Keep idle and charging-time dimensions separate."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "dayPricePerKwh",
+    "path": "PriceComponent[EnergyImport].unitPrice + pricingCondition",
+    "translation": "Energy unit is explicit; day/night use recurring local windows and timezone."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "dayPricePerPeriod",
+    "path": "PriceComponent[ChargingTime].unitPrice + pricingCondition",
+    "translation": "Use an explicit time unit and billing increment; preserve day/night conditions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "daysWhenApplied",
+    "path": "PriceComponent.pricingCondition / RecurringWindow or TimeWindow",
+    "translation": "Preserve inclusion/exclusion rules, dates, weekdays, timezone and exceptions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "durationFeeCapMinutes",
+    "path": "FeeBounds.maximumBillableQuantity",
+    "translation": "Convert minutes to the component time unit."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "durationFeeFrom",
+    "path": "PriceComponent.pricingCondition / PricingCondition[TimeWindow].relatedRecord / RecurringWindow",
+    "translation": "Represent local intervals, timezone and overnight behavior explicitly."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "durationFeeGracePeriod",
+    "path": "PriceComponent.graceQuantity",
+    "translation": "Grace quantity uses the component unit."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "durationFeeLimit",
+    "path": "PriceComponent.feeBounds / FeeBounds.maximumCharge",
+    "translation": "Monetary cap is distinct from a cap on billable duration."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "durationFeeTo",
+    "path": "PriceComponent.pricingCondition / PricingCondition[TimeWindow].relatedRecord / RecurringWindow",
+    "translation": "Represent local intervals, timezone and overnight behavior explicitly."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "fallbackElectricityRateId",
+    "path": "DynamicPriceFormula.fallbackSchedule",
+    "translation": "Resolve the qualified external electricity-rate identifier."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "flexibleMarkUpAsFixedPerKwh",
+    "path": "DynamicPriceFormula.fixedMarkup + formulaExpression",
+    "translation": "Preserve the source mode as a formula variant; fields are not blindly equated."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeeCapMinutes",
+    "path": "FeeBounds.maximumBillableQuantity",
+    "translation": "Convert minutes to the component time unit."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeeGracePeriodMinutes",
+    "path": "PriceComponent.graceQuantity",
+    "translation": "Grace quantity uses the component unit."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeeGracePeriodMode",
+    "path": "PriceComponent.graceMode",
+    "translation": "Translate source codes using an adapter-specific reviewed table."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeeLimit",
+    "path": "PriceComponent.feeBounds / FeeBounds.maximumCharge",
+    "translation": "Monetary cap is distinct from a cap on billable duration."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeePerMinute",
+    "path": "PriceComponent[IdleTime].unitPrice + pricingCondition",
+    "translation": "Keep idle and charging-time dimensions separate."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeePeriodEnd",
+    "path": "PriceComponent.pricingCondition / PricingCondition[TimeWindow].relatedRecord / RecurringWindow",
+    "translation": "Represent local intervals, timezone and overnight behavior explicitly."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idleFeePeriodStart",
+    "path": "PriceComponent.pricingCondition / PricingCondition[TimeWindow].relatedRecord / RecurringWindow",
+    "translation": "Represent local intervals, timezone and overnight behavior explicitly."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "idlePricingPeriodInMinutes",
+    "path": "PriceComponent[IdleTime].billingStep",
+    "translation": "Preserve billed block size and rounding policy."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "incrementalPreAuthorizationAmount",
+    "path": "PreauthorizationPolicy.incrementalHoldAmount",
+    "translation": "PSP hold increment policy is separate from tariff arithmetic."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "lockDurationPriceOnSessionStart",
+    "path": "PriceComponent.priceFreezePolicy / PriceFreezePolicy.freezeMoment",
+    "translation": "Expand global locks into the affected component dimensions; freeze price selection, not usage quantities."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "lockEnergyPriceOnSessionStart",
+    "path": "PriceComponent.priceFreezePolicy / PriceFreezePolicy.freezeMoment",
+    "translation": "Expand global locks into the affected component dimensions; freeze price selection, not usage quantities."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "lockIdlePriceOnSessionStart",
+    "path": "PriceComponent.priceFreezePolicy / PriceFreezePolicy.freezeMoment",
+    "translation": "Expand global locks into the affected component dimensions; freeze price selection, not usage quantities."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "lockPriceOnSessionStart",
+    "path": "PriceComponent.priceFreezePolicy / PriceFreezePolicy.freezeMoment",
+    "translation": "Expand global locks into the affected component dimensions; freeze price selection, not usage quantities."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "markupFixedFeePerKwh",
+    "path": "DynamicPriceFormula.fixedMarkup + formulaExpression",
+    "translation": "Preserve the source mode as a formula variant; fields are not blindly equated."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "markupPercentagePerKwh",
+    "path": "DynamicPriceFormula.percentageMarkup",
+    "translation": "Percentage markup remains independent of fixed monetary markup."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "minPrice",
+    "path": "SessionPricingPolicy.minimumSessionCharge",
+    "translation": "Session floor is applied after component evaluation according to evaluationVersion."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "multiIdleFee",
+    "path": "PriceComponent.priceTier / PriceTier",
+    "translation": "Use tier bounds, unit prices and explicit graduated versus whole-quantity calculation."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "multiPricePerDuration",
+    "path": "PriceComponent.priceTier / PriceTier",
+    "translation": "Use tier bounds, unit prices and explicit graduated versus whole-quantity calculation."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "multiPricePerKwh",
+    "path": "PriceComponent.priceTier / PriceTier",
+    "translation": "Use tier bounds, unit prices and explicit graduated versus whole-quantity calculation."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "nightIdleFeePerMinute",
+    "path": "PriceComponent[IdleTime].unitPrice + pricingCondition",
+    "translation": "Keep idle and charging-time dimensions separate."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "nightPricePerKwh",
+    "path": "PriceComponent[EnergyImport].unitPrice + pricingCondition",
+    "translation": "Energy unit is explicit; day/night use recurring local windows and timezone."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "nightPricePerPeriod",
+    "path": "PriceComponent[ChargingTime].unitPrice + pricingCondition",
+    "translation": "Use an explicit time unit and billing increment; preserve day/night conditions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "optimisedLabel",
+    "path": "SessionPricingPolicy.optimizedLabel",
+    "translation": "Retain localized presentation text separately from arithmetic."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "peakPowerLevels",
+    "path": "PriceTier.pricingCondition / PricingCondition[Power].measurementAggregation",
+    "translation": "Use comparisonValue and comparisonDatatype; preserve average versus peak in the versioned condition definition."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "preAuthorizeAmount",
+    "path": "PreauthorizationPolicy.initialHoldAmount",
+    "translation": "A hold is not session revenue or a captured payment."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "priceForEnergyWhenOptimized",
+    "path": "SessionPricingPolicy.optimizedUnitPrice",
+    "translation": "Separate optimized unit price from the threshold."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "pricePerKwh",
+    "path": "PriceComponent[EnergyImport].unitPrice + pricingCondition",
+    "translation": "Energy unit is explicit; day/night use recurring local windows and timezone."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "pricePerPeriod",
+    "path": "PriceComponent[ChargingTime].unitPrice + pricingCondition",
+    "translation": "Use an explicit time unit and billing increment; preserve day/night conditions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "pricePerSession",
+    "path": "TariffVersion.priceComponent / PriceComponent[Flat].unitPrice",
+    "translation": "Represent separate flat components; retain connection eligibility conditions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "pricePeriodInMinutes",
+    "path": "PriceComponent.billingStep + unitIri",
+    "translation": "Convert to the declared time unit without changing step rounding."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "pricePeriods",
+    "path": "PriceComponent.pricingCondition / RecurringWindow or TimeWindow",
+    "translation": "Preserve inclusion/exclusion rules, dates, weekdays, timezone and exceptions."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "regularUsePeriod",
+    "path": "PricingCondition[Duration].comparisonValue + comparisonDatatype",
+    "translation": "Minutes of regular use before the peak-power excess-duration rate; not a wall-clock interval."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "stateOfChargeIdleThreshold",
+    "path": "PriceComponent[IdleTime].pricingCondition",
+    "translation": "SOC and measured-power conditions determine idle classification; time alone is insufficient."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "subsidy",
+    "path": "TariffVersion.subsidyRule / SubsidyRule.integrationConnection, subsidyValue, subsidyBasis",
+    "translation": "Resolve funding authority, value basis and calculation version."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "subsidyIntegrationId",
+    "path": "TariffVersion.subsidyRule / SubsidyRule.integrationConnection, subsidyValue, subsidyBasis",
+    "translation": "Resolve funding authority, value basis and calculation version."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "taxID",
+    "path": "PriceComponent.taxRule / TaxRule.externalIdentifier",
+    "translation": "Use qualified external identifiers rather than reusing an API integer as a global IRI."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "thresholdPriceForEnergy",
+    "path": "SessionPricingPolicy.optimizedPriceThreshold",
+    "translation": "Threshold influences the optimized price branch."
+  },
+  {
+    "sourceSchema": "pricing",
+    "sourceField": "timePeriods",
+    "path": "PriceComponent.pricingCondition / RecurringWindow or TimeWindow",
+    "translation": "Preserve inclusion/exclusion rules, dates, weekdays, timezone and exceptions."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountElements",
+    "path": "DiscountRule.affectedDimension",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountMode",
+    "path": "DiscountRule.affectedDimension: one common rule across dimensions or individual rules per component",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountPercentage",
+    "path": "DiscountRule[Percentage].discountMagnitude",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountReferenceType",
+    "path": "TariffVersion.baseTariffSelection with TariffResolution.resolvedBaseTariff at session time",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountType",
+    "path": "DiscountRule.discountBasis",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "discountValue",
+    "path": "DiscountRule.discountMagnitude",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  },
+  {
+    "sourceSchema": "discountTariffSettings",
+    "sourceField": "referencedTariffId",
+    "path": "TariffVersion.baseTariffVersion / qualified ExternalIdentifier",
+    "translation": "Translate source enum values explicitly; preserve selected tariff version."
+  }
+]

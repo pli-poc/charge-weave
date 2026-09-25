@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:PayoutBatch . {?this cd:currency ?a; cd:payout/cd:currency ?b. FILTER(?a != ?b)} UNION {?this cd:batchTotal ?t. {SELECT ?this (SUM(?v) AS ?s) WHERE {?this cd:payout/cd:payoutAmount ?v} GROUP BY ?this} FILTER(?t != ?s)} }

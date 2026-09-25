@@ -1,0 +1,10 @@
+{
+  "source": "https://developers.ampeco.com/openapi/public-api.yaml",
+  "observedVersion": "3.253.0",
+  "checkedDate": "2026-09-25",
+  "note": "Authentication details corroborated by the public specification. These two operations are already counted among the 651 operation pages, not as resource families.",
+  "operations": [
+    {"method":"POST","path":"/public-api/oauth/token","classes":["ApiClient","AccessTokenLease","AccessGrant","Permission"],"semantics":"Exchange client credentials for a bounded access-token lease; retain metadata rather than bearer secrets."},
+    {"method":"POST","path":"/public-api/oauth/revoke","classes":["AccessTokenLease","AuditEntry"],"semantics":"Revoke the lease and record the revocation event; runtime gateway enforcement is required."}
+  ]
+}

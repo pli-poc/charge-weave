@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?journal ?currency (SUM(?amount) AS ?balance) WHERE {?journal a cd:Journal; cd:journalLine ?line. ?line cd:currency ?currency; cd:signedAmount ?amount} GROUP BY ?journal ?currency
