@@ -1,5 +1,7 @@
 # Independent CPMS business-domain audit — v1.1
 
+This document records the initial v1.1 audit. The current full-scope review, additional closures and evidence are in [the 1.2.0 completion baseline](completion-review.md).
+
 Reviewed 25 September 2026. The earlier import established catalogue traceability and technical consistency but did not establish independent business coverage. This review defines a finite CPMS business profile from actor outcomes, lifecycles, exceptions and ownership, then changes the model to close the findings below.
 
 The reviewed baseline contains **91 requirements, 28 actor roles and 20 journeys**, with all six lifecycle phases described for every journey. It covers multi-tenant conductive charging, CPO/eMSP roles, public/ad hoc commerce, fleet/workplace and home charging, roaming and energy orchestration. The exact scope, runtime owners and reasoned exclusions are in [`requirements/scope.json`](../requirements/scope.json).

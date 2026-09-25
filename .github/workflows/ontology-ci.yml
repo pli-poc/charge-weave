@@ -115,6 +115,36 @@ jobs:
           - gate: Adversarial hold
             id: adversarial-hold
             command: python tools/test_adversarial.py --family hold
+          - gate: Complete interaction access
+            id: completion-access
+            command: python tools/test_completion.py --family access
+          - gate: Complete interaction finance
+            id: completion-finance
+            command: python tools/test_completion.py --family finance
+          - gate: Complete interaction pricing
+            id: completion-pricing
+            command: python tools/test_completion.py --family pricing
+          - gate: Complete interaction settlement
+            id: completion-settlement
+            command: python tools/test_completion.py --family settlement
+          - gate: Complete interaction governance
+            id: completion-governance
+            command: python tools/test_completion.py --family governance
+          - gate: Complete interaction lifecycle
+            id: completion-lifecycle
+            command: python tools/test_completion.py --family lifecycle
+          - gate: Complete interaction operations
+            id: completion-operations
+            command: python tools/test_completion.py --family operations
+          - gate: Complete interaction financial-state
+            id: completion-financial-state
+            command: python tools/test_completion.py --family financial-state
+          - gate: Calculation and timezone oracles
+            id: oracles
+            command: python tools/test_calculation_oracles.py
+          - gate: Declared business completeness
+            id: completeness
+            command: python tools/check_completeness.py
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:

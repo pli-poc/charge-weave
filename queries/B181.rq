@@ -1,0 +1,11 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:AmountRounding . ?this cd:rawAmount ?raw; cd:roundedAmount ?actual; cd:roundingPolicy ?policy. ?policy cd:roundingMode ?mode; cd:decimalPlaces ?places.
+BIND(IF(?places=0,1,IF(?places=1,10,IF(?places=2,100,IF(?places=3,1000,IF(?places=4,10000,IF(?places=5,100000,1000000)))))) AS ?factor)
+BIND(ABS(?raw)*?factor AS ?scaled) BIND(FLOOR(?scaled) AS ?lower)
+BIND(IF(?mode=cd:roundingMode_Down,?lower,IF(?mode=cd:roundingMode_Up,CEIL(?scaled),IF(?mode=cd:roundingMode_HalfUp,FLOOR(?scaled+0.5),IF(?scaled-?lower<0.5,?lower,IF(?scaled-?lower>0.5,?lower+1,IF(FLOOR(?lower/2)*2=?lower,?lower,?lower+1)))))) AS ?rounded)
+BIND(IF(?raw<0,-?rounded,?rounded)/?factor AS ?expected)
+FILTER(?places>6 || ?places<0 || ?actual!=?expected) }

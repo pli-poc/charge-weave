@@ -16,4 +16,4 @@ Canonical business meaning and vendor payload restrictions are versioned separat
 
 Sources: [Circuit create](urn:chargeweave:legacy-api/reference/circuitcreate), [Charge point update](urn:chargeweave:legacy-api/reference/chargepointupdate), [Models relationship](urn:chargeweave:legacy-api/docs/models-relationship), and the family references in the crosswalk.
 
-Do not infer that a constraint absent from the canonical 172-rule set is accepted by External platform. An External platform importer/exporter must pin an exact OpenAPI version, preserve null-versus-absent update semantics, map enums explicitly, respect endpoint-specific permission scopes and test conflict responses. This release supplies semantic traceability, not that adapter.
+Do not infer that a constraint absent from the canonical business-rule set is accepted by External platform. An External platform importer/exporter must pin an exact OpenAPI version, preserve null-versus-absent update semantics, map enums explicitly, respect endpoint-specific permission scopes and test conflict responses. This release supplies semantic traceability, not that adapter.

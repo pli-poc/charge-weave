@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:AccessDecision . ?this cd:decisionContext cd:decisionContext_Historical; cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {?this cd:authorizationSnapshot ?s; cd:accessGrant ?g. ?s cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:sourceGrant ?g; cd:principalEnabled true; cd:grantActive true; cd:validFrom ?a; cd:validUntil ?b; cd:capturedAt ?captured. FILTER(?a<=?t && ?t<?b && ?captured=?t)} }

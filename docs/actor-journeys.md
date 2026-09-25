@@ -46,7 +46,7 @@ Lead: Commercial manager. Accountable: Contract supplier. Financial owner: Contr
 
 Concrete domain concepts: ServiceAgreement, ContractObligation, AgreementLifecycleEvent, CommercialResponsibility.
 
-Requirements: BR-110, BR-111, BR-112, BR-113, BR-124.
+Requirements: BR-110, BR-111, BR-112, BR-113, BR-124, BR-207.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -65,7 +65,7 @@ Lead: Account administrator. Accountable: Service provider. Financial owner: Cre
 
 Concrete domain concepts: CustomerAccount, ServiceEntitlement, AccountClosure, AccessGrant.
 
-Requirements: BR-114, BR-115.
+Requirements: BR-114, BR-115, BR-194, BR-195.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -84,7 +84,7 @@ Lead: Asset operator. Accountable: CPO. Financial owner: Asset owner.
 
 Concrete domain concepts: ChargingStation, OperationalAcceptance, AssetLifecycleEvent, OwnershipTransfer.
 
-Requirements: BR-003, BR-116, BR-117, BR-118.
+Requirements: BR-003, BR-116, BR-117, BR-118, BR-196, BR-197.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -103,7 +103,7 @@ Lead: Driver. Accountable: Selling operator. Financial owner: Merchant of record
 
 Concrete domain concepts: PublicListing, ConnectorCompatibility, CommercialOffer, OfferAcceptance.
 
-Requirements: BR-005, BR-021, BR-026, BR-119, BR-120, BR-121, BR-122, BR-123.
+Requirements: BR-005, BR-021, BR-026, BR-119, BR-120, BR-121, BR-122, BR-123, BR-199.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -122,7 +122,7 @@ Lead: Authorization service. Accountable: CPO or delegated eMSP. Financial owner
 
 Concrete domain concepts: ChargingCredential, AuthorizationDecision, OfflineAuthorizationAssessment, PlugAndChargeEnrollment.
 
-Requirements: BR-006, BR-125.
+Requirements: BR-006, BR-125, BR-208.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -141,7 +141,7 @@ Lead: Station operations. Accountable: CPO. Financial owner: Commercial service 
 
 Concrete domain concepts: ChargingSession, ProtocolTransaction, SourceEvent, EventProcessingOutcome.
 
-Requirements: BR-007, BR-024, BR-126, BR-127, BR-128.
+Requirements: BR-007, BR-024, BR-126, BR-127, BR-128, BR-198.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -160,7 +160,7 @@ Lead: Metering operator. Accountable: Metering responsible party. Financial owne
 
 Concrete domain concepts: ElectricityMeter, CalibrationRecord, MeterRegisterEpoch, MeterDelta, SignedMeterEvidence.
 
-Requirements: BR-009, BR-129, BR-130.
+Requirements: BR-009, BR-129, BR-130, BR-193.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -179,7 +179,7 @@ Lead: Billing service. Accountable: Billing supplier. Financial owner: Merchant 
 
 Concrete domain concepts: BillingReadinessAssessment, RatingCalculation, ChargeDetailRecord, RecordCorrection.
 
-Requirements: BR-008, BR-010, BR-131, BR-132, BR-133, BR-134.
+Requirements: BR-008, BR-010, BR-131, BR-132, BR-133, BR-134, BR-181, BR-183, BR-184, BR-185, BR-186.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -198,7 +198,7 @@ Lead: Finance operator. Accountable: Issuer and collector. Financial owner: Cred
 
 Concrete domain concepts: Invoice, CreditNote, PaymentCapture, PaymentAllocation, FinancialPosition, Refund.
 
-Requirements: BR-013, BR-014, BR-015, BR-020, BR-135, BR-136, BR-137, BR-138, BR-169.
+Requirements: BR-013, BR-014, BR-015, BR-020, BR-135, BR-136, BR-137, BR-138, BR-169, BR-175, BR-176, BR-177, BR-178, BR-179, BR-180, BR-200, BR-209, BR-210, BR-211, BR-212, BR-213, BR-214, BR-215.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -236,7 +236,7 @@ Lead: Support case owner. Accountable: Accountable service provider. Financial o
 
 Concrete domain concepts: ServiceDispute, Chargeback, DunningAction, RecordCorrection.
 
-Requirements: BR-142, BR-143.
+Requirements: BR-142, BR-143, BR-201.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -255,7 +255,7 @@ Lead: Settlement operator. Accountable: Contract supplier. Financial owner: Name
 
 Concrete domain concepts: SettlementBatch, SettlementItem, SettlementApproval, Payout.
 
-Requirements: BR-027, BR-144, BR-145.
+Requirements: BR-027, BR-144, BR-145, BR-182, BR-187, BR-188, BR-218.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -274,7 +274,7 @@ Lead: Fleet finance. Accountable: Employer. Financial owner: Employer or mandate
 
 Concrete domain concepts: ReimbursementPolicy, ReimbursementRecord, ReimbursementApproval, Payout.
 
-Requirements: BR-016, BR-025, BR-146, BR-147.
+Requirements: BR-016, BR-025, BR-146, BR-147, BR-202.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -293,7 +293,7 @@ Lead: Subscription operator. Accountable: Service provider. Financial owner: Ben
 
 Concrete domain concepts: Subscription, BillingPeriod, BenefitAllowance, BenefitReservation, AllowanceConsumption, EnergyCoupon.
 
-Requirements: BR-017, BR-148, BR-170, BR-171, BR-172.
+Requirements: BR-017, BR-148, BR-170, BR-171, BR-172, BR-174, BR-216, BR-217.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -312,7 +312,7 @@ Lead: Energy controller. Accountable: Site energy responsible party. Financial o
 
 Concrete domain concepts: GridConnection, PowerConstraint, ControlDecision, OverrideAuthorization, ExportAgreement, FlexibilityDelivery.
 
-Requirements: BR-004, BR-011, BR-012, BR-149, BR-150, BR-151.
+Requirements: BR-004, BR-011, BR-012, BR-149, BR-150, BR-151, BR-203, BR-204.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -331,7 +331,7 @@ Lead: Privacy controller. Accountable: Data controller. Financial owner: Contrac
 
 Concrete domain concepts: DataSubjectRequest, ProcessingPurpose, LegalHold, DataDisposition.
 
-Requirements: BR-152, BR-153, BR-154, BR-155, BR-156.
+Requirements: BR-152, BR-153, BR-154, BR-155, BR-156, BR-189, BR-190.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -350,7 +350,7 @@ Lead: Security administrator. Accountable: Platform controller. Financial owner:
 
 Concrete domain concepts: AccessDecision, AccessGrant, CertificateRecord, AccessTokenLease, EvidenceVerification.
 
-Requirements: BR-001, BR-022, BR-028, BR-157, BR-158.
+Requirements: BR-001, BR-022, BR-028, BR-157, BR-158, BR-173.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -369,7 +369,7 @@ Lead: Service operations. Accountable: Maintenance/service provider. Financial o
 
 Concrete domain concepts: ServiceLevelCommitment, ServiceLevelBreach, WorkOrder, FirmwareDeployment, RecoveryExercise.
 
-Requirements: BR-018, BR-019, BR-159, BR-160, BR-161.
+Requirements: BR-018, BR-019, BR-159, BR-160, BR-161, BR-205.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -388,7 +388,7 @@ Lead: Integration owner. Accountable: Platform operator. Financial owner: Contra
 
 Concrete domain concepts: ProtocolProfile, IntegrationConnection, MigrationBatch, SynchronizationCursor.
 
-Requirements: BR-002, BR-023, BR-162, BR-165.
+Requirements: BR-002, BR-023, BR-162, BR-165, BR-206.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.
 
@@ -407,6 +407,6 @@ Lead: Business process owner. Accountable: Named accountable party. Financial ow
 
 Concrete domain concepts: ProcessExecution, ProcessStep, LifecycleSnapshot, StateTransition.
 
-Requirements: BR-163, BR-164, BR-166, BR-167, BR-168.
+Requirements: BR-163, BR-164, BR-166, BR-167, BR-168, BR-191, BR-192.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.

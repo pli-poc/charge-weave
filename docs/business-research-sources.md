@@ -17,6 +17,8 @@ Reviewed 25 September 2026. Product-policy inferences are identified separately 
 | EDPB-RIGHTS | [European Data Protection Board: data subject rights](https://www.edpb.europa.eu/topics/key-gdpr-concepts/data-subject-rights_en) | Rights requests, purpose and justified retention are modeled separately from account closure. Conditions and legal assessments remain explicit. |
 | W3C-SHACL | [W3C: Shapes Constraint Language](https://www.w3.org/TR/shacl/) | Structural and SPARQL constraints validate a supplied graph; they do not establish factual truth or runtime enforcement. |
 | CW-POLICY | [ChargeWeave canonical business policy](docs/business-policy-decisions.md) | Responsibilities, readiness, arithmetic, lifecycle tables and evidence gates are product policies unless a more specific source is cited. |
+| PY-DECIMAL | [Python decimal: exact decimal arithmetic and rounding modes](https://docs.python.org/3/library/decimal.html) | Independent Decimal oracle for signed half-up, half-even, toward-zero and away-from-zero monetary rounding. The zero-to-six-place canonical validation profile is a product decision. |
+| PY-ZONEINFO | [Python zoneinfo: IANA time zones and ambiguous local times](https://docs.python.org/3/library/zoneinfo.html) | Supplemental IANA-zone validation of offset-bearing local pricing instants, including repeated-hour fold selection. SPARQL checks instant equality; the timezone database check is a separate required semantic gate. |
 
 The direct consolidated legal-text endpoints could not be retrieved in this session; regulatory context uses the linked Commission and regulator guidance. This audit does not claim a country-by-country legal certification.
 

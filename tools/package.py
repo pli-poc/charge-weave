@@ -23,6 +23,8 @@ COUNTED_REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tes
      'migration', 'asset', 'allowance', 'access', 'settlement', 'process'))
 COUNTED_REPORTS += tuple('adversarial-' + family + '.json' for family in
                          ('access','credit','allowance','dunning','history','hold'))
+COUNTED_REPORTS += ('completeness.json','calculation-oracles.json') + tuple('completion-'+family+'.json' for family in
+    ('access','finance','pricing','settlement','governance','lifecycle','operations','financial-state'))
 REPORTS = COUNTED_REPORTS + ('owl-consistency.json', 'validation.ttl', 'validation.txt')
 
 
@@ -58,13 +60,13 @@ def main():
         raise ValueError('Checkout does not match the GitHub Actions commit')
     files = project_files(ROOT) + [ROOT / 'reports' / name for name in REPORTS]
     manifest = {
-        'product': 'ChargeWeave', 'ontologyVersion': '1.1.1', 'commit': commit,
+        'product': 'ChargeWeave', 'ontologyVersion': '1.2.0', 'commit': commit,
         'createdAt': datetime.now(timezone.utc).isoformat(),
         'workflowRun': os.environ.get('GITHUB_RUN_ID'),
         'workflowAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'),
         'python': platform.python_version(),
         'dependencies': {name: importlib.metadata.version(name)
-                         for name in ('rdflib', 'pyshacl', 'owlready2')},
+                         for name in ('rdflib', 'pyshacl', 'owlready2', 'tzdata')},
         'evidenceBoundary': 'Declared CPMS business profile has traceable semantic contracts and model-level acceptance evidence; runtime integration, operational behavior and jurisdiction-specific certification are separate gates.',
         'files': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                   for p in files},

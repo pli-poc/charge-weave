@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:PaymentIntent . ?this cd:paymentState ?state; cd:requestedAmount ?requested. {SELECT ?this (SUM(?amount) AS ?captured) WHERE {OPTIONAL {?c a cd:PaymentCapture; cd:paymentIntent ?this; cd:captureState cd:captureState_Confirmed; cd:capturedAmount ?amount}} GROUP BY ?this} {SELECT ?this (SUM(?refund) AS ?refunded) WHERE {OPTIONAL {?c a cd:PaymentCapture; cd:paymentIntent ?this; cd:captureState cd:captureState_Confirmed. ?r a cd:Refund; cd:paymentCapture ?c; cd:refundState cd:refundState_Confirmed; cd:refundAmount ?refund}} GROUP BY ?this} BIND(COALESCE(?captured,0) AS ?total) FILTER((?state IN (cd:paymentState_Created,cd:paymentState_Authorized,cd:paymentState_Failed,cd:paymentState_Cancelled) && ?total!=0) || (?state=cd:paymentState_Captured && (?total<=0 || ?total!=?requested)) || (?state=cd:paymentState_PartiallyCaptured && (?total<=0 || ?total>=?requested)) || (?state=cd:paymentState_Refunded && (?total<=0 || COALESCE(?refunded,0)!=?total))) }

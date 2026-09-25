@@ -17,20 +17,20 @@ cd:BenefitReservation a owl:Class ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:expiresAt ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:BenefitAllowance ;
+            owl:onProperty cd:allowance ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:reservedValue ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ReservationStateCode ;
             owl:onProperty cd:reservationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BillingPeriod ;
             owl:onProperty cd:billingPeriod ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:reservedValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSession ;
-            owl:onProperty cd:session ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:BenefitAllowance ;
-            owl:onProperty cd:allowance ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -39,23 +39,51 @@ cd:AllowanceConsumption a owl:Class ;
     rdfs:label "Allowance Consumption"@en ;
     rdfs:comment "Consumption of a plan allowance with session and period evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:AllowanceBalance ;
-            owl:onProperty cd:allowanceBalance ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:BenefitAllowance ;
-            owl:onProperty cd:allowance ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:recordedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:consumedValue ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:BillingPeriod ;
             owl:onProperty cd:billingPeriod ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSession ;
             owl:onProperty cd:session ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AllowanceBalance ;
+            owl:onProperty cd:allowanceBalance ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:recordedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BenefitAllowance ;
+            owl:onProperty cd:allowance ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:consumedValue ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "subscriptions-benefits" .
+
+cd:AllowanceSponsorship a owl:Class ;
+    rdfs:label "Allowance Sponsorship"@en ;
+    rdfs:comment "Explicit authorization for a named beneficiary to consume another account's balance within a contract and validity interval."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:sponsoringCustomer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:scopeRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:beneficiaryCustomer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:sponsorshipEvidence ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -64,20 +92,20 @@ cd:CouponConsumption a owl:Class ;
     rdfs:label "Coupon Consumption"@en ;
     rdfs:comment "Energy charged against an energy coupon within a session."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:consumedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSession ;
             owl:onProperty cd:session ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:consumedEnergyKWh ],
+            owl:allValuesFrom cd:CouponConsumption ;
+            owl:onProperty cd:reversalOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:consumedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EnergyCoupon ;
             owl:onProperty cd:energyCoupon ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:CouponConsumption ;
-            owl:onProperty cd:reversalOf ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:consumedEnergyKWh ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -87,6 +115,15 @@ cd:EnergyCoupon a owl:Class ;
     rdfs:comment "Energy entitlement distinct from monetary vouchers and wallet balances."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CouponStateCode ;
+            owl:onProperty cd:couponState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:energyAllowanceKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EnergyCouponTemplate ;
@@ -94,15 +131,6 @@ cd:EnergyCoupon a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CurrentKindCode ;
             owl:onProperty cd:currentKind ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:energyAllowanceKWh ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CouponStateCode ;
-            owl:onProperty cd:couponState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
@@ -114,26 +142,26 @@ cd:EnergyCouponTemplate a owl:Class ;
     rdfs:label "Energy Coupon Template"@en ;
     rdfs:comment "Issuance and redemption policy for energy-denominated coupons."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:templateName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ValidityModeCode ;
-            owl:onProperty cd:validityMode ],
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:validityDays ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:maximumRedemptions ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:energyAllowanceKWh ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:validityDays ],
+            owl:allValuesFrom cd:ValidityModeCode ;
+            owl:onProperty cd:validityMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:templateName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerGroup ;
             owl:onProperty cd:eligibleGroup ],
@@ -145,26 +173,26 @@ cd:Subscription a owl:Class ;
     rdfs:label "Subscription"@en ;
     rdfs:comment "Customer enrollment in a plan with explicit renewal and cancellation semantics."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:SubscriptionPlan ;
-            owl:onProperty cd:subscriptionPlan ],
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:renewAutomatically ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:cancelledAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:endsAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:startsAt ],
+            owl:onProperty cd:endsAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SubscriptionStateCode ;
             owl:onProperty cd:subscriptionState ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:renewAutomatically ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:startsAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SubscriptionPlan ;
+            owl:onProperty cd:subscriptionPlan ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -173,35 +201,35 @@ cd:SubscriptionBillingPolicy a owl:Class ;
     rdfs:label "Subscription Billing Policy"@en ;
     rdfs:comment "Subscription fee accumulation, renewal and personal-charger multipliers independent of the service allowance."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:SubscriptionPlan ;
+            owl:onProperty cd:replacementPlan ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:renewalIntervalMonths ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:BillingTypeCode ;
-            owl:onProperty cd:billingType ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:usageBillingThreshold ],
+            owl:onProperty cd:feePerPersonalStation ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:baseFee ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:applyBaseFeePerStation ],
+            owl:onProperty cd:accumulateChargingCharges ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BillingTypeCode ;
+            owl:onProperty cd:billingType ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:accumulateChargingCharges ],
+            owl:onProperty cd:applyBaseFeePerStation ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:freeRenewalPeriods ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:SubscriptionPlan ;
-            owl:onProperty cd:replacementPlan ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:feePerPersonalStation ],
+            owl:onProperty cd:usageBillingThreshold ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -210,35 +238,38 @@ cd:AllowanceBalance a owl:Class ;
     rdfs:label "Allowance Balance"@en ;
     rdfs:comment "Per-customer, per-period allowance accounting with explicit opening rollover, grant, consumed usage, active reservations, expiry and remaining value."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:BenefitAllowance ;
-            owl:onProperty cd:allowance ],
+            owl:allValuesFrom cd:AllowanceSponsorship ;
+            owl:onProperty cd:allowanceSponsorship ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:consumedValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:reservedValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:expiredValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BillingPeriod ;
             owl:onProperty cd:billingPeriod ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:grantedValue ],
+            owl:onProperty cd:reservedValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:consumedValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:openingValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:grantedValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:expiredValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:closingValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BenefitAllowance ;
+            owl:onProperty cd:allowance ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -247,41 +278,41 @@ cd:SubscriptionPlan a owl:Class ;
     rdfs:label "Subscription Plan"@en ;
     rdfs:comment "Versioned recurring commercial plan with charging benefits and billing policy."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:BillingModeCode ;
-            owl:onProperty cd:billingMode ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:perHomeStationFee ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:BillingCycleCode ;
-            owl:onProperty cd:billingCycle ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:externalBilling ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:planVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BenefitAllowance ;
             owl:onProperty cd:benefit ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:planVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:planName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:freeInitialPeriods ],
+            owl:allValuesFrom cd:BillingModeCode ;
+            owl:onProperty cd:billingMode ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SubscriptionBillingPolicy ;
             owl:onProperty cd:subscriptionBillingPolicy ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:SiteAccessPolicy ;
-            owl:onProperty cd:visibilityPolicy ],
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:externalBilling ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:baseFee ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SiteAccessPolicy ;
+            owl:onProperty cd:visibilityPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:planName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BillingCycleCode ;
+            owl:onProperty cd:billingCycle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:freeInitialPeriods ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .
@@ -290,20 +321,20 @@ cd:BillingPeriod a owl:Class ;
     rdfs:label "Billing Period"@en ;
     rdfs:comment "Accountable period for subscription accrual, invoicing and allowance reset."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TimeWindow ;
-            owl:onProperty cd:period ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Invoice ;
             owl:onProperty cd:invoice ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Subscription ;
             owl:onProperty cd:subscription ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:period ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:accruedAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BillingPeriodStateCode ;
             owl:onProperty cd:billingPeriodState ],
@@ -318,14 +349,14 @@ cd:BenefitAllowance a owl:Class ;
             owl:allValuesFrom cd:ResetRuleCode ;
             owl:onProperty cd:resetRule ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:allowanceValue ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:AllowanceDimensionCode ;
             owl:onProperty cd:allowanceDimension ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:rolloverAllowed ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:allowanceValue ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "subscriptions-benefits" .

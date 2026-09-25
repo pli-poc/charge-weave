@@ -7,6 +7,7 @@ ex:AccessDecision a cd:AccessDecision ;
     cd:canonicalId "AccessDecision-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:decidedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:decisionContext cd:decisionContext_Current ;
     cd:decisionEvidence ex:EvidenceDocument ;
     cd:grantee ex:Principal ;
     cd:permission ex:Permission ;
@@ -75,6 +76,19 @@ ex:AllowanceConsumption a cd:AllowanceConsumption ;
     cd:session ex:ChargingSession ;
     cd:tenant ex:Tenant .
 
+ex:AllowanceSponsorship a cd:AllowanceSponsorship ;
+    cd:beneficiaryCustomer ex:CustomerAccount ;
+    cd:canonicalId "AllowanceSponsorship-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeRecord ex:ChargingSession ;
+    cd:serviceAgreement ex:ServiceAgreement ;
+    cd:sponsoringCustomer ex:CustomerAccount ;
+    cd:sponsorshipEvidence ex:EvidenceDocument ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime ;
+    cd:validUntil "2026-09-25T14:00:00+00:00"^^xsd:dateTime .
+
 ex:Annotation a cd:Annotation ;
     cd:author ex:Principal ;
     cd:canonicalId "Annotation-canonicalId"^^xsd:string ;
@@ -119,6 +133,22 @@ ex:AuditEntry a cd:AuditEntry ;
     cd:eventAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
+
+ex:AuthorizationSnapshot a cd:AuthorizationSnapshot ;
+    cd:canonicalId "AuthorizationSnapshot-canonicalId"^^xsd:string ;
+    cd:capturedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:grantActive false ;
+    cd:grantee ex:Principal ;
+    cd:permission ex:Permission ;
+    cd:principalEnabled false ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeRecord ex:ChargingSession ;
+    cd:snapshotEvidence ex:EvidenceDocument ;
+    cd:sourceGrant ex:AccessGrant ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime ;
+    cd:validUntil "2026-09-25T14:00:00+00:00"^^xsd:dateTime .
 
 ex:BenefitReservation a cd:BenefitReservation ;
     cd:allowance ex:BenefitAllowance ;
@@ -170,7 +200,7 @@ ex:Chargeback a cd:Chargeback ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:currency ex:Currency ;
     cd:disputeState cd:disputeState_Open ;
-    cd:disputedAmount 0.0 ;
+    cd:disputedAmount 1.0 ;
     cd:paymentCapture ex:PaymentCapture ;
     cd:reasonCode "Chargeback-reasonCode"^^xsd:string ;
     cd:responseDueAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -235,22 +265,6 @@ ex:CommandParameter a cd:CommandParameter ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant ;
     cd:valueDatatype xsd:string .
-
-ex:CommercialResponsibility a cd:CommercialResponsibility ;
-    cd:beneficiary ex:LegalEntity ;
-    cd:canonicalId "CommercialResponsibility-canonicalId"^^xsd:string ;
-    cd:collectingParty ex:LegalEntity ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:merchantOfRecord ex:LegalEntity ;
-    cd:payer ex:ChargingSession ;
-    cd:responsibilityEvidence ex:EvidenceDocument ;
-    cd:responsibilityScope ex:ChargingSession ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:serviceAgreement ex:ServiceAgreement ;
-    cd:serviceSupplier ex:LegalEntity ;
-    cd:taxLiableParty ex:LegalEntity ;
-    cd:tenant ex:Tenant ;
-    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
 
 ex:CommunicationLog a cd:CommunicationLog ;
     cd:canonicalId "CommunicationLog-canonicalId"^^xsd:string ;
@@ -402,7 +416,7 @@ ex:CreditNote a cd:CreditNote ;
     cd:artifact ex:EvidenceDocument ;
     cd:canonicalId "CreditNote-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:creditAmount 0.0 ;
+    cd:creditAmount 1.0 ;
     cd:creditNumber "CreditNote-creditNumber"^^xsd:string ;
     cd:creditReason "CreditNote-creditReason"^^xsd:string ;
     cd:currency ex:Currency ;
@@ -411,6 +425,21 @@ ex:CreditNote a cd:CreditNote ;
     cd:originalInvoice ex:Invoice ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
+
+ex:CurrencyConversion a cd:CurrencyConversion ;
+    cd:amountRounding ex:AmountRounding ;
+    cd:canonicalId "CurrencyConversion-canonicalId"^^xsd:string ;
+    cd:conversionEvidence ex:EvidenceDocument ;
+    cd:convertedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:exchangeRate ex:ExchangeRate ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceAmount 0.0 ;
+    cd:sourceCurrency ex:Currency ;
+    cd:targetAmount 0.0 ;
+    cd:targetCurrency ex:Currency ;
+    cd:tenant ex:Tenant ;
+    cd:unroundedTargetAmount 0.0 .
 
 ex:CustomFee a cd:CustomFee ;
     cd:assessedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -462,6 +491,7 @@ ex:DataSubjectRequest a cd:DataSubjectRequest ;
     cd:legalBasisAssessment "DataSubjectRequest-legalBasisAssessment"^^xsd:string ;
     cd:receivedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:requestKind cd:requestKind_Access ;
+    cd:requestOutcome cd:requestOutcome_Pending ;
     cd:requestState cd:requestState_Received ;
     cd:responseDueAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:responsibleController ex:LegalEntity ;
@@ -615,17 +645,6 @@ ex:EvidenceVerification a cd:EvidenceVerification ;
     cd:tenant ex:Tenant ;
     cd:verificationState cd:verificationState_NotChecked ;
     cd:verifier ex:Principal .
-
-ex:ExchangeRate a cd:ExchangeRate ;
-    cd:baseCurrency ex:Currency ;
-    cd:canonicalId "ExchangeRate-canonicalId"^^xsd:string ;
-    cd:conversionRate 1.0 ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:quoteCurrency ex:Currency ;
-    cd:quotedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:rateProvider "ExchangeRate-rateProvider"^^xsd:string ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:tenant ex:Tenant .
 
 ex:ExperienceChannel a cd:ExperienceChannel ;
     cd:brand ex:BrandProfile ;
@@ -924,7 +943,7 @@ ex:OwnershipTransfer a cd:OwnershipTransfer ;
     cd:canonicalId "OwnershipTransfer-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:effectiveAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:nextOwner ex:ChargingSession ;
+    cd:nextOwner ex:LegalEntity ;
     cd:previousOwner ex:ChargingSession ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant ;
@@ -1021,6 +1040,25 @@ ex:PayoutBatch a cd:PayoutBatch ;
     cd:scheduledAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:tenant ex:Tenant .
 
+ex:PeriodAdjustment a cd:PeriodAdjustment ;
+    cd:adjustmentAmount 0.0 ;
+    cd:adjustmentEvidence ex:EvidenceDocument ;
+    cd:adjustmentState cd:adjustmentState_Draft ;
+    cd:approvedBy ex:Principal ;
+    cd:canonicalId "PeriodAdjustment-canonicalId"^^xsd:string ;
+    cd:commercialResponsibility ex:CommercialResponsibility ;
+    cd:correctingRecord ex:ChargingSession ;
+    cd:correction ex:RecordCorrection ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:currency ex:Currency ;
+    cd:effectiveUsageAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:originalPeriod ex:AccountingPeriod ;
+    cd:postedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:postingPeriod ex:AccountingPeriod ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceRecord ex:ChargingSession ;
+    cd:tenant ex:Tenant .
+
 ex:Person a cd:Person ;
     cd:canonicalId "Person-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -1110,6 +1148,17 @@ ex:PriceTier a cd:PriceTier ;
     cd:tierLowerBound 0.0 ;
     cd:tierMode cd:tierMode_Graduated ;
     cd:tierUnitPrice 0.0 .
+
+ex:PricingTimeResolution a cd:PricingTimeResolution ;
+    cd:canonicalId "PricingTimeResolution-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:repeatedHourPolicy cd:repeatedHourPolicy_Unambiguous ;
+    cd:resolvedUtcTime "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceLocalTime "2026-09-25T14:00:00+02:00"^^xsd:dateTime ;
+    cd:tenant ex:Tenant ;
+    cd:timeResolutionEvidence ex:EvidenceDocument ;
+    cd:timezoneName "Europe/Amsterdam"^^xsd:string .
 
 ex:PriorityRule a cd:PriorityRule ;
     cd:canonicalId "PriorityRule-canonicalId"^^xsd:string ;
@@ -1231,20 +1280,6 @@ ex:ReconciliationResolution a cd:ReconciliationResolution ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
-ex:RecordCorrection a cd:RecordCorrection ;
-    cd:approvedBy ex:Principal ;
-    cd:canonicalId "RecordCorrection-canonicalId"^^xsd:string ;
-    cd:correctingRecord ex:CorrectedChargeDetailRecord ;
-    cd:correctionEvidence ex:EvidenceDocument ;
-    cd:correctionKind cd:correctionKind_Credit ;
-    cd:correctionReason "RecordCorrection-correctionReason"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:issuedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:notifiedParty ex:LegalEntity ;
-    cd:originalRecord ex:ChargeDetailRecord ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:tenant ex:Tenant .
-
 ex:RecoveryAttempt a cd:RecoveryAttempt ;
     cd:attemptNumber "1"^^xsd:positiveInteger ;
     cd:attemptedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -1289,7 +1324,7 @@ ex:Refund a cd:Refund ;
     cd:currency ex:Currency ;
     cd:paymentCapture ex:PaymentCapture ;
     cd:providerReference "Refund-providerReference"^^xsd:string ;
-    cd:refundAmount 0.0 ;
+    cd:refundAmount 1.0 ;
     cd:refundReason "Refund-refundReason"^^xsd:string ;
     cd:refundState cd:refundState_Pending ;
     cd:requestedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -1538,6 +1573,24 @@ ex:SettlementApproval a cd:SettlementApproval ;
     cd:settlementBatch ex:SettlementBatch ;
     cd:tenant ex:Tenant .
 
+ex:SettlementLeg a cd:SettlementLeg ;
+    cd:canonicalId "SettlementLeg-canonicalId"^^xsd:string ;
+    cd:chargeRecord ex:ChargeDetailRecord ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:currency ex:Currency ;
+    cd:entitledParty ex:LegalEntity ;
+    cd:grossAmount 0.0 ;
+    cd:legEvidence ex:EvidenceDocument ;
+    cd:legReference "SettlementLeg-legReference"^^xsd:string ;
+    cd:legState cd:legState_Pending ;
+    cd:liableParty ex:LegalEntity ;
+    cd:netAmount 0.0 ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:serviceAgreement ex:ServiceAgreement ;
+    cd:settlementBatch ex:SettlementBatch ;
+    cd:taxAmount 0.0 ;
+    cd:tenant ex:Tenant .
+
 ex:SettlementOverride a cd:SettlementOverride ;
     cd:approvedBy ex:Principal ;
     cd:canonicalId "SettlementOverride-canonicalId"^^xsd:string ;
@@ -1668,6 +1721,7 @@ ex:TaxDetermination a cd:TaxDetermination ;
     cd:taxAmount 0.0 ;
     cd:taxBasisAmount 0.0 ;
     cd:taxRule ex:TaxRule ;
+    cd:taxableAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:tenant ex:Tenant .
 
 ex:TaxIdentifier a cd:TaxIdentifier ;
@@ -1784,6 +1838,16 @@ ex:WorkOrder a cd:WorkOrder ;
     cd:tenant ex:Tenant ;
     cd:workState cd:workState_New .
 
+ex:AmountRounding a cd:AmountRounding ;
+    cd:canonicalId "AmountRounding-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:currency ex:Currency ;
+    cd:rawAmount 0.0 ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:roundedAmount 0.0 ;
+    cd:roundingPolicy ex:RoundingPolicy ;
+    cd:tenant ex:Tenant .
+
 ex:AssistantRecommendation a cd:AssistantRecommendation ;
     cd:affectedRecord ex:ChargingSession ;
     cd:canonicalId "AssistantRecommendation-canonicalId"^^xsd:string ;
@@ -1863,6 +1927,22 @@ ex:CommercialOffer a cd:CommercialOffer ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:selectedTariff ex:TariffVersion ;
     cd:tenant ex:Tenant .
+
+ex:CommercialResponsibility a cd:CommercialResponsibility ;
+    cd:beneficiary ex:LegalEntity ;
+    cd:canonicalId "CommercialResponsibility-canonicalId"^^xsd:string ;
+    cd:collectingParty ex:LegalEntity ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:merchantOfRecord ex:LegalEntity ;
+    cd:payer ex:ChargingSession ;
+    cd:responsibilityEvidence ex:EvidenceDocument ;
+    cd:responsibilityScope ex:ChargingSession ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:serviceAgreement ex:ServiceAgreement ;
+    cd:serviceSupplier ex:LegalEntity ;
+    cd:taxLiableParty ex:LegalEntity ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
 
 ex:ConfigurationTemplate a cd:ConfigurationTemplate ;
     cd:canonicalId "ConfigurationTemplate-canonicalId"^^xsd:string ;
@@ -2075,6 +2155,17 @@ ex:EventSubscription a cd:EventSubscription ;
     cd:suppressOwnEvents false ;
     cd:tenant ex:Tenant .
 
+ex:ExchangeRate a cd:ExchangeRate ;
+    cd:baseCurrency ex:Currency ;
+    cd:canonicalId "ExchangeRate-canonicalId"^^xsd:string ;
+    cd:conversionRate 1.0 ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:quoteCurrency ex:Currency ;
+    cd:quotedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:rateProvider "ExchangeRate-rateProvider"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
 ex:FinancialAccountReference a cd:FinancialAccountReference ;
     cd:accountHolder ex:LegalEntity ;
     cd:accountReference "FinancialAccountReference-accountReference"^^xsd:string ;
@@ -2138,9 +2229,9 @@ ex:InvoiceLine a cd:InvoiceLine ;
     cd:canonicalId "InvoiceLine-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:currency ex:Currency ;
-    cd:grossAmount 0.0 ;
+    cd:grossAmount 1.0 ;
     cd:lineDescription "InvoiceLine example"@en ;
-    cd:netAmount 0.0 ;
+    cd:netAmount 1.0 ;
     cd:quantityValue 0.0 ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:taxAmount 0.0 ;
@@ -2149,6 +2240,7 @@ ex:InvoiceLine a cd:InvoiceLine ;
 
 ex:Issue a cd:Issue ;
     cd:affectedRecord ex:ChargingSession ;
+    cd:billingBlocking false ;
     cd:canonicalId "Issue-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:issueKind cd:issueKind_Hardware ;
@@ -2159,6 +2251,7 @@ ex:Issue a cd:Issue ;
     cd:tenant ex:Tenant .
 
 ex:Journal a cd:Journal ;
+    cd:accountingPeriod ex:AccountingPeriod ;
     cd:canonicalId "Journal-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:journalLine ex:JournalLine ;
@@ -2272,6 +2365,7 @@ ex:PricingCondition a cd:PricingCondition ;
 ex:ProcessStep a cd:ProcessStep ;
     cd:canonicalId "ProcessStep-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:requiredStep false ;
     cd:responsibleParty ex:LegalEntity ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:stepKind "ProcessStep-stepKind"^^xsd:string ;
@@ -2322,6 +2416,20 @@ ex:ReconciliationCase a cd:ReconciliationCase ;
     cd:expectedIdentifier "missing-external-record"^^xsd:string ;
     cd:mismatchKind cd:mismatchKind_Missing ;
     cd:openedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:RecordCorrection a cd:RecordCorrection ;
+    cd:approvedBy ex:Principal ;
+    cd:canonicalId "RecordCorrection-canonicalId"^^xsd:string ;
+    cd:correctingRecord ex:CorrectedChargeDetailRecord ;
+    cd:correctionEvidence ex:EvidenceDocument ;
+    cd:correctionKind cd:correctionKind_Credit ;
+    cd:correctionReason "RecordCorrection-correctionReason"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:issuedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:notifiedParty ex:LegalEntity ;
+    cd:originalRecord ex:ChargeDetailRecord ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
@@ -2388,20 +2496,6 @@ ex:SessionEndEvidence a cd:SessionEndEvidence ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:session ex:ChargingSession ;
     cd:sourceEvent ex:SourceEvent ;
-    cd:tenant ex:Tenant .
-
-ex:SettlementBatch a cd:SettlementBatch ;
-    cd:canonicalId "SettlementBatch-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:currency ex:Currency ;
-    cd:grossAmount 0.0 ;
-    cd:netAmount 0.0 ;
-    cd:period ex:TimeWindow ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:serviceAgreement ex:ServiceAgreement ;
-    cd:settlementItem ex:SettlementItem ;
-    cd:settlementState cd:settlementState_Draft ;
-    cd:taxAmount 0.0 ;
     cd:tenant ex:Tenant .
 
 ex:SettlementItem a cd:SettlementItem ;
@@ -2566,29 +2660,6 @@ ex:CertificateRecord a cd:CertificateRecord ;
     cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime ;
     cd:validUntil "2026-09-25T14:00:00+00:00"^^xsd:dateTime .
 
-ex:ChargeDetailRecord a cd:ChargeDetailRecord ;
-    cd:artifact ex:EvidenceDocument ;
-    cd:billingReadiness ex:BillingReadinessAssessment ;
-    cd:canonicalId "ChargeDetailRecord-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:currency ex:Currency ;
-    cd:exportedEnergyKWh 0.0 ;
-    cd:externalIdentifier ex:ExternalIdentifier ;
-    cd:grossAmount 0.0 ;
-    cd:importedEnergyKWh 0.0 ;
-    cd:issuer ex:LegalEntity ;
-    cd:netAmount 0.0 ;
-    cd:period ex:TimeWindow ;
-    cd:receivedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:recipient ex:LegalEntity ;
-    cd:recordKind cd:recordKind_Debit ;
-    cd:recordOrigin cd:recordOrigin_Local ;
-    cd:recordVersion "ChargeDetailRecord-recordVersion"^^xsd:string ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:session ex:ChargingSession ;
-    cd:taxAmount 0.0 ;
-    cd:tenant ex:Tenant .
-
 ex:ChargingCredential a cd:ChargingCredential ;
     cd:canonicalId "ChargingCredential-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2637,6 +2708,7 @@ ex:EquipmentModel a cd:EquipmentModel ;
 ex:FinancialPosition a cd:FinancialPosition ;
     cd:canonicalId "FinancialPosition-canonicalId"^^xsd:string ;
     cd:collectedAmount 0.0 ;
+    cd:collectionBasis cd:collectionBasis_Uncollected ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:creditedAmount 0.0 ;
     cd:creditor ex:LegalEntity ;
@@ -2658,13 +2730,13 @@ ex:Invoice a cd:Invoice ;
     cd:currency ex:Currency ;
     cd:dueAt "2026-09-25T14:00:00+00:00"^^xsd:dateTime ;
     cd:financialOwner ex:LegalEntity ;
-    cd:grossAmount 0.0 ;
+    cd:grossAmount 1.0 ;
     cd:invoiceLine ex:InvoiceLine ;
     cd:invoiceNumber "Invoice-invoiceNumber"^^xsd:string ;
     cd:invoiceState cd:invoiceState_Draft ;
     cd:issuedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:issuer ex:LegalEntity ;
-    cd:netAmount 0.0 ;
+    cd:netAmount 1.0 ;
     cd:numberSequence ex:DocumentNumberSequence ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:taxAmount 0.0 ;
@@ -2700,17 +2772,8 @@ ex:PaymentIntent a cd:PaymentIntent ;
     cd:currency ex:Currency ;
     cd:idempotencyKey "PaymentIntent-idempotencyKey"^^xsd:string ;
     cd:paymentInstrument ex:PaymentInstrument ;
-    cd:paymentState cd:paymentState_Created ;
-    cd:requestedAmount 0.0 ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:tenant ex:Tenant .
-
-ex:Permission a cd:Permission ;
-    cd:canonicalId "Permission-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:descriptionText "Permission-descriptionText"^^xsd:string ;
-    cd:permissionAction "Permission-permissionAction"^^xsd:string ;
-    cd:resourceClass <https://example.org/value/resourceClass> ;
+    cd:paymentState cd:paymentState_Captured ;
+    cd:requestedAmount 1.0 ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
@@ -2782,21 +2845,26 @@ ex:RoamingParty a cd:RoamingParty ;
     cd:roamingRole cd:roamingRole_CPO ;
     cd:tenant ex:Tenant .
 
-ex:RoundingPolicy a cd:RoundingPolicy ;
-    cd:canonicalId "RoundingPolicy-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:decimalPlaces "1"^^xsd:nonNegativeInteger ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:roundingMode cd:roundingMode_HalfUp ;
-    cd:roundingStage cd:roundingStage_Component ;
-    cd:tenant ex:Tenant .
-
 ex:SecurityRole a cd:SecurityRole ;
     cd:canonicalId "SecurityRole-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:permission ex:Permission ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:roleName "SecurityRole-roleName"^^xsd:string ;
+    cd:tenant ex:Tenant .
+
+ex:SettlementBatch a cd:SettlementBatch ;
+    cd:canonicalId "SettlementBatch-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:currency ex:Currency ;
+    cd:grossAmount 0.0 ;
+    cd:netAmount 0.0 ;
+    cd:period ex:TimeWindow ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:serviceAgreement ex:ServiceAgreement ;
+    cd:settlementItem ex:SettlementItem ;
+    cd:settlementState cd:settlementState_Draft ;
+    cd:taxAmount 0.0 ;
     cd:tenant ex:Tenant .
 
 ex:Tariff a cd:Tariff ;
@@ -2812,24 +2880,25 @@ ex:Tariff a cd:Tariff ;
 ex:Wallet a cd:Wallet ;
     cd:balanceAmount 0.0 ;
     cd:balanceAsOf "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:balanceFrom "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:canonicalId "Wallet-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:currency ex:Currency ;
     cd:customer ex:CustomerAccount ;
+    cd:openingBalance 0.0 ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant ;
     cd:walletState cd:walletState_Active .
 
-ex:AccessGrant a cd:AccessGrant ;
-    cd:canonicalId "AccessGrant-canonicalId"^^xsd:string ;
+ex:AccountingPeriod a cd:AccountingPeriod ;
+    cd:canonicalId "AccountingPeriod-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:grantState cd:grantState_Active ;
-    cd:grantee ex:Principal ;
+    cd:financialOwner ex:LegalEntity ;
+    cd:period ex:TimeWindow ;
+    cd:periodReference "AccountingPeriod-periodReference"^^xsd:string ;
+    cd:periodState cd:periodState_Open ;
     cd:revision "1"^^xsd:positiveInteger ;
-    cd:scopeRecord ex:ChargingSession ;
-    cd:securityRole ex:SecurityRole ;
-    cd:tenant ex:Tenant ;
-    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
+    cd:tenant ex:Tenant .
 
 ex:Address a cd:Address ;
     cd:canonicalId "Address-canonicalId"^^xsd:string ;
@@ -2871,6 +2940,29 @@ ex:BillingPeriod a cd:BillingPeriod ;
     cd:subscription ex:Subscription ;
     cd:tenant ex:Tenant .
 
+ex:ChargeDetailRecord a cd:ChargeDetailRecord ;
+    cd:artifact ex:EvidenceDocument ;
+    cd:billingReadiness ex:BillingReadinessAssessment ;
+    cd:canonicalId "ChargeDetailRecord-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:currency ex:Currency ;
+    cd:exportedEnergyKWh 0.0 ;
+    cd:externalIdentifier ex:ExternalIdentifier ;
+    cd:grossAmount 0.0 ;
+    cd:importedEnergyKWh 0.0 ;
+    cd:issuer ex:LegalEntity ;
+    cd:netAmount 0.0 ;
+    cd:period ex:TimeWindow ;
+    cd:receivedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:recipient ex:LegalEntity ;
+    cd:recordKind cd:recordKind_Debit ;
+    cd:recordOrigin cd:recordOrigin_Local ;
+    cd:recordVersion "ChargeDetailRecord-recordVersion"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:session ex:ChargingSession ;
+    cd:taxAmount 0.0 ;
+    cd:tenant ex:Tenant .
+
 ex:ElectricityMeter a cd:ElectricityMeter ;
     cd:canonicalId "ElectricityMeter-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2880,10 +2972,39 @@ ex:ElectricityMeter a cd:ElectricityMeter ;
     cd:tenant ex:Tenant ;
     cd:unitIri <https://example.org/value/unitIri> .
 
+ex:Permission a cd:Permission ;
+    cd:canonicalId "Permission-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:descriptionText "Permission-descriptionText"^^xsd:string ;
+    cd:permissionAction "Permission-permissionAction"^^xsd:string ;
+    cd:resourceClass <https://example.org/value/resourceClass> ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:RoundingPolicy a cd:RoundingPolicy ;
+    cd:canonicalId "RoundingPolicy-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:decimalPlaces "1"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:roundingMode cd:roundingMode_HalfUp ;
+    cd:roundingStage cd:roundingStage_Component ;
+    cd:tenant ex:Tenant .
+
+ex:AccessGrant a cd:AccessGrant ;
+    cd:canonicalId "AccessGrant-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:grantState cd:grantState_Active ;
+    cd:grantee ex:Principal ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeRecord ex:ChargingSession ;
+    cd:securityRole ex:SecurityRole ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
+
 ex:PaymentCapture a cd:PaymentCapture ;
     cd:canonicalId "PaymentCapture-canonicalId"^^xsd:string ;
-    cd:captureState cd:captureState_Pending ;
-    cd:capturedAmount 0.0 ;
+    cd:captureState cd:captureState_Confirmed ;
+    cd:capturedAmount 1.0 ;
     cd:capturedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:currency ex:Currency ;
@@ -3009,22 +3130,6 @@ ex:ChargingSite a cd:ChargingSite ;
     cd:tenant ex:Tenant ;
     cd:timezoneName "Europe/London"^^xsd:string .
 
-ex:ServiceAgreement a cd:ServiceAgreement ;
-    cd:agreementEvidence ex:EvidenceDocument ;
-    cd:agreementReference "ServiceAgreement-agreementReference"^^xsd:string ;
-    cd:agreementState cd:agreementState_Active ;
-    cd:agreementVersion "ServiceAgreement-agreementVersion"^^xsd:string ;
-    cd:canonicalId "ServiceAgreement-canonicalId"^^xsd:string ;
-    cd:counterparty ex:LegalEntity ;
-    cd:coveredRecord ex:ChargingSession ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:financialOwner ex:LegalEntity ;
-    cd:governingPolicyVersion "ServiceAgreement-governingPolicyVersion"^^xsd:string ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:supplier ex:LegalEntity ;
-    cd:tenant ex:Tenant ;
-    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
-
 ex:ChargingStation a cd:ChargingStation ;
     cd:administrationState cd:administrationState_Enabled ;
     cd:assetLifecycle cd:assetLifecycle_Planned ;
@@ -3042,6 +3147,22 @@ ex:ChargingStation a cd:ChargingStation ;
     cd:stationName "ChargingStation-stationName"^^xsd:string ;
     cd:stationUse cd:stationUse_Personal ;
     cd:tenant ex:Tenant .
+
+ex:ServiceAgreement a cd:ServiceAgreement ;
+    cd:agreementEvidence ex:EvidenceDocument ;
+    cd:agreementReference "ServiceAgreement-agreementReference"^^xsd:string ;
+    cd:agreementState cd:agreementState_Active ;
+    cd:agreementVersion "ServiceAgreement-agreementVersion"^^xsd:string ;
+    cd:canonicalId "ServiceAgreement-canonicalId"^^xsd:string ;
+    cd:counterparty ex:LegalEntity ;
+    cd:coveredRecord ex:ChargingSession ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:financialOwner ex:LegalEntity ;
+    cd:governingPolicyVersion "ServiceAgreement-governingPolicyVersion"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:supplier ex:LegalEntity ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
 
 ex:SourceEvent a cd:SourceEvent ;
     cd:canonicalId "SourceEvent-canonicalId"^^xsd:string ;

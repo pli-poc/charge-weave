@@ -7,8 +7,17 @@ cd:PublicDataPublication a owl:Class ;
     rdfs:label "Public Data Publication"@en ;
     rdfs:comment "Versioned public-data export with schema, audience, freshness and evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:publicationEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:schemaVersion ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:publishedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PublicListing ;
             owl:onProperty cd:listing ],
@@ -16,17 +25,8 @@ cd:PublicDataPublication a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:publicationSchema ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:schemaVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:publicationEvidence ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:destinationUrl ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -38,20 +38,20 @@ cd:RoamingCommand a owl:Class ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:command ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:RemoteCommandStateCode ;
-            owl:onProperty cd:remoteCommandState ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:remoteCommandReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:callbackUrl ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingConnection ;
             owl:onProperty cd:roamingConnection ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:remoteCommandReference ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:receivedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:callbackUrl ],
+            owl:allValuesFrom cd:RemoteCommandStateCode ;
+            owl:onProperty cd:remoteCommandState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -60,29 +60,29 @@ cd:RoamingExchange a owl:Class ;
     rdfs:label "Roaming Exchange"@en ;
     rdfs:comment "Delivery and acknowledgement of one versioned roaming resource or command."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:RoamingConnection ;
-            owl:onProperty cd:roamingConnection ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:SourceEvent ;
             owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExchangeDirectionCode ;
+            owl:onProperty cd:exchangeDirection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExchangeStateCode ;
+            owl:onProperty cd:exchangeState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:exchangedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:acknowledgedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RoamingConnection ;
+            owl:onProperty cd:roamingConnection ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:attemptNumber ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ExternalIdentifier ;
             owl:onProperty cd:externalIdentifier ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ExchangeDirectionCode ;
-            owl:onProperty cd:exchangeDirection ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:exchangedRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ExchangeStateCode ;
-            owl:onProperty cd:exchangeState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:acknowledgedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -97,14 +97,14 @@ cd:RoamingTariffFilter a owl:Class ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:resultingTariff ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:FilterStateCode ;
+            owl:onProperty cd:filterState ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:PricingCondition ;
             owl:onProperty cd:pricingCondition ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty cd:priority ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:FilterStateCode ;
-            owl:onProperty cd:filterState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -113,20 +113,20 @@ cd:RoamingTariffMapping a owl:Class ;
     rdfs:label "Roaming Tariff Mapping"@en ;
     rdfs:comment "Connection-specific imported tariff and local commercial interpretation."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ExternalIdentifier ;
-            owl:onProperty cd:remoteTariffIdentifier ],
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:retailTariff ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:sourceEvidence ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:retailTariff ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:importedTariff ],
+            owl:allValuesFrom cd:ExternalIdentifier ;
+            owl:onProperty cd:remoteTariffIdentifier ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingConnection ;
             owl:onProperty cd:roamingConnection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:importedTariff ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:importedAt ],
@@ -139,16 +139,16 @@ cd:SynchronizationCursor a owl:Class ;
     rdfs:comment "Checkpoint of a partner stream retaining negotiated ordering and freshness semantics."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:watermarkAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:cursorValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:lastSuccessfulAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingConnection ;
             owl:onProperty cd:roamingConnection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:watermarkAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:cursorValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:streamModuleName ],
@@ -160,23 +160,23 @@ cd:RoamingBehaviorPolicy a owl:Class ;
     rdfs:label "Roaming Behavior Policy"@en ;
     rdfs:comment "Versioned interpretation rules at a roaming boundary, including unknown status and tariff precedence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:policyVersion ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:PhasePowerFormulaCode ;
             owl:onProperty cd:phasePowerFormula ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MappingModeCode ;
+            owl:onProperty cd:mappingMode ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:overrideExplicitTariff ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:UnknownUnitStatusCode ;
-            owl:onProperty cd:unknownUnitStatus ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:periodicMeterUpdates ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:MappingModeCode ;
-            owl:onProperty cd:mappingMode ],
+            owl:allValuesFrom cd:UnknownUnitStatusCode ;
+            owl:onProperty cd:unknownUnitStatus ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:policyVersion ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -185,17 +185,17 @@ cd:RoamingModuleAgreement a owl:Class ;
     rdfs:label "Roaming Module Agreement"@en ;
     rdfs:comment "Versioned sender/receiver role for one negotiated roaming module."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ModuleNameCode ;
-            owl:onProperty cd:moduleName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:endpointUrl ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LocalRoleCode ;
-            owl:onProperty cd:localRole ],
+            owl:allValuesFrom cd:ModuleNameCode ;
+            owl:onProperty cd:moduleName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:moduleVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LocalRoleCode ;
+            owl:onProperty cd:localRole ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -204,14 +204,14 @@ cd:RoamingNetwork a owl:Class ;
     rdfs:label "Roaming Network"@en ;
     rdfs:comment "Hub or direct-exchange network with provider identity and supported protocols."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProtocolNameCode ;
-            owl:onProperty cd:protocolName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:networkName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:provider ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolNameCode ;
+            owl:onProperty cd:protocolName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:supportedVersion ],
@@ -223,23 +223,23 @@ cd:RoamingParty a owl:Class ;
     rdfs:label "Roaming Party"@en ;
     rdfs:comment "Counterparty representation with externally scoped CPO or eMSP identity."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:partyCode ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingNetwork ;
             owl:onProperty cd:roamingNetwork ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:countryCode ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingRoleCode ;
             owl:onProperty cd:roamingRole ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:party ],
+            owl:onProperty cd:localPartner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:countryCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:partyCode ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:localPartner ],
+            owl:onProperty cd:party ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .
@@ -248,8 +248,14 @@ cd:RoamingConnection a owl:Class ;
     rdfs:label "Roaming Connection"@en ;
     rdfs:comment "Contracted technical relationship with negotiated protocol modules and credential references."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:localService ],
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:credentialReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RoamingModuleAgreement ;
+            owl:onProperty cd:moduleAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolNameCode ;
+            owl:onProperty cd:protocolName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingNetwork ;
             owl:onProperty cd:roamingNetwork ],
@@ -257,29 +263,23 @@ cd:RoamingConnection a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:protocolVersion ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ConnectionStateCode ;
-            owl:onProperty cd:connectionState ],
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:localService ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ServiceAgreement ;
             owl:onProperty cd:serviceAgreement ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:credentialReference ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RoamingModuleAgreement ;
-            owl:onProperty cd:moduleAgreement ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingBehaviorPolicy ;
             owl:onProperty cd:roamingBehaviorPolicy ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProtocolNameCode ;
-            owl:onProperty cd:protocolName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:endpointUrl ],
+            owl:allValuesFrom cd:ConnectionStateCode ;
+            owl:onProperty cd:connectionState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoamingParty ;
             owl:onProperty cd:remoteParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:endpointUrl ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "roaming" .

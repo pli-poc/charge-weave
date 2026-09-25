@@ -74,6 +74,7 @@ number(g,'PaymentAuthorization','authorizedAmount','4.84')
 number(g,'PaymentAllocation','allocatedAmount','4.84');code(g,'PaymentAllocation','allocationState','Posted')
 number(g,'FinancialPosition','originalAmount','4.84');number(g,'FinancialPosition','collectedAmount','4.84');number(g,'FinancialPosition','outstandingAmount','0')
 code(g,'FinancialPosition','positionState','Settled');link(g,'FinancialPosition','sourceRecord','Invoice')
+code(g,'FinancialPosition','collectionBasis','PaymentAllocations')
 code(g,'Invoice','invoiceState','Paid');link(g,'ChargingSession','commercialResponsibility','CommercialResponsibility')
 save('charge','Completed charging through billability, CDR, invoice, capture and allocated settlement',g,
      'ASK { ex:ChargingSession cd:sessionState cd:sessionState_Completed; cd:importedEnergyKWh ?energy. ex:ChargeDetailRecord cd:session ex:ChargingSession; cd:billingReadiness/cd:readinessState cd:readinessState_Ready. ex:InvoiceLine cd:chargeRecord ex:ChargeDetailRecord. ex:Invoice cd:invoiceLine ex:InvoiceLine; cd:invoiceState cd:invoiceState_Paid. ex:PaymentIntent cd:invoice ex:Invoice. ex:PaymentCapture cd:paymentIntent ex:PaymentIntent; cd:captureState cd:captureState_Confirmed. ex:PaymentAllocation cd:paymentCapture ex:PaymentCapture; cd:financialPosition/cd:outstandingAmount ?balance. FILTER(?energy=10 && ?balance=0) }',
@@ -115,6 +116,7 @@ save('reimbursement','Eligible personal charging, approved employer claim and co
 
 g = new()
 code(g,'DataSubjectRequest','requestState','Fulfilled');code(g,'DataSubjectRequest','requestKind','Erasure')
+code(g,'DataSubjectRequest','requestOutcome','Fulfilled')
 boolean(g,'DataSubjectRequest','identityVerified',True);time(g,'DataSubjectRequest','completedAt',13);link(g,'DataSubjectRequest','responseEvidence','EvidenceDocument')
 code(g,'DataDisposition','dispositionState','Completed');time(g,'DataDisposition','completedAt',13);link(g,'DataDisposition','dispositionEvidence','EvidenceDocument');link(g,'DataDisposition','legalHold','LegalHold')
 code(g,'LegalHold','holdState','Released');time(g,'LegalHold','releasedAt',13)

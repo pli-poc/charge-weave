@@ -36,4 +36,17 @@ def check(data,meta=False):
   return False,report,'Conforms: false\nInstance data contains trusted-schema redefinitions.\n'
  # Include the controlled individuals and transition table, not just schema inoculation.
  merged=ontology()+data
- return validate(merged,shacl_graph=shapes(),inference='none',advanced=True,meta_shacl=meta,allow_warnings=False)
+ conforms,report,detail=validate(merged,shacl_graph=shapes(),inference='none',advanced=True,meta_shacl=meta,allow_warnings=False)
+ from time_resolution import graph_errors
+ errors=list(graph_errors(data,C))
+ if errors:
+  root=next(report.subjects(RDF.type,SH.ValidationReport))
+  report.set((root,SH.conforms,Literal(False)))
+  for node,message in errors:
+   result=BNode();report.add((root,SH.result,result));report.add((result,RDF.type,SH.ValidationResult))
+   report.add((result,SH.resultSeverity,SH.Violation));report.add((result,SH.focusNode,node))
+   report.add((result,SH.sourceShape,C.IanaTimeResolutionConstraint));report.add((result,SH.resultPath,C.sourceLocalTime))
+   report.add((result,SH.sourceConstraintComponent,C.IanaTimeResolutionConstraint))
+   report.add((result,SH.resultMessage,Literal(message)))
+  detail='Conforms: false\nSupplemental IANA timezone validation failed:\n'+'\n'.join(str(n)+': '+m for n,m in errors)+'\n'+detail.replace('Conforms: True','SHACL-only conforms: True')
+ return bool(conforms) and not errors,report,detail

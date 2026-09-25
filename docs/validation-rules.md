@@ -160,7 +160,7 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B154 | DataDisposition | Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds. |
 | B155 | LegalHold | Holds have a future review relative to inception and explicit release evidence in time. |
 | B156 | ProcessingPurpose | International personal-data transfers retain an explicit safeguards assessment. |
-| B157 | AccessDecision | Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal. |
+| B157 | AccessDecision | A current permit requires an enabled principal and an active, time-valid grant for the exact permission and scope. |
 | B158 | EvidenceVerification | Valid artifact verification retains a matching computed digest and verification evidence. |
 | B159 | ServiceLevelCommitment | Availability commitments use a proportion between zero and one. |
 | B160 | ServiceLevelBreach | Closed service breaches retain completed remediation or a contractual remedy. |
@@ -176,3 +176,49 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B170 | AllowanceBalance | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. |
 | B171 | AllowanceBalance | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. |
 | B172 | AllowanceBalance | Money-denominated allowances identify a currency instead of being treated as energy credits. |
+| B173 | AccessDecision | Historical permits retain matching decision-time principal, grant, permission, scope and validity evidence. |
+| B174 | AllowanceSponsorship | Sponsored allowance validity is contained in the funding agreement period. |
+| B175 | FinancialPosition | Collected balances reconcile to posted allocations or retain explicit external collection evidence. |
+| B176 | FinancialPosition | A write-off has attributable approval evidence. |
+| B177 | Wallet | Wallet balance equals opening balance plus entries in its inclusive statement interval. |
+| B178 | AccountingPeriod | A closed accounting period retains evidence and a close time no earlier than its end. |
+| B179 | Journal | Posted journal timestamps belong to their accounting period and do not follow its close time. |
+| B180 | PeriodAdjustment | Late corrections preserve original usage responsibility and use a distinct period that was open at posting time. |
+| B181 | AmountRounding | Monetary rounding reproduces the declared signed decimal mode and scale from zero through six places. |
+| B182 | CurrencyConversion | Currency conversion preserves quote direction, positive rate, calculation time and rounded output evidence. |
+| B183 | RatingCalculation | Rating totals sum every rated line in one declared currency. |
+| B184 | RatedLine | A rated line using rounding evidence agrees with its amount, currency and policy. |
+| B185 | TaxDetermination | Tax rule validity is assessed at the taxable supply time, including later corrections. |
+| B186 | PricingTimeResolution | An offset-bearing price instant and its UTC interpretation identify the same instant. |
+| B187 | SettlementLeg | Posted settlement legs match their batch agreement and currency, balance amounts and name distinct liable and entitled parties. |
+| B188 | SettlementLeg | A posted economic leg has one reference within its tenant and settlement batch. |
+| B189 | DataSubjectRequest | Closing a rights request preserves fulfilment or refusal, identity checks where fulfilled, and a response with completion time. |
+| B190 | DataDisposition | Deletion cannot omit an active hold on an explicitly disposed record. |
+| B191 | ProcessStep | A required business step cannot be skipped. |
+| B192 | ProcessStep | Predecessors belong to the same process, have lower sequence numbers and finish before a dependent step succeeds. |
+| B193 | BillingReadinessAssessment | Billing readiness considers actual unresolved blocking issues against the session. |
+| B194 | ServiceEntitlement | An entitlement cannot outlive its finite funding agreement. |
+| B195 | AccountClosure | Completed closure agrees with the account state, chronology and actual scoped access grants. |
+| B196 | AssetLifecycleEvent | Retirement or replacement cannot hide an unfinished session on the station. |
+| B197 | OwnershipTransfer | An ownership transfer identifies different previous and succeeding owners. |
+| B198 | EventProcessingOutcome | Applied and duplicate outcomes retain processing time no earlier than receipt. |
+| B199 | CommercialOffer | The disclosed price currency and optional display tariff agree with the commercial offer. |
+| B200 | Refund | Refunds have positive amounts and confirmation requires an originally confirmed capture. |
+| B201 | Chargeback | A chargeback disputes a positive amount no greater than its confirmed capture in the same currency. |
+| B202 | Payout | A confirmed payout is positive, pays the account holder and retains a confirmation no earlier than scheduling. |
+| B203 | FlexibilityDelivery | Flexibility delivery records signed actual-minus-baseline energy; reduction is negative. |
+| B204 | PowerCabinet | Simultaneous module allocations cannot exceed shared cabinet capacity; touching half-open intervals do not overlap. |
+| B205 | ServiceLevelBreach | Closed service-level breaches retain evidence of the accepted resolution. |
+| B206 | SynchronizationCursor | A synchronization watermark cannot be later than its successful synchronization time. |
+| B207 | CommercialResponsibility | Commercial responsibility is bounded by its agreement while remaining usable for historical usage. |
+| B208 | ChargingSession | Accepted session authorization precedes start and has not expired at start. |
+| B209 | PaymentIntent | Payment state agrees with confirmed capture totals, including partial and fully refunded outcomes. |
+| B210 | PaymentCapture | Confirmed capture records represent a positive collected amount. |
+| B211 | Refund | Refund requests do not precede the original capture. |
+| B212 | Invoice | Paid invoice status is backed by a settled same-currency position with collections and credits covering its gross amount. |
+| B213 | PaymentAllocation | An invoice-specific collection cannot be allocated to a different source obligation. |
+| B214 | CreditNote | An invoice credit is a positive reduction; negative credits cannot offset cumulative credit limits. |
+| B215 | PaymentCapture | Posted allocations cannot retain money already returned by confirmed refunds. |
+| B216 | Subscription | Cancelled subscriptions retain cancellation evidence time and disable renewal; ended periods have positive duration. |
+| B217 | BillingPeriod | A billed subscription period retains a non-draft, non-void invoice in its currency. |
+| B218 | SettlementApproval | Settlement approval cannot conceal unresolved reconciliation cases directly against the batch or its items. |

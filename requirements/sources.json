@@ -102,5 +102,21 @@
     "type": "Explicit product design decision",
     "reviewedOn": "2026-09-25",
     "use": "Responsibilities, readiness, arithmetic, lifecycle tables and evidence gates are product policies unless a more specific source is cited."
+  },
+  {
+    "id": "PY-DECIMAL",
+    "title": "Python decimal: exact decimal arithmetic and rounding modes",
+    "url": "https://docs.python.org/3/library/decimal.html",
+    "type": "Primary language documentation",
+    "reviewedOn": "2026-09-25",
+    "use": "Independent Decimal oracle for signed half-up, half-even, toward-zero and away-from-zero monetary rounding. The zero-to-six-place canonical validation profile is a product decision."
+  },
+  {
+    "id": "PY-ZONEINFO",
+    "title": "Python zoneinfo: IANA time zones and ambiguous local times",
+    "url": "https://docs.python.org/3/library/zoneinfo.html",
+    "type": "Primary language documentation",
+    "reviewedOn": "2026-09-25",
+    "use": "Supplemental IANA-zone validation of offset-bearing local pricing instants, including repeated-hour fold selection. SPARQL checks instant equality; the timezone database check is a separate required semantic gate."
   }
 ]

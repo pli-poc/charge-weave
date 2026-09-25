@@ -1,0 +1,17 @@
+[
+ {"id":"autumn-first","local":"2026-10-25T02:30:00+02:00","utc":"2026-10-25T00:30:00Z","zone":"Europe/Amsterdam","policy":"First","valid":true},
+ {"id":"autumn-second","local":"2026-10-25T02:30:00+01:00","utc":"2026-10-25T01:30:00Z","zone":"Europe/Amsterdam","policy":"Second","valid":true},
+ {"id":"autumn-wrong-occurrence","local":"2026-10-25T02:30:00+01:00","utc":"2026-10-25T01:30:00Z","zone":"Europe/Amsterdam","policy":"First","valid":false},
+ {"id":"spring-nonexistent","local":"2026-03-29T02:30:00+01:00","utc":"2026-03-29T01:30:00Z","zone":"Europe/Amsterdam","policy":"Unambiguous","valid":false},
+ {"id":"summer-wrong-offset","local":"2026-07-01T12:00:00+01:00","utc":"2026-07-01T11:00:00Z","zone":"Europe/Amsterdam","policy":"Unambiguous","valid":false},
+ {"id":"summer-correct","local":"2026-07-01T12:00:00+02:00","utc":"2026-07-01T10:00:00Z","zone":"Europe/Amsterdam","policy":"Unambiguous","valid":true},
+ {"id":"new-york-second","local":"2026-11-01T01:30:00-05:00","utc":"2026-11-01T06:30:00Z","zone":"America/New_York","policy":"Second","valid":true},
+ {"id":"new-york-gap","local":"2026-03-08T02:30:00-05:00","utc":"2026-03-08T07:30:00Z","zone":"America/New_York","policy":"Unambiguous","valid":false},
+ {"id":"quarter-hour-offset","local":"2026-07-01T12:00:00+05:45","utc":"2026-07-01T06:15:00Z","zone":"Asia/Kathmandu","policy":"Unambiguous","valid":true},
+ {"id":"half-hour-fold-first","local":"2026-04-05T01:45:00+11:00","utc":"2026-04-04T14:45:00Z","zone":"Australia/Lord_Howe","policy":"First","valid":true},
+ {"id":"half-hour-fold-second","local":"2026-04-05T01:45:00+10:30","utc":"2026-04-04T15:15:00Z","zone":"Australia/Lord_Howe","policy":"Second","valid":true},
+ {"id":"utc-unambiguous","local":"2026-09-25T12:00:00Z","utc":"2026-09-25T12:00:00Z","zone":"Etc/UTC","policy":"Unambiguous","valid":true},
+ {"id":"missing-offset","local":"2026-09-25T12:00:00","utc":"2026-09-25T12:00:00Z","zone":"Etc/UTC","policy":"Unambiguous","valid":false},
+ {"id":"unknown-zone","local":"2026-09-25T12:00:00Z","utc":"2026-09-25T12:00:00Z","zone":"Unknown/Nowhere","policy":"Unambiguous","valid":false},
+ {"id":"different-instant","local":"2026-09-25T12:00:00Z","utc":"2026-09-25T13:00:00Z","zone":"Etc/UTC","policy":"Unambiguous","valid":false}
+]

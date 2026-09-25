@@ -1,7 +1,7 @@
 # Development and GitHub Actions
 
 ChargeWeave uses GitHub as its canonical source and GitHub Actions as its shared
-verification record. Version 1.1 includes the independent business requirement register and its executable semantic evidence.
+verification record. Version 1.2 includes the independent business requirement register, concept reviews and executable interaction evidence.
 
 ## Environment and commands
 
@@ -59,6 +59,9 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Business and lifecycle acceptance | Valid/invalid business decisions and selected allowed/forbidden transitions |
 | Thirteen journey families | Complete conforming snapshots, cross-domain assertions and deliberate business faults |
 | Six adversarial families | Previously accepted business contradictions are rejected while legitimate counterpart snapshots remain valid |
+| Eight completion interaction families | New cross-domain invariants distinguish legitimate complete snapshots from specific contradictions |
+| Calculation and timezone oracles | Decimal results and local-time interpretation agree with independently specified expected outcomes |
+| Declared business completeness | Reviewed scope, contract fingerprints and positive/negative evidence references remain current |
 | Current source naming | Removed platform name does not recur in current paths/content |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 
@@ -82,3 +85,7 @@ authoritative package is the Actions artifact, whose reports come from one run.
 
 No workflow automatically updates the benchmark from a moving website or treats
 technical success as independent business completeness. The completed semantic review has its own [findings and evidence boundary](business-domain-audit.md).
+
+## Maintaining the completion baseline
+
+The reviewed inputs are `requirements/completion-criteria.json` and `requirements/concept-review.json`. Do not automatically refresh contract fingerprints as part of generation: they require review of changed source fields, ownership and evidence. `tools/build_completion_scenarios.py` authors full interaction fixtures; `tools/build_completion_docs.py` renders the review inventory. Add a focused positive and negative case for every new rule and a complete interaction for each new cross-domain invariant. Include new execution reports in `verify_all.py`, the Actions matrix and `package.py`.

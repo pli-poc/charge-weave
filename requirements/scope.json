@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "reviewedOn": "2026-09-25",
   "product": "ChargeWeave",
   "profile": "Multi-tenant conductive EV charging management with CPO/eMSP commerce, public/ad hoc, workplace/fleet, home reimbursement, roaming and energy orchestration.",
@@ -64,5 +64,5 @@
       "reason": "Different physical product domains; protocol capabilities can declare them unsupported without silently treating them as conductive charging."
     }
   ],
-  "claim": "Every declared requirement has traceable semantic contracts and executable model-level evidence. This finite review is not proof of all future market requirements or an implemented/certified production service."
+  "claim": "The declared semantic baseline has an explicit review for every concept and journey, valid and invalid focused evidence for every business rule, and required complete interaction, arithmetic and timezone checks. These finite engineering criteria do not certify external runtime execution or future requirements."
 }

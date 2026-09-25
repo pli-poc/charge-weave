@@ -2233,6 +2233,48 @@
       "ChargeDetailRecord"
     ]
   ],
+  "rawAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "roundedAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "roundingPolicy": [
+    [
+      "object",
+      "RoundingPolicy"
+    ]
+  ],
+  "sourceLocalTime": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "resolvedUtcTime": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "repeatedHourPolicy": [
+    [
+      "enum",
+      "RepeatedHourPolicyCode"
+    ]
+  ],
+  "timeResolutionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
   "tariffName": [
     [
       "datatype",
@@ -2297,12 +2339,6 @@
     [
       "object",
       "PriceDisplay"
-    ]
-  ],
-  "roundingPolicy": [
-    [
-      "object",
-      "RoundingPolicy"
     ]
   ],
   "snapshotDigest": [
@@ -2405,6 +2441,12 @@
     [
       "enum",
       "GraceModeCode"
+    ]
+  ],
+  "pricingTimeResolution": [
+    [
+      "object",
+      "PricingTimeResolution"
     ]
   ],
   "conditionDimension": [
@@ -2803,6 +2845,12 @@
       "dateTime"
     ]
   ],
+  "taxableAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
   "ratingVersion": [
     [
       "datatype",
@@ -2843,6 +2891,12 @@
     [
       "object",
       "ChargingInterval"
+    ]
+  ],
+  "amountRounding": [
+    [
+      "object",
+      "AmountRounding"
     ]
   ],
   "invoiceNumber": [
@@ -3025,6 +3079,144 @@
       "dateTime"
     ]
   ],
+  "periodReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "periodState": [
+    [
+      "enum",
+      "PeriodStateCode"
+    ]
+  ],
+  "closedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "closingEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "originalPeriod": [
+    [
+      "object",
+      "AccountingPeriod"
+    ]
+  ],
+  "postingPeriod": [
+    [
+      "object",
+      "AccountingPeriod"
+    ]
+  ],
+  "sourceRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "correctingRecord": [
+    [
+      "object",
+      "Record"
+    ]
+  ],
+  "effectiveUsageAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "postedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "adjustmentState": [
+    [
+      "enum",
+      "AdjustmentStateCode"
+    ]
+  ],
+  "adjustmentAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "approvedBy": [
+    [
+      "object",
+      "Principal"
+    ]
+  ],
+  "adjustmentEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
+  "correction": [
+    [
+      "object",
+      "RecordCorrection"
+    ]
+  ],
+  "exchangeRate": [
+    [
+      "object",
+      "ExchangeRate"
+    ]
+  ],
+  "sourceCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "targetCurrency": [
+    [
+      "object",
+      "Currency"
+    ]
+  ],
+  "sourceAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "unroundedTargetAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "targetAmount": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "convertedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "conversionEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
   "instrumentKind": [
     [
       "enum",
@@ -3187,6 +3379,18 @@
       "WalletStateCode"
     ]
   ],
+  "openingBalance": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "balanceFrom": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
   "wallet": [
     [
       "object",
@@ -3235,12 +3439,6 @@
       "LegalEntity"
     ]
   ],
-  "postedAt": [
-    [
-      "datatype",
-      "dateTime"
-    ]
-  ],
   "journalState": [
     [
       "enum",
@@ -3267,6 +3465,12 @@
     [
       "object",
       "Journal"
+    ]
+  ],
+  "accountingPeriod": [
+    [
+      "object",
+      "AccountingPeriod"
     ]
   ],
   "ledgerAccount": [
@@ -3369,6 +3573,24 @@
     [
       "object",
       "ContentTemplate"
+    ]
+  ],
+  "sponsoringCustomer": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "beneficiaryCustomer": [
+    [
+      "object",
+      "CustomerAccount"
+    ]
+  ],
+  "sponsorshipEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
     ]
   ],
   "planName": [
@@ -3581,6 +3803,42 @@
       "dateTime"
     ]
   ],
+  "settlementBatch": [
+    [
+      "object",
+      "SettlementBatch"
+    ]
+  ],
+  "liableParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "entitledParty": [
+    [
+      "object",
+      "LegalEntity"
+    ]
+  ],
+  "legReference": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "legState": [
+    [
+      "enum",
+      "LegStateCode"
+    ]
+  ],
+  "legEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
+    ]
+  ],
   "counterparty": [
     [
       "object",
@@ -3681,12 +3939,6 @@
     [
       "datatype",
       "string"
-    ]
-  ],
-  "approvedBy": [
-    [
-      "object",
-      "Principal"
     ]
   ],
   "settlementItem": [
@@ -4557,6 +4809,12 @@
       "SeverityCode"
     ]
   ],
+  "billingBlocking": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
   "triggeringFault": [
     [
       "object",
@@ -4699,6 +4957,30 @@
     [
       "datatype",
       "decimal"
+    ]
+  ],
+  "sourceGrant": [
+    [
+      "object",
+      "AccessGrant"
+    ]
+  ],
+  "principalEnabled": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "grantActive": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
+  "snapshotEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
     ]
   ],
   "certificateFingerprint": [
@@ -4879,6 +5161,12 @@
     [
       "object",
       "LegalHold"
+    ]
+  ],
+  "disposedRecord": [
+    [
+      "object",
+      "Record"
     ]
   ],
   "assessedRecord": [
@@ -5553,12 +5841,6 @@
       "dateTime"
     ]
   ],
-  "settlementBatch": [
-    [
-      "object",
-      "SettlementBatch"
-    ]
-  ],
   "batchTotal": [
     [
       "datatype",
@@ -5758,12 +6040,6 @@
     ]
   ],
   "obligatedParty": [
-    [
-      "object",
-      "LegalEntity"
-    ]
-  ],
-  "entitledParty": [
     [
       "object",
       "LegalEntity"
@@ -6291,12 +6567,6 @@
       "Record"
     ]
   ],
-  "correctingRecord": [
-    [
-      "object",
-      "Record"
-    ]
-  ],
   "correctionReason": [
     [
       "datatype",
@@ -6369,10 +6639,22 @@
       "PositionStateCode"
     ]
   ],
-  "sourceRecord": [
+  "collectionBasis": [
+    [
+      "enum",
+      "CollectionBasisCode"
+    ]
+  ],
+  "collectionEvidence": [
     [
       "object",
-      "Record"
+      "EvidenceDocument"
+    ]
+  ],
+  "writeOffEvidence": [
+    [
+      "object",
+      "EvidenceDocument"
     ]
   ],
   "financialPosition": [
@@ -6421,12 +6703,6 @@
     [
       "object",
       "EvidenceDocument"
-    ]
-  ],
-  "correction": [
-    [
-      "object",
-      "RecordCorrection"
     ]
   ],
   "disputedRecord": [
@@ -6603,6 +6879,12 @@
       "string"
     ]
   ],
+  "requestOutcome": [
+    [
+      "enum",
+      "RequestOutcomeCode"
+    ]
+  ],
   "heldRecord": [
     [
       "object",
@@ -6691,6 +6973,18 @@
     [
       "enum",
       "AccessDecisionCode"
+    ]
+  ],
+  "decisionContext": [
+    [
+      "enum",
+      "DecisionContextCode"
+    ]
+  ],
+  "authorizationSnapshot": [
+    [
+      "object",
+      "AuthorizationSnapshot"
     ]
   ],
   "checkedAt": [
@@ -6981,6 +7275,12 @@
       "ProcessStep"
     ]
   ],
+  "requiredStep": [
+    [
+      "datatype",
+      "boolean"
+    ]
+  ],
   "openingValue": [
     [
       "datatype",
@@ -7003,6 +7303,12 @@
     [
       "datatype",
       "decimal"
+    ]
+  ],
+  "allowanceSponsorship": [
+    [
+      "object",
+      "AllowanceSponsorship"
     ]
   ]
 }

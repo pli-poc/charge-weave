@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:PaymentCapture . ?this cd:capturedAmount ?captured. {SELECT ?this (SUM(?v) AS ?allocated) WHERE {OPTIONAL {?a a cd:PaymentAllocation; cd:paymentCapture ?this; cd:allocationState cd:allocationState_Posted; cd:allocatedAmount ?v}} GROUP BY ?this} {SELECT ?this (SUM(?v) AS ?refunded) WHERE {OPTIONAL {?r a cd:Refund; cd:paymentCapture ?this; cd:refundState cd:refundState_Confirmed; cd:refundAmount ?v}} GROUP BY ?this} FILTER(COALESCE(?allocated,0)+COALESCE(?refunded,0)>?captured) }

@@ -11,7 +11,7 @@ The SHACL targets include subclass instances according to SHACL class-target sem
 ## Tests
 
 1. The reference graph explicitly instantiates every non-abstract domain class, with inherited contracts. It is synthetic integration data, not realistic production activity or a volume benchmark.
-2. `test_business.py` has one deliberate adverse fixture for each of the 172 business rules. Each is run through SHACL-SPARQL and must report its specific source shape. Structural shapes are excluded from these isolated tests so an unrelated missing field cannot hide a broken business rule.
+2. `test_business.py` has one deliberate adverse fixture for each of the 218 business rules. Each is run through SHACL-SPARQL and must report its specific source shape. Structural shapes are excluded from these isolated tests so an unrelated missing field cannot hide a broken business rule.
 3. `test_boundaries.py` checks meaningful allowed boundary cases and deliberately malformed structural values, including exact monetary equality, aggregate refunds, cross-currency journals, adjacent schedule periods, coupon reversals and inclusive/exclusive dates.
 4. `check_owl.py` uses HermiT through Owlready2 on the schema and on schema plus reference data. Consistency and unsatisfiable-class results are retained.
 5. `check_release.py` checks exact RDF serialization equivalence, coverage references, structural-shape coverage, query syntax and example competency queries. Diagnostic queries are executed with each applicable focus node bound; this avoids a costly unbound scan in the reference RDFLib engine.
@@ -38,8 +38,14 @@ The reference runner rejects instance graphs that redefine controlled terms, com
 
 ## Independent business review evidence
 
-`test_business_acceptance.py` checks 128 focused valid/invalid decisions for the new invariants. `test_lifecycle.py` checks 24 independently selected allowed/forbidden transitions. `test_journey_snapshots.py --family NAME` runs full SHACL and cross-domain assertions on the conforming and faulty snapshots for that family. There are 13 families and 26 graphs; these validate semantic end states, not external service execution. `check_audit.py` checks requirement/source/actor/property/rule/scenario links and lifecycle vocabulary. See the [audit](business-domain-audit.md) for the declared business profile and runtime obligations.
+`test_business_acceptance.py` checks 438 focused valid/invalid decisions covering every business rule. `test_lifecycle.py` checks 24 independently selected allowed/forbidden transitions. `test_journey_snapshots.py --family NAME` runs full SHACL and cross-domain assertions on the conforming and faulty snapshots for that family. There are 13 families and 26 graphs; these validate semantic end states, not external service execution. `check_audit.py` checks requirement/source/actor/property/rule/scenario links and lifecycle vocabulary. See the [audit](business-domain-audit.md) for the declared business profile and runtime obligations.
 
 ## Adversarial review
 
 `test_adversarial.py --family NAME` applies authored business changes to complete synthetic snapshots and runs every structural and business constraint. Six families have 14 cases. Release jobs never use `--capture-baseline`; that mode records pre-fix observations and deliberately does not assert success. Its historical reports are kept separately under `evidence/adversarial-v1.1/`. See [the findings](adversarial-review.md) for before/after behavior and the review boundary.
+
+## Completion release gates
+
+`test_completion.py --family NAME` executes 65 additional complete interaction scenarios across eight families. `test_calculation_oracles.py` compares committed SPARQL rounding with independent Decimal calculations and checks IANA timezone cases (1,023 checks). `check_completeness.py` rejects missing concept reviews, changed contract fingerprints, uncovered rules and broken journey or scenario links. These metadata checks are separate from actual execution, and packaging requires both.
+
+`runtime.check` and `validate.py` also run the pinned timezone-database constraint. Exported SHACL validates timestamp/UTC equality but cannot alone verify IANA zone rules. Read [the completion review](completion-review.md) and [migration guide](migration-to-v1.2.md).

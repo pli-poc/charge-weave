@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:CurrencyConversion . ?this cd:exchangeRate ?q; cd:sourceCurrency ?from; cd:targetCurrency ?to; cd:sourceAmount ?source; cd:unroundedTargetAmount ?raw; cd:targetAmount ?target; cd:amountRounding ?r; cd:convertedAt ?at. FILTER(!EXISTS {?q cd:baseCurrency ?from; cd:quoteCurrency ?to; cd:conversionRate ?rate; cd:quotedAt ?quoted. FILTER(?rate>0 && ?at>=?quoted && ?raw=?source*?rate)} || !EXISTS {?r cd:rawAmount ?raw; cd:roundedAmount ?target; cd:currency ?to}) }

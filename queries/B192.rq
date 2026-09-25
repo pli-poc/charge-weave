@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:ProcessStep . {?this cd:previousStep+ ?this} UNION {?this cd:previousStep ?prev; cd:stepSequence ?n; cd:stepState ?state. FILTER(!EXISTS {?process cd:processStep ?this,?prev. ?prev cd:stepSequence ?p. FILTER(?p<?n)} || (?state=cd:stepState_Succeeded && !EXISTS {?prev cd:stepState ?s. FILTER(?s IN (cd:stepState_Succeeded,cd:stepState_Compensated,cd:stepState_Skipped))}))} }
