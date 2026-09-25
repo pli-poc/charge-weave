@@ -4032,7 +4032,7 @@
   {
     "id": "BR-133",
     "kind": "audit-gap-closure",
-    "statement": "Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals.",
+    "statement": "Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once.",
     "journey": "J08",
     "phase": "change",
     "actors": [
@@ -4058,7 +4058,10 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B133.",
     "scenarios": [
       "BR-133-PASS",
-      "BR-133-REJECT"
+      "BR-133-REJECT",
+      "ADV-CREDIT-ALLOW",
+      "ADV-CREDIT-REJECT",
+      "ADV-CREDIT-DISTINCT-ORIGINALS"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -4098,7 +4101,8 @@
       "JOURNEY-CHARGE-REJECT",
       "JOURNEY-CREDIT-PASS",
       "JOURNEY-CREDIT-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-134",
@@ -4620,7 +4624,7 @@
   {
     "id": "BR-143",
     "kind": "audit-gap-closure",
-    "statement": "Collection escalation pauses while the position or linked service dispute is unresolved.",
+    "statement": "Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link.",
     "journey": "J11",
     "phase": "suspension",
     "actors": [
@@ -4646,7 +4650,9 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B143.",
     "scenarios": [
       "BR-143-PASS",
-      "BR-143-REJECT"
+      "BR-143-REJECT",
+      "ADV-DUNNING-ALLOW",
+      "ADV-DUNNING-REJECT"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -4670,7 +4676,8 @@
     "journeyScenarios": [
       "JOURNEY-CREDIT-PASS",
       "JOURNEY-CREDIT-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-144",
@@ -5283,7 +5290,7 @@
   {
     "id": "BR-154",
     "kind": "audit-gap-closure",
-    "statement": "Completed disposition records evidence and cannot claim erasure over a still-active scoped hold.",
+    "statement": "Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds.",
     "journey": "J16",
     "phase": "termination",
     "actors": [
@@ -5309,7 +5316,9 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B154.",
     "scenarios": [
       "BR-154-PASS",
-      "BR-154-REJECT"
+      "BR-154-REJECT",
+      "ADV-HOLD-ALLOW",
+      "ADV-HOLD-REJECT"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -5334,7 +5343,8 @@
     "journeyScenarios": [
       "JOURNEY-PRIVACY-PASS",
       "JOURNEY-PRIVACY-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-155",
@@ -5454,7 +5464,7 @@
   {
     "id": "BR-157",
     "kind": "audit-gap-closure",
-    "statement": "Permission decisions require an active time-valid grant to the same principal and explicit record scope.",
+    "statement": "Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal.",
     "journey": "J17",
     "phase": "operation",
     "actors": [
@@ -5480,7 +5490,10 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B157.",
     "scenarios": [
       "BR-157-PASS",
-      "BR-157-REJECT"
+      "BR-157-REJECT",
+      "ADV-ACCESS-ALLOW",
+      "ADV-ACCESS-REJECT",
+      "ADV-ACCESS-DISABLED-DENIED"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -5507,7 +5520,8 @@
       "JOURNEY-PRIVACY-REJECT",
       "JOURNEY-ACCESS-PASS",
       "JOURNEY-ACCESS-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-158",
@@ -5863,7 +5877,7 @@
   {
     "id": "BR-164",
     "kind": "audit-gap-closure",
-    "statement": "Chained transitions preserve record, property, state continuity and nondecreasing event time.",
+    "statement": "Chained transitions preserve record, property, state continuity and nondecreasing time without circular history.",
     "journey": "J20",
     "phase": "change",
     "actors": [
@@ -5888,7 +5902,9 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B164.",
     "scenarios": [
       "BR-164-PASS",
-      "BR-164-REJECT"
+      "BR-164-REJECT",
+      "ADV-HISTORY-ALLOW",
+      "ADV-HISTORY-REJECT"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -5917,7 +5933,8 @@
       "JOURNEY-CLOSURE-REJECT",
       "JOURNEY-PROCESS-PASS",
       "JOURNEY-PROCESS-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-165",
@@ -6274,7 +6291,7 @@
   {
     "id": "BR-171",
     "kind": "audit-gap-closure",
-    "statement": "Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period.",
+    "statement": "Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer.",
     "journey": "J14",
     "phase": "operation",
     "actors": [
@@ -6300,7 +6317,9 @@
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B171.",
     "scenarios": [
       "BR-171-PASS",
-      "BR-171-REJECT"
+      "BR-171-REJECT",
+      "ADV-ALLOWANCE-ALLOW",
+      "ADV-ALLOWANCE-REJECT"
     ],
     "finding": "No dedicated end-to-end contract for this decision existed in the imported model.",
     "disposition": "semantic-contract-covered",
@@ -6331,7 +6350,8 @@
       "JOURNEY-REIMBURSEMENT-REJECT",
       "JOURNEY-ALLOWANCE-PASS",
       "JOURNEY-ALLOWANCE-REJECT"
-    ]
+    ],
+    "adversarialFinding": "The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair."
   },
   {
     "id": "BR-172",

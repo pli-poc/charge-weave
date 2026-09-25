@@ -58,6 +58,7 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Requirement traceability | Actors, sources, relationships, rules, lifecycles and acceptance links resolve |
 | Business and lifecycle acceptance | Valid/invalid business decisions and selected allowed/forbidden transitions |
 | Thirteen journey families | Complete conforming snapshots, cross-domain assertions and deliberate business faults |
+| Six adversarial families | Previously accepted business contradictions are rejected while legitimate counterpart snapshots remain valid |
 | Current source naming | Removed platform name does not recur in current paths/content |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 

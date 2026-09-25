@@ -49,6 +49,10 @@ The changes add **42 concepts and 63 business rules**. The resulting model has 2
 
 Current pass/fail outcomes come from [the workflow run](https://github.com/pli-poc/charge-weave/actions/workflows/ontology-ci.yml), not from this document. The current-tree naming check includes historical evidence files. History was preserved as requested; existing older commits can still contain prior names.
 
+## Subsequent adversarial review
+
+The first v1.1 audit did not catch six cross-record loopholes. Version 1.1.1 records the full pre-fix observations and adds 14 regression cases with targeted rule fixes. Read [the adversarial findings](adversarial-review.md). This demonstrates why traceability and passing initial tests were insufficient to prove exhaustive completeness.
+
 ## Completion boundary and remaining system acceptance
 
 All declared requirements have semantic-contract dispositions and executable model evidence. No finding in the table above is left as a documentation-only promise. This is an engineering review of the declared profile, not independent stakeholder sign-off or a proof that every future jurisdiction and commercial arrangement is covered.

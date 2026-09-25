@@ -8,38 +8,38 @@ cd:CommercialResponsibility a owl:Class ;
     rdfs:label "Commercial Responsibility"@en ;
     rdfs:comment "Commercial chain for a specific service: supplier, merchant of record, tax-liable party, payer, collector and beneficiary are separate legal responsibilities."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:collectingParty ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:responsibilityScope ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:beneficiary ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ServiceAgreement ;
-            owl:onProperty cd:serviceAgreement ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:merchantOfRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:payer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:responsibilityEvidence ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:serviceSupplier ],
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:payer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:serviceSupplier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:collectingParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:merchantOfRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:beneficiary ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:taxLiableParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -48,17 +48,17 @@ cd:OfferAcceptance a owl:Class ;
     rdfs:label "Offer Acceptance"@en ;
     rdfs:comment "Evidence that the customer accepted a disclosed offer before its validity expired; binds the accepted price to one charging journey."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSession ;
-            owl:onProperty cd:session ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:acceptedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:acceptanceEvidence ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:CommercialOffer ;
             owl:onProperty cd:commercialOffer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:acceptedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
@@ -70,6 +70,9 @@ cd:ScheduledTariffChange a owl:Class ;
     rdfs:label "Scheduled Tariff Change"@en ;
     rdfs:comment "Future activation of a tariff version with accountable scheduling and outcome."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:effectiveAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Tariff ;
             owl:onProperty cd:tariff ],
         [ a owl:Restriction ;
@@ -81,9 +84,6 @@ cd:ScheduledTariffChange a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:nextTariffVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:effectiveAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -98,11 +98,11 @@ cd:SessionLimitPolicy a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:limitValue ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LimitDimensionCode ;
-            owl:onProperty cd:limitDimension ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EnforcementCode ;
             owl:onProperty cd:enforcement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LimitDimensionCode ;
+            owl:onProperty cd:limitDimension ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -114,23 +114,23 @@ cd:TariffResolution a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:decisionExplanation ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:selectedTariff ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSession ;
-            owl:onProperty cd:session ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:resolvedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:resolverVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffSet ;
             owl:onProperty cd:tariffSet ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:resolverVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:selectedTariff ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:resolvedBaseTariff ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -139,6 +139,12 @@ cd:CommercialOffer a owl:Class ;
     rdfs:label "Commercial Offer"@en ;
     rdfs:comment "Immutable price disclosure offered before charging, retaining the seller, channel, tax display and applicable tariff version without requiring a registered identity."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:offeredTo ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:registrationRequired ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:issuedAt ],
         [ a owl:Restriction ;
@@ -148,26 +154,20 @@ cd:CommercialOffer a owl:Class ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:offerEvidence ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:offeredBy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:OfferModeCode ;
+            owl:onProperty cd:offerMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:selectedTariff ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:expiresAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PriceDisplay ;
             owl:onProperty cd:priceDisplay ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:offeredTo ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:selectedTariff ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:offeredBy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:registrationRequired ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:OfferModeCode ;
-            owl:onProperty cd:offerMode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -176,11 +176,11 @@ cd:DiscountRule a owl:Class ;
     rdfs:label "Discount Rule"@en ;
     rdfs:comment "Explicit reduction applied to selected price dimensions or a session total; computation order is part of the policy."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:AffectedDimensionCode ;
+            owl:onProperty cd:affectedDimension ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:PricingCondition ;
             owl:onProperty cd:pricingCondition ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:discountMagnitude ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:DiscountBasisCode ;
             owl:onProperty cd:discountBasis ],
@@ -188,8 +188,8 @@ cd:DiscountRule a owl:Class ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty cd:discountOrder ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:AffectedDimensionCode ;
-            owl:onProperty cd:affectedDimension ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:discountMagnitude ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -199,28 +199,28 @@ cd:DynamicPriceFormula a owl:Class ;
     rdfs:comment "Versioned formula referencing price feeds, markup and fallback; executable implementation is external."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:percentageMarkup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ElectricityPriceSchedule ;
+            owl:onProperty cd:electricitySchedule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:formulaLanguage ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:fallbackUnitPrice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumUnitPrice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:formulaLanguage ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:calculationVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:fixedMarkup ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ElectricityPriceSchedule ;
-            owl:onProperty cd:electricitySchedule ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:percentageMarkup ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:formulaExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:fixedMarkup ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:maximumUnitPrice ],
@@ -235,6 +235,9 @@ cd:ElectricityPriceInterval a owl:Class ;
     rdfs:label "Electricity Price Interval"@en ;
     rdfs:comment "Price for an explicit interval or recurring local window; one timing form is required."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:quotedAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
         [ a owl:Restriction ;
@@ -243,9 +246,6 @@ cd:ElectricityPriceInterval a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:unitPrice ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:quotedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -254,17 +254,17 @@ cd:EnergyMix a owl:Class ;
     rdfs:label "Energy Mix"@en ;
     rdfs:comment "Attributed electricity generation mix with period and evidential origin."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:EnergySourceShare ;
             owl:onProperty cd:sourceShare ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:mixName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:reportingPeriod ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:mixName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -289,14 +289,14 @@ cd:FeeBounds a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumCharge ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumBillableQuantity ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:maximumCharge ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:maximumBillableQuantity ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -306,10 +306,10 @@ cd:PreauthorizationPolicy a owl:Class ;
     rdfs:comment "Payment hold policy separated from the tariff's actual charge calculation."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:incrementalHoldAmount ],
+            owl:onProperty cd:initialHoldAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:FailureActionCode ;
-            owl:onProperty cd:failureAction ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:incrementalHoldAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:holdTimeoutSeconds ],
@@ -317,8 +317,8 @@ cd:PreauthorizationPolicy a owl:Class ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:initialHoldAmount ],
+            owl:allValuesFrom cd:FailureActionCode ;
+            owl:onProperty cd:failureAction ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -327,14 +327,17 @@ cd:PriceComponent a owl:Class ;
     rdfs:label "Price Component"@en ;
     rdfs:comment "Charge dimension with explicit unit price, billing increment and thresholds."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:TaxRule ;
-            owl:onProperty cd:taxRule ],
+            owl:allValuesFrom cd:PricingCondition ;
+            owl:onProperty cd:pricingCondition ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:billingStep ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PriceTier ;
-            owl:onProperty cd:priceTier ],
+            owl:allValuesFrom cd:GraceModeCode ;
+            owl:onProperty cd:graceMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:unitPrice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:graceQuantity ],
@@ -342,26 +345,23 @@ cd:PriceComponent a owl:Class ;
             owl:allValuesFrom cd:PriceDimensionCode ;
             owl:onProperty cd:priceDimension ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PriceFreezePolicy ;
-            owl:onProperty cd:priceFreezePolicy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:GraceModeCode ;
-            owl:onProperty cd:graceMode ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PricingCondition ;
-            owl:onProperty cd:pricingCondition ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumQuantity ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumQuantity ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:unitPrice ],
+            owl:allValuesFrom cd:TaxRule ;
+            owl:onProperty cd:taxRule ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:maximumQuantity ],
+            owl:allValuesFrom cd:PriceFreezePolicy ;
+            owl:onProperty cd:priceFreezePolicy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:FeeBounds ;
             owl:onProperty cd:feeBounds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PriceTier ;
+            owl:onProperty cd:priceTier ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -386,14 +386,14 @@ cd:PriceTier a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:tierUpperBound ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:tierUnitPrice ],
+            owl:allValuesFrom cd:TierModeCode ;
+            owl:onProperty cd:tierMode ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PricingCondition ;
             owl:onProperty cd:pricingCondition ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TierModeCode ;
-            owl:onProperty cd:tierMode ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:tierUnitPrice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:tierLowerBound ],
@@ -405,14 +405,14 @@ cd:RoundingPolicy a owl:Class ;
     rdfs:label "Rounding Policy"@en ;
     rdfs:comment "Explicit rounding mode and granularity for reproducible commercial calculations."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:decimalPlaces ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:RoundingModeCode ;
             owl:onProperty cd:roundingMode ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoundingStageCode ;
             owl:onProperty cd:roundingStage ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:decimalPlaces ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -421,32 +421,32 @@ cd:SessionPricingPolicy a owl:Class ;
     rdfs:label "Session Pricing Policy"@en ;
     rdfs:comment "Session-wide floor, ceiling, fee eligibility and ordered component evaluation policy."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:evaluationVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:optimizedLabel ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:maximumSessionCharge ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:optimizedPriceThreshold ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:minimumConnectionDurationSeconds ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:optimizedUnitPrice ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:maximumSessionCharge ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:evaluationVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumSessionCharge ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumConnectionEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:optimizedLabel ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:minimumConnectionDurationSeconds ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -455,23 +455,23 @@ cd:SubsidyRule a owl:Class ;
     rdfs:label "Subsidy Rule"@en ;
     rdfs:comment "Externally funded reduction with a beneficiary, policy version and optional integration authority."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:PricingCondition ;
-            owl:onProperty cd:pricingCondition ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:fundingParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:subsidyPolicyVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:subsidyValue ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:integrationConnection ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:fundingParty ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:SubsidyBasisCode ;
             owl:onProperty cd:subsidyBasis ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:subsidyPolicyVersion ],
+            owl:allValuesFrom cd:PricingCondition ;
+            owl:onProperty cd:pricingCondition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integrationConnection ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -480,17 +480,17 @@ cd:TariffAssignment a owl:Class ;
     rdfs:label "Tariff Assignment"@en ;
     rdfs:comment "Membership of a tariff version in a selection set, with explicit priority."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:integer ;
-            owl:onProperty cd:priority ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PricingCondition ;
-            owl:onProperty cd:pricingCondition ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:assignedTariff ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerGroup ;
             owl:onProperty cd:eligibleGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty cd:priority ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PricingCondition ;
+            owl:onProperty cd:pricingCondition ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -502,17 +502,17 @@ cd:TariffSet a owl:Class ;
             owl:allValuesFrom cd:TariffAssignment ;
             owl:onProperty cd:tariffAssignment ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:SelectionStrategyCode ;
-            owl:onProperty cd:selectionStrategy ],
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:offlineTariff ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffVersion ;
             owl:onProperty cd:defaultTariff ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:offlineTariff ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:setName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SelectionStrategyCode ;
+            owl:onProperty cd:selectionStrategy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:OperatorService ;
             owl:onProperty cd:operatorService ],
@@ -524,26 +524,26 @@ cd:ElectricityPriceSchedule a owl:Class ;
     rdfs:label "Electricity Price Schedule"@en ;
     rdfs:comment "Energy procurement price source, distinct from customer charging tariffs."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:PricingModeCode ;
+            owl:onProperty cd:pricingMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:utilityParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:defaultUnitPrice ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EnergyMix ;
             owl:onProperty cd:energyMix ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:defaultUnitPrice ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:timezoneName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ElectricityPriceInterval ;
             owl:onProperty cd:priceInterval ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:utilityParty ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PricingModeCode ;
-            owl:onProperty cd:pricingMode ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:timezoneName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:scheduleName ],
@@ -558,17 +558,17 @@ cd:PriceDisplay a owl:Class ;
             owl:allValuesFrom cd:DisclosureChannelCode ;
             owl:onProperty cd:disclosureChannel ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:displayCurrency ],
-        [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
             owl:onProperty cd:displayText ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:includesTax ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:effectiveAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:displayCurrency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:includesTax ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -580,14 +580,14 @@ cd:Tariff a owl:Class ;
             owl:allValuesFrom cd:TariffPurposeCode ;
             owl:onProperty cd:tariffPurpose ],
         [ a owl:Restriction ;
+            owl:allValuesFrom rdf:langString ;
+            owl:onProperty cd:tariffName ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:TariffStateCode ;
             owl:onProperty cd:tariffState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:OperatorService ;
             owl:onProperty cd:operatorService ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:tariffName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -596,14 +596,14 @@ cd:PricingCondition a owl:Class ;
     rdfs:label "Pricing Condition"@en ;
     rdfs:comment "Typed eligibility predicate for a pricing rule, using an explicit comparator and typed value."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:MeasurementAggregationCode ;
-            owl:onProperty cd:measurementAggregation ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:measurementWindowSeconds ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ConditionDimensionCode ;
             owl:onProperty cd:conditionDimension ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:comparisonValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MeasurementAggregationCode ;
+            owl:onProperty cd:measurementAggregation ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ComparisonOperatorCode ;
             owl:onProperty cd:comparisonOperator ],
@@ -614,8 +614,8 @@ cd:PricingCondition a owl:Class ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty cd:priority ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:comparisonValue ],
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:measurementWindowSeconds ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .
@@ -624,59 +624,59 @@ cd:TariffVersion a owl:Class ;
     rdfs:label "Tariff Version"@en ;
     rdfs:comment "Immutable price definition including effective window, currency and component rules."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:snapshotDigest ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffModeCode ;
-            owl:onProperty cd:tariffMode ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PricingCondition ;
-            owl:onProperty cd:pricingCondition ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:DynamicPriceFormula ;
-            owl:onProperty cd:dynamicPriceFormula ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PriceDisplay ;
-            owl:onProperty cd:priceDisplay ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Tariff ;
-            owl:onProperty cd:tariff ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PreauthorizationPolicy ;
-            owl:onProperty cd:preauthorizationPolicy ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PriceComponent ;
-            owl:onProperty cd:priceComponent ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TariffVersion ;
-            owl:onProperty cd:baseTariffVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SubsidyRule ;
-            owl:onProperty cd:subsidyRule ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:DiscountRule ;
-            owl:onProperty cd:discountRule ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:versionTag ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:SessionPricingPolicy ;
-            owl:onProperty cd:sessionPricingPolicy ],
+            owl:allValuesFrom cd:PreauthorizationPolicy ;
+            owl:onProperty cd:preauthorizationPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffVersion ;
+            owl:onProperty cd:baseTariffVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Tariff ;
+            owl:onProperty cd:tariff ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PriceDisplay ;
+            owl:onProperty cd:priceDisplay ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RoundingPolicy ;
             owl:onProperty cd:roundingPolicy ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:allValuesFrom cd:PricingCondition ;
+            owl:onProperty cd:pricingCondition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:snapshotDigest ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PriceComponent ;
+            owl:onProperty cd:priceComponent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SubsidyRule ;
+            owl:onProperty cd:subsidyRule ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SessionPricingPolicy ;
+            owl:onProperty cd:sessionPricingPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DynamicPriceFormula ;
+            owl:onProperty cd:dynamicPriceFormula ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DiscountRule ;
+            owl:onProperty cd:discountRule ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BaseTariffSelectionCode ;
             owl:onProperty cd:baseTariffSelection ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:TariffModeCode ;
+            owl:onProperty cd:tariffMode ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:onProperty cd:validFrom ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "pricing" .

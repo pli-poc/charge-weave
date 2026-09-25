@@ -136,7 +136,7 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B130 | MeterDelta | Measured deltas preserve ordering, multiplier and reset boundaries; estimated deltas require evidence. |
 | B131 | BillingReadinessAssessment | Billing readiness requires completed charging and resolved usage, authorization, price, tax, commercial responsibility and blocking issues. |
 | B132 | ChargeDetailRecord | A local debit CDR carries a ready billing decision for the same completed session. |
-| B133 | ChargeDetailRecord | Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals. |
+| B133 | ChargeDetailRecord | Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once. |
 | B134 | RecordCorrection | Corrections form an acyclic lineage and cannot replace a record with itself. |
 | B135 | FinancialPosition | Outstanding liability reconciles original charges, credits, collected money and authorized write-offs. |
 | B136 | FinancialPosition | A settled position has no residual liability; a written-off position records the write-off. |
@@ -146,7 +146,7 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B140 | ReconciliationCase | Resolved reconciliation retains a resolution for the same case, a timestamp and explanation. |
 | B141 | ReconciliationResolution | A corrected reconciliation identifies its immutable correction case. |
 | B142 | ServiceDispute | Disputes preserve response deadlines, reasoned closure and an explicit remedy when remedied. |
-| B143 | DunningAction | Collection escalation pauses while the position or linked service dispute is unresolved. |
+| B143 | DunningAction | Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link. |
 | B144 | SettlementApproval | Approval cannot release a partner settlement with unresolved differences or missing approval evidence. |
 | B145 | SettlementBatch | Partner settlement totals equal their items; released batches retain an approved release decision. |
 | B146 | ReimbursementApproval | Approved reimbursement matches claimant, currency, amount, rate and eligible measured energy of the claim. |
@@ -157,22 +157,22 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B151 | ControlDecision | An override is authorized for this unit and covers the entire control interval. |
 | B152 | DataSubjectRequest | Fulfilled rights requests require verified identity, completion time and retained response evidence. |
 | B153 | DataSubjectRequest | Refusal of a rights request retains a reason and a communicated response. |
-| B154 | DataDisposition | Completed disposition records evidence and cannot claim erasure over a still-active scoped hold. |
+| B154 | DataDisposition | Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds. |
 | B155 | LegalHold | Holds have a future review relative to inception and explicit release evidence in time. |
 | B156 | ProcessingPurpose | International personal-data transfers retain an explicit safeguards assessment. |
-| B157 | AccessDecision | Permission decisions require an active time-valid grant to the same principal and explicit record scope. |
+| B157 | AccessDecision | Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal. |
 | B158 | EvidenceVerification | Valid artifact verification retains a matching computed digest and verification evidence. |
 | B159 | ServiceLevelCommitment | Availability commitments use a proportion between zero and one. |
 | B160 | ServiceLevelBreach | Closed service breaches retain completed remediation or a contractual remedy. |
 | B161 | RecoveryExercise | A passed recovery rehearsal meets both time and data-loss objectives. |
 | B162 | MigrationBatch | Completed migration reconciles all expected records without rejects and revokes obsolete source credentials. |
 | B163 | LifecycleSnapshot | Current lifecycle snapshots agree with the current subject state and any cited transition. |
-| B164 | StateTransition | Chained transitions preserve record, property, state continuity and nondecreasing event time. |
+| B164 | StateTransition | Chained transitions preserve record, property, state continuity and nondecreasing time without circular history. |
 | B165 | ProtocolProfile | An adapter cannot declare a feature both supported and unsupported. |
 | B166 | ProcessExecution | Completed business journeys retain evidence and only successfully completed, compensated or explicitly skipped steps. |
 | B167 | ProcessStep | Successful steps have output and evidence; compensated steps identify their compensating record. |
 | B168 | ProcessExecution | Step sequence numbers are unique within a business journey. |
 | B169 | CreditNote | Credit-note currency and issuer match the original invoice and cumulative credits stay within its gross amount. |
 | B170 | AllowanceBalance | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. |
-| B171 | AllowanceBalance | Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period. |
+| B171 | AllowanceBalance | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. |
 | B172 | AllowanceBalance | Money-denominated allowances identify a currency instead of being treated as energy credits. |

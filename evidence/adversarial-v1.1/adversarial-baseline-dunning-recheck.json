@@ -1,0 +1,27 @@
+{
+  "commit": "d4348146fec3bc054a8a869c731f9d1c130d6a27",
+  "caseDigest": "c0986197e8897cf10c5854fa06d194f4e8dcb62a199b310805c13e8ca6109295",
+  "scope": "Full structural and business SHACL; synthetic snapshots, no external execution.",
+  "baselineObservation": true,
+  "passed": 1,
+  "total": 2,
+  "tests": [
+    {
+      "scenario": "ADV-DUNNING-ALLOW",
+      "requirement": "BR-143",
+      "expectedConformance": true,
+      "actualConformance": true,
+      "expectedRuleReported": true,
+      "passed": true
+    },
+    {
+      "scenario": "ADV-DUNNING-REJECT",
+      "requirement": "BR-143",
+      "expectedConformance": false,
+      "actualConformance": true,
+      "expectedRuleReported": false,
+      "passed": false,
+      "validationReport": "Validation Report\nConforms: True\n"
+    }
+  ]
+}

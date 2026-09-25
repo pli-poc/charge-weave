@@ -36,7 +36,7 @@ for k,ts in prop_types.items():
  assert len({t[0] for t in ts})==1,(k,ts)
 ont=graph(); shapes=graph(); concepts=graph();mods={m:graph() for m in sorted({i['module'] for i in classes.values()})}
 root=URIRef('https://example.org/charge-domain')
-ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.1.0')));ont.add((root,OWL.versionInfo,Literal('1.1.0')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
+ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.1.1')));ont.add((root,OWL.versionInfo,Literal('1.1.1')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
 for ap in ['module','definitionStatus','abstract','sameTenant','benchmarkSource','operationTarget','sourcePath']:
  ont.add((C[ap],RDF.type,OWL.AnnotationProperty))
 for c,i in classes.items():

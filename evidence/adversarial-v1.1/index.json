@@ -1,0 +1,34 @@
+[
+  {
+    "report": "adversarial-baseline-access.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-allowance.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-credit.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-dunning.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-history.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-hold.json",
+    "cases": "cases.json"
+  },
+  {
+    "report": "adversarial-baseline-allowance-recheck.json",
+    "cases": "allowance-recheck-cases.json"
+  },
+  {
+    "report": "adversarial-baseline-dunning-recheck.json",
+    "cases": "dunning-recheck-cases.json"
+  }
+]

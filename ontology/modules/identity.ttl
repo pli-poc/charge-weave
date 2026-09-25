@@ -26,23 +26,23 @@ cd:ManagementDelegation a owl:Class ;
     rdfs:label "Management Delegation"@en ;
     rdfs:comment "Authorized delegation of operational responsibility, without changing asset ownership."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:delegator ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:scopeRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AccessGrant ;
             owl:onProperty cd:accessGrant ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:delegate ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:scopeRecord ],
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:delegator ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:delegate ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -51,6 +51,12 @@ cd:PartyRole a owl:Class ;
     rdfs:label "Party Role"@en ;
     rdfs:comment "Time-qualified business role held by a legal entity within a service context."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:party ],
         [ a owl:Restriction ;
@@ -59,12 +65,6 @@ cd:PartyRole a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:OperatorService ;
             owl:onProperty cd:operatorService ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -73,26 +73,26 @@ cd:ServiceEntitlement a owl:Class ;
     rdfs:label "Service Entitlement"@en ;
     rdfs:comment "Time-bounded right to consume an explicitly scoped service under a contract, independent of login permissions."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:scopeRecord ],
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:scopeRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:accountableParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EntitlementStateCode ;
+            owl:onProperty cd:entitlementState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ServiceAgreement ;
             owl:onProperty cd:serviceAgreement ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:accountableParty ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EntitlementStateCode ;
-            owl:onProperty cd:entitlementState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -101,20 +101,20 @@ cd:UserDevice a owl:Class ;
     rdfs:label "User Device"@en ;
     rdfs:comment "Client-device registration using an opaque push or device reference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:lastSeenAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:pushTokenReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:lastSeenAt ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:deviceReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:platformName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:deviceReference ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -123,11 +123,8 @@ cd:AccessGrant a owl:Class ;
     rdfs:label "Access Grant"@en ;
     rdfs:comment "Time-qualified grant of permissions to a principal over an explicit scope."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:allValuesFrom cd:GrantStateCode ;
+            owl:onProperty cd:grantState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:grantee ],
@@ -138,8 +135,11 @@ cd:AccessGrant a owl:Class ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:scopeRecord ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:GrantStateCode ;
-            owl:onProperty cd:grantState ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -148,20 +148,17 @@ cd:AccountClosure a owl:Class ;
     rdfs:label "Account Closure"@en ;
     rdfs:comment "Account offboarding decision that preserves or explicitly transfers remaining debt, refunds and statutory retention duties."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:openLiabilityAmount ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:completedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ClosureStateCode ;
-            owl:onProperty cd:closureState ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:residualLiabilityOwner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:closureEvidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:activeGrantCount ],
@@ -169,11 +166,14 @@ cd:AccountClosure a owl:Class ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:residualLiabilityOwner ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:openLiabilityAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:closureEvidence ],
+            owl:allValuesFrom cd:ClosureStateCode ;
+            owl:onProperty cd:closureState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:revokedGrantCount ],
@@ -185,14 +185,14 @@ cd:CustomerGroup a owl:Class ;
     rdfs:label "Customer Group"@en ;
     rdfs:comment "Group for pricing, eligibility, reporting or access; membership is explicit and temporal."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:groupName ],
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:operatorService ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:GroupingPurposeCode ;
             owl:onProperty cd:groupingPurpose ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:operatorService ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:groupName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -215,19 +215,19 @@ cd:Principal a owl:Class ;
     rdfs:comment "Human or machine security subject linked to an identity provider by opaque reference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:subjectReference ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Person ;
-            owl:onProperty cd:person ],
+            owl:onProperty cd:identityProvider ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:identityProvider ],
+            owl:onProperty cd:subjectReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PrincipalKindCode ;
+            owl:onProperty cd:principalKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PrincipalStateCode ;
             owl:onProperty cd:principalState ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PrincipalKindCode ;
-            owl:onProperty cd:principalKind ],
+            owl:allValuesFrom cd:Person ;
+            owl:onProperty cd:person ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -236,11 +236,11 @@ cd:SecurityRole a owl:Class ;
     rdfs:label "Security Role"@en ;
     rdfs:comment "Named collection of permissions; not an organization business role."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:roleName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Permission ;
             owl:onProperty cd:permission ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:roleName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -249,20 +249,20 @@ cd:ContactProfile a owl:Class ;
     rdfs:label "Contact Profile"@en ;
     rdfs:comment "Purpose-specific contact details with visibility and retention boundaries."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Address ;
-            owl:onProperty cd:contactAddress ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:contactPurpose ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:emailAddress ],
+            owl:allValuesFrom cd:RetentionPolicy ;
+            owl:onProperty cd:retentionPolicy ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:telephoneNumber ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:RetentionPolicy ;
-            owl:onProperty cd:retentionPolicy ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:emailAddress ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Address ;
+            owl:onProperty cd:contactAddress ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -271,14 +271,14 @@ cd:Person a owl:Class ;
     rdfs:label "Person"@en ;
     rdfs:comment "Minimal person reference; personally identifying details remain purpose-controlled."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ContactProfile ;
+            owl:onProperty cd:contact ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:personReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:preferredLanguage ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ContactProfile ;
-            owl:onProperty cd:contact ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -290,14 +290,11 @@ cd:CustomerAccount a owl:Class ;
             owl:allValuesFrom cd:AccountClosure ;
             owl:onProperty cd:accountClosure ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:BillingProfile ;
-            owl:onProperty cd:billingProfile ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccountKindCode ;
-            owl:onProperty cd:accountKind ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:organization ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccountStateCode ;
+            owl:onProperty cd:accountState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:OperatorService ;
             owl:onProperty cd:operatorService ],
@@ -305,8 +302,11 @@ cd:CustomerAccount a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:preferredLanguage ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccountStateCode ;
-            owl:onProperty cd:accountState ],
+            owl:allValuesFrom cd:AccountKindCode ;
+            owl:onProperty cd:accountKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BillingProfile ;
+            owl:onProperty cd:billingProfile ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Person ;
             owl:onProperty cd:person ],
@@ -324,8 +324,8 @@ cd:OperatorService a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:serviceName ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:BrandProfile ;
-            owl:onProperty cd:brand ],
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:parentService ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ServiceRoleCode ;
             owl:onProperty cd:serviceRole ],
@@ -333,8 +333,8 @@ cd:OperatorService a owl:Class ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:serviceProvider ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:parentService ],
+            owl:allValuesFrom cd:BrandProfile ;
+            owl:onProperty cd:brand ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .
@@ -343,23 +343,23 @@ cd:LegalEntity a owl:Class ;
     rdfs:label "Legal Entity"@en ;
     rdfs:comment "Legal person participating in charging services; role is represented separately."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:registrationNumber ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Address ;
-            owl:onProperty cd:registeredAddress ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TaxIdentifier ;
-            owl:onProperty cd:taxIdentifier ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ContactProfile ;
-            owl:onProperty cd:contact ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:FinancialAccountReference ;
             owl:onProperty cd:financialAccount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:legalName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TaxIdentifier ;
+            owl:onProperty cd:taxIdentifier ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:registrationNumber ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ContactProfile ;
+            owl:onProperty cd:contact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Address ;
+            owl:onProperty cd:registeredAddress ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "identity" .

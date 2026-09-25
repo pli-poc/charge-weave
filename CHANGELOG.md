@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 — Adversarial cross-record review — 2026-09-25
+
+- Preserve full-validator baseline evidence for six previously accepted business contradictions.
+- Strengthen access, full-credit uniqueness, allowance ownership, dispute-aware escalation, transition-history and account-hold rules.
+- Add 14 complete adversarial snapshots as declarative mutations with six dedicated Actions gates and packaging requirements.
+- Document the exact review scope, current-state authorization policy, hold scope and remaining untested interactions.
+
 ## 1.1.0 — Independent business-domain review — 2026-09-25
 
 - Define 91 requirements, 28 actors and 20 journeys with lifecycle, exception, contractual and financial responsibility traceability.

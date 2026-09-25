@@ -59,7 +59,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-130 | Measured deltas preserve ordering, multiplier and reset boundaries; estimated deltas require evidence. | J07 | MeterDelta | B130 | BR-130-PASS, BR-130-REJECT |
 | BR-131 | Billing readiness requires completed charging and resolved usage, authorization, price, tax, commercial responsibility and blocking issues. | J08 | BillingReadinessAssessment | B131 | BR-131-PASS, BR-131-REJECT |
 | BR-132 | A local debit CDR carries a ready billing decision for the same completed session. | J08 | ChargeDetailRecord | B132 | BR-132-PASS, BR-132-REJECT |
-| BR-133 | Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals. | J08 | ChargeDetailRecord | B133 | BR-133-PASS, BR-133-REJECT |
+| BR-133 | Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once. | J08 | ChargeDetailRecord | B133 | BR-133-PASS, BR-133-REJECT, ADV-CREDIT-ALLOW, ADV-CREDIT-REJECT, ADV-CREDIT-DISTINCT-ORIGINALS |
 | BR-134 | Corrections form an acyclic lineage and cannot replace a record with itself. | J08 | RecordCorrection | B134 | BR-134-PASS, BR-134-REJECT |
 | BR-135 | Outstanding liability reconciles original charges, credits, collected money and authorized write-offs. | J09 | FinancialPosition | B135 | BR-135-PASS, BR-135-REJECT |
 | BR-136 | A settled position has no residual liability; a written-off position records the write-off. | J09 | FinancialPosition | B136 | BR-136-PASS, BR-136-REJECT |
@@ -69,7 +69,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-140 | Resolved reconciliation retains a resolution for the same case, a timestamp and explanation. | J10 | ReconciliationCase | B140 | BR-140-PASS, BR-140-REJECT |
 | BR-141 | A corrected reconciliation identifies its immutable correction case. | J10 | ReconciliationResolution | B141 | BR-141-PASS, BR-141-REJECT |
 | BR-142 | Disputes preserve response deadlines, reasoned closure and an explicit remedy when remedied. | J11 | ServiceDispute | B142 | BR-142-PASS, BR-142-REJECT |
-| BR-143 | Collection escalation pauses while the position or linked service dispute is unresolved. | J11 | DunningAction | B143 | BR-143-PASS, BR-143-REJECT |
+| BR-143 | Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link. | J11 | DunningAction | B143 | BR-143-PASS, BR-143-REJECT, ADV-DUNNING-ALLOW, ADV-DUNNING-REJECT |
 | BR-144 | Approval cannot release a partner settlement with unresolved differences or missing approval evidence. | J12 | SettlementApproval | B144 | BR-144-PASS, BR-144-REJECT |
 | BR-145 | Partner settlement totals reconcile their items and released batches retain an approved release decision. | J12 | SettlementBatch | B145 | BR-145-PASS, BR-145-REJECT, BR-145-RELEASE-PASS, BR-145-RELEASE-REJECT |
 | BR-146 | Approved reimbursement matches claimant, currency, amount, rate and eligible measured energy of the claim. | J13 | ReimbursementApproval | B146 | BR-146-PASS, BR-146-REJECT |
@@ -80,24 +80,24 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-151 | An override is authorized for this unit and covers the entire control interval. | J15 | ControlDecision | B151 | BR-151-PASS, BR-151-REJECT |
 | BR-152 | Fulfilled rights requests require verified identity, completion time and retained response evidence. | J16 | DataSubjectRequest | B152 | BR-152-PASS, BR-152-REJECT |
 | BR-153 | Refusal of a rights request retains a reason and a communicated response. | J16 | DataSubjectRequest | B153 | BR-153-PASS, BR-153-REJECT |
-| BR-154 | Completed disposition records evidence and cannot claim erasure over a still-active scoped hold. | J16 | DataDisposition | B154 | BR-154-PASS, BR-154-REJECT |
+| BR-154 | Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds. | J16 | DataDisposition | B154 | BR-154-PASS, BR-154-REJECT, ADV-HOLD-ALLOW, ADV-HOLD-REJECT |
 | BR-155 | Holds have a future review relative to inception and explicit release evidence in time. | J16 | LegalHold | B155 | BR-155-PASS, BR-155-REJECT |
 | BR-156 | International personal-data transfers retain an explicit safeguards assessment. | J16 | ProcessingPurpose | B156 | BR-156-PASS, BR-156-REJECT |
-| BR-157 | Permission decisions require an active time-valid grant to the same principal and explicit record scope. | J17 | AccessDecision | B157 | BR-157-PASS, BR-157-REJECT |
+| BR-157 | Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal. | J17 | AccessDecision | B157 | BR-157-PASS, BR-157-REJECT, ADV-ACCESS-ALLOW, ADV-ACCESS-REJECT, ADV-ACCESS-DISABLED-DENIED |
 | BR-158 | Valid artifact verification retains a matching computed digest and verification evidence. | J17 | EvidenceVerification | B158 | BR-158-PASS, BR-158-REJECT |
 | BR-159 | Availability commitments use a proportion between zero and one. | J18 | ServiceLevelCommitment | B159 | BR-159-PASS, BR-159-REJECT |
 | BR-160 | Closed service breaches retain completed remediation or a contractual remedy. | J18 | ServiceLevelBreach | B160 | BR-160-PASS, BR-160-REJECT |
 | BR-161 | A passed recovery rehearsal meets both time and data-loss objectives. | J18 | RecoveryExercise | B161 | BR-161-PASS, BR-161-REJECT |
 | BR-162 | Completed migration reconciles all expected records without rejects and revokes obsolete source credentials. | J19 | MigrationBatch | B162 | BR-162-PASS, BR-162-REJECT |
 | BR-163 | Current lifecycle snapshots agree with the current subject state and any cited transition. | J20 | LifecycleSnapshot | B163 | BR-163-PASS, BR-163-REJECT |
-| BR-164 | Chained transitions preserve record, property, state continuity and nondecreasing event time. | J20 | StateTransition | B164 | BR-164-PASS, BR-164-REJECT |
+| BR-164 | Chained transitions preserve record, property, state continuity and nondecreasing time without circular history. | J20 | StateTransition | B164 | BR-164-PASS, BR-164-REJECT, ADV-HISTORY-ALLOW, ADV-HISTORY-REJECT |
 | BR-165 | An adapter cannot declare a feature both supported and unsupported. | J19 | ProtocolProfile | B165 | BR-165-PASS, BR-165-REJECT |
 | BR-166 | Completed business journeys retain evidence and only successfully completed, compensated or explicitly skipped steps. | J20 | ProcessExecution | B166 | BR-166-PASS, BR-166-REJECT |
 | BR-167 | Successful steps have output and evidence; compensated steps identify their compensating record. | J20 | ProcessStep | B167 | BR-167-PASS, BR-167-REJECT |
 | BR-168 | Step sequence numbers are unique within a business journey. | J20 | ProcessExecution | B168 | BR-168-PASS, BR-168-REJECT |
 | BR-169 | Credit-note currency and issuer match the original invoice and cumulative credits stay within its gross amount. | J09 | CreditNote | B169 | BR-169-PASS, BR-169-REJECT |
 | BR-170 | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. | J14 | AllowanceBalance | B170 | BR-170-PASS, BR-170-REJECT |
-| BR-171 | Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period. | J14 | AllowanceBalance | B171 | BR-171-PASS, BR-171-REJECT |
+| BR-171 | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. | J14 | AllowanceBalance | B171 | BR-171-PASS, BR-171-REJECT, ADV-ALLOWANCE-ALLOW, ADV-ALLOWANCE-REJECT |
 | BR-172 | Money-denominated allowances identify a currency instead of being treated as energy credits. | J14 | AllowanceBalance | B172 | BR-172-PASS, BR-172-REJECT |
 
 ## BR-001 — Tenant identity and isolation
@@ -110,6 +110,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: W3C-SHACL.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT, JOURNEY-ACCESS-PASS, JOURNEY-ACCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: RecordShape, TenantShape, ExternalIdentifierShape.
@@ -131,6 +132,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CustomFieldDefinitionShape, CustomFieldValueShape.
@@ -151,6 +153,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: OperatorServiceShape, ChargingStationShape, ChargingAreaShape, ChargingSiteShape, ParkingSpaceShape, ElectricalCircuitShape, LoadControlGroupShape, PaymentTerminalShape.
@@ -177,6 +180,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargingUnitShape, PowerCabinetShape, PowerModuleAllocationShape.
@@ -198,6 +202,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EC-AFIR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: PublicListingShape.
@@ -217,6 +222,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AuthorizationRequestShape, AuthorizationDecisionShape, ChargingSessionShape.
@@ -238,6 +244,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargingSessionShape, SessionEndEvidenceShape, StateTransitionShape.
@@ -259,6 +266,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-TARIFF.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: TariffVersionShape, TariffSetShape, DynamicPriceFormulaShape, DiscountRuleShape, FeeBoundsShape, PriceTierShape, SessionPricingPolicyShape, RatingCalculationShape.
@@ -285,6 +293,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: SourceEventShape, SignedMeterEvidenceShape, ClockAssessmentShape.
@@ -306,6 +315,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-CDR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargeDetailRecordShape.
@@ -325,6 +335,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargingScheduleShape, ForecastPointShape, ChargingProfileShape.
@@ -346,6 +357,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-TARIFF.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ElectricityPriceIntervalShape, EnergyMixShape, TimeWindowShape, SchedulePeriodShape, RecurringWindowShape.
@@ -369,6 +381,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: InvoiceShape, InvoiceLineShape, RatedLineShape, TaxDeterminationShape.
@@ -391,6 +404,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-REFUND.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: PaymentAuthorizationShape, PaymentCaptureShape, RefundShape, PaymentIntentShape, PayoutShape, PayoutBatchShape, PreauthorizationPolicyShape.
@@ -416,6 +430,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: JournalShape, JournalLineShape, LedgerAccountShape.
@@ -437,6 +452,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CorporateCostAllocationShape, CorporateBillingSnapshotShape, ReimbursementPolicyShape, ReimbursementRecordShape, CorporateChargerRuleShape.
@@ -460,6 +476,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT, JOURNEY-ALLOWANCE-PASS, JOURNEY-ALLOWANCE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EnergyCouponTemplateShape, EnergyCouponShape, CouponConsumptionShape, VoucherRedemptionShape, WalletShape.
@@ -483,6 +500,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT, JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AvailabilityPolicyShape, AvailabilityResultShape.
@@ -503,6 +521,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CERT.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT, JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: WorkOrderShape, InstallationJobShape, FirmwareDeploymentShape.
@@ -524,6 +543,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: FiscalizationAttemptShape.
@@ -543,6 +563,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: BrandProfileShape, ExperienceChannelShape, ContentTemplateShape, HelpArticleShape, CustomerNotificationShape.
@@ -566,6 +587,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT, JOURNEY-ACCESS-PASS, JOURNEY-ACCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ActionApprovalShape, AssistantRecommendationShape.
@@ -586,6 +608,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-EVENTS.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EventDeliveryShape, EventSubscriptionShape.
@@ -606,6 +629,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: RemoteCommandShape, CommandOutcomeShape.
@@ -626,6 +650,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReimbursementPolicyShape.
@@ -645,6 +670,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReservationShape, BookingShape.
@@ -665,6 +691,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-SETTLEMENT-PASS, JOURNEY-SETTLEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: SettlementBatchShape, SettlementItemShape.
@@ -685,6 +712,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.
 - Review finding: Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT, JOURNEY-ACCESS-PASS, JOURNEY-ACCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AccessTokenLeaseShape.
@@ -704,6 +732,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B110.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ServiceAgreementShape.
@@ -723,6 +752,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B111.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ContractObligationShape.
@@ -742,6 +772,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B112.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AgreementLifecycleEventShape.
@@ -761,6 +792,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B113.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AgreementLifecycleEventShape.
@@ -780,6 +812,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B114.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ServiceEntitlementShape.
@@ -799,6 +832,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B115.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AccountClosureShape.
@@ -818,6 +852,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B116.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargingStationShape.
@@ -837,6 +872,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B117.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CERT.
 - Associated full-graph journey snapshots: JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: OperationalAcceptanceShape.
@@ -856,6 +892,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B118.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AssetLifecycleEventShape.
@@ -875,6 +912,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B119.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ConnectorCompatibilityShape.
@@ -894,6 +932,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B120.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EC-AFIR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CommercialOfferShape.
@@ -913,6 +952,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B121.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-TARIFF.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CommercialOfferShape.
@@ -932,6 +972,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B122.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: OfferAcceptanceShape.
@@ -951,6 +992,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B123.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: OfferAcceptanceShape.
@@ -970,6 +1012,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B124.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CommercialResponsibilityShape.
@@ -989,6 +1032,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B125.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: OfflineAuthorizationAssessmentShape.
@@ -1008,6 +1052,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B126.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-EVENTS.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EventProcessingOutcomeShape.
@@ -1027,6 +1072,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B127.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-EVENTS.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EventProcessingOutcomeShape.
@@ -1046,6 +1092,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B128.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-EVENTS.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-OFFLINE-PASS, JOURNEY-OFFLINE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EventProcessingOutcomeShape.
@@ -1065,6 +1112,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B129.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: MeterDeltaShape.
@@ -1084,6 +1132,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B130.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: MeterDeltaShape.
@@ -1103,6 +1152,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B131.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: BillingReadinessAssessmentShape.
@@ -1122,6 +1172,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B132.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-CDR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargeDetailRecordShape.
@@ -1131,7 +1182,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | ChargeDetailRecord | session, issuer, recipient, recordOrigin, externalIdentifier, recordVersion, period, importedEnergyKWh, exportedEnergyKWh, currency, netAmount, taxAmount, grossAmount, selectedTariff, correctionOf, receivedAt, artifact, recordKind, originalChargeRecord, billingReadiness |
 
-## BR-133 — Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals.
+## BR-133 — Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once.
 
 - Accountable: Billing supplier.
 - Financial ownership: Merchant of record.
@@ -1141,6 +1192,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B133.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: OCPI-CDR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ChargeDetailRecordShape.
@@ -1160,6 +1212,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B134.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-CDR.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: RecordCorrectionShape.
@@ -1179,6 +1232,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B135.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: FinancialPositionShape.
@@ -1198,6 +1252,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B136.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: FinancialPositionShape.
@@ -1217,6 +1272,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B137.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-REFUND.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: PaymentAllocationShape.
@@ -1236,6 +1292,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B138.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: PaymentCaptureShape.
@@ -1255,6 +1312,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B139.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCPI-CDR.
 - Associated full-graph journey snapshots: JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReconciliationCaseShape.
@@ -1274,6 +1332,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B140.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReconciliationCaseShape.
@@ -1293,6 +1352,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B141.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReconciliationResolutionShape.
@@ -1312,6 +1372,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B142.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: PSP-DISPUTE.
 - Associated full-graph journey snapshots: JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ServiceDisputeShape.
@@ -1321,7 +1382,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | ServiceDispute | disputedRecord, claimant, accountableParty, disputeCaseState, openedAt, responseDueAt, resolutionEvidence, remedyRecord, financialOwner |
 
-## BR-143 — Collection escalation pauses while the position or linked service dispute is unresolved.
+## BR-143 — Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link.
 
 - Accountable: Accountable service provider.
 - Financial ownership: Named financial owner.
@@ -1331,6 +1392,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B143.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CREDIT-PASS, JOURNEY-CREDIT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: DunningActionShape.
@@ -1350,6 +1412,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B144.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-SETTLEMENT-PASS, JOURNEY-SETTLEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: SettlementApprovalShape.
@@ -1369,6 +1432,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B145.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT, JOURNEY-SETTLEMENT-PASS, JOURNEY-SETTLEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: SettlementBatchShape.
@@ -1388,6 +1452,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B146.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReimbursementApprovalShape.
@@ -1407,6 +1472,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B147.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ReimbursementRecordShape.
@@ -1426,6 +1492,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B148.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT, JOURNEY-ALLOWANCE-PASS, JOURNEY-ALLOWANCE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: BenefitReservationShape.
@@ -1445,6 +1512,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B149.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ControlDecisionShape.
@@ -1464,6 +1532,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B150.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CORE.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ControlDecisionShape.
@@ -1483,6 +1552,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B151.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-ENERGY-PASS, JOURNEY-ENERGY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ControlDecisionShape.
@@ -1502,6 +1572,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B152.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EDPB-RIGHTS.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: DataSubjectRequestShape.
@@ -1521,6 +1592,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B153.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EDPB-RIGHTS.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: DataSubjectRequestShape.
@@ -1530,7 +1602,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | DataSubjectRequest | subjectAccount, requestKind, requestState, receivedAt, responseDueAt, identityVerified, legalBasisAssessment, responsibleController, responseEvidence, refusalReason, completedAt |
 
-## BR-154 — Completed disposition records evidence and cannot claim erasure over a still-active scoped hold.
+## BR-154 — Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds.
 
 - Accountable: Data controller.
 - Financial ownership: Contractually allocated data liability owner.
@@ -1540,6 +1612,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B154.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: EDPB-RIGHTS.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: DataDispositionShape.
@@ -1559,6 +1632,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B155.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EDPB-RIGHTS.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: LegalHoldShape.
@@ -1578,6 +1652,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B156.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: EDPB-RIGHTS.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ProcessingPurposeShape.
@@ -1587,7 +1662,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | ProcessingPurpose | controller, processor, purposeDescription, lawfulBasis, dataCategory, retentionPolicy, processingScope, internationalTransfer, transferSafeguardEvidence |
 
-## BR-157 — Permission decisions require an active time-valid grant to the same principal and explicit record scope.
+## BR-157 — Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal.
 
 - Accountable: Platform controller.
 - Financial ownership: Accountable organization.
@@ -1597,6 +1672,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B157.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT, JOURNEY-ACCESS-PASS, JOURNEY-ACCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AccessDecisionShape.
@@ -1616,6 +1692,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B158.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-PRIVACY-PASS, JOURNEY-PRIVACY-REJECT, JOURNEY-ACCESS-PASS, JOURNEY-ACCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: EvidenceVerificationShape.
@@ -1635,6 +1712,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B159.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-UPTIME.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT, JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ServiceLevelCommitmentShape.
@@ -1654,6 +1732,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B160.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT, JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ServiceLevelBreachShape.
@@ -1673,6 +1752,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B161.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT, JOURNEY-ASSET-PASS, JOURNEY-ASSET-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: RecoveryExerciseShape.
@@ -1692,6 +1772,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B162.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: MigrationBatchShape.
@@ -1711,6 +1792,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B163.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: LifecycleSnapshotShape.
@@ -1720,7 +1802,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | LifecycleSnapshot | targetRecord, stateProperty, stateValue, effectiveAt, snapshotKind, basisTransition |
 
-## BR-164 — Chained transitions preserve record, property, state continuity and nondecreasing event time.
+## BR-164 — Chained transitions preserve record, property, state continuity and nondecreasing time without circular history.
 
 - Accountable: Named accountable party.
 - Financial ownership: Named financial owner.
@@ -1730,6 +1812,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B164.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: StateTransitionShape.
@@ -1749,6 +1832,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B165.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: OCA-CERT.
 - Associated full-graph journey snapshots: JOURNEY-MIGRATION-PASS, JOURNEY-MIGRATION-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ProtocolProfileShape.
@@ -1768,6 +1852,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B166.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ProcessExecutionShape.
@@ -1787,6 +1872,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B167.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ProcessStepShape.
@@ -1806,6 +1892,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B168.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: ProcessExecutionShape.
@@ -1825,6 +1912,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B169.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-CHARGE-PASS, JOURNEY-CHARGE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: CreditNoteShape.
@@ -1844,6 +1932,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B170.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT, JOURNEY-ALLOWANCE-PASS, JOURNEY-ALLOWANCE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AllowanceBalanceShape.
@@ -1853,7 +1942,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | AllowanceBalance | customer, allowance, billingPeriod, openingValue, grantedValue, consumedValue, reservedValue, expiredValue, closingValue, currency, unitIri |
 
-## BR-171 — Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period.
+## BR-171 — Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer.
 
 - Accountable: Service provider.
 - Financial ownership: Benefit funder.
@@ -1863,6 +1952,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B171.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: The first v1.1 full-graph validation accepted the contradictory snapshot; strengthened the existing invariant and retained the baseline observation and regression pair.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT, JOURNEY-ALLOWANCE-PASS, JOURNEY-ALLOWANCE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AllowanceBalanceShape.
@@ -1882,6 +1972,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B172.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
+- Adversarial review: Not challenged by this six-family review.
 - Sources: CW-POLICY.
 - Associated full-graph journey snapshots: JOURNEY-REIMBURSEMENT-PASS, JOURNEY-REIMBURSEMENT-REJECT, JOURNEY-ALLOWANCE-PASS, JOURNEY-ALLOWANCE-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
 - Structural contracts: AllowanceBalanceShape.

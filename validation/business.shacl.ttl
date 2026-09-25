@@ -1322,13 +1322,13 @@ SELECT $this WHERE { $this cd:recordOrigin cd:recordOrigin_Local; cd:recordKind 
     sh:targetClass cd:ChargeDetailRecord .
 
 cd:B133 a sh:NodeShape ;
-    sh:sparql [ sh:message "B133: Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals." ;
+    sh:sparql [ sh:message "B133: Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)} }""" ] ;
+SELECT $this WHERE { { $this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)} } UNION { $this cd:recordKind cd:recordKind_Credit; cd:originalChargeRecord ?original. ?other a cd:ChargeDetailRecord; cd:recordKind cd:recordKind_Credit; cd:originalChargeRecord ?original. FILTER(?other!=$this) } }""" ] ;
     sh:targetClass cd:ChargeDetailRecord .
 
 cd:B134 a sh:NodeShape ;
@@ -1422,13 +1422,13 @@ SELECT $this WHERE { {$this cd:openedAt ?o; cd:responseDueAt ?d. FILTER(?d<?o)} 
     sh:targetClass cd:ServiceDispute .
 
 cd:B143 a sh:NodeShape ;
-    sh:sparql [ sh:message "B143: Collection escalation pauses while the position or linked service dispute is unresolved." ;
+    sh:sparql [ sh:message "B143: Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} }""" ] ;
+SELECT $this WHERE { { $this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} } UNION { $this cd:actionKind cd:actionKind_Escalate; cd:financialPosition ?position. ?dispute a cd:ServiceDispute; cd:disputedRecord ?record; cd:disputeCaseState ?state. FILTER(?state IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted)) FILTER(?record=?position || EXISTS {?position cd:sourceRecord ?record}) } }""" ] ;
     sh:targetClass cd:DunningAction .
 
 cd:B144 a sh:NodeShape ;
@@ -1532,13 +1532,13 @@ SELECT $this WHERE { $this cd:requestState cd:requestState_Refused. FILTER(!EXIS
     sh:targetClass cd:DataSubjectRequest .
 
 cd:B154 a sh:NodeShape ;
-    sh:sparql [ sh:message "B154: Completed disposition records evidence and cannot claim erasure over a still-active scoped hold." ;
+    sh:sparql [ sh:message "B154: Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active}) }""" ] ;
+SELECT $this WHERE { { $this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active}) } UNION { $this cd:dispositionState cd:dispositionState_Completed; cd:subjectAccount ?account. ?hold a cd:LegalHold; cd:heldRecord ?account; cd:holdState cd:holdState_Active. } }""" ] ;
     sh:targetClass cd:DataDisposition .
 
 cd:B155 a sh:NodeShape ;
@@ -1562,13 +1562,13 @@ SELECT $this WHERE { $this cd:internationalTransfer true. FILTER NOT EXISTS {$th
     sh:targetClass cd:ProcessingPurpose .
 
 cd:B157 a sh:NodeShape ;
-    sh:sparql [ sh:message "B157: Permission decisions require an active time-valid grant to the same principal and explicit record scope." ;
+    sh:sparql [ sh:message "B157: Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} }""" ] ;
+SELECT $this WHERE { { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} } UNION { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee/cd:principalState cd:principalState_Disabled. } }""" ] ;
     sh:targetClass cd:AccessDecision .
 
 cd:B158 a sh:NodeShape ;
@@ -1632,13 +1632,13 @@ SELECT $this WHERE { $this cd:targetRecord ?r; cd:stateProperty ?p; cd:stateValu
     sh:targetClass cd:LifecycleSnapshot .
 
 cd:B164 a sh:NodeShape ;
-    sh:sparql [ sh:message "B164: Chained transitions preserve record, property, state continuity and nondecreasing event time." ;
+    sh:sparql [ sh:message "B164: Chained transitions preserve record, property, state continuity and nondecreasing time without circular history." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)} }""" ] ;
+SELECT $this WHERE { { $this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)} } UNION { $this cd:previousTransition+ $this. } }""" ] ;
     sh:targetClass cd:StateTransition .
 
 cd:B165 a sh:NodeShape ;
@@ -1702,13 +1702,13 @@ SELECT $this WHERE { $this cd:openingValue ?o; cd:grantedValue ?g; cd:consumedVa
     sh:targetClass cd:AllowanceBalance .
 
 cd:B171 a sh:NodeShape ;
-    sh:sparql [ sh:message "B171: Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period." ;
+    sh:sparql [ sh:message "B171: Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) }""" ] ;
+SELECT $this WHERE { { $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) } UNION { $this cd:customer ?owner. ?item cd:allowanceBalance $this; cd:session ?session. FILTER NOT EXISTS {?session cd:customer ?owner} } }""" ] ;
     sh:targetClass cd:AllowanceBalance .
 
 cd:B172 a sh:NodeShape ;

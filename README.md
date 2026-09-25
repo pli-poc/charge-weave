@@ -4,7 +4,7 @@
 
 A modular business ontology for charging management: CPO and eMSP services, public and ad hoc charging, fleet/workplace and home charging, roaming, payments, settlement, energy control and governance.
 
-Version **1.1.0** includes **277 classes in 18 modules, 1,165 properties, 206 controlled code schemes and 172 SHACL-SPARQL business rules**. The independent business review defines **91 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md).
+Version **1.1.1** includes **277 classes in 18 modules, 1,165 properties, 206 controlled code schemes and 172 SHACL-SPARQL business rules**. The independent business review defines **91 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 

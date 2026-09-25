@@ -39,3 +39,7 @@ The reference runner rejects instance graphs that redefine controlled terms, com
 ## Independent business review evidence
 
 `test_business_acceptance.py` checks 128 focused valid/invalid decisions for the new invariants. `test_lifecycle.py` checks 24 independently selected allowed/forbidden transitions. `test_journey_snapshots.py --family NAME` runs full SHACL and cross-domain assertions on the conforming and faulty snapshots for that family. There are 13 families and 26 graphs; these validate semantic end states, not external service execution. `check_audit.py` checks requirement/source/actor/property/rule/scenario links and lifecycle vocabulary. See the [audit](business-domain-audit.md) for the declared business profile and runtime obligations.
+
+## Adversarial review
+
+`test_adversarial.py --family NAME` applies authored business changes to complete synthetic snapshots and runs every structural and business constraint. Six families have 14 cases. Release jobs never use `--capture-baseline`; that mode records pre-fix observations and deliberately does not assert success. Its historical reports are kept separately under `evidence/adversarial-v1.1/`. See [the findings](adversarial-review.md) for before/after behavior and the review boundary.

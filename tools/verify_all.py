@@ -6,4 +6,6 @@ for args in [['validate.py','--meta'],['test_business.py'],['test_boundaries.py'
  subprocess.run([sys.executable,str(P/args[0]),*args[1:]],check=True)
 for family in ('closure','charge','credit','offline','reimbursement','privacy','energy','migration','asset','allowance','access','settlement','process'):
  subprocess.run([sys.executable,str(P/'test_journey_snapshots.py'),'--family',family],check=True)
+for family in ('access','credit','allowance','dunning','history','hold'):
+ subprocess.run([sys.executable,str(P/'test_adversarial.py'),'--family',family],check=True)
 print('All release gates passed.')

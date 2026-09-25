@@ -1,0 +1,27 @@
+{
+  "commit": "d4348146fec3bc054a8a869c731f9d1c130d6a27",
+  "caseDigest": "04301ca74a726e2d1737facb7e39228acdef6c8628fc2d4af3de5c35f2cad7c6",
+  "scope": "Full structural and business SHACL; synthetic snapshots, no external execution.",
+  "baselineObservation": true,
+  "passed": 1,
+  "total": 2,
+  "tests": [
+    {
+      "scenario": "ADV-HOLD-ALLOW",
+      "requirement": "BR-154",
+      "expectedConformance": true,
+      "actualConformance": true,
+      "expectedRuleReported": true,
+      "passed": true
+    },
+    {
+      "scenario": "ADV-HOLD-REJECT",
+      "requirement": "BR-154",
+      "expectedConformance": false,
+      "actualConformance": true,
+      "expectedRuleReported": false,
+      "passed": false,
+      "validationReport": "Validation Report\nConforms: True\n"
+    }
+  ]
+}

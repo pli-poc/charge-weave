@@ -53,6 +53,7 @@ setv('StateTransition','stateProperty',C.sessionState);setv('StateTransition','p
 o=ontology();setv('RemoteCommand','commandKind',min(o.subjects(RDF.type,C.CommandKind),key=str));setv('EventSubscription','eventType',min(o.subjects(RDF.type,C.EventKind),key=str))
 setv('CustomFieldValue','valueDatatype',XSD.string);setv('CustomFieldDefinition','fieldDatatype',XSD.string)
 # Reviewed positive fixtures for the independent business-domain extension.
+add('ChargingSession','customer','CustomerAccount')
 add('ChargeDetailRecord','billingReadiness','BillingReadinessAssessment')
 code('BillingReadinessAssessment','readinessState','Ready')
 for prop in ['usageComplete','priceResolved','taxResolved','authorizationResolved','responsibilityResolved']:

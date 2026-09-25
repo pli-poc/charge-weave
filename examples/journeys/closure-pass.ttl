@@ -3065,6 +3065,14 @@ ex:Principal a cd:Principal ;
     cd:subjectReference "Principal-subjectReference"^^xsd:string ;
     cd:tenant ex:Tenant .
 
+ex:TimeWindow a cd:TimeWindow ;
+    cd:canonicalId "TimeWindow-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:endsAt "2026-09-25T14:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:startsAt "2026-09-25T10:00:00+00:00"^^xsd:dateTime ;
+    cd:tenant ex:Tenant .
+
 ex:CustomerAccount a cd:CustomerAccount ;
     cd:accountKind cd:accountKind_Registered ;
     cd:accountState cd:accountState_Closed ;
@@ -3072,14 +3080,6 @@ ex:CustomerAccount a cd:CustomerAccount ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:operatorService ex:OperatorService ;
     cd:revision "1"^^xsd:positiveInteger ;
-    cd:tenant ex:Tenant .
-
-ex:TimeWindow a cd:TimeWindow ;
-    cd:canonicalId "TimeWindow-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:endsAt "2026-09-25T14:00:00+00:00"^^xsd:dateTime ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:startsAt "2026-09-25T10:00:00+00:00"^^xsd:dateTime ;
     cd:tenant ex:Tenant .
 
 ex:EvidenceDocument a cd:EvidenceDocument ;
@@ -3106,6 +3106,7 @@ ex:ChargingSession a cd:ChargingSession ;
     cd:chargingUnit ex:ChargingUnit ;
     cd:commercialMode cd:commercialMode_Free ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:customer ex:CustomerAccount ;
     cd:endEvidence ex:SessionEndEvidence ;
     cd:endedAt "2026-09-25T13:00:00+00:00"^^xsd:dateTime ;
     cd:exportedEnergyKWh 0.0 ;

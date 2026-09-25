@@ -7,26 +7,26 @@ cd:ChargingProfile a owl:Class ;
     rdfs:label "Charging Profile"@en ;
     rdfs:comment "Protocol-independent charging profile preserving purpose, kind, stack precedence and schedule."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSchedule ;
+            owl:onProperty cd:chargingSchedule ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:relativeAnchor ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:stackLevel ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProtocolTransaction ;
-            owl:onProperty cd:protocolTransaction ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ProfilePurposeCode ;
             owl:onProperty cd:profilePurpose ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSchedule ;
-            owl:onProperty cd:chargingSchedule ],
+            owl:allValuesFrom cd:ProfileKindCode ;
+            owl:onProperty cd:profileKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RecurrenceKindCode ;
             owl:onProperty cd:recurrenceKind ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProfileKindCode ;
-            owl:onProperty cd:profileKind ],
+            owl:allValuesFrom cd:ProtocolTransaction ;
+            owl:onProperty cd:protocolTransaction ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:stackLevel ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -35,32 +35,14 @@ cd:ControlDecision a owl:Class ;
     rdfs:label "Control Decision"@en ;
     rdfs:comment "Requested versus feasible power decision constrained by physical, contractual and safety limits, with an explicit rejected or accepted outcome."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:controlEvidence ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:OverrideAuthorization ;
             owl:onProperty cd:overrideAuthorization ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:requestedPowerKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:accountableParty ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingUnit ;
-            owl:onProperty cd:chargingUnit ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:contractualLimitKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EnergyDirectionCode ;
-            owl:onProperty cd:energyDirection ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:safetyLimitKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:controlEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:feasiblePowerKW ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
@@ -68,8 +50,26 @@ cd:ControlDecision a owl:Class ;
             owl:allValuesFrom cd:ControlDecisionCode ;
             owl:onProperty cd:controlDecision ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:requestedPowerKW ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ExportAgreement ;
             owl:onProperty cd:exportAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:feasiblePowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EnergyDirectionCode ;
+            owl:onProperty cd:energyDirection ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:accountableParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:contractualLimitKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -78,20 +78,20 @@ cd:ControlGroupMembership a owl:Class ;
     rdfs:label "Control Group Membership"@en ;
     rdfs:comment "Assignment of a station or unit to a load control group with conductor mapping."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:controlledAsset ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:controlledAsset ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:phaseRotation ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LoadControlGroup ;
             owl:onProperty cd:controlGroup ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:phaseRotation ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -100,8 +100,14 @@ cd:DistributedEnergyAsset a owl:Class ;
     rdfs:label "Distributed Energy Asset"@en ;
     rdfs:comment "Site generation or storage participating in energy management."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:bidirectional ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:capacityKWh ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EnergyAssetKindCode ;
             owl:onProperty cd:energyAssetKind ],
@@ -109,14 +115,8 @@ cd:DistributedEnergyAsset a owl:Class ;
             owl:allValuesFrom cd:IntegrationConnection ;
             owl:onProperty cd:integration ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSite ;
-            owl:onProperty cd:site ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:ratedPowerKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:capacityKWh ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -126,10 +126,10 @@ cd:FlexibilityDelivery a owl:Class ;
     rdfs:comment "Measured delivery against an activation and baseline, retaining verification evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:actualEnergyKWh ],
+            owl:onProperty cd:baselineEnergyKWh ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:deliveredAdjustmentKWh ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:verifiedAt ],
@@ -137,11 +137,11 @@ cd:FlexibilityDelivery a owl:Class ;
             owl:allValuesFrom cd:FlexibilityActivation ;
             owl:onProperty cd:flexibilityActivation ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:baselineEnergyKWh ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:deliveredAdjustmentKWh ],
+            owl:onProperty cd:actualEnergyKWh ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -154,10 +154,7 @@ cd:GridConnection a owl:Class ;
             owl:onProperty cd:effectiveWindow ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:exportLimitKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:gridOperator ],
+            owl:onProperty cd:importLimitKW ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ExternalIdentifier ;
             owl:onProperty cd:connectionIdentifier ],
@@ -165,8 +162,11 @@ cd:GridConnection a owl:Class ;
             owl:allValuesFrom cd:ChargingSite ;
             owl:onProperty cd:site ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:gridOperator ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:importLimitKW ],
+            owl:onProperty cd:exportLimitKW ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -175,20 +175,20 @@ cd:PhaseCurrentConstraint a owl:Class ;
     rdfs:label "Phase Current Constraint"@en ;
     rdfs:comment "Per-phase electrical current bound used alongside aggregate power constraints."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ConstraintOriginCode ;
             owl:onProperty cd:constraintOrigin ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TimeWindow ;
-            owl:onProperty cd:interval ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:phaseCode ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:maximumCurrentA ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LoadControlGroup ;
             owl:onProperty cd:controlGroup ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:phaseCode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -200,20 +200,20 @@ cd:PowerConstraint a owl:Class ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EnergyDirectionCode ;
-            owl:onProperty cd:energyDirection ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:LoadControlGroup ;
             owl:onProperty cd:controlGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ConstraintOriginCode ;
+            owl:onProperty cd:constraintOrigin ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EnergyDirectionCode ;
+            owl:onProperty cd:energyDirection ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:maximumPowerKW ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty cd:priority ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ConstraintOriginCode ;
-            owl:onProperty cd:constraintOrigin ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -222,20 +222,20 @@ cd:PowerModuleAllocation a owl:Class ;
     rdfs:label "Power Module Allocation"@en ;
     rdfs:comment "Time-bounded assignment of cabinet power modules to a charging unit."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:allocatedModules ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingUnit ;
             owl:onProperty cd:chargingUnit ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PowerCabinet ;
-            owl:onProperty cd:powerCabinet ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:allocatedPowerKW ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PowerCabinet ;
+            owl:onProperty cd:powerCabinet ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:allocatedModules ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -247,20 +247,20 @@ cd:PriorityRule a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:maximumStateOfChargePercent ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:targetRecord ],
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty cd:priority ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LoadControlGroup ;
+            owl:onProperty cd:controlGroup ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:minimumStateOfChargePercent ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:integer ;
-            owl:onProperty cd:priority ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:targetRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:boostUntil ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LoadControlGroup ;
-            owl:onProperty cd:controlGroup ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -269,20 +269,20 @@ cd:ScheduleApplication a owl:Class ;
     rdfs:label "Schedule Application"@en ;
     rdfs:comment "Evidence of device acceptance and observed enforcement of a schedule."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ApplicationStateCode ;
-            owl:onProperty cd:applicationState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RemoteCommand ;
-            owl:onProperty cd:command ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ObservedComplianceCode ;
             owl:onProperty cd:observedCompliance ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSchedule ;
             owl:onProperty cd:chargingSchedule ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:ApplicationStateCode ;
+            owl:onProperty cd:applicationState ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:appliedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RemoteCommand ;
+            owl:onProperty cd:command ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -291,6 +291,12 @@ cd:SmartChargingPreference a owl:Class ;
     rdfs:label "Smart Charging Preference"@en ;
     rdfs:comment "Customer charging objective including deadline, target energy and randomized-delay preference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:requiredEnergyKWh ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:randomizedDelaySeconds ],
         [ a owl:Restriction ;
@@ -300,17 +306,11 @@ cd:SmartChargingPreference a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:targetStateOfChargePercent ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
+            owl:allValuesFrom cd:StrategyCode ;
+            owl:onProperty cd:strategy ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:departureAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:requiredEnergyKWh ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:StrategyCode ;
-            owl:onProperty cd:strategy ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -319,26 +319,26 @@ cd:UnmanagedLoadObservation a owl:Class ;
     rdfs:label "Unmanaged Load Observation"@en ;
     rdfs:comment "Measured or estimated non-controlled load used for site allocation."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:LoadControlGroup ;
-            owl:onProperty cd:controlGroup ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:QualityCode ;
-            owl:onProperty cd:quality ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SourceEvent ;
-            owl:onProperty cd:sourceEvent ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:phaseCurrentA ],
+            owl:onProperty cd:powerKW ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:phaseCode ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:powerKW ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:observedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:QualityCode ;
+            owl:onProperty cd:quality ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LoadControlGroup ;
+            owl:onProperty cd:controlGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:phaseCurrentA ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -347,9 +347,6 @@ cd:DemandResponseProgram a owl:Class ;
     rdfs:label "Demand Response Program"@en ;
     rdfs:comment "Utility or aggregator program defining controllable services and measurement obligations."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProtocolNameCode ;
-            owl:onProperty cd:protocolName ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:programProvider ],
         [ a owl:Restriction ;
@@ -358,6 +355,9 @@ cd:DemandResponseProgram a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:programReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolNameCode ;
+            owl:onProperty cd:protocolName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -369,17 +369,17 @@ cd:EnergyForecast a owl:Class ;
             owl:allValuesFrom cd:ForecastPoint ;
             owl:onProperty cd:forecastPoint ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:forecastMethod ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:TimeWindow ;
-            owl:onProperty cd:horizon ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:issuedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:forecastTarget ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:horizon ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:forecastMethod ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -388,35 +388,35 @@ cd:ExportAgreement a owl:Class ;
     rdfs:label "Export Agreement"@en ;
     rdfs:comment "Explicit permission, metering and settlement responsibility for bidirectional export rather than assuming import authorization permits export."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ServiceAgreement ;
-            owl:onProperty cd:serviceAgreement ],
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ElectricityMeter ;
             owl:onProperty cd:exportMeter ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:exportBeneficiary ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:energySupplier ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:gridOperator ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Vehicle ;
-            owl:onProperty cd:vehicle ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:ServiceAgreement ;
+            owl:onProperty cd:serviceAgreement ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Vehicle ;
+            owl:onProperty cd:vehicle ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:gridOperator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:energySupplier ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:exportPermitted ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSite ;
-            owl:onProperty cd:site ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:exportBeneficiary ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -425,11 +425,11 @@ cd:FlexibilityActivation a owl:Class ;
     rdfs:label "Flexibility Activation"@en ;
     rdfs:comment "Requested power adjustment over a defined interval with acceptance and delivery tracking."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:interval ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:requestedPowerKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:FlexibilityAsset ;
-            owl:onProperty cd:flexibilityAsset ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
@@ -437,8 +437,8 @@ cd:FlexibilityActivation a owl:Class ;
             owl:allValuesFrom cd:EnergyForecast ;
             owl:onProperty cd:baseline ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:TimeWindow ;
-            owl:onProperty cd:interval ],
+            owl:allValuesFrom cd:FlexibilityAsset ;
+            owl:onProperty cd:flexibilityAsset ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ActivationStateCode ;
             owl:onProperty cd:activationState ],
@@ -450,20 +450,20 @@ cd:FlexibilityAsset a owl:Class ;
     rdfs:label "Flexibility Asset"@en ;
     rdfs:comment "Registered control group participating in a flexibility program."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:AssetStateCode ;
-            owl:onProperty cd:assetState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:DemandResponseProgram ;
             owl:onProperty cd:demandResponseProgram ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:integration ],
+            owl:allValuesFrom cd:AssetStateCode ;
+            owl:onProperty cd:assetState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LoadControlGroup ;
             owl:onProperty cd:controlGroup ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integration ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -476,13 +476,13 @@ cd:ForecastPoint a owl:Class ;
             owl:onProperty cd:lowerBound ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:predictedValue ],
+            owl:onProperty cd:upperBound ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:upperBound ],
+            owl:onProperty cd:predictedValue ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -491,23 +491,23 @@ cd:OverrideAuthorization a owl:Class ;
     rdfs:label "Override Authorization"@en ;
     rdfs:comment "Time-limited permission to override an optimization preference; it never grants permission to exceed physical safety limits."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:authorizedBy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:overrideReason ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:overrideEvidence ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:authorizedScope ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:authorizedBy ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:overrideEvidence ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -516,20 +516,20 @@ cd:PowerCabinet a owl:Class ;
     rdfs:label "Power Cabinet"@en ;
     rdfs:comment "Shared DC conversion capacity serving multiple charging units, separate from a station identity."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:SharingModeCode ;
-            owl:onProperty cd:sharingMode ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:moduleSizeKW ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:totalCabinetPowerKW ],
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:servedUnit ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSite ;
             owl:onProperty cd:site ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingUnit ;
-            owl:onProperty cd:servedUnit ],
+            owl:allValuesFrom cd:SharingModeCode ;
+            owl:onProperty cd:sharingMode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:totalCabinetPowerKW ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:moduleSizeKW ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -538,8 +538,11 @@ cd:SchedulePeriod a owl:Class ;
     rdfs:label "Schedule Period"@en ;
     rdfs:comment "Non-overlapping interval within a charging schedule with a signed directional setpoint."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EnergyDirectionCode ;
-            owl:onProperty cd:energyDirection ],
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:numberOfPhases ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:limitValue ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:periodStart ],
@@ -547,11 +550,8 @@ cd:SchedulePeriod a owl:Class ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:periodEnd ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:numberOfPhases ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:limitValue ],
+            owl:allValuesFrom cd:EnergyDirectionCode ;
+            owl:onProperty cd:energyDirection ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -560,17 +560,14 @@ cd:ChargingSchedule a owl:Class ;
     rdfs:label "Charging Schedule"@en ;
     rdfs:comment "Time-based power/current proposal with explicit version, purpose and validity."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
+            owl:allValuesFrom cd:ScheduleUnitCode ;
+            owl:onProperty cd:scheduleUnit ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSession ;
-            owl:onProperty cd:session ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:controlledAsset ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ScheduleKindCode ;
-            owl:onProperty cd:scheduleKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
             owl:onProperty cd:stackLevel ],
@@ -578,14 +575,17 @@ cd:ChargingSchedule a owl:Class ;
             owl:allValuesFrom cd:SchedulePurposeCode ;
             owl:onProperty cd:schedulePurpose ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ScheduleUnitCode ;
-            owl:onProperty cd:scheduleUnit ],
+            owl:allValuesFrom cd:ScheduleKindCode ;
+            owl:onProperty cd:scheduleKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SchedulePeriod ;
             owl:onProperty cd:schedulePeriod ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .
@@ -597,26 +597,26 @@ cd:LoadControlGroup a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:phaseRotation ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:externalControlIntegration ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:groupName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSite ;
-            owl:onProperty cd:site ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PhaseSystemCode ;
-            owl:onProperty cd:phaseSystem ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ControlStrategyCode ;
-            owl:onProperty cd:controlStrategy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LoadControlGroup ;
             owl:onProperty cd:parentControlGroup ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:PhaseSystemCode ;
+            owl:onProperty cd:phaseSystem ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:offlineReserveCurrentA ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ControlStrategyCode ;
+            owl:onProperty cd:controlStrategy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:externalControlIntegration ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "energy" .

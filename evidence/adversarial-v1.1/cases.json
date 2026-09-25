@@ -1,0 +1,392 @@
+[
+  {
+    "id": "ADV-ACCESS-ALLOW",
+    "family": "access",
+    "base": "examples/journeys/access-pass.ttl",
+    "businessQuestion": "Can a disabled identity continue using an unexpired, unrevoked grant?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-157",
+    "mutations": [
+      {
+        "op": "set",
+        "subject": "Principal",
+        "predicate": "principalState",
+        "object": "cd:principalState_Enabled"
+      }
+    ],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-ACCESS-REJECT",
+    "family": "access",
+    "base": "examples/journeys/access-pass.ttl",
+    "businessQuestion": "Can a disabled identity continue using an unexpired, unrevoked grant?",
+    "expectedConformance": false,
+    "expectedRule": "B157",
+    "requirement": "BR-157",
+    "mutations": [
+      {
+        "op": "set",
+        "subject": "Principal",
+        "predicate": "principalState",
+        "object": "cd:principalState_Disabled"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  },
+  {
+    "id": "ADV-CREDIT-ALLOW",
+    "family": "credit",
+    "base": "examples/journeys/credit-pass.ttl",
+    "businessQuestion": "Can two individually valid full credit CDRs reverse the same original charge twice?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-133",
+    "mutations": [],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-CREDIT-REJECT",
+    "family": "credit",
+    "base": "examples/journeys/credit-pass.ttl",
+    "businessQuestion": "Can two individually valid full credit CDRs reverse the same original charge twice?",
+    "expectedConformance": false,
+    "expectedRule": "B133",
+    "requirement": "BR-133",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "CreditCDR",
+        "target": "SecondCreditCDR"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  },
+  {
+    "id": "ADV-ALLOWANCE-ALLOW",
+    "family": "allowance",
+    "base": "examples/journeys/allowance-pass.ttl",
+    "businessQuestion": "Can usage by customer A consume a perfectly balanced allowance belonging to customer B?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-171",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "CustomerAccount",
+        "target": "OtherCustomer"
+      }
+    ],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-ALLOWANCE-REJECT",
+    "family": "allowance",
+    "base": "examples/journeys/allowance-pass.ttl",
+    "businessQuestion": "Can usage by customer A consume a perfectly balanced allowance belonging to customer B?",
+    "expectedConformance": false,
+    "expectedRule": "B171",
+    "requirement": "BR-171",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "CustomerAccount",
+        "target": "OtherCustomer"
+      },
+      {
+        "op": "set",
+        "subject": "AllowanceBalance",
+        "predicate": "customer",
+        "object": "ex:OtherCustomer"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  },
+  {
+    "id": "ADV-DUNNING-ALLOW",
+    "family": "dunning",
+    "base": "examples/reference.ttl",
+    "businessQuestion": "Can collection escalation bypass a known open dispute merely by omitting its optional link?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-143",
+    "mutations": [
+      {
+        "op": "set",
+        "subject": "DunningAction",
+        "predicate": "actionKind",
+        "object": "cd:actionKind_Escalate"
+      },
+      {
+        "op": "set",
+        "subject": "FinancialPosition",
+        "predicate": "sourceRecord",
+        "object": "ex:Invoice"
+      },
+      {
+        "op": "set",
+        "subject": "ServiceDispute",
+        "predicate": "disputedRecord",
+        "object": "ex:ChargingSession"
+      }
+    ],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-DUNNING-REJECT",
+    "family": "dunning",
+    "base": "examples/reference.ttl",
+    "businessQuestion": "Can collection escalation bypass a known open dispute merely by omitting its optional link?",
+    "expectedConformance": false,
+    "expectedRule": "B143",
+    "requirement": "BR-143",
+    "mutations": [
+      {
+        "op": "set",
+        "subject": "DunningAction",
+        "predicate": "actionKind",
+        "object": "cd:actionKind_Escalate"
+      },
+      {
+        "op": "set",
+        "subject": "FinancialPosition",
+        "predicate": "sourceRecord",
+        "object": "ex:Invoice"
+      },
+      {
+        "op": "set",
+        "subject": "ServiceDispute",
+        "predicate": "disputedRecord",
+        "object": "ex:Invoice"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  },
+  {
+    "id": "ADV-HISTORY-ALLOW",
+    "family": "history",
+    "base": "examples/reference.ttl",
+    "businessQuestion": "Can valid suspend/resume events at the same timestamp form a circular history?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-164",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "StateTransition",
+        "target": "SecondTransition"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "targetRecord",
+        "object": "ex:CustomerAccount"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "targetRecord",
+        "object": "ex:CustomerAccount"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "stateProperty",
+        "object": "cd:accountState"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "previousState",
+        "object": "cd:accountState_Active"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "nextState",
+        "object": "cd:accountState_Suspended"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "stateProperty",
+        "object": "cd:accountState"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "previousState",
+        "object": "cd:accountState_Suspended"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "nextState",
+        "object": "cd:accountState_Active"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "previousTransition",
+        "object": "ex:StateTransition"
+      }
+    ],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-HISTORY-REJECT",
+    "family": "history",
+    "base": "examples/reference.ttl",
+    "businessQuestion": "Can valid suspend/resume events at the same timestamp form a circular history?",
+    "expectedConformance": false,
+    "expectedRule": "B164",
+    "requirement": "BR-164",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "StateTransition",
+        "target": "SecondTransition"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "targetRecord",
+        "object": "ex:CustomerAccount"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "targetRecord",
+        "object": "ex:CustomerAccount"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "stateProperty",
+        "object": "cd:accountState"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "previousState",
+        "object": "cd:accountState_Active"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "nextState",
+        "object": "cd:accountState_Suspended"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "stateProperty",
+        "object": "cd:accountState"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "previousState",
+        "object": "cd:accountState_Suspended"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "nextState",
+        "object": "cd:accountState_Active"
+      },
+      {
+        "op": "set",
+        "subject": "SecondTransition",
+        "predicate": "previousTransition",
+        "object": "ex:StateTransition"
+      },
+      {
+        "op": "set",
+        "subject": "StateTransition",
+        "predicate": "previousTransition",
+        "object": "ex:SecondTransition"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  },
+  {
+    "id": "ADV-HOLD-ALLOW",
+    "family": "hold",
+    "base": "examples/journeys/privacy-pass.ttl",
+    "businessQuestion": "Can completed account disposition omit a known active account-wide hold?",
+    "expectedConformance": true,
+    "expectedRule": null,
+    "requirement": "BR-154",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "CustomerAccount",
+        "target": "OtherCustomer"
+      },
+      {
+        "op": "set",
+        "subject": "LegalHold",
+        "predicate": "holdState",
+        "object": "cd:holdState_Active"
+      },
+      {
+        "op": "remove",
+        "subject": "LegalHold",
+        "predicate": "releasedAt"
+      },
+      {
+        "op": "remove",
+        "subject": "DataDisposition",
+        "predicate": "legalHold"
+      },
+      {
+        "op": "set",
+        "subject": "LegalHold",
+        "predicate": "heldRecord",
+        "object": "ex:OtherCustomer"
+      }
+    ],
+    "expectedOutcome": "Accept the legitimate boundary case."
+  },
+  {
+    "id": "ADV-HOLD-REJECT",
+    "family": "hold",
+    "base": "examples/journeys/privacy-pass.ttl",
+    "businessQuestion": "Can completed account disposition omit a known active account-wide hold?",
+    "expectedConformance": false,
+    "expectedRule": "B154",
+    "requirement": "BR-154",
+    "mutations": [
+      {
+        "op": "clone",
+        "source": "CustomerAccount",
+        "target": "OtherCustomer"
+      },
+      {
+        "op": "set",
+        "subject": "LegalHold",
+        "predicate": "holdState",
+        "object": "cd:holdState_Active"
+      },
+      {
+        "op": "remove",
+        "subject": "LegalHold",
+        "predicate": "releasedAt"
+      },
+      {
+        "op": "remove",
+        "subject": "DataDisposition",
+        "predicate": "legalHold"
+      },
+      {
+        "op": "set",
+        "subject": "LegalHold",
+        "predicate": "heldRecord",
+        "object": "ex:CustomerAccount"
+      }
+    ],
+    "expectedOutcome": "Reject the contradictory business snapshot, despite valid individual fields."
+  }
+]

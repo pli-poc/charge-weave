@@ -8,17 +8,17 @@ cd:ActionApproval a owl:Class ;
     rdfs:label "Action Approval"@en ;
     rdfs:comment "Human approval or rejection of an assistant-proposed operation; never implied by a suggestion."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:decidedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:approver ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:AssistantRecommendation ;
-            owl:onProperty cd:recommendation ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:approvedCommand ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:decidedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AssistantRecommendation ;
+            owl:onProperty cd:recommendation ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ApprovalDecisionCode ;
             owl:onProperty cd:approvalDecision ],
@@ -30,9 +30,6 @@ cd:ApplicationInstallation a owl:Class ;
     rdfs:label "Application Installation"@en ;
     rdfs:comment "Marketplace or custom extension installed with declared permissions and version."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:InstallationStateCode ;
-            owl:onProperty cd:installationState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:IntegrationConnection ;
             owl:onProperty cd:integration ],
         [ a owl:Restriction ;
@@ -40,13 +37,16 @@ cd:ApplicationInstallation a owl:Class ;
             owl:onProperty cd:accessGrant ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:applicationVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:InstallationStateCode ;
+            owl:onProperty cd:installationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:applicationName ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:provider ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:applicationVersion ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -56,10 +56,7 @@ cd:CommunicationLog a owl:Class ;
     rdfs:comment "Bounded request/response metadata and evidence for external communication."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:messageType ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:protocolResponseCode ],
+            owl:onProperty cd:correlationId ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:IntegrationConnection ;
             owl:onProperty cd:integration ],
@@ -67,17 +64,20 @@ cd:CommunicationLog a owl:Class ;
             owl:allValuesFrom cd:ProtocolEndpoint ;
             owl:onProperty cd:endpoint ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:DirectionCode ;
-            owl:onProperty cd:direction ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:wireProtocol ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:SourceEvent ;
             owl:onProperty cd:sourceEvent ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:correlationId ],
+            owl:onProperty cd:protocolResponseCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DirectionCode ;
+            owl:onProperty cd:direction ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:wireProtocol ],
+            owl:onProperty cd:messageType ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -92,14 +92,14 @@ cd:CustomerNotification a owl:Class ;
             owl:allValuesFrom cd:NotificationStateCode ;
             owl:onProperty cd:notificationState ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:NotificationChannelCode ;
             owl:onProperty cd:notificationChannel ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ContentTemplate ;
             owl:onProperty cd:contentTemplate ],
@@ -111,29 +111,29 @@ cd:EventDelivery a owl:Class ;
     rdfs:label "Event Delivery"@en ;
     rdfs:comment "Idempotent delivery attempt of one source event to one subscription."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:attemptedAt ],
+            owl:allValuesFrom cd:SourceEvent ;
+            owl:onProperty cd:sourceEvent ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
             owl:onProperty cd:attemptNumber ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:DeliveryStateCode ;
-            owl:onProperty cd:deliveryState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EventSubscription ;
-            owl:onProperty cd:eventSubscription ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SourceEvent ;
-            owl:onProperty cd:sourceEvent ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty cd:responseCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:idempotencyKey ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:nextRetryAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:idempotencyKey ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:attemptedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EventSubscription ;
+            owl:onProperty cd:eventSubscription ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DeliveryStateCode ;
+            owl:onProperty cd:deliveryState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -142,20 +142,20 @@ cd:ExperienceChannel a owl:Class ;
     rdfs:label "Experience Channel"@en ;
     rdfs:comment "Branded driver or partner interface and its audience/capability configuration."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:channelUrl ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PolicyDocument ;
+            owl:onProperty cd:policyDocument ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:OperatorService ;
+            owl:onProperty cd:operatorService ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:BrandProfile ;
             owl:onProperty cd:brand ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChannelKindCode ;
             owl:onProperty cd:channelKind ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PolicyDocument ;
-            owl:onProperty cd:policyDocument ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:channelUrl ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:OperatorService ;
-            owl:onProperty cd:operatorService ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -164,17 +164,17 @@ cd:HelpArticle a owl:Class ;
     rdfs:label "Help Article"@en ;
     rdfs:comment "Localized customer-help content with ordering and publication lifecycle."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:displayOrder ],
+        [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:question ],
+            owl:onProperty cd:answer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ContentStateCode ;
             owl:onProperty cd:contentState ],
         [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
-            owl:onProperty cd:answer ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:displayOrder ],
+            owl:onProperty cd:question ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -183,17 +183,17 @@ cd:LifecycleSnapshot a owl:Class ;
     rdfs:label "Lifecycle Snapshot"@en ;
     rdfs:comment "Current or historical state assertion with effective time and the specific transition evidence supporting it."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:SnapshotKindCode ;
-            owl:onProperty cd:snapshotKind ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:StateTransition ;
-            owl:onProperty cd:basisTransition ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:targetRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:effectiveAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:StateTransition ;
+            owl:onProperty cd:basisTransition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SnapshotKindCode ;
+            owl:onProperty cd:snapshotKind ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -202,6 +202,12 @@ cd:MetricObservation a owl:Class ;
     rdfs:label "Metric Observation"@en ;
     rdfs:comment "Calculated metric value tied to a scope, time interval and definition version."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MetricDefinition ;
+            owl:onProperty cd:metricDefinition ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:interval ],
         [ a owl:Restriction ;
@@ -210,12 +216,6 @@ cd:MetricObservation a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:scopeRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:MetricDefinition ;
-            owl:onProperty cd:metricDefinition ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:numericValue ],
@@ -227,32 +227,32 @@ cd:MigrationBatch a owl:Class ;
     rdfs:label "Migration Batch"@en ;
     rdfs:comment "Provider migration or tenant exit with source/target identities, counts, reconciliation and credential revocation evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:sourceSystem ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:reconciliationEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:sourceCredentialsRevoked ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:migratedRecordCount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:expectedRecordCount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:MigrationStateCode ;
-            owl:onProperty cd:migrationState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:responsibleParty ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:nonNegativeInteger ;
-            owl:onProperty cd:rejectedRecordCount ],
+            owl:onProperty cd:migratedRecordCount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:targetSystem ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MigrationStateCode ;
+            owl:onProperty cd:migrationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:sourceSystem ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:expectedRecordCount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:sourceCredentialsRevoked ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:reconciliationEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:rejectedRecordCount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -264,14 +264,14 @@ cd:PlatformSetting a owl:Class ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:effectiveAt ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:settingValue ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:scopeRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:settingKey ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:settingValue ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -280,29 +280,29 @@ cd:ProcessExecution a owl:Class ;
     rdfs:label "Process Execution"@en ;
     rdfs:comment "End-to-end business journey instance tying domain records, step responsibilities, contractual obligations and financial ownership together."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:accountableParty ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ProcessStep ;
             owl:onProperty cd:processStep ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:financialOwner ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProcessKindCode ;
-            owl:onProperty cd:processKind ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:subjectRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProcessStateCode ;
-            owl:onProperty cd:processState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:accountableParty ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ServiceAgreement ;
             owl:onProperty cd:serviceAgreement ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:processEvidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:financialOwner ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProcessStateCode ;
+            owl:onProperty cd:processState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProcessKindCode ;
+            owl:onProperty cd:processKind ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -311,29 +311,29 @@ cd:ProtocolProfile a owl:Class ;
     rdfs:label "Protocol Profile"@en ;
     rdfs:comment "Versioned adapter capability contract with negotiated feature blocks, roles, certification evidence and declared loss/error behavior."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ProtocolNameCode ;
-            owl:onProperty cd:protocolName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:unsupportedFeature ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:supportedFeature ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:protocolRole ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProtocolNameCode ;
+            owl:onProperty cd:protocolName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:adapterVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:protocolVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:unsupportedFeature ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:UnknownFieldPolicyCode ;
             owl:onProperty cd:unknownFieldPolicy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:mappingEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:protocolRole ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:adapterVersion ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -343,7 +343,7 @@ cd:ApiClient a owl:Class ;
     rdfs:comment "Machine API identity with bounded permissions and rate-limit policy."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:requestsPerMinute ],
+            owl:onProperty cd:requestsPerDay ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:credentialReference ],
@@ -351,11 +351,11 @@ cd:ApiClient a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:allowedNetwork ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:requestsPerDay ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:principal ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:requestsPerMinute ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AccessGrant ;
             owl:onProperty cd:accessGrant ],
@@ -370,23 +370,23 @@ cd:AssistantRecommendation a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:recommendationText ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:RemoteCommand ;
-            owl:onProperty cd:proposedCommand ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:affectedRecord ],
+            owl:allValuesFrom cd:Principal ;
+            owl:onProperty cd:requestedBy ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:generatedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:modelReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Principal ;
-            owl:onProperty cd:requestedBy ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:affectedRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:generatedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RemoteCommand ;
+            owl:onProperty cd:proposedCommand ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -399,10 +399,10 @@ cd:BrandProfile a owl:Class ;
             owl:onProperty cd:primaryColour ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:supportedLanguage ],
+            owl:onProperty cd:defaultLanguage ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:MediaAsset ;
-            owl:onProperty cd:logo ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:supportedLanguage ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ContactProfile ;
             owl:onProperty cd:supportContact ],
@@ -410,8 +410,8 @@ cd:BrandProfile a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:brandName ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:defaultLanguage ],
+            owl:allValuesFrom cd:MediaAsset ;
+            owl:onProperty cd:logo ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -424,16 +424,16 @@ cd:ContentTemplate a owl:Class ;
             owl:onProperty cd:templateBody ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:placeholderName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:templateKey ],
+            owl:onProperty cd:templateVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChannelKindCode ;
             owl:onProperty cd:channelKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:templateVersion ],
+            owl:onProperty cd:templateKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:placeholderName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .
@@ -442,26 +442,26 @@ cd:EventSubscription a owl:Class ;
     rdfs:label "Event Subscription"@en ;
     rdfs:comment "Subscription to domain event types over a declared transport and filtering scope."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:suppressOwnEvents ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:signingKeyReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:destinationReference ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:maximumAttempts ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:includeRoamingAssets ],
+            owl:onProperty cd:suppressOwnEvents ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:boolean ;
             owl:onProperty cd:includeTimestampInSignature ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:includeRoamingAssets ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:destinationReference ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ApiClient ;
             owl:onProperty cd:subscriber ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:maximumAttempts ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:DeliveryTransportCode ;
             owl:onProperty cd:deliveryTransport ],
@@ -493,22 +493,22 @@ cd:IntegrationConnection a owl:Class ;
     rdfs:comment "Configured external-service integration with a versioned contract and secret reference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:integrationName ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationStateCode ;
-            owl:onProperty cd:integrationState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationKindCode ;
-            owl:onProperty cd:integrationKind ],
+            owl:onProperty cd:contractVersion ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:credentialReference ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:integrationName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationKindCode ;
+            owl:onProperty cd:integrationKind ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:provider ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:contractVersion ],
+            owl:allValuesFrom cd:IntegrationStateCode ;
+            owl:onProperty cd:integrationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty cd:endpointUrl ],
@@ -520,35 +520,35 @@ cd:ProcessStep a owl:Class ;
     rdfs:label "Process Step"@en ;
     rdfs:comment "Ordered business step retaining responsible actor, concrete input/output records, obligation, failures and compensation evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:StepStateCode ;
-            owl:onProperty cd:stepState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:inputRecord ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:stepKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:outputRecord ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
             owl:onProperty cd:compensationRecord ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:positiveInteger ;
-            owl:onProperty cd:stepSequence ],
+            owl:allValuesFrom cd:ContractObligation ;
+            owl:onProperty cd:contractObligation ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:inputRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ProcessStep ;
             owl:onProperty cd:previousStep ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ContractObligation ;
-            owl:onProperty cd:contractObligation ],
+            owl:allValuesFrom xsd:positiveInteger ;
+            owl:onProperty cd:stepSequence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:outputRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:stepEvidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:responsibleParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:StepStateCode ;
+            owl:onProperty cd:stepState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "integration-experience" .

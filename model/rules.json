@@ -794,8 +794,8 @@
   {
     "id": "B133",
     "target": "ChargeDetailRecord",
-    "message": "Credit CDRs identify the original, preserve parties and currency, and exactly reverse its monetary totals.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)} }"
+    "message": "Credit CDRs preserve parties and currency, reverse the original totals and cannot credit the same debit more than once.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:recordKind cd:recordKind_Credit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?n; cd:taxAmount ?t; cd:grossAmount ?g. FILTER NOT EXISTS {$this cd:originalChargeRecord ?old. ?old cd:recordKind cd:recordKind_Debit; cd:currency ?cur; cd:issuer ?issuer; cd:recipient ?recipient; cd:netAmount ?on; cd:taxAmount ?ot; cd:grossAmount ?og. FILTER(?old!=$this && ?n=-?on && ?t=-?ot && ?g=-?og)} } UNION { $this cd:recordKind cd:recordKind_Credit; cd:originalChargeRecord ?original. ?other a cd:ChargeDetailRecord; cd:recordKind cd:recordKind_Credit; cd:originalChargeRecord ?original. FILTER(?other!=$this) } }"
   },
   {
     "id": "B134",
@@ -854,8 +854,8 @@
   {
     "id": "B143",
     "target": "DunningAction",
-    "message": "Collection escalation pauses while the position or linked service dispute is unresolved.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} }"
+    "message": "Collection escalation pauses for unresolved disputes against the position or its source record even without an explicit dispute link.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:actionKind cd:actionKind_Escalate. { $this cd:financialPosition/cd:positionState cd:positionState_Disputed } UNION {$this cd:serviceDispute/cd:disputeCaseState ?s. FILTER(?s IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted))} } UNION { $this cd:actionKind cd:actionKind_Escalate; cd:financialPosition ?position. ?dispute a cd:ServiceDispute; cd:disputedRecord ?record; cd:disputeCaseState ?state. FILTER(?state IN (cd:disputeCaseState_Opened,cd:disputeCaseState_Investigating,cd:disputeCaseState_Accepted)) FILTER(?record=?position || EXISTS {?position cd:sourceRecord ?record}) } }"
   },
   {
     "id": "B144",
@@ -920,8 +920,8 @@
   {
     "id": "B154",
     "target": "DataDisposition",
-    "message": "Completed disposition records evidence and cannot claim erasure over a still-active scoped hold.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active}) }"
+    "message": "Completed disposition retains evidence and respects explicit holds and independently recorded active account-wide holds.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:dispositionState cd:dispositionState_Completed. FILTER(!EXISTS {$this cd:completedAt ?t} || !EXISTS {$this cd:dispositionEvidence ?e} || EXISTS {$this cd:legalHold/cd:holdState cd:holdState_Active}) } UNION { $this cd:dispositionState cd:dispositionState_Completed; cd:subjectAccount ?account. ?hold a cd:LegalHold; cd:heldRecord ?account; cd:holdState cd:holdState_Active. } }"
   },
   {
     "id": "B155",
@@ -938,8 +938,8 @@
   {
     "id": "B157",
     "target": "AccessDecision",
-    "message": "Permission decisions require an active time-valid grant to the same principal and explicit record scope.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} }"
+    "message": "Permission decisions require an active time-valid scoped grant and cannot authorize a currently disabled principal.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee ?p; cd:scopeRecord ?r; cd:permission ?perm; cd:decidedAt ?t. FILTER NOT EXISTS {$this cd:accessGrant ?g. ?g cd:grantState cd:grantState_Active; cd:grantee ?p; cd:scopeRecord ?r; cd:securityRole/cd:permission ?perm; cd:validFrom ?s. OPTIONAL {?g cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e)||?t<?e))} } UNION { $this cd:accessDecision cd:accessDecision_Permit; cd:grantee/cd:principalState cd:principalState_Disabled. } }"
   },
   {
     "id": "B158",
@@ -980,8 +980,8 @@
   {
     "id": "B164",
     "target": "StateTransition",
-    "message": "Chained transitions preserve record, property, state continuity and nondecreasing event time.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)} }"
+    "message": "Chained transitions preserve record, property, state continuity and nondecreasing time without circular history.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:previousTransition ?prev; cd:targetRecord ?r; cd:stateProperty ?p; cd:previousState ?s; cd:transitionedAt ?now. FILTER NOT EXISTS {?prev cd:targetRecord ?r; cd:stateProperty ?p; cd:nextState ?s; cd:transitionedAt ?before. FILTER(?now>=?before)} } UNION { $this cd:previousTransition+ $this. } }"
   },
   {
     "id": "B165",
@@ -1022,8 +1022,8 @@
   {
     "id": "B171",
     "target": "AllowanceBalance",
-    "message": "Stored usage and reservations reconcile actual consumptions and active reservations for the same allowance and billing period.",
-    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) }"
+    "message": "Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer.",
+    "query": "PREFIX cd: <https://example.org/charge-domain#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX owl: <http://www.w3.org/2002/07/owl#>\nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\nSELECT $this WHERE { { $this cd:allowance ?allowance; cd:billingPeriod ?period; cd:consumedValue ?c; cd:reservedValue ?r. {SELECT $this (SUM(?used) AS ?totalUsed) WHERE {OPTIONAL {?x a cd:AllowanceConsumption; cd:allowanceBalance $this; cd:consumedValue ?used}} GROUP BY $this} {SELECT $this (SUM(?held) AS ?totalHeld) WHERE {OPTIONAL {?x a cd:BenefitReservation; cd:allowanceBalance $this; cd:reservationState cd:reservationState_Active; cd:reservedValue ?held}} GROUP BY $this} FILTER(?c!=COALESCE(?totalUsed,0) || ?r!=COALESCE(?totalHeld,0) || EXISTS {?item cd:allowanceBalance $this; cd:allowance ?other. FILTER(?other!=?allowance)} || EXISTS {?item cd:allowanceBalance $this; cd:billingPeriod ?other. FILTER(?other!=?period)}) } UNION { $this cd:customer ?owner. ?item cd:allowanceBalance $this; cd:session ?session. FILTER NOT EXISTS {?session cd:customer ?owner} } }"
   },
   {
     "id": "B172",

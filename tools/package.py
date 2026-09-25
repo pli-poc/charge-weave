@@ -21,6 +21,8 @@ COUNTED_REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tes
     'journey-' + family + '.json' for family in
     ('closure', 'charge', 'credit', 'offline', 'reimbursement', 'privacy', 'energy',
      'migration', 'asset', 'allowance', 'access', 'settlement', 'process'))
+COUNTED_REPORTS += tuple('adversarial-' + family + '.json' for family in
+                         ('access','credit','allowance','dunning','history','hold'))
 REPORTS = COUNTED_REPORTS + ('owl-consistency.json', 'validation.ttl', 'validation.txt')
 
 
@@ -56,7 +58,7 @@ def main():
         raise ValueError('Checkout does not match the GitHub Actions commit')
     files = project_files(ROOT) + [ROOT / 'reports' / name for name in REPORTS]
     manifest = {
-        'product': 'ChargeWeave', 'ontologyVersion': '1.1.0', 'commit': commit,
+        'product': 'ChargeWeave', 'ontologyVersion': '1.1.1', 'commit': commit,
         'createdAt': datetime.now(timezone.utc).isoformat(),
         'workflowRun': os.environ.get('GITHUB_RUN_ID'),
         'workflowAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'),

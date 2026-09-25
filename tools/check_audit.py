@@ -1,6 +1,7 @@
 """Fail on broken requirement/source/actor/term/rule/scenario traceability."""
 from runtime import *
 import json
+import hashlib
 import sys
 
 def read(path):
@@ -12,9 +13,10 @@ sources = {s['id']:s for s in read('requirements/sources.json')}
 catalog = read('model/catalog.json')
 rules = {r['id']:r for r in read('model/rules.json')}
 cases = read('tests/business-acceptance.json')
+adversarial_cases = read('tests/adversarial-cases.json')
 journey_cases = read('tests/journey-snapshots.json')
 journey_ids = {c['id'] for c in journey_cases}
-scenario_ids = {c['id'] for c in cases} | {'UNIT-'+k+'-REJECT' for k in read('tests/negative-cases.json')} | {'REF-PASS'}
+scenario_ids = {c['id'] for c in cases + adversarial_cases} | {'UNIT-'+k+'-REJECT' for k in read('tests/negative-cases.json')} | {'REF-PASS'}
 rows = []
 def result(name, passed, detail=None):
     rows.append({'check':name,'passed':bool(passed),'detail':detail})
@@ -37,6 +39,13 @@ for r in requirements:
         selected = [c for c in cases if c['requirement'] == r['id']]
         result(r['id']+':positive-and-negative', {c['expectedConformance'] for c in selected} == {True,False})
         result(r['id']+':scenario-rules', all(c['rule'] in r['rules'] for c in selected))
+for case in adversarial_cases:
+    requirement = next((r for r in requirements if r['id']==case['requirement']),None)
+    result(case['id']+':requirement-traceability', requirement is not None and case['id'] in requirement['scenarios'])
+    result(case['id']+':base-snapshot', (P/case['base']).is_file())
+    result(case['id']+':rejection-rule', case['expectedConformance'] or case['expectedRule'] in rules)
+for family in {c['family'] for c in adversarial_cases}:
+    result(family+':adversarial-boundaries', {c['expectedConformance'] for c in adversarial_cases if c['family']==family}=={True,False})
 used_rules = {rule for r in requirements for rule in r['rules']}
 result('all-business-rules-accounted-for', set(rules) == used_rules, sorted(set(rules)-used_rules))
 phases = set(read('requirements/scope.json')['lifecyclePhases'])
@@ -56,6 +65,13 @@ for transition in o.subjects(RDF.type, C.TransitionRule):
         value = o.value(transition,predicate)
         expected_class = C[str(prop).split('#')[-1][0].upper()+str(prop).split('#')[-1][1:]+'Code']
         result('lifecycle-code:'+str(transition).split('#')[-1]+':'+str(predicate).split('#')[-1], (value,RDF.type,expected_class) in o)
+for entry in read('evidence/adversarial-v1.1/index.json'):
+    directory = P/'evidence/adversarial-v1.1'
+    baseline = json.loads((directory/entry['report']).read_text())
+    digest = hashlib.sha256((directory/entry['cases']).read_bytes()).hexdigest()
+    result('baseline-provenance:'+entry['report'], baseline['caseDigest']==digest
+           and baseline['commit']=='d4348146fec3bc054a8a869c731f9d1c130d6a27'
+           and baseline['baselineObservation'] is True and baseline['passed']==1 and baseline['total']==2)
 report = {'requirements':len(requirements),'actors':len(actors),'journeys':len(journeys),
           'passed':sum(r['passed'] for r in rows),'total':len(rows),'checks':rows}
 (P / 'reports/business-traceability.json').write_text(json.dumps(report,indent=2))

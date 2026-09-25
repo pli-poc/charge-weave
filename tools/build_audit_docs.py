@@ -29,6 +29,7 @@ for r in requirements:
              '- Exception outcome: ' + r['exceptionOutcome'],
              '- Review finding: ' + r['finding'],
              '- Disposition: ' + r['disposition'] + '.',
+             '- Adversarial review: ' + r.get('adversarialFinding','Not challenged by this six-family review.') ,
              '- Sources: ' + ', '.join(r['sources']) + '.',
              '- Associated full-graph journey snapshots: ' + ', '.join(r['journeyScenarios']) + '. These exercise the journey; focused scenarios above isolate this requirement.',
              '- Structural contracts: ' + ', '.join(r['structuralShapes']) + '.',

@@ -97,6 +97,24 @@ jobs:
           - gate: Journey process
             id: journey-process
             command: python tools/test_journey_snapshots.py --family process
+          - gate: Adversarial access
+            id: adversarial-access
+            command: python tools/test_adversarial.py --family access
+          - gate: Adversarial credit
+            id: adversarial-credit
+            command: python tools/test_adversarial.py --family credit
+          - gate: Adversarial allowance
+            id: adversarial-allowance
+            command: python tools/test_adversarial.py --family allowance
+          - gate: Adversarial dunning
+            id: adversarial-dunning
+            command: python tools/test_adversarial.py --family dunning
+          - gate: Adversarial history
+            id: adversarial-history
+            command: python tools/test_adversarial.py --family history
+          - gate: Adversarial hold
+            id: adversarial-hold
+            command: python tools/test_adversarial.py --family hold
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
