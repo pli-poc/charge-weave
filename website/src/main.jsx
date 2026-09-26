@@ -7,6 +7,7 @@ import "./pages.css";
 const Home = lazy(() => import("./Home.jsx"));
 const ProductPages = lazy(() => import("./ProductPages.jsx"));
 const Ontology = lazy(() => import("./Ontology.jsx"));
+const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
 export const base = import.meta.env.BASE_URL;
 export const repository = "https://github.com/pli-poc/charge-weave";
 export function Mark() {
@@ -39,6 +40,7 @@ function App() {
     ["ontology", "Ontology explorer"],
     ["architecture", "Architecture"],
     ["roadmap", "Roadmap"],
+    ["developer", "Developer guide"],
   ];
   return (
     <>
@@ -69,7 +71,15 @@ function App() {
               <a
                 key={path}
                 href={base + (path ? path + "/" : "")}
-                aria-current={route === path ? "page" : undefined}
+                aria-current={
+                  path === "developer"
+                    ? route === "developer" || route.startsWith("developer/")
+                      ? "page"
+                      : undefined
+                    : route === path
+                      ? "page"
+                      : undefined
+                }
                 onClick={() => setMenuOpen(false)}
               >
                 {label}
@@ -95,6 +105,8 @@ function App() {
       >
         {route === "ontology" ? (
           <Ontology />
+        ) : route === "developer" || route.startsWith("developer/") ? (
+          <DeveloperPages route={route} />
         ) : route ? (
           <ProductPages route={route} />
         ) : (
