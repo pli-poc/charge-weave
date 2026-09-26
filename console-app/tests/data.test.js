@@ -32,11 +32,14 @@ test("Chargecard roaming shows European partner sessions separately from owned s
   assert.ok(liveSessions.every((session) => findSite(session.siteId)));
 });
 
-test("map fixtures have city-level coordinates and offline European boundaries", () => {
+test("map fixtures have sourced public venue references and offline European boundaries", () => {
   const records = [...ownSites, ...roamingSessions];
   assert.equal(ownSites.filter((site) => site.coordinates).length, 8);
   assert.equal(roamingSessions.filter((session) => session.coordinates).length, 6);
   for (const record of records) {
+    assert.ok(record.address.trim().length > 0);
+    const source = new URL(record.coordinateRef);
+    assert.equal(source.hostname, "www.openstreetmap.org");
     assert.ok(Number.isFinite(record.coordinates.lat));
     assert.ok(Number.isFinite(record.coordinates.lon));
     assert.ok(record.coordinates.lat >= 48 && record.coordinates.lat <= 57);
