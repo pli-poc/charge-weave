@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -9,8 +10,10 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
+const ArchitectureScene3D = lazy(() => import("./ArchitectureScene3D.jsx"));
 import { capabilities, useCases } from "./Home";
 import summary from "./generated/summary.json";
+import "./architecture-3d.css";
 const base = import.meta.env.BASE_URL,
   repo = "https://github.com/pli-poc/charge-weave";
 const explore = (name) => `${base}ontology/?class=${name}`;
@@ -217,6 +220,85 @@ function CapabilityPage() {
     </main>
   );
 }
+function Architecture3DShowcase() {
+  const mobileLayers = [
+    ["Channels & insight", "Drivers & fleets · CPO operations · Finance & partners · Energy teams"],
+    ["Business services", "Identity & access · Sessions & metering · Pricing & billing · Roaming & settlement"],
+    ["Partners & devices", "Chargers & meters · Mobility partners · Payments · Energy & grid"],
+    ["Shared meaning", "Party · Site · Session · Tariff · Evidence · Settlement"],
+    ["Records & analytics", "Business records · Events & replay · Telemetry · Evidence"],
+  ];
+  const steps = [
+    ["01", "A charge begins", "Driver, asset and accepted offer are connected."],
+    ["02", "Evidence arrives", "Session events and meter readings retain their source."],
+    ["03", "The business check", "Usage, price, tax and responsibility are brought together."],
+    ["04", "Settle and learn", "Charge records connect to partners, finance and analysis."],
+  ];
+  return (
+    <section className="container cw3-section" aria-labelledby="cw3-heading">
+      <div className="cw3-section-heading">
+        <div>
+          <p className="eyebrow">Proposed system · business view</p>
+          <h2 id="cw3-heading">One charge journey.<br /><span>Shared business meaning.</span></h2>
+        </div>
+        <p>
+          Services keep their boundaries. ChargeWeave connects the concepts,
+          evidence and responsibilities that make their data understandable
+          across the platform.
+        </p>
+      </div>
+      <div className="cw3-frame">
+        <div className="cw3-canvas-panel">
+          <div className="cw3-frame-meta">
+            <span><i /> Isometric system map</span>
+            <span>Drag to rotate</span>
+          </div>
+          <Suspense fallback={<div className="cw3-scene-loading" aria-label="Loading 3D system map" />}>
+            <ArchitectureScene3D />
+          </Suspense>
+          <div className="cw3-flow-caption">
+            <span className="cw3-flow-dot" />
+            <strong>Charging event → validated record → business insight</strong>
+          </div>
+        </div>
+        <aside className="cw3-journey-panel" aria-label="Example business journey">
+          <p className="cw3-panel-kicker">A journey through the layers</p>
+          <h3>From charge to settlement</h3>
+          <p className="cw3-panel-intro">
+            A session links the party, site, offer and meter evidence. If a
+            reading is corrected later, the reason and financial outcome stay
+            connected through settlement.
+          </p>
+          <div className="cw3-concept-strip">
+            <span>Shared business concepts</span>
+            <p>Party · Site · Session · Tariff · Evidence · Settlement</p>
+          </div>
+          <ol>
+            {steps.map(([number, title, body]) => (
+              <li key={number}>
+                <span>{number}</span>
+                <div><strong>{title}</strong><p>{body}</p></div>
+              </li>
+            ))}
+          </ol>
+          <div className="cw3-crosscut">
+            <ShieldCheck size={18} />
+            <p><strong>Across every layer</strong><br />Identity · access · tenant boundaries · audit</p>
+          </div>
+          <p className="cw3-disclaimer">
+            The ontology and validation model exist. The runtime shown here is
+            a design direction, not a deployed service.
+          </p>
+        </aside>
+      </div>
+      <div className="cw3-mobile-layers" aria-label="System layer roles">
+        {mobileLayers.map(([title, roles]) => (
+          <div key={title}><strong>{title}</strong><span>{roles}</span></div>
+        ))}
+      </div>
+    </section>
+  );
+}
 function ArchitecturePage() {
   return (
     <main id="main">
@@ -243,6 +325,7 @@ function ArchitecturePage() {
           </a>
         </div>
       </Intro>
+      <Architecture3DShowcase />
       <section className="container architecture-detail">
         <div className="architecture-map">
           <div className="architecture-map-heading">
