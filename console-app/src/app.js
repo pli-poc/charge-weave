@@ -266,7 +266,6 @@ function initializeNetworkMap(sites, roaming) {
       element.setAttribute("aria-pressed", String(isSelected));
       element.setAttribute("tabindex", "0");
     }
-    if (isSelected) marker.openPopup();
   });
   requestAnimationFrame(() => { if (networkMap === map) map.invalidateSize({ pan: false }); });
 }
