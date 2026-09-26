@@ -8,6 +8,10 @@ Version **1.1.1** includes **277 classes in 18 modules, 1,165 properties, 206 co
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 
+## Product presentation website
+
+The React marketing mockup lives in [`website/`](website/README.md), with planned capabilities, use cases, temporal design and the proposed runtime architecture. The [website workflow](https://github.com/pli-poc/charge-weave/actions/workflows/website-pages.yml) builds and checks desktop/mobile behavior before deploying to GitHub Pages. The website describes the product direction, not a production service.
+
 ## Start here
 
 | Purpose | File |
