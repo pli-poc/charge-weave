@@ -10,7 +10,7 @@ const routeCases = [
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
   { route: "developer/switchboard/", title: "Runtime switchboard", active: "Switchboard", marker: "Observe" },
   { route: "developer/storage/", title: "Simulated storage", active: "Storage", marker: "Temporal event store" },
-  { route: "developer/replay/", title: "Deterministic replay", active: "Replay", marker: "chargeweave-rng-v1" },
+  { route: "developer/replay/", title: "Deterministic replay", active: "Replay", marker: "chargeweave-xorshift32-v1" },
 ];
 
 test("developer guide routes load directly with page-specific metadata", async () => {
