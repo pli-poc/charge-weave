@@ -1,6 +1,7 @@
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
-import { mapCountries } from "./map-data.js";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const provider = createPlatformProvider();
 const DEMO_SOURCE = provider.source;
@@ -57,6 +58,9 @@ let selectedSession = liveSessions[0]?.id;
 let mapScope = "owned";
 let selectedMapSite = ownSites[0]?.id;
 let selectedRoamingLocation = roamingSessions[0]?.id;
+let networkMap = null;
+let networkMapScope = null;
+let networkMapViewport = null;
 let selectedEntity = "Session";
 let dataTab = "Graph";
 let sidebarOpen = false;
@@ -192,52 +196,79 @@ function roamingPage() {
   const values = [["Sessions this month", "486", "roaming", "blue"], ["Countries represented", "14", "pin", "mint"], ["Settlement to partners", formatEuro(7892.4), "finance", "violet"], ["Records to review", "3", "alert", "amber"]];
   return `${heading("Chargecard roaming", "Follow cardholder sessions at partner networks across Europe, separately from your owned sites.", `<button class="secondary-button" type="button" data-action="export-roaming">${icon("download")} Export ledger</button>`)}<div class="roaming-hero"><div class="roaming-hero-copy"><span class="roaming-orbit large">${icon("roaming")}</span><div><span class="eyebrow">EUROPEAN PARTNER NETWORK</span><h2>Chargecard, wherever the journey goes.</h2><p>Roaming records carry partner, country, tariff, CDR status, and settlement responsibility through one traceable process.</p></div></div><div class="roaming-hero-meta"><span>Coverage in fixture</span><strong>14 countries</strong><small>Illustrative partner data</small></div></div><div class="kpi-grid four-cards">${values.map(([label, value, symbol, tone], index) => kpi(label, value, ["Across the partner footprint", "Partner sessions in fixture", "Pending partner settlement", '<span class="delta-warn">2 corrections</span> · 1 partner response'][index], symbol, tone)).join("")}</div><div class="list-toolbar"><div class="ledger-key"><span class="key-dot own"></span>Chargecard partner session <span class="key-dot pending"></span>Needs review</div><span class="toolbar-spacer"></span><span class="result-count">${roamingSessions.length} sample records</span></div>${table(["Partner location", "Country", "Card token", "CDR reference", "Energy", "Amount", "CDR status", "Settlement"], roamingRows(roamingSessions), "European Chargecard roaming ledger")}<div class="process-strip"><div class="process-step is-done"><span>1</span><strong>Session at partner</strong><small>Chargecard token</small></div><span class="process-connector"></span><div class="process-step is-done"><span>2</span><strong>CDR received</strong><small>Original record retained</small></div><span class="process-connector"></span><div class="process-step is-current"><span>3</span><strong>Validate & rate</strong><small>Country and agreement context</small></div><span class="process-connector"></span><div class="process-step"><span>4</span><strong>Settle partner</strong><small>Exceptions stay traceable</small></div></div><div class="workspace-footnote">Partner names and transaction records are synthetic examples. No Chargecard, OCPI, payment, or settlement service is connected.</div>`;
 }
-function mapProject([lon, lat], bounds) {
-  const [west, east, south, north] = bounds;
-  const width = 800;
-  const height = 560;
-  const inset = 30;
-  return [
-    inset + ((lon - west) / (east - west)) * (width - inset * 2),
-    height - inset - ((lat - south) / (north - south)) * (height - inset * 2),
-  ];
+const NETWORK_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const NETWORK_TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';
+function rememberNetworkMapViewport() {
+  if (!networkMap) return;
+  const center = networkMap.getCenter();
+  networkMapViewport = { scope: networkMapScope, center: [center.lat, center.lng], zoom: networkMap.getZoom() };
 }
-function mapRingPath(ring, bounds) {
-  return `${ring.map((point, index) => {
-    const [x, y] = mapProject(point, bounds);
-    return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(" ")} Z`;
+function destroyNetworkMap() {
+  if (!networkMap) return;
+  rememberNetworkMapViewport();
+  networkMap.remove();
+  networkMap = null;
+  networkMapScope = null;
 }
-function mapMarker(record, bounds, kind, selected) {
-  const [x, y] = mapProject([record.coordinates.lon, record.coordinates.lat], bounds);
-  const own = kind === "owned";
-  const id = own ? record.id : record.id;
-  const label = own ? `${record.name}, ${record.city}` : `${record.location}, ${record.country}`;
-  const sublabel = own ? record.city : record.countryCode;
-  const isSelected = selected === id;
-  const tone = own && record.online < record.chargePoints ? " is-warning" : "";
-  return `<g class="map-marker map-marker-${kind}${isSelected ? " is-selected" : ""}${tone}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(label)}" aria-pressed="${isSelected}" data-map-${own ? "site" : "roaming"}="${esc(id)}"><circle class="marker-halo" r="13"/><circle class="marker-dot" r="6"/><text class="marker-label" x="12" y="4">${esc(sublabel)}</text></g>`;
+function networkMapPopup(record, owned) {
+  const name = owned ? record.name : record.location;
+  const location = owned ? `${record.city} · ${record.country}` : `${record.city ?? record.country} · ${record.partner}`;
+  const activity = owned
+    ? `${record.online} / ${record.chargePoints} charge points online`
+    : `${formatNumber(record.energyKwh)} kWh · ${formatEuro(record.amount)}`;
+  return `<div class="network-map-popup"><strong>${esc(name)}</strong><span>${esc(record.address)}</span><small>${esc(location)} · ${esc(activity)}</small><a href="${esc(record.coordinateRef)}" target="_blank" rel="noopener noreferrer">OpenStreetMap source</a></div>`;
 }
-function mapSvg(sites, roaming) {
-  const bounds = mapScope === "owned" ? [-2.8, 11.8, 48.7, 56.2] : [-12.5, 30, 41.5, 62.5];
-  const selected = mapScope === "owned" ? selectedMapSite : selectedRoamingLocation;
-  const markers = mapScope === "owned"
-    ? sites.map((site) => mapMarker(site, bounds, "owned", selected)).join("")
-    : roaming.map((session) => mapMarker(session, bounds, "roaming", selected)).join("");
-  const countryShapes = mapCountries.flatMap((countryShape) => countryShape.rings.map((ring) => `<path class="map-country" d="${mapRingPath(ring, bounds)}"/>`)).join("");
-  const grid = [-10, -5, 0, 5, 10, 15, 20, 25].map((lon) => {
-    const start = mapProject([lon, bounds[2]], bounds);
-    const end = mapProject([lon, bounds[3]], bounds);
-    return `<path d="M${start[0].toFixed(1)} ${start[1].toFixed(1)} L${end[0].toFixed(1)} ${end[1].toFixed(1)}"/>`;
-  }).join("");
-  const labels = (mapScope === "owned"
-    ? [["BELGIUM", 3.8, 50.25], ["NETHERLANDS", 5.25, 53.2], ["GERMANY", 9.1, 52.3], ["FRANCE", 1, 50.2]]
-    : [["UNITED KINGDOM", -4.4, 55.6], ["FRANCE", 2.2, 46.3], ["NETHERLANDS", 5.6, 53], ["GERMANY", 10.1, 51.2], ["DENMARK", 9.5, 56.8], ["SWITZERLAND", 8, 47.2], ["ITALY", 12.2, 43.7], ["AUSTRIA", 14.3, 47.7], ["POLAND", 19.2, 52.2], ["UKRAINE", 24, 49.2]])
-  .filter(([, lon, lat]) => lon >= bounds[0] && lon <= bounds[1] && lat >= bounds[2] && lat <= bounds[3]).map(([name, lon, lat]) => {
-    const [x, y] = mapProject([lon, lat], bounds);
-    return `<text class="map-region-label" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${name}</text>`;
-  }).join("");
-  return `<svg class="network-map-svg" viewBox="0 0 800 560" role="group" aria-label="Offline geographic map showing ${mapScope === "owned" ? "owned charging locations in Belgium and the Netherlands" : "Chargecard partner locations across Europe"}"><g class="map-grid">${grid}</g><g class="map-countries">${countryShapes}</g><g class="map-country-labels">${labels}</g><g class="map-markers">${markers}</g></svg>`;
+function initializeNetworkMap(sites, roaming) {
+  const container = root.querySelector("#network-map");
+  if (!container) return;
+  const owned = mapScope === "owned";
+  const records = owned ? sites : roaming;
+  if (!records.length) return;
+  const selected = owned ? selectedMapSite : selectedRoamingLocation;
+  const map = L.map(container, { scrollWheelZoom: false, zoomControl: true, attributionControl: true });
+  networkMap = map;
+  networkMapScope = mapScope;
+  L.tileLayer(NETWORK_TILE_URL, { maxZoom: 19, attribution: NETWORK_TILE_ATTRIBUTION }).addTo(map);
+  if (networkMapViewport?.scope === mapScope) {
+    map.setView(networkMapViewport.center, networkMapViewport.zoom, { animate: false });
+  } else {
+    const bounds = L.latLngBounds(records.map((record) => [record.coordinates.lat, record.coordinates.lon]));
+    map.fitBounds(bounds.pad(0.32), { maxZoom: owned ? 8 : 5, animate: false });
+  }
+  map.on("moveend zoomend", rememberNetworkMapViewport);
+  records.forEach((record) => {
+    const id = record.id;
+    const isSelected = id === selected;
+    const warning = owned && record.online < record.chargePoints;
+    const color = warning ? "#f1aa4e" : owned ? "#26c28c" : "#70a8ff";
+    const marker = L.circleMarker([record.coordinates.lat, record.coordinates.lon], {
+      radius: isSelected ? 9 : 6,
+      color: isSelected ? "#ffffff" : "#10202b",
+      weight: isSelected ? 2.5 : 1.5,
+      opacity: 0.95,
+      fillColor: color,
+      fillOpacity: 0.95,
+    }).addTo(map);
+    marker.bindPopup(networkMapPopup(record, owned), { closeButton: false, maxWidth: 240 });
+    marker.bindTooltip(esc(owned ? `${record.name} · ${record.city}` : `${record.location} · ${record.country}`), {
+      direction: "top",
+      opacity: 0.96,
+      className: "network-map-tooltip",
+    });
+    const element = marker.getElement();
+    if (element) {
+      element.classList.add("map-marker", `map-marker-${owned ? "owned" : "roaming"}`);
+      if (isSelected) element.classList.add("is-selected");
+      if (warning) element.classList.add("is-warning");
+      element.dataset[owned ? "mapSite" : "mapRoaming"] = id;
+      element.setAttribute("role", "button");
+      element.setAttribute("aria-label", owned ? `${record.name}, ${record.city}` : `${record.location}, ${record.country}`);
+      element.setAttribute("aria-pressed", String(isSelected));
+      element.setAttribute("tabindex", "0");
+    }
+    if (isSelected) marker.openPopup();
+  });
+  requestAnimationFrame(() => { if (networkMap === map) map.invalidateSize({ pan: false }); });
 }
 function geographyList(sites, roaming, selected) {
   if (mapScope === "owned") {
@@ -274,10 +305,10 @@ function geographyPage() {
   return `${heading("Geographic network", "Explore your owned charging and parking locations in Belgium and the Netherlands, alongside Chargecard roaming across Europe.")}
     <div class="geo-toolbar">${scopeControls}<div class="geo-scope-stats">${scopeStats}</div>${mapScope === "owned" ? countryTabs() : ""}</div>
     <div class="geo-workbench">
-      <section class="geo-pane geo-map-pane"><header class="geo-pane-heading"><div><span class="eyebrow">${mapScope === "owned" ? "OWNED LOCATIONS" : "EUROPEAN PARTNER NETWORK"}</span><h2>${mapScope === "owned" ? "Belgium & the Netherlands" : "Chargecard roaming"}</h2></div><span class="geo-map-count"><i></i>${mapScope === "owned" ? `${sites.length} sites` : `${roaming.length} sample locations`}</span></header><div class="geo-map-surface">${mapSvg(sites, roaming)}</div><footer class="geo-map-footer"><span><i class="geo-legend-dot${mapScope === "roaming" ? " is-roaming" : ""}"></i>${mapScope === "owned" ? "Owned site" : "Partner session"}</span>${mapScope === "owned" ? '<span><i class="geo-legend-dot is-warning"></i>Availability watch</span>' : '<span><i class="geo-legend-dot is-warning"></i>Needs review</span>'}<small>Venue points © OpenStreetMap contributors · boundaries: Natural Earth</small><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OSM attribution ${icon("arrow")}</a></footer></section>
+      <section class="geo-pane geo-map-pane"><header class="geo-pane-heading"><div><span class="eyebrow">${mapScope === "owned" ? "OWNED LOCATIONS" : "EUROPEAN PARTNER NETWORK"}</span><h2>${mapScope === "owned" ? "Belgium & the Netherlands" : "Chargecard roaming"}</h2></div><span class="geo-map-count"><i></i>${mapScope === "owned" ? `${sites.length} sites` : `${roaming.length} sample locations`}</span></header><div class="geo-map-surface"><div id="network-map" class="network-map" role="region" aria-label="Interactive map of ${mapScope === "owned" ? "Belgium and the Netherlands" : "European partner locations"}"></div></div><footer class="geo-map-footer"><span><i class="geo-legend-dot${mapScope === "roaming" ? " is-roaming" : ""}"></i>${mapScope === "owned" ? "Owned site" : "Partner session"}</span>${mapScope === "owned" ? '<span><i class="geo-legend-dot is-warning"></i>Availability watch</span>' : '<span><i class="geo-legend-dot is-warning"></i>Needs review</span>'}<small>Online map tiles · sample venue markers</small></footer></section>
       <section class="geo-pane geo-list-pane"><header class="geo-pane-heading"><div><span class="eyebrow">${mapScope === "owned" ? "SITE DIRECTORY" : "PARTNER SESSIONS"}</span><h2>${mapScope === "owned" ? "Locations" : "Recent roaming"}</h2></div><span class="geo-list-count">${mapScope === "owned" ? sites.length : roaming.length}</span></header><div class="geo-location-list">${geographyList(sites, roaming, selectedId)}</div><p class="geo-list-footnote">${mapScope === "owned" ? "Owned sites include their parking setting and charge point availability." : "Roaming records are partner locations, separate from owned assets."}</p></section>
       <aside class="geo-pane geo-details-pane">${geographyDetails(selectedSite, selectedRoaming)}</aside>
-    </div><div class="workspace-footnote">Map boundaries are stored locally and render without external tiles. Addresses and coordinates point to public venues for illustration; they do not verify ChargeWeave sites or charger locations.</div>`;
+    </div><div class="workspace-footnote">Map tiles load from OpenStreetMap and need an internet connection. Addresses and coordinates point to public venues for illustration; they do not verify ChargeWeave sites or charger locations.</div>`;
 }
 function energyPage() {
   const rows = ownSites.map((site) => {
@@ -327,12 +358,14 @@ function page() {
   }
 }
 function render() {
+  destroyNetworkMap();
   currentView = viewFromHash();
   document.documentElement.dataset.theme = theme;
   root.innerHTML = shell();
   root.querySelector("#workspace").innerHTML = page();
   bindDragging();
   filterRows(search);
+  if (currentView === "geography") initializeNetworkMap(filterByCountry(ownSites, country), roamingSessions);
 }
 function filterRows(query) {
   const needle = query.trim().toLowerCase();

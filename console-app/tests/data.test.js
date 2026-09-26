@@ -14,7 +14,6 @@ import {
   roamingSessions,
 } from "../src/data.js";
 import { createPlatformProvider } from "../src/provider.js";
-import { mapCountries } from "../src/map-data.js";
 
 test("owned assets are limited to the Netherlands and Belgium fixture", () => {
   assert.deepEqual(new Set(ownSites.map((site) => site.country)), new Set(["NL", "BE"]));
@@ -32,7 +31,7 @@ test("Chargecard roaming shows European partner sessions separately from owned s
   assert.ok(liveSessions.every((session) => findSite(session.siteId)));
 });
 
-test("map fixtures have sourced public venue references and offline European boundaries", () => {
+test("map fixtures have sourced public venue references and European coordinates", () => {
   const records = [...ownSites, ...roamingSessions];
   assert.equal(ownSites.filter((site) => site.coordinates).length, 8);
   assert.equal(roamingSessions.filter((session) => session.coordinates).length, 6);
@@ -45,9 +44,6 @@ test("map fixtures have sourced public venue references and offline European bou
     assert.ok(record.coordinates.lat >= 48 && record.coordinates.lat <= 57);
     assert.ok(record.coordinates.lon >= 2 && record.coordinates.lon <= 17);
   }
-  assert.ok(mapCountries.some((country) => country.name === "Belgium"));
-  assert.ok(mapCountries.some((country) => country.name === "Netherlands"));
-  assert.ok(mapCountries.length >= 25);
 });
 
 test("filters are stable and country aware", () => {

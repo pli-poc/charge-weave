@@ -42,7 +42,7 @@ npm test
 npm run build
 ```
 
-The deployment workflow builds `console-app/` independently, then copies its static output into `website/dist/app/`. The console uses only browser-side synthetic fixtures. Its demo source module is a replaceable data-provider boundary; it does not call OCPP, OCPI, payments, roaming hubs, or production storage.
+The deployment workflow builds `console-app/` independently, then copies its static output into `website/dist/app/`. The console uses only browser-side synthetic fixtures. Its geographic view uses Leaflet with interactive OpenStreetMap tiles, so that view requires internet access and shows OpenStreetMap attribution. Its demo source module is a replaceable data-provider boundary; it does not call OCPP, OCPI, payments, roaming hubs, or production storage.
 
 The prebuild/predev task runs `scripts/build-model.mjs`. It reads the existing `model/catalog.json`, `model/rules.json`, `model/domain.schema`, the complete ontology Turtle, and the structural/vocabulary SHACL. It does not modify ontology sources or their generated artifacts. N3 parses the actual RDF; no graph edges are fabricated from an image. Source model updates are handled by the repository's existing generators before the website build.
 
