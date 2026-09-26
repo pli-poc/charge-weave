@@ -1,0 +1,11 @@
+{
+  "name": "chargeweave-european-operations-console",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  }
+}

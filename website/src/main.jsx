@@ -40,6 +40,7 @@ function App() {
     ["ontology", "Ontology explorer"],
     ["architecture", "Architecture"],
     ["roadmap", "Roadmap"],
+    ["app", "Operations console"],
     ["developer", "Developer guide"],
   ];
   return (

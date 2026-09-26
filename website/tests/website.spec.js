@@ -84,3 +84,16 @@ test("the presentation loads at the Pages subpath and supports exploration", asy
   expect(errors).toEqual([]);
   expect(failedAssets).toEqual([]);
 });
+
+test("the corporate navigation opens the co-hosted operations console", async ({ page }, testInfo) => {
+  await page.goto("./");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Open navigation" }).click();
+  }
+  const consoleLink = page.getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Operations console", exact: true });
+  await expect(consoleLink).toHaveAttribute("href", "/charge-weave/app/");
+  await consoleLink.click();
+  await expect(page).toHaveURL(/\/charge-weave\/app\/$/);
+  await expect(page.getByRole("heading", { name: "Network overview" })).toBeVisible();
+});
