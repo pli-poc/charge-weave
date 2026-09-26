@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const mockedMapTile = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" fill="#1b2934"/><g fill="none" stroke="#526271" stroke-width="2" opacity=".8"><path d="M-20 70 280 190M-30 220 270 45M45-20 180 280M215-20 80 280"/><path d="M-20 130H280M128-20V280" stroke-width="1" opacity=".7"/></g><g fill="#d3dde5" font-family="sans-serif" font-size="8"><text x="24" y="112">MAP TILE TEST</text></g></svg>`;
+const mockedMapTile = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" fill="#e1e6e9"/><g fill="none" stroke="#aab5bd" stroke-width="2" opacity=".8"><path d="M-20 70 280 190M-30 220 270 45M45-20 180 280M215-20 80 280"/><path d="M-20 130H280M128-20V280" stroke-width="1" opacity=".7"/></g><g fill="#64727d" font-family="sans-serif" font-size="10"><text x="24" y="112">MAP TILE TEST</text></g></svg>`;
 
 test("the isolated console is published under the corporate site and presents the European owned network", async ({ page }, testInfo) => {
   const errors = [];
@@ -79,9 +79,28 @@ test("the geographic view connects owned sites and European Chargecard roaming",
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Geographic network");
   await expect(page.locator(".leaflet-container")).toBeVisible();
   await expect(page.locator(".leaflet-control-attribution")).toContainText("OpenStreetMap contributors");
+  await expect(page.locator(".leaflet-control-attribution")).toHaveCSS("background-color", "rgba(8, 14, 20, 0.94)");
+  expect(await page.locator(".leaflet-tile-pane").evaluate((element) => getComputedStyle(element).filter)).toContain("invert(0.94)");
   await expect(page.locator(".leaflet-tile")).not.toHaveCount(0);
   await expect(page.locator(".map-marker-owned")).toHaveCount(8);
   await expect(page.locator(".geo-location-row")).toHaveCount(8);
+
+  const initialLatitude = Number(await page.locator("#network-map").getAttribute("data-map-center-lat"));
+  await page.locator('.geo-location-row[data-map-site="BE-LEU-04"]').click();
+  await expect.poll(async () => Number(await page.locator("#network-map").getAttribute("data-map-center-lat"))).toBeCloseTo(50.883052, 3);
+  expect(initialLatitude).not.toBeCloseTo(50.883052, 3);
+  await expect(page.locator(".geo-details-pane")).toContainText("Martelarenlaan, 3010 Leuven");
+
+  const zoomBeforeWheel = Number(await page.locator("#network-map").getAttribute("data-map-zoom"));
+  await page.locator("#network-map").hover();
+  await page.mouse.wheel(0, -480);
+  await expect.poll(async () => Number(await page.locator("#network-map").getAttribute("data-map-zoom"))).toBeGreaterThan(zoomBeforeWheel);
+  await expect(page.locator(".geo-location-caveat")).toHaveCSS("font-size", "10px");
+  const undersizedText = await page.locator("body *").evaluateAll((elements) => elements
+    .filter((element) => element.getClientRects().length && Number.parseFloat(getComputedStyle(element).fontSize) < 10)
+    .map((element) => `${element.tagName.toLowerCase()}.${element.className}`));
+  expect(undersizedText).toEqual([]);
+
   await page.locator('.geo-location-row[data-map-site="NL-RTM-01"]').click();
   await expect(page.locator(".geo-details-pane")).toContainText("Maasboulevard 100, 3063 NS Rotterdam");
   await expect(page.locator('.geo-details-pane a[href="https://www.openstreetmap.org/node/2805477332"]')).toBeVisible();

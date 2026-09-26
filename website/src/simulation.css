@@ -316,7 +316,7 @@
 }
 .sim-timeline-table th {
   color: #83a19c;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.9px;
   text-transform: uppercase;
 }
@@ -346,7 +346,7 @@
   border-radius: 2px;
   display: inline-block;
   padding: 3px 5px;
-  font: 9px ui-monospace, monospace;
+  font: 10px ui-monospace, monospace;
 }
 .sim-kind-ocpp { color: #a9c6d2; background: #122029; border-color: #344c59; }
 .sim-kind-ocpi { color: #d1c39f; background: #242117; border-color: #554c33; }
@@ -388,7 +388,7 @@
 .sim-trace-card summary b,
 .sim-trace-card summary span,
 .sim-trace-card summary code {
-  font-size: 9px;
+  font-size: 10px;
 }
 .sim-trace-card summary time,
 .sim-trace-card summary span {
@@ -425,7 +425,7 @@
 }
 .sim-store-tabs span {
   color: #91aaa4;
-  font: 9px ui-monospace, monospace;
+  font: 10px ui-monospace, monospace;
   margin-left: 3px;
 }
 .sim-store-summary {
@@ -465,13 +465,13 @@
 .sim-temporal-query > div small,
 .sim-temporal-query-output small {
   color: #8fa8a0;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.6;
   margin-top: 4px;
 }
 .sim-temporal-query label {
   color: #a4b9b2;
-  font-size: 9px;
+  font-size: 10px;
 }
 .sim-temporal-query select {
   display: block;
@@ -532,7 +532,7 @@
 }
 .sim-record-checks li small {
   color: #879ba0;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.65;
   margin-top: 4px;
 }

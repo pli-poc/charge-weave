@@ -109,7 +109,7 @@
 }
 .cw3-label span {
   color: #a7b9bf;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.35;
   font-weight: 500;
 }
@@ -121,10 +121,10 @@
   gap: 2px;
 }
 .cw3-label--compact strong {
-  font-size: 9px;
+  font-size: 10px;
 }
 .cw3-label--compact span {
-  font-size: 7px;
+  font-size: 10px;
 }
 .cw3-label--tile {
   background: linear-gradient(145deg, #0b161eeF, #0e1a21ec);
@@ -141,7 +141,7 @@
   color: #c5d8d9;
   font-family: inherit;
   width: 160px;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.9px;
   line-height: 1.25;
@@ -241,14 +241,14 @@
   display: block;
   margin-bottom: 4px;
   color: #8cb8a1;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.9px;
   text-transform: uppercase;
 }
 .cw3-concept-strip p {
   color: #d1e8d9;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.5;
 }
 .cw3-journey-panel ol {
@@ -283,7 +283,7 @@
   border-radius: 50%;
   background: #122720;
   color: #a8e9c9;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   z-index: 1;
 }
@@ -317,7 +317,7 @@
 }
 .cw3-crosscut p {
   color: #a8bab5;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.6;
 }
 .cw3-crosscut strong {
@@ -327,7 +327,7 @@
 .cw3-disclaimer {
   margin-top: 13px;
   color: #73878f;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.6;
 }
 @media (max-width: 1040px) {
@@ -343,10 +343,10 @@
     padding: 6px 8px 7px;
   }
   .cw3-label strong {
-    font-size: 9px;
+    font-size: 10px;
   }
   .cw3-label span {
-    font-size: 7px;
+    font-size: 10px;
   }
 }
 @media (max-width: 800px) {
@@ -381,7 +381,7 @@
   .cw3-level-title {
     width: 142px;
     padding: 5px 7px;
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 0.65px;
     text-align: center;
   }
@@ -406,25 +406,25 @@
   }
   .cw3-mobile-layers strong {
     color: #c0e5d2;
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.45;
   }
   .cw3-mobile-layers span {
     color: #95aab1;
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.45;
   }
   .cw3-frame-meta {
     left: 12px;
     right: 12px;
     top: 12px;
-    font-size: 8px;
+    font-size: 10px;
   }
   .cw3-flow-caption {
     left: 10px;
     bottom: 11px;
     max-width: calc(100% - 20px);
-    font-size: 8px;
+    font-size: 10px;
   }
   .cw3-label,
   .cw3-label--compact {
@@ -434,15 +434,15 @@
   }
   .cw3-label strong,
   .cw3-label--compact strong {
-    font-size: 8px;
+    font-size: 10px;
   }
   .cw3-label span,
   .cw3-label--compact span {
-    font-size: 6px;
+    font-size: 10px;
   }
   .cw3-level-title {
     padding: 5px 7px;
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 0.75px;
   }
 }

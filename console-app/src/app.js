@@ -61,6 +61,7 @@ let selectedRoamingLocation = roamingSessions[0]?.id;
 let networkMap = null;
 let networkMapScope = null;
 let networkMapViewport = null;
+let networkMapFocus = null;
 let selectedEntity = "Session";
 let dataTab = "Graph";
 let sidebarOpen = false;
@@ -201,7 +202,12 @@ const NETWORK_TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/
 function rememberNetworkMapViewport() {
   if (!networkMap) return;
   const center = networkMap.getCenter();
-  networkMapViewport = { scope: networkMapScope, center: [center.lat, center.lng], zoom: networkMap.getZoom() };
+  const zoom = networkMap.getZoom();
+  networkMapViewport = { scope: networkMapScope, center: [center.lat, center.lng], zoom };
+  const container = networkMap.getContainer();
+  container.dataset.mapCenterLat = center.lat.toFixed(6);
+  container.dataset.mapCenterLon = center.lng.toFixed(6);
+  container.dataset.mapZoom = String(zoom);
 }
 function destroyNetworkMap() {
   if (!networkMap) return;
@@ -225,7 +231,7 @@ function initializeNetworkMap(sites, roaming) {
   const records = owned ? sites : roaming;
   if (!records.length) return;
   const selected = owned ? selectedMapSite : selectedRoamingLocation;
-  const map = L.map(container, { scrollWheelZoom: false, zoomControl: true, attributionControl: true });
+  const map = L.map(container, { scrollWheelZoom: true, zoomControl: true, attributionControl: true });
   networkMap = map;
   networkMapScope = mapScope;
   L.tileLayer(NETWORK_TILE_URL, { maxZoom: 19, attribution: NETWORK_TILE_ATTRIBUTION }).addTo(map);
@@ -267,6 +273,12 @@ function initializeNetworkMap(sites, roaming) {
       element.setAttribute("tabindex", "0");
     }
   });
+  if (networkMapFocus?.scope === mapScope) {
+    const focused = records.find((record) => record.id === networkMapFocus.id);
+    if (focused) map.setView([focused.coordinates.lat, focused.coordinates.lon], Math.max(map.getZoom(), 14), { animate: false });
+  }
+  networkMapFocus = null;
+  rememberNetworkMapViewport();
   requestAnimationFrame(() => { if (networkMap === map) map.invalidateSize({ pan: false }); });
 }
 function geographyList(sites, roaming, selected) {
@@ -438,15 +450,29 @@ root.addEventListener("click", (event) => {
     return;
   }
   const mapScopeButton = event.target.closest("[data-map-scope]");
-  if (mapScopeButton) { mapScope = mapScopeButton.dataset.mapScope; country = "all"; render(); return; }
+  if (mapScopeButton) { mapScope = mapScopeButton.dataset.mapScope; country = "all"; networkMapFocus = null; render(); return; }
   const mapSite = event.target.closest("[data-map-site]");
-  if (mapSite) { selectedMapSite = mapSite.dataset.mapSite; render(); return; }
+  if (mapSite) {
+    selectedMapSite = mapSite.dataset.mapSite;
+    networkMapFocus = mapSite.classList.contains("geo-location-row") ? { scope: "owned", id: selectedMapSite } : null;
+    render();
+    return;
+  }
   const mapRoaming = event.target.closest("[data-map-roaming]");
-  if (mapRoaming) { selectedRoamingLocation = mapRoaming.dataset.mapRoaming; render(); return; }
+  if (mapRoaming) {
+    selectedRoamingLocation = mapRoaming.dataset.mapRoaming;
+    networkMapFocus = mapRoaming.classList.contains("geo-location-row") ? { scope: "roaming", id: selectedRoamingLocation } : null;
+    render();
+    return;
+  }
   const countryButton = event.target.closest("[data-country]");
   if (countryButton) {
     country = countryButton.dataset.country;
-    if (currentView === "geography" && mapScope === "owned") selectedMapSite = filterByCountry(ownSites, country)[0]?.id;
+    if (currentView === "geography" && mapScope === "owned") {
+      selectedMapSite = filterByCountry(ownSites, country)[0]?.id;
+      networkMapViewport = null;
+      networkMapFocus = null;
+    }
     render();
     return;
   }
