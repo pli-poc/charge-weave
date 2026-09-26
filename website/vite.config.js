@@ -19,6 +19,26 @@ const pages = {
     "Development roadmap",
     "Follow the path from the current semantic foundation to the planned operational platform.",
   ],
+  developer: [
+    "Developer guide",
+    "Explore the proposed browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
+  ],
+  "developer/protocols": [
+    "Protocol simulation",
+    "Learn how versioned OCPP, OCPI and optional ISO 15118 adapters connect to ChargeWeave process events.",
+  ],
+  "developer/switchboard": [
+    "Runtime switchboard",
+    "Explore independent virtual, observe, hybrid and live modes for ChargeWeave protocols and simulated stores.",
+  ],
+  "developer/storage": [
+    "Simulated storage",
+    "Review the semantic, operational, temporal, telemetry and evidence store contracts used by the browser simulator.",
+  ],
+  "developer/replay": [
+    "Deterministic replay",
+    "Learn how a seeded scenario, virtual clock and versioned fault plan make ChargeWeave process tests reproducible.",
+  ],
 };
 export default defineConfig({
   plugins: [

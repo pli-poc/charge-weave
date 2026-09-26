@@ -1,6 +1,6 @@
 # ChargeWeave product site and ontology explorer
 
-React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture and roadmap. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
+React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture, roadmap and synthetic-runtime design. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
 
 ## Pages
 
@@ -11,6 +11,11 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `ontology/`                  | Searchable classes, directed relationships, fields, OWL/SHACL triples, rules and temporal inspector |
 | `architecture/`              | Proposed runtime, service boundaries, validation and temporal query design                          |
 | `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
+| `developer/`                 | Browser-hosted synthetic runtime and the principles behind its replaceable boundaries                |
+| `developer/protocols/`       | Versioned protocol-shaped simulation for OCPP, OCPI and selected vehicle-to-equipment journeys        |
+| `developer/switchboard/`     | Independent virtual, observe, hybrid and live adapter modes                                           |
+| `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
+| `developer/replay/`          | Seeded data generation, virtual time, fault injection and reproducible run records                     |
 
 Each page has a real static `index.html` entry and page-specific metadata, so direct links and refreshes work on GitHub Pages. Class selection is shareable, for example `ontology/?class=TariffVersion`. The concept image is available from a disclosure at the bottom of the explorer; it is a visual study, not the source of model facts.
 
@@ -45,6 +50,8 @@ The generated class catalog is loaded only by the explorer. Schema triples are f
 `.github/workflows/website-pages.yml` installs locked dependencies, builds, checks the production artifact with desktop and mobile Chromium, and deploys to GitHub Pages on `main`. Relevant model and RDF changes also trigger the website workflow. Pull requests run checks without deploying. Screenshots and reports are retained as workflow artifacts.
 
 Checks cover existing landing interactions, direct page loads, responsive overflow, navigation, class search, edge inspection, inheritance, source RDF export, rule inspection, temporal examples and class deep links.
+
+The developer guide describes a proposed frontend-only synthetic runtime. It is explanatory design documentation: it does not add protocol endpoints, connect to live charging equipment, or claim protocol certification. Exact standards editions and supported profiles must be pinned when implementing adapters.
 
 GitHub Pages must use **Settings → Pages → Source → GitHub Actions**. The deployment job requires `pages: write` and `id-token: write`; the build has read-only repository access.
 
