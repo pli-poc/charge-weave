@@ -21,7 +21,11 @@ const pages = {
   ],
   developer: [
     "Developer guide",
-    "Explore the proposed browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
+    "Explore the browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
+  ],
+  "developer/simulator": [
+    "Simulation workbench",
+    "Run seeded roaming-charge fixtures and inspect protocol traces, process events and simulated browser stores.",
   ],
   "developer/protocols": [
     "Protocol simulation",

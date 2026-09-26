@@ -17,12 +17,14 @@ import {
   Shuffle,
   Waypoints,
 } from "lucide-react";
+import SimulationWorkbench from "./SimulationWorkbench.jsx";
 import "./developer.css";
 
 const base = import.meta.env.BASE_URL;
 const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`;
 const pages = [
   { id: "runtime", route: "developer", label: "Runtime" },
+  { id: "simulator", route: "developer/simulator", label: "Simulator" },
   { id: "protocols", route: "developer/protocols", label: "Protocols" },
   { id: "switchboard", route: "developer/switchboard", label: "Switchboard" },
   { id: "storage", route: "developer/storage", label: "Storage" },
@@ -42,18 +44,18 @@ function GuideLayout({ page, title, description, children }) {
         </div>
         <header className="dev-guide-hero">
           <div>
-            <p className="eyebrow">Developer design · Proposed</p>
+            <p className="eyebrow">Developer design · Browser prototype</p>
             <h1>{title}</h1>
             <p className="dev-hero-description">{description}</p>
           </div>
           <aside className="dev-status-card">
             <span className="dev-status-dot" />
-            <strong>Browser-hosted simulator</strong>
+            <strong>Browser-hosted synthetic runtime</strong>
             <p>
-              A design for testing processes before selecting or deploying
+              Run deterministic process fixtures before selecting or deploying
               infrastructure.
             </p>
-            <span className="dev-status-label">No live connections</span>
+            <span className="dev-status-label">Live adapters not registered</span>
           </aside>
         </header>
         <nav className="dev-guide-nav" aria-label="Developer guide pages">
@@ -120,6 +122,7 @@ function RuntimePage() {
     },
   ];
   const links = [
+    ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
     ["switchboard", "Switchboard", "Change one source without changing every store."],
     ["storage", "Storage contracts", "Test distinct storage behavior without database products."],
@@ -129,9 +132,9 @@ function RuntimePage() {
     <>
       <section className="container dev-runtime-section">
         <SectionTitle eyebrow="One runtime, replaceable boundaries" title="Exercise the process in the browser.">
-          The synthetic runtime is the first executable product slice. It should
-          exercise protocol-shaped inputs, process rules and storage behavior
-          together, with no cloud services, message broker or database required.
+          The synthetic runtime exercises protocol-shaped inputs, process rules
+          and storage behavior together, with no cloud services, message broker
+          or database required.
         </SectionTitle>
         <div className="dev-runtime-flow" aria-label="Synthetic runtime flow">
           {stages.map((stage) => (
@@ -148,11 +151,11 @@ function RuntimePage() {
         <div className="dev-callout">
           <ShieldCheck size={24} />
           <div>
-            <strong>Design page, not a claim of a running integration</strong>
+            <strong>Executable simulator; live systems remain unconnected</strong>
             <p>
-              The ontology explorer and model checks are available in the
-              repository. The browser runtime, protocol switches and storage
-              simulators described here are proposed work.
+              The browser runs a deterministic subset of virtual OCPP and OCPI
+              exchanges against five in-memory store contracts. These fixtures
+              test process behavior; they do not establish protocol certification.
             </p>
           </div>
         </div>
@@ -202,7 +205,7 @@ function ProtocolsPage() {
       name: "OCPP",
       boundary: "Charge point ↔ CSMS / CPO",
       text: "A virtual station exchanges versioned messages for connection, authorization, transaction updates, meter values and charging control.",
-      profile: "Candidate starting target: OCPP 2.1. Pin the exact edition and supported profile before writing conformance fixtures.",
+      profile: "Browser fixture baseline: OCPP 2.1 Edition 1, limited to selected station startup, authorization, remote-start and transaction-event shapes.",
       href: "https://openchargealliance.org/protocols/ocpp-protocols/",
       source: "Open Charge Alliance protocol editions",
     },
@@ -211,7 +214,7 @@ function ProtocolsPage() {
       name: "OCPI",
       boundary: "eMSP ↔ CPO / roaming hub",
       text: "Virtual participants exercise version discovery, credentials and selected module exchanges for tokens, locations, sessions, tariffs, commands and CDRs.",
-      profile: "Candidate starting target: OCPI 2.3.0 Core with an explicit module set. Add earlier partner profiles only when a journey needs them.",
+      profile: "Browser fixture baseline: OCPI 2.3.0 Core Commands, Sessions and CDRs for the shown roaming journey.",
       href: "https://github.com/ocpi/ocpi",
       source: "OCPI specification and release branches",
     },
@@ -388,35 +391,35 @@ function StoragePage() {
       icon: <Layers3 />,
       name: "Semantic graph",
       role: "Concepts, facts and links",
-      behavior: "Keep stable IRIs, named graph scope and source provenance. Run the same ontology and SHACL checks against the simulated graph.",
-      probe: "Can this event be represented without breaking the declared class contract?",
+      behavior: "Keep named graph scope, stable synthetic subjects and source provenance so semantic facts can be inspected independently.",
+      probe: "Can the process preserve a stable subject and source link for each event?",
     },
     {
       icon: <Boxes />,
       name: "Operational state",
       role: "Current workflow records",
-      behavior: "Store sessions, commands and lifecycle state. Simulate atomic updates, version conflicts and idempotency keys.",
+      behavior: "Store sessions and lifecycle state with a revision counter, allowed transitions and event idempotency.",
       probe: "Does replaying a command create a second business action?",
     },
     {
       icon: <Clock3 />,
       name: "Temporal event store",
       role: "What applied and what was known",
-      behavior: "Append event and correction history with effective time and recorded time, preserving earlier answers.",
-      probe: "What did the platform know before a late tariff correction arrived?",
+      behavior: "Append event and correction history with valid time and recorded time, and query what was known at an earlier point.",
+      probe: "What did the platform know before a late meter correction arrived?",
     },
     {
       icon: <Radio />,
       name: "Telemetry series",
       role: "Meter readings and measurements",
-      behavior: "Keep timestamp, unit, source, sequence and quality so duplicate, delayed and out-of-order samples can be tested.",
+      behavior: "Keep observation time, receipt time, unit, source, sequence and quality so duplicates and delayed samples can be tested.",
       probe: "Can a late reading be added without changing the event that first closed a session?",
     },
     {
       icon: <FileKey2 />,
       name: "Evidence objects",
       role: "Original protocol payloads and documents",
-      behavior: "Retain deterministic fixture payloads and content digests to test lineage from process decision to source evidence.",
+      behavior: "Retain original fixture payloads and a repeatable non-cryptographic fingerprint to test lineage from process decision to source evidence.",
       probe: "Can a CDR and settlement result be traced to the messages and tariff version used?",
     },
   ];
@@ -445,10 +448,10 @@ function StoragePage() {
           <SectionTitle eyebrow="Shared trace" title="One decision can be inspected across every store." />
           <div className="dev-trace-row">
             {[
-              ["Protocol evidence", "Original input + digest"],
-              ["Business event", "Canonical meaning + provenance"],
-              ["Temporal record", "Effective and recorded time"],
-              ["Analytics view", "Derived projection + watermark"],
+              ["Protocol evidence", "OCPP frame + fixture fingerprint"],
+              ["Canonical event", "Stable event ID + provenance"],
+              ["Temporal record", "Valid and recorded time"],
+              ["Meter series", "Unit + arrival time + sequence"],
             ].map(([title, text], index) => (
               <article key={title}>
                 <span>0{index + 1}</span>
@@ -492,22 +495,27 @@ function ReplayPage() {
   "scenario": "roaming-cdr-correction",
   "scenarioVersion": 1,
   "seed": 4242,
-  "prngVersion": "chargeweave-rng-v1",
+  "prngVersion": "chargeweave-xorshift32-v1",
   "clock": {
     "mode": "virtual",
-    "startAt": "2026-01-15T07:00:00Z"
+    "startAt": "2026-09-26T08:00:00Z"
   },
   "profiles": {
-    "ocpp": "locked-version-edition-profile",
-    "ocpi": "locked-version-module-set"
+    "ocpp": "OCPP 2.1 Edition 1 / transaction basics fixture subset",
+    "ocpi": "OCPI 2.3.0 Core / Commands + Sessions + CDRs"
   },
   "composition": {
-    "ocpp": "virtual",
-    "ocpi": "virtual",
+    "inputs": { "ocpp": "virtual", "ocpi": "virtual", "grid": "scenario" },
     "process": "synthetic",
-    "stores": "simulated"
+    "stores": {
+      "semantic": "memory",
+      "operational": "memory",
+      "temporal": "memory",
+      "telemetry": "memory",
+      "evidence": "memory"
+    }
   },
-  "faults": ["meter.late", "message.duplicate"]
+  "faults": ["cdr-correction"]
 }`}</code></pre>
         <div className="dev-callout">
           <RotateCcw size={23} />
@@ -544,10 +552,10 @@ function ReplayPage() {
         <SectionTitle eyebrow="What a replay proves" title="Compare the whole outcome, not a screenshot." />
         <ul>
           {[
-            "Protocol profile validation and exchange sequence",
+            "Selected protocol envelope shapes and exchange order",
             "Canonical events and process state transitions",
             "Writes to each simulated store, including temporal corrections",
-            "Evidence and analytics lineage for the final commercial result",
+            "Evidence and tariff lineage for the final session and CDR",
           ].map((result) => (
             <li key={result}><Check size={17} />{result}</li>
           ))}
@@ -565,6 +573,10 @@ const pageCopy = {
   runtime: {
     title: <>Test the process<br /><span>before the infrastructure.</span></>,
     description: "A browser-hosted synthetic runtime composes protocol actors, process logic and simulated stores so a charging journey can be exercised end to end.",
+  },
+  simulator: {
+    title: <>One seeded run.<br /><span>Every boundary inspectable.</span></>,
+    description: "Run deterministic roaming-charge scenarios in the browser and inspect protocol-shaped messages, process decisions and five distinct simulated stores.",
   },
   protocols: {
     title: <>Protocol-shaped inputs.<br /><span>Shared business events.</span></>,
@@ -597,6 +609,7 @@ export default function DeveloperPages({ route }) {
   }
   const content = {
     runtime: <RuntimePage />,
+    simulator: <SimulationWorkbench />,
     protocols: <ProtocolsPage />,
     switchboard: <SwitchboardPage />,
     storage: <StoragePage />,

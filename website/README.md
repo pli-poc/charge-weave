@@ -1,6 +1,6 @@
 # ChargeWeave product site and ontology explorer
 
-React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture, roadmap and synthetic-runtime design. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
+React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture, roadmap and an executable browser-only synthetic runtime. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
 
 ## Pages
 
@@ -12,6 +12,7 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `architecture/`              | Proposed runtime, service boundaries, validation and temporal query design                          |
 | `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
 | `developer/`                 | Browser-hosted synthetic runtime and the principles behind its replaceable boundaries                |
+| `developer/simulator/`       | Run seeded journeys and inspect protocol fixtures, process state and simulated stores                |
 | `developer/protocols/`       | Versioned protocol-shaped simulation for OCPP, OCPI and selected vehicle-to-equipment journeys        |
 | `developer/switchboard/`     | Independent virtual, observe, hybrid and live adapter modes                                           |
 | `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
@@ -49,9 +50,9 @@ The generated class catalog is loaded only by the explorer. Schema triples are f
 
 `.github/workflows/website-pages.yml` installs locked dependencies, builds, checks the production artifact with desktop and mobile Chromium, and deploys to GitHub Pages on `main`. Relevant model and RDF changes also trigger the website workflow. Pull requests run checks without deploying. Screenshots and reports are retained as workflow artifacts.
 
-Checks cover existing landing interactions, direct page loads, responsive overflow, navigation, class search, edge inspection, inheritance, source RDF export, rule inspection, temporal examples and class deep links.
+Checks cover existing landing interactions, direct page loads, responsive overflow, navigation, class search, edge inspection, inheritance, source RDF export, rule inspection, temporal examples and class deep links. Runtime tests also cover seeded replay, OCPP/OCPI fixture envelopes, authorization rejection, duplicate delivery, late readings, CDR credit lineage and independent adapter selection.
 
-The developer guide describes a proposed frontend-only synthetic runtime. It is explanatory design documentation: it does not add protocol endpoints, connect to live charging equipment, or claim protocol certification. Exact standards editions and supported profiles must be pinned when implementing adapters.
+The developer guide includes a frontend-only synthetic runtime. It runs seeded roaming-charge journeys and simulates OCPP 2.1 Edition 1 and OCPI 2.3.0 Core exchange subsets entirely in browser memory. It does not add protocol endpoints, connect to live charging equipment or claim protocol certification. Store and input adapters are replaceable through the runtime factory; no live adapters are registered.
 
 GitHub Pages must use **Settings → Pages → Source → GitHub Actions**. The deployment job requires `pages: write` and `id-token: write`; the build has read-only repository access.
 

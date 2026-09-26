@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
+  { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
   { route: "developer/switchboard/", title: "Runtime switchboard", active: "Switchboard", marker: "Observe" },
   { route: "developer/storage/", title: "Simulated storage", active: "Storage", marker: "Temporal event store" },
@@ -54,4 +55,40 @@ test("switchboard keeps protocol inputs and simulated stores independently confi
   await expect(config).toContainText('"temporal": "memory"');
   await expect(page.locator(".dev-table-wrap")).toContainText("OCPP source only");
   await expect(page.locator(".dev-table-wrap")).toContainText("Always-on protocol gateway");
+});
+
+test("browser simulator replays seeded scenarios and exposes protocol and store traces", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("developer/simulator/");
+  await expect(page.getByRole("heading", { name: "Journey completed" })).toBeVisible();
+  await expect(page.getByText("No API, socket or database calls")).toBeVisible();
+
+  await page.getByLabel("Random seed").fill("pw-replay-42");
+  await page.getByLabel("Process scenario").selectOption("duplicate-event");
+  await page.getByRole("button", { name: "Run simulation" }).click();
+  await expect(page.locator(".sim-result-duplicate")).toHaveText("duplicate");
+  await expect(page.locator(".sim-metric-grid")).toContainText("1");
+  const fingerprint = await page.locator(".sim-run-identity span").last().innerText();
+  await page.getByRole("button", { name: "Run simulation" }).click();
+  await expect(page.locator(".sim-run-identity span").last()).toHaveText(fingerprint);
+
+  await page.getByRole("tab", { name: "Protocol trace" }).click();
+  await expect(page.locator(".sim-trace-list")).toContainText("TransactionEvent");
+  await page.locator(".sim-subnav").getByRole("button", { name: /OCPI/ }).click();
+  await expect(page.locator(".sim-trace-list")).toContainText("START_SESSION");
+
+  await page.getByLabel("Process scenario").selectOption("cdr-correction");
+  await page.getByRole("button", { name: "Run simulation" }).click();
+  await page.getByRole("tab", { name: "Store inspector" }).click();
+  await page.getByRole("button", { name: /Temporal events/ }).click();
+  await expect(page.locator(".sim-json-panel")).toContainText("recordedAt");
+  await expect(page.locator(".sim-json-panel")).toContainText("correctionOf");
+  const correctedValue = await page.locator(".sim-temporal-query-output").innerText();
+  await page.getByLabel("Temporal knowledge time").selectOption({ index: 1 });
+  const previouslyKnownValue = await page.locator(".sim-temporal-query-output").innerText();
+  expect(previouslyKnownValue).not.toBe(correctedValue);
+  await expect(page.locator(".sim-standards-note")).toContainText("not exhaustive schemas");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(pageErrors).toEqual([]);
 });
