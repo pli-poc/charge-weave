@@ -1,5 +1,6 @@
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
+import { mapCountries } from "./map-data.js";
 
 const provider = createPlatformProvider();
 const DEMO_SOURCE = provider.source;
@@ -11,11 +12,12 @@ const recentActivity = provider.getActivity();
 const roamingSessions = provider.getRoamingSessions();
 
 const root = document.querySelector("#app");
-const views = ["overview", "operations", "sites", "sessions", "roaming", "energy", "finance", "data"];
+const views = ["overview", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
 const nav = [
   { id: "overview", label: "Overview", icon: "overview", group: "Workspace" },
   { id: "operations", label: "Live operations", icon: "pulse", group: "Workspace" },
   { id: "sites", label: "Sites & parking", icon: "pin", group: "Assets" },
+  { id: "geography", label: "Network map", icon: "map", group: "Assets" },
   { id: "sessions", label: "Sessions", icon: "plug", group: "Assets" },
   { id: "roaming", label: "Chargecard roaming", icon: "roaming", group: "Commercial" },
   { id: "energy", label: "Energy & capacity", icon: "energy", group: "Commercial" },
@@ -31,6 +33,7 @@ const iconPaths = {
   energy: '<path d="m13 2-3 8h7l-6 12 1-9H6l7-11Z"/>',
   finance: '<path d="M4 5h16M4 19h16M6 5v14m12-14v14M9 9h6m-6 3h6m-6 3h6"/>',
   data: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/>',
+  map: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15m6-12v15"/>',
   search: '<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   moon: '<path d="M20.8 13A8.8 8.8 0 0 1 11 3.2 8.8 8.8 0 1 0 20.8 13Z"/>',
@@ -51,6 +54,9 @@ let panelOrder = stored("chargeweave-console-panel-order");
 let country = "all";
 let search = "";
 let selectedSession = liveSessions[0]?.id;
+let mapScope = "owned";
+let selectedMapSite = ownSites[0]?.id;
+let selectedRoamingLocation = roamingSessions[0]?.id;
 let selectedEntity = "Session";
 let dataTab = "Graph";
 let sidebarOpen = false;
@@ -186,6 +192,89 @@ function roamingPage() {
   const values = [["Sessions this month", "486", "roaming", "blue"], ["Countries represented", "14", "pin", "mint"], ["Settlement to partners", formatEuro(7892.4), "finance", "violet"], ["Records to review", "3", "alert", "amber"]];
   return `${heading("Chargecard roaming", "Follow cardholder sessions at partner networks across Europe, separately from your owned sites.", `<button class="secondary-button" type="button" data-action="export-roaming">${icon("download")} Export ledger</button>`)}<div class="roaming-hero"><div class="roaming-hero-copy"><span class="roaming-orbit large">${icon("roaming")}</span><div><span class="eyebrow">EUROPEAN PARTNER NETWORK</span><h2>Chargecard, wherever the journey goes.</h2><p>Roaming records carry partner, country, tariff, CDR status, and settlement responsibility through one traceable process.</p></div></div><div class="roaming-hero-meta"><span>Coverage in fixture</span><strong>14 countries</strong><small>Illustrative partner data</small></div></div><div class="kpi-grid four-cards">${values.map(([label, value, symbol, tone], index) => kpi(label, value, ["Across the partner footprint", "Partner sessions in fixture", "Pending partner settlement", '<span class="delta-warn">2 corrections</span> · 1 partner response'][index], symbol, tone)).join("")}</div><div class="list-toolbar"><div class="ledger-key"><span class="key-dot own"></span>Chargecard partner session <span class="key-dot pending"></span>Needs review</div><span class="toolbar-spacer"></span><span class="result-count">${roamingSessions.length} sample records</span></div>${table(["Partner location", "Country", "Card token", "CDR reference", "Energy", "Amount", "CDR status", "Settlement"], roamingRows(roamingSessions), "European Chargecard roaming ledger")}<div class="process-strip"><div class="process-step is-done"><span>1</span><strong>Session at partner</strong><small>Chargecard token</small></div><span class="process-connector"></span><div class="process-step is-done"><span>2</span><strong>CDR received</strong><small>Original record retained</small></div><span class="process-connector"></span><div class="process-step is-current"><span>3</span><strong>Validate & rate</strong><small>Country and agreement context</small></div><span class="process-connector"></span><div class="process-step"><span>4</span><strong>Settle partner</strong><small>Exceptions stay traceable</small></div></div><div class="workspace-footnote">Partner names and transaction records are synthetic examples. No Chargecard, OCPI, payment, or settlement service is connected.</div>`;
 }
+function mapProject([lon, lat], bounds) {
+  const [west, east, south, north] = bounds;
+  const width = 800;
+  const height = 560;
+  const inset = 30;
+  return [
+    inset + ((lon - west) / (east - west)) * (width - inset * 2),
+    height - inset - ((lat - south) / (north - south)) * (height - inset * 2),
+  ];
+}
+function mapRingPath(ring, bounds) {
+  return `${ring.map((point, index) => {
+    const [x, y] = mapProject(point, bounds);
+    return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ")} Z`;
+}
+function mapMarker(record, bounds, kind, selected) {
+  const [x, y] = mapProject([record.coordinates.lon, record.coordinates.lat], bounds);
+  const own = kind === "owned";
+  const id = own ? record.id : record.id;
+  const label = own ? `${record.name}, ${record.city}` : `${record.location}, ${record.country}`;
+  const sublabel = own ? record.city : record.countryCode;
+  const isSelected = selected === id;
+  const tone = own && record.online < record.chargePoints ? " is-warning" : "";
+  return `<g class="map-marker map-marker-${kind}${isSelected ? " is-selected" : ""}${tone}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(label)}" aria-pressed="${isSelected}" data-map-${own ? "site" : "roaming"}="${esc(id)}"><circle class="marker-halo" r="13"/><circle class="marker-dot" r="6"/><text class="marker-label" x="12" y="4">${esc(sublabel)}</text></g>`;
+}
+function mapSvg(sites, roaming) {
+  const bounds = mapScope === "owned" ? [-2.8, 11.8, 48.7, 56.2] : [-12.5, 30, 41.5, 62.5];
+  const selected = mapScope === "owned" ? selectedMapSite : selectedRoamingLocation;
+  const markers = mapScope === "owned"
+    ? sites.map((site) => mapMarker(site, bounds, "owned", selected)).join("")
+    : roaming.map((session) => mapMarker(session, bounds, "roaming", selected)).join("");
+  const countryShapes = mapCountries.flatMap((countryShape) => countryShape.rings.map((ring) => `<path class="map-country" d="${mapRingPath(ring, bounds)}"/>`)).join("");
+  const grid = [-10, -5, 0, 5, 10, 15, 20, 25].map((lon) => {
+    const start = mapProject([lon, bounds[2]], bounds);
+    const end = mapProject([lon, bounds[3]], bounds);
+    return `<path d="M${start[0].toFixed(1)} ${start[1].toFixed(1)} L${end[0].toFixed(1)} ${end[1].toFixed(1)}"/>`;
+  }).join("");
+  const labels = (mapScope === "owned"
+    ? [["BELGIUM", 3.8, 50.25], ["NETHERLANDS", 5.25, 53.2], ["GERMANY", 9.1, 52.3], ["FRANCE", 1, 50.2]]
+    : [["UNITED KINGDOM", -4.4, 55.6], ["FRANCE", 2.2, 46.3], ["NETHERLANDS", 5.6, 53], ["GERMANY", 10.1, 51.2], ["DENMARK", 9.5, 56.8], ["SWITZERLAND", 8, 47.2], ["ITALY", 12.2, 43.7], ["AUSTRIA", 14.3, 47.7], ["POLAND", 19.2, 52.2], ["UKRAINE", 24, 49.2]])
+  .filter(([, lon, lat]) => lon >= bounds[0] && lon <= bounds[1] && lat >= bounds[2] && lat <= bounds[3]).map(([name, lon, lat]) => {
+    const [x, y] = mapProject([lon, lat], bounds);
+    return `<text class="map-region-label" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${name}</text>`;
+  }).join("");
+  return `<svg class="network-map-svg" viewBox="0 0 800 560" role="group" aria-label="Offline geographic map showing ${mapScope === "owned" ? "owned charging locations in Belgium and the Netherlands" : "Chargecard partner locations across Europe"}"><g class="map-grid">${grid}</g><g class="map-countries">${countryShapes}</g><g class="map-country-labels">${labels}</g><g class="map-markers">${markers}</g></svg>`;
+}
+function geographyList(sites, roaming, selected) {
+  if (mapScope === "owned") {
+    return sites.map((site) => `<button type="button" class="geo-location-row${site.id === selected ? " is-selected" : ""}" data-map-site="${esc(site.id)}" aria-pressed="${site.id === selected}"><span class="geo-location-pin${site.online < site.chargePoints ? " is-warning" : ""}">${icon("pin")}</span><span class="geo-location-main"><strong>${esc(site.name)}</strong><small>${esc(site.city)} · ${site.country}</small></span><span class="geo-location-stat"><b>${site.online}<i>/${site.chargePoints}</i></b><small>online</small></span></button>`).join("");
+  }
+  return roaming.map((session) => `<button type="button" class="geo-location-row${session.id === selected ? " is-selected" : ""}" data-map-roaming="${esc(session.id)}" aria-pressed="${session.id === selected}"><span class="geo-location-pin is-roaming">${icon("roaming")}</span><span class="geo-location-main"><strong>${esc(session.location)}</strong><small>${esc(session.partner)} · ${session.countryCode}</small></span><span class="geo-location-stat"><b>${formatEuro(session.amount)}</b><small>${formatNumber(session.energyKwh)} kWh</small></span></button>`).join("");
+}
+function geographyDetails(site, roaming) {
+  if (mapScope === "owned" && site) {
+    const events = recentActivity.filter((item) => item.detail.toLowerCase().includes(site.city.toLowerCase()) || item.detail.toLowerCase().includes(site.name.toLowerCase()));
+    const timeline = events.length
+      ? events.map((item) => `<div class="geo-timeline-item tone-${item.tone}"><i></i><div><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></div><time>${esc(item.time)}</time></div>`).join("")
+      : '<p class="geo-empty-timeline">No recent event for this location in the current fixture.</p>';
+    return `<div class="geo-detail-eyebrow">OWNED SITE · ${site.country}</div><h2>${esc(site.name)}</h2><p class="geo-detail-location">${esc(site.city)} · ${esc(site.setting)}</p><dl class="geo-detail-facts"><div><dt>Charge points online</dt><dd>${site.online} / ${site.chargePoints}</dd></div><div><dt>Live sessions</dt><dd>${site.liveSessions}</dd></div><div><dt>Parking spaces</dt><dd>${formatNumber(site.parkingSpaces)}</dd></div><div><dt>Utilisation today</dt><dd>${site.utilisation}%</dd></div></dl><div class="geo-detail-section"><div class="geo-section-title"><h3>Recent activity</h3><span>${events.length} events</span></div><div class="geo-timeline">${timeline}</div></div><button type="button" class="secondary-button full-button" data-view="sites">Open site inventory ${icon("arrow")}</button>`;
+  }
+  if (!roaming) return `<div class="geo-detail-empty"><span class="geo-detail-icon">${icon("pin")}</span><strong>Select a location</strong><small>Location details and recent events will appear here.</small></div>`;
+  const tone = roaming.cdrStatus === "Accepted" ? "good" : "warn";
+  return `<div class="geo-detail-eyebrow">CHARGECARD ROAMING · ${roaming.countryCode}</div><h2>${esc(roaming.location)}</h2><p class="geo-detail-location">${esc(roaming.partner)} · ${esc(roaming.country)}</p><dl class="geo-detail-facts"><div><dt>Charge detail record</dt><dd>${esc(roaming.id)}</dd></div><div><dt>Energy</dt><dd>${formatNumber(roaming.energyKwh)} kWh</dd></div><div><dt>Session value</dt><dd>${formatEuro(roaming.amount)}</dd></div><div><dt>Settlement</dt><dd>${esc(roaming.settlement)}</dd></div></dl><div class="geo-detail-section"><div class="geo-section-title"><h3>Record timeline</h3><span>Partner session</span></div><div class="geo-timeline"><div class="geo-timeline-item tone-${tone}"><i></i><div><strong>${esc(roaming.cdrStatus)}</strong><small>${esc(roaming.location)} · ${esc(roaming.settlement)}</small></div><time>${dateTime(roaming.recordedAt)}</time></div></div></div><button type="button" class="secondary-button full-button" data-view="roaming">Open roaming ledger ${icon("arrow")}</button>`;
+}
+function geographyPage() {
+  const sites = filterByCountry(ownSites, country);
+  const roaming = roamingSessions;
+  const selectedSite = sites.find((site) => site.id === selectedMapSite) ?? sites[0];
+  const selectedRoaming = roaming.find((session) => session.id === selectedRoamingLocation) ?? roaming[0];
+  const selectedId = mapScope === "owned" ? selectedSite?.id : selectedRoaming?.id;
+  const scopeControls = `<div class="map-scope-switch" role="group" aria-label="Geographic scope"><button type="button" data-map-scope="owned" aria-pressed="${mapScope === "owned"}" class="${mapScope === "owned" ? "is-active" : ""}"><span>Owned network</span><b>NL · BE</b></button><button type="button" data-map-scope="roaming" aria-pressed="${mapScope === "roaming"}" class="${mapScope === "roaming" ? "is-active" : ""}"><span>Chargecard roaming</span><b>Europe</b></button></div>`;
+  const scopeStats = mapScope === "owned"
+    ? `<span><b>${sites.length}</b> locations</span><span><b>${formatNumber(getSiteMetrics(sites).chargePoints)}</b> charge points</span><span><b>${formatNumber(getSiteMetrics(sites).parkingSpaces)}</b> parking spaces</span>`
+    : `<span><b>${roaming.length}</b> sample sessions</span><span><b>${new Set(roaming.map((session) => session.countryCode)).size}</b> countries</span><span><b>${formatEuro(roaming.reduce((sum, session) => sum + session.amount, 0))}</b> sample value</span>`;
+  return `${heading("Geographic network", "Explore your owned charging and parking locations in Belgium and the Netherlands, alongside Chargecard roaming across Europe.")}
+    <div class="geo-toolbar">${scopeControls}<div class="geo-scope-stats">${scopeStats}</div>${mapScope === "owned" ? countryTabs() : ""}</div>
+    <div class="geo-workbench">
+      <section class="geo-pane geo-map-pane"><header class="geo-pane-heading"><div><span class="eyebrow">${mapScope === "owned" ? "OWNED LOCATIONS" : "EUROPEAN PARTNER NETWORK"}</span><h2>${mapScope === "owned" ? "Belgium & the Netherlands" : "Chargecard roaming"}</h2></div><span class="geo-map-count"><i></i>${mapScope === "owned" ? `${sites.length} sites` : `${roaming.length} sample locations`}</span></header><div class="geo-map-surface">${mapSvg(sites, roaming)}</div><footer class="geo-map-footer"><span><i class="geo-legend-dot${mapScope === "roaming" ? " is-roaming" : ""}"></i>${mapScope === "owned" ? "Owned site" : "Partner session"}</span>${mapScope === "owned" ? '<span><i class="geo-legend-dot is-warning"></i>Availability watch</span>' : '<span><i class="geo-legend-dot is-warning"></i>Needs review</span>'}<small>Illustrative city-center positions · not exact charger addresses</small></footer></section>
+      <section class="geo-pane geo-list-pane"><header class="geo-pane-heading"><div><span class="eyebrow">${mapScope === "owned" ? "SITE DIRECTORY" : "PARTNER SESSIONS"}</span><h2>${mapScope === "owned" ? "Locations" : "Recent roaming"}</h2></div><span class="geo-list-count">${mapScope === "owned" ? sites.length : roaming.length}</span></header><div class="geo-location-list">${geographyList(sites, roaming, selectedId)}</div><p class="geo-list-footnote">${mapScope === "owned" ? "Owned sites include their parking setting and charge point availability." : "Roaming records are partner locations, separate from owned assets."}</p></section>
+      <aside class="geo-pane geo-details-pane">${geographyDetails(selectedSite, selectedRoaming)}</aside>
+    </div><div class="workspace-footnote">Map boundaries are stored locally and render without external tiles. Location markers use synthetic fixture data and approximate city centers.</div>`;
+}
 function energyPage() {
   const rows = ownSites.map((site) => {
     const percent = Math.round((site.currentKw / site.capacityKw) * 100);
@@ -224,6 +313,7 @@ function page() {
   switch (currentView) {
     case "operations": return operationsPage();
     case "sites": return sitesPage();
+    case "geography": return geographyPage();
     case "sessions": return sessionsPage();
     case "roaming": return roamingPage();
     case "energy": return energyPage();
@@ -311,8 +401,19 @@ root.addEventListener("click", (event) => {
     render();
     return;
   }
+  const mapScopeButton = event.target.closest("[data-map-scope]");
+  if (mapScopeButton) { mapScope = mapScopeButton.dataset.mapScope; country = "all"; render(); return; }
+  const mapSite = event.target.closest("[data-map-site]");
+  if (mapSite) { selectedMapSite = mapSite.dataset.mapSite; render(); return; }
+  const mapRoaming = event.target.closest("[data-map-roaming]");
+  if (mapRoaming) { selectedRoamingLocation = mapRoaming.dataset.mapRoaming; render(); return; }
   const countryButton = event.target.closest("[data-country]");
-  if (countryButton) { country = countryButton.dataset.country; render(); return; }
+  if (countryButton) {
+    country = countryButton.dataset.country;
+    if (currentView === "geography" && mapScope === "owned") selectedMapSite = filterByCountry(ownSites, country)[0]?.id;
+    render();
+    return;
+  }
   const session = event.target.closest("[data-session]");
   if (session) { selectedSession = session.dataset.session; render(); return; }
   const entity = event.target.closest("[data-entity]");
@@ -346,6 +447,12 @@ root.addEventListener("input", (event) => {
   }
 });
 window.addEventListener("hashchange", () => { currentView = viewFromHash(); search = ""; country = "all"; render(); });
+root.addEventListener("keydown", (event) => {
+  const marker = event.target.closest?.("[data-map-site], [data-map-roaming]");
+  if (!marker || (event.key !== "Enter" && event.key !== " ")) return;
+  event.preventDefault();
+  marker.click();
+});
 window.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); root.querySelector("#global-search")?.focus(); }
   if (event.key === "Escape") { root.querySelector("#dialog-root").innerHTML = ""; if (sidebarOpen) { sidebarOpen = false; root.querySelector(".app-frame")?.classList.remove("sidebar-open"); } }
