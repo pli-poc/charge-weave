@@ -6,6 +6,7 @@ on:
     paths:
       [
         "website/**",
+        "console-app/**",
         "model/**",
         "ontology/**",
         "validation/**",
@@ -16,6 +17,7 @@ on:
     paths:
       [
         "website/**",
+        "console-app/**",
         "model/**",
         "ontology/**",
         "validation/**",
@@ -45,9 +47,15 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: |
+            website/package-lock.json
+            console-app/package-lock.json
+      - run: npm ci --prefix ../console-app
       - run: npm ci
+      - run: npm run test --prefix ../console-app
+      - run: npm run build --prefix ../console-app
       - run: npm run build
+      - run: mkdir -p dist/app && cp -R ../console-app/dist/. dist/app/
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - name: Save browser report and screenshots

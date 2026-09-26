@@ -1,6 +1,6 @@
-# ChargeWeave product site and ontology explorer
+# ChargeWeave product site, operations console, and ontology explorer
 
-React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture, roadmap and an executable browser-only synthetic runtime. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
+React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture, roadmap and an executable browser-only synthetic runtime. The isolated `console-app/` package builds a ChargeWeave operations-console concept into `/app/` on the same GitHub Pages site. Its demonstration data covers owned charge points and parking locations in the Netherlands and Belgium, plus Europe-wide Chargecard roaming, all in EUR. It has no production data connections.
 
 ## Pages
 
@@ -17,12 +17,13 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `developer/switchboard/`     | Independent virtual, observe, hybrid and live adapter modes                                           |
 | `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
 | `developer/replay/`          | Seeded data generation, virtual time, fault injection and reproducible run records                     |
+| `app/`                       | Isolated operations console concept for owned NL/BE sites, European Chargecard roaming, energy, finance and data views |
 
 Each page has a real static `index.html` entry and page-specific metadata, so direct links and refreshes work on GitHub Pages. Class selection is shareable, for example `ontology/?class=TariffVersion`. The concept image is available from a disclosure at the bottom of the explorer; it is a visual study, not the source of model facts.
 
 ## Develop and verify
 
-Use Node.js 24 and npm:
+Use Node.js 24 and npm. The website and operations console have separate npm projects and lockfiles:
 
 ```sh
 cd website
@@ -32,6 +33,16 @@ npm run build
 npx playwright install chromium
 npm test
 ```
+
+```sh
+cd console-app
+npm ci
+npm run dev
+npm test
+npm run build
+```
+
+The deployment workflow builds `console-app/` independently, then copies its static output into `website/dist/app/`. The console uses only browser-side synthetic fixtures. Its demo source module is a replaceable data-provider boundary; it does not call OCPP, OCPI, payments, roaming hubs, or production storage.
 
 The prebuild/predev task runs `scripts/build-model.mjs`. It reads the existing `model/catalog.json`, `model/rules.json`, `model/domain.schema`, the complete ontology Turtle, and the structural/vocabulary SHACL. It does not modify ontology sources or their generated artifacts. N3 parses the actual RDF; no graph edges are fabricated from an image. Source model updates are handled by the repository's existing generators before the website build.
 
