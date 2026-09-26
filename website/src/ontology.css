@@ -1488,3 +1488,57 @@
     font-size: 12px;
   }
 }
+
+/* Keep the working canvas and temporal summary visible together. */
+@media (min-width: 851px) {
+  body:has(.ontology-page) .header {
+    height: 72px;
+  }
+  .ontology-page {
+    padding-top: 24px;
+  }
+  .explorer-heading {
+    margin-bottom: 20px;
+  }
+  .explorer-heading .eyebrow {
+    margin-bottom: 8px;
+  }
+  .explorer-heading h1 {
+    line-height: 1.2;
+  }
+  .class-heading {
+    padding: 16px 22px;
+  }
+  .selected-class-title {
+    margin-top: 10px;
+  }
+  .class-heading > p {
+    margin-top: 8px;
+  }
+  .class-meta {
+    margin-top: 12px;
+  }
+  .inspected-name {
+    padding-block: 16px;
+  }
+  .inspector-heading {
+    padding-block: 14px;
+  }
+  .inspector-section {
+    padding-block: 20px;
+  }
+  .contract-facts {
+    gap: 13px;
+  }
+}
+.code-contract summary {
+  color: #9dc7b8;
+  font-size: 12px;
+  cursor: pointer;
+}
+.code-contract {
+  margin-top: 0;
+}
+.code-contract[open] summary {
+  margin-bottom: 12px;
+}

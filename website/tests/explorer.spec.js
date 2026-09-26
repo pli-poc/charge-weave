@@ -28,6 +28,12 @@ for (const [route, title] of [
       ),
     );
     await page.evaluate(() => document.fonts.ready);
+    if (route === "ontology" && testInfo.project.name === "desktop") {
+      await expect(
+        page.getByRole("button", { name: "validFrom", exact: true }),
+      ).toBeInViewport();
+      await expect(page.locator(".focus-node")).toBeInViewport();
+    }
     await expect(page.locator('.nav a[aria-current="page"]')).toHaveAttribute(
       "href",
       `/charge-weave/${route}/`,

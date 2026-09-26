@@ -100,7 +100,7 @@ export function downloadTriples(rows, name) {
 let subjectsPromise;
 export function loadSubjects() {
   if (!subjectsPromise)
-    subjectsPromise = fetch(import.meta.env.BASE_URL + "model-triples.json")
+    subjectsPromise = fetch(import.meta.env.BASE_URL + model.triplesFile)
       .then((response) => {
         if (!response.ok) throw new Error("Schema data could not be loaded.");
         return response.json();

@@ -29,7 +29,7 @@ npm test
 
 The prebuild/predev task runs `scripts/build-model.mjs`. It reads the existing `model/catalog.json`, `model/rules.json`, `model/domain.schema`, the complete ontology Turtle, and the structural/vocabulary SHACL. It does not modify ontology sources or their generated artifacts. N3 parses the actual RDF; no graph edges are fabricated from an image. Source model updates are handled by the repository's existing generators before the website build.
 
-The generated class catalog is loaded only by the explorer. Schema triples are fetched separately when needed, keeping the marketing pages independent of the full RDF data. Generated web data and build output are ignored and regenerated on every build. The inspector displays the source model version and schema digest.
+The generated class catalog is loaded only by the explorer. Schema triples are fetched separately when needed, keeping the marketing pages independent of the full RDF data. A content-hashed data filename keeps cached triples aligned with the generated class snapshot. Generated web data and build output are ignored and regenerated on every build. The inspector displays the source model version and schema digest.
 
 ## Explorer semantics
 

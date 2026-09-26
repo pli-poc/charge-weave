@@ -100,7 +100,17 @@ for (const [name, info] of Object.entries(classes)) {
 for (const rule of rules)
   if (!fs.existsSync(path.join(root, "queries", rule.id + ".rq")))
     throw new Error("Missing source rule: " + rule.id);
+const triplesJson = JSON.stringify(subjects);
+const triplesFile =
+  "model-triples-" +
+  createHash("sha256").update(triplesJson).digest("hex").slice(0, 12) +
+  ".json";
+for (const file of fs.readdirSync(path.join(root, "website/public"))) {
+  if (/^model-triples(?:-[a-f0-9]{12})?\.json$/.test(file))
+    fs.unlinkSync(path.join(root, "website/public", file));
+}
 const data = {
+  triplesFile,
   version,
   namespace,
   sourceHash,
@@ -111,10 +121,7 @@ const data = {
   prefixes,
 };
 fs.mkdirSync(path.join(root, "website/src/generated"), { recursive: true });
-fs.writeFileSync(
-  path.join(root, "website/public/model-triples.json"),
-  JSON.stringify(subjects),
-);
+fs.writeFileSync(path.join(root, "website/public", triplesFile), triplesJson);
 fs.writeFileSync(
   path.join(root, "website/src/generated/model.json"),
   JSON.stringify(data),

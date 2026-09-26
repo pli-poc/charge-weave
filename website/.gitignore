@@ -4,4 +4,4 @@ playwright-report/
 test-results/
 .sites-runtime/
 src/generated/
-public/model-triples.json
+public/model-triples*.json

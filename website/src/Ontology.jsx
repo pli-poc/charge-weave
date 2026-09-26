@@ -629,14 +629,12 @@ export default function Ontology() {
     setInspector("semantic");
     if (matchMedia("(max-width: 1349px)").matches) {
       requestAnimationFrame(() =>
-        document
-          .querySelector(".inspector")
-          ?.scrollIntoView({
-            block: "start",
-            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "auto"
-              : "smooth",
-          }),
+        document.querySelector(".inspector")?.scrollIntoView({
+          block: "start",
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+        }),
       );
     }
   }
@@ -1024,9 +1022,6 @@ export default function Ontology() {
                     )}
                     {selectedField.type === "object" && (
                       <>
-                        <p className="inspector-copy">
-                          {model.classes[selectedField.range].definition}
-                        </p>
                         <button
                           className="inspector-link"
                           onClick={() => navigate(selectedField.range)}
@@ -1036,20 +1031,6 @@ export default function Ontology() {
                         </button>
                       </>
                     )}
-                    <div className="code-contract">
-                      <span>SHACL field shape</span>
-                      <code>
-                        cd:{selectedField.owner}_{selectedField.property}Shape
-                      </code>
-                      <p>
-                        {["!", "+"].includes(selectedField.cardinality)
-                          ? "At least one value required."
-                          : "No minimum count required."}{" "}
-                        {["!", "?"].includes(selectedField.cardinality)
-                          ? "At most one value."
-                          : "No maximum count specified."}
-                      </p>
-                    </div>
                   </>
                 ) : (
                   <>
@@ -1108,6 +1089,27 @@ export default function Ontology() {
                 <p className="inspector-label">
                   Evidence, not a live validation
                 </p>
+                {selectedField && (
+                  <details className="code-contract">
+                    <summary>SHACL field shape</summary>
+                    <code>
+                      cd:{selectedField.owner}_{selectedField.property}Shape
+                    </code>
+                    <p>
+                      {["!", "+"].includes(selectedField.cardinality)
+                        ? "At least one value required."
+                        : "No minimum count required."}{" "}
+                      {["!", "?"].includes(selectedField.cardinality)
+                        ? "At most one value."
+                        : "No maximum count specified."}
+                    </p>
+                  </details>
+                )}
+                {selectedField?.type === "object" && (
+                  <p className="inspector-copy">
+                    {model.classes[selectedField.range].definition}
+                  </p>
+                )}
                 <p className="inspector-copy">
                   Cardinality comes from the class contract. Additional
                   constraints and business rules remain in the linked SHACL and
