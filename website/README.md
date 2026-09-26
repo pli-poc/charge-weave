@@ -36,7 +36,7 @@ The generated class catalog is loaded only by the explorer. Schema triples are f
 - Graph arrows summarize object-property **class contracts**, not instance assertions. They retain property direction and per-class cardinality; pagination keeps large neighborhoods readable. An accessible relationship list offers the same inspection actions.
 - Selecting an edge inspects the property on the declaring class. Following a node changes the focused class. Fields can include inherited contracts, and rules include targets on the selected class and its ancestors.
 - The triples view displays real source-backed OWL and structural/vocabulary SHACL, with referenced blank-node closure. Filter by subject, predicate, object or source; export the current filtered set as N-Triples. Blank-node display aliases do not change exported identities.
-- The temporal inspector lists declared date/time fields and record provenance. `createdAt` and `revision` are explicitly distinguished from a complete system-time history.
+- The temporal inspector lists declared date/time fields, their roles, linked interval/recurrence definitions and record provenance. It identifies the relationship source/target context and links to the whole-model temporal review. `createdAt` and `revision` are explicitly distinguished from a complete system-time history.
 - The correction controls are a **synthetic design illustration** of effective-time/known-time selection, not live queries and not an implemented bitemporal store.
 - Rules are inspectable SPARQL definitions. This viewer does not execute validation, reasoning, arbitrary SPARQL, GraphQL or operational commands. No claim of business completeness follows from viewing the definitions.
 

@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COUNTED_REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tests.json',
                    'trust-boundary-tests.json', 'release-checks.json',
                    'business-acceptance.json', 'business-traceability.json',
-                   'lifecycle-tests.json', 'naming-checks.json') + tuple(
+                   'lifecycle-tests.json', 'naming-checks.json', 'temporal-audit.json') + tuple(
     'journey-' + family + '.json' for family in
     ('closure', 'charge', 'credit', 'offline', 'reimbursement', 'privacy', 'energy',
      'migration', 'asset', 'allowance', 'access', 'settlement', 'process'))

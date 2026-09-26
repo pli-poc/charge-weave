@@ -55,6 +55,9 @@ jobs:
           - gate: Lifecycle acceptance
             id: lifecycle
             command: python tools/test_lifecycle.py
+          - gate: Temporal audit evidence
+            id: temporal-audit
+            command: python tools/audit_temporal.py
           - gate: Current source naming
             id: naming
             command: python tools/check_naming.py

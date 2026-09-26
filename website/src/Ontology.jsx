@@ -32,16 +32,18 @@ import {
   loadSubjects,
 } from "./model-utils";
 import "./ontology.css";
+import { isTime, isTimeLink, timeRole } from "./temporal-utils";
 const base = import.meta.env.BASE_URL,
   repo = "https://github.com/pli-poc/charge-weave";
 const sourceLink = (path) => repo + "/blob/main/" + path;
-const isTime = (f) => ["dateTime", "date", "time"].includes(f.range);
+
 function Chip({ children, tone = "" }) {
   return <span className={"explorer-chip " + tone}>{children}</span>;
 }
-function TimeInspector({ name }) {
+function TimeInspector({ name, relationship }) {
   const fields = fieldsFor(name),
-    times = fields.filter((f) => isTime(f) && f.property !== "createdAt");
+    times = fields.filter((f) => isTime(f) && f.property !== "createdAt"),
+    windows = fields.filter(isTimeLink);
   const [validAt, setValidAt] = useState("2026-05-02"),
     [knownAt, setKnownAt] = useState("2026-05-02");
   const value =
@@ -56,14 +58,27 @@ function TimeInspector({ name }) {
         : "€0.35";
   return (
     <>
-      <div className="inspector-section">
+      {relationship?.type === "object" && (
+        <div className="inspector-section temporal-context">
+          <p className="inspector-label">Relationship context</p>
+          <code>{relationship.owner}.{relationship.property} → {name}</code>
+          <p className="inspector-copy">
+            Showing the target definition. Its time fields do not by themselves
+            establish the history of this relationship.
+          </p>
+          <a className="inspector-link" href={base + "ontology/?class=" + relationship.owner}>
+            Inspect declaring class {relationship.owner}
+          </a>
+        </div>
+      )}
+      <div className="inspector-section temporal-fields">
         <p className="inspector-label">Declared time fields · {name}</p>
         {times.length ? (
           times.map((f) => (
             <div className="time-field" key={f.property}>
               <code>{f.property}</code>
               <span>
-                {cardinality[f.cardinality]} · {f.range}
+                {cardinality[f.cardinality]} · {f.range} · {timeRole(f)}
               </span>
             </div>
           ))
@@ -78,6 +93,23 @@ function TimeInspector({ name }) {
           validity windows serve different purposes.
         </p>
       </div>
+      {windows.length > 0 && (
+        <div className="inspector-section temporal-windows">
+          <p className="inspector-label">Linked temporal definitions</p>
+          {windows.map((f) => (
+            <div className="linked-time" key={f.owner + "." + f.property}>
+              <a className="inspector-link" href={base + "ontology/?class=" + f.range}>
+                {f.property} → {f.range}
+              </a>
+              <p className="inspector-hint">
+                {cardinality[f.cardinality]} · declared on {f.owner} · {f.range === "TimeWindow"
+                  ? "startsAt ≤ instant < endsAt; the referenced interval is half-open."
+                  : "Local start/end, weekday, timezone and exception windows; DST expansion is a runtime responsibility."}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="inspector-section">
         <p className="inspector-label">Record provenance</p>
         {fields
@@ -93,8 +125,20 @@ function TimeInspector({ name }) {
           system-time history.
         </p>
       </div>
+      <div className="inspector-section temporal-coverage">
+        <p className="inspector-label">System-time history</p>
+        <Chip tone="amber">Not defined in model {model.version}</Chip>
+        <p className="inspector-copy">
+          This schema has no shared system-time interval or validAt / knownAt
+          snapshot contract. Revision and receipt timestamps cannot supply that history.
+          Queries and validation use standard SPARQL; a SPARQL-T engine is not implemented.
+        </p>
+        <a className="inspector-link" href={sourceLink("docs/temporal-model-review.md")} target="_blank" rel="noreferrer">
+          Read the whole-model temporal review <ArrowUpRight size={14} />
+        </a>
+      </div>
       <div className="inspector-section temporal-lab">
-        <Chip tone="amber">Proposed runtime</Chip>
+        <Chip tone="amber">Illustration · not selected-class data</Chip>
         <h3>Two questions. Two times.</h3>
         <p className="inspector-copy">
           Explore a synthetic tariff correction. These controls illustrate the
@@ -639,7 +683,7 @@ export default function Ontology() {
     }
   }
   const temporalName =
-    selectedField?.type === "object" ? selectedField.range : name;
+    selectedField?.type === "object" ? selectedField.range : selectedField?.owner || name;
   const tabs = [
     ["relationships", Network, "Relationships"],
     ["triples", Braces, "Triples"],
@@ -1073,11 +1117,14 @@ export default function Ontology() {
                       </button>
                     ))}
                 </div>
-                <p className="inspector-copy">
-                  {fieldsFor(temporalName).filter(isTime).length
-                    ? "Inspect declared timestamps and inherited provenance."
-                    : "No date/time fields in this contract."}
-                </p>
+                <div className="inspector-copy">
+                  {fieldsFor(temporalName).filter(isTimeLink).map((f) => (
+                    <button className="inspector-link" key={f.property} onClick={() => setInspector("temporal")}>
+                      {f.property} → {f.range}
+                    </button>
+                  ))}
+                  No shared system-time history is defined. Open Temporal for field meanings and coverage.
+                </div>
                 <button
                   className="inspector-link"
                   onClick={() => setInspector("temporal")}
@@ -1132,7 +1179,7 @@ export default function Ontology() {
               </div>
             </>
           ) : (
-            <TimeInspector name={temporalName} />
+            <TimeInspector name={temporalName} relationship={selectedField} />
           )}
         </aside>
       </div>

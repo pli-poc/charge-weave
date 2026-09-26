@@ -59,6 +59,7 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Business and lifecycle acceptance | Valid/invalid business decisions and selected allowed/forbidden transitions |
 | Thirteen journey families | Complete conforming snapshots, cross-domain assertions and deliberate business faults |
 | Six adversarial families | Previously accepted business contradictions are rejected while legitimate counterpart snapshots remain valid |
+| Temporal audit evidence | All-class time inventory stays current; controlled boundary checks pass and independent full-graph temporal gaps are recorded, not declared closed |
 | Current source naming | Removed platform name does not recur in current paths/content |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 
@@ -82,3 +83,5 @@ authoritative package is the Actions artifact, whose reports come from one run.
 
 No workflow automatically updates the benchmark from a moving website or treats
 technical success as independent business completeness. The completed semantic review has its own [findings and evidence boundary](business-domain-audit.md).
+
+Temporal review: run `python tools/audit_temporal.py`. After class contracts change, regenerate `docs/temporal-coverage.md` with `--write-inventory` and review the results. `reports/temporal-audit.json` separates successful audit controls from observed gaps.

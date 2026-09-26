@@ -1542,3 +1542,8 @@
 .code-contract[open] summary {
   margin-bottom: 12px;
 }
+
+.temporal-context code { display: block; overflow-wrap: anywhere; color: #aab9c9; font-size: 12px; }
+.temporal-windows .linked-time + .linked-time { margin-top: 12px; }
+.temporal-fields .time-field span { max-width: 62%; text-align: right; }
+.temporal-coverage .explorer-chip { white-space: normal; }

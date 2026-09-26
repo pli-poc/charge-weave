@@ -151,3 +151,30 @@ test("ontology relationships, real triples, inheritance and temporal inspector w
   const catalog = JSON.parse(fs.readFileSync("../model/catalog.json", "utf8"));
   expect(targets.every((name) => Boolean(catalog[name]))).toBe(true);
 });
+
+test("temporal inspector exposes interval links, time roles and coverage boundaries", async ({ page }, testInfo) => {
+  for (const [name, link, range] of [
+    ["ChargingInterval", "interval", "TimeWindow"],
+    ["Booking", "bookingWindow", "TimeWindow"],
+    ["GridConnection", "effectiveWindow", "TimeWindow"],
+    ["ChargingSite", "openingWindow", "RecurringWindow"],
+  ]) {
+    await page.goto(`ontology/?class=${name}`);
+    await page.getByRole("button", { name: "Temporal", exact: true }).click();
+    await expect(page.locator(".temporal-windows")).toContainText(`${link} → ${range}`);
+    await expect(page.locator(".temporal-windows a").filter({ hasText: `${link} → ${range}` })).toHaveAttribute("href", `/charge-weave/ontology/?class=${range}`);
+    await expect(page.locator(".temporal-coverage")).toContainText("Not defined in model");
+    await expect(page.locator(".temporal-lab")).toContainText("not selected-class data");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.goto("ontology/?class=SourceEvent");
+  await page.getByRole("button", { name: "Temporal", exact: true }).click();
+  await expect(page.locator(".time-field").filter({ hasText: "occurredAt" })).toContainText("Event / observation time");
+  await expect(page.locator(".time-field").filter({ hasText: "receivedAt" })).toContainText("Receipt time");
+  await page.goto("ontology/?class=ChargingSession");
+  await page.getByRole("button", { name: "Temporal", exact: true }).click();
+  await expect(page.locator(".temporal-context")).toContainText("ChargingSession.selectedTariff → TariffVersion");
+  await expect(page.locator(".temporal-context")).toContainText("do not by themselves establish the history of this relationship");
+  await page.screenshot({ path: testInfo.outputPath("temporal-review.png"), fullPage: true });
+  await testInfo.attach("temporal-review", { path: testInfo.outputPath("temporal-review.png"), contentType: "image/png" });
+});

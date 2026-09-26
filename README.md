@@ -8,6 +8,10 @@ Version **1.1.1** includes **277 classes in 18 modules, 1,165 properties, 206 co
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 
+## Temporal modelling status
+
+Temporal support is **partial**: validity periods, event/receipt timestamps and selected version/correction records exist. A shared bitemporal assertion/snapshot contract and executable `validAt` / `knownAt` queries are not implemented. Read the [whole-model temporal review](docs/temporal-model-review.md) and [all-class inventory](docs/temporal-coverage.md). The temporal audit gate records demonstrated gaps; passing it does not close those gaps.
+
 ## Product presentation website
 
 The React product site lives in [`website/`](website/README.md), with a landing overview and dedicated capability, architecture and roadmap pages. Its [ontology explorer](https://pli-poc.github.io/charge-weave/ontology/) exposes the published classes, relationships, OWL/SHACL triples, business rules and temporal definitions without requiring a local ontology tool. The [website workflow](https://github.com/pli-poc/charge-weave/actions/workflows/website-pages.yml) builds and checks desktop/mobile behavior before deploying to GitHub Pages. The website describes the product direction, not a production service.
