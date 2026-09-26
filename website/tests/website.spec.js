@@ -64,7 +64,7 @@ test("the presentation loads at the Pages subpath and supports exploration", asy
     await expect(
       page.getByRole("button", { name: "Open navigation" }),
     ).toHaveAttribute("aria-expanded", "false");
-    await expect(page).toHaveURL(/#roadmap$/);
+    await expect(page).toHaveURL(/\/roadmap\/$/);
   }
   const missingTargets = await page
     .locator('a[href^="#"]')

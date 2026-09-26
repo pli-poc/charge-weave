@@ -1,6 +1,18 @@
-# ChargeWeave presentation website
+# ChargeWeave product site and ontology explorer
 
-React + Vite marketing mockup using the Midnight Network direction. This is a static presentation of the product direction, not the operational platform. Capabilities and architecture are explicitly identified as planned; the semantic foundation is linked to the existing project documentation.
+React + Vite presentation site using the Midnight Network direction. The landing page remains an overview; dedicated pages describe the planned capabilities, architecture and roadmap. A read-only ontology explorer makes the published repository definitions inspectable. This is not the operational charging platform.
+
+## Pages
+
+| Route under `/charge-weave/` | Content                                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `/`                          | Original product overview and use-case presentation                                                 |
+| `capabilities/`              | Six capability areas, scenarios, boundaries and linked model definitions                            |
+| `ontology/`                  | Searchable classes, directed relationships, fields, OWL/SHACL triples, rules and temporal inspector |
+| `architecture/`              | Proposed runtime, service boundaries, validation and temporal query design                          |
+| `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
+
+Each page has a real static `index.html` entry and page-specific metadata, so direct links and refreshes work on GitHub Pages. Class selection is shareable, for example `ontology/?class=TariffVersion`. The concept image is available from a disclosure at the bottom of the explorer; it is a visual study, not the source of model facts.
 
 ## Develop and verify
 
@@ -15,14 +27,27 @@ npx playwright install chromium
 npm test
 ```
 
-The site is served at `/charge-weave/`, matching its GitHub Pages project path. Navigation uses section anchors so direct links work on static hosting without server rewrites. Capability details use native disclosure controls; use-case selectors and the mobile menu are React interactions. There are no accounts, forms, analytics, external API calls or live charging functions.
+The prebuild/predev task runs `scripts/build-model.mjs`. It reads the existing `model/catalog.json`, `model/rules.json`, `model/domain.schema`, the complete ontology Turtle, and the structural/vocabulary SHACL. It does not modify ontology sources or their generated artifacts. N3 parses the actual RDF; no graph edges are fabricated from an image. Source model updates are handled by the repository's existing generators before the website build.
 
-## Deployment
+The generated class catalog is loaded only by the explorer. Schema triples are fetched separately when needed, keeping the marketing pages independent of the full RDF data. Generated web data and build output are ignored and regenerated on every build. The inspector displays the source model version and schema digest.
 
-`.github/workflows/website-pages.yml` installs locked dependencies, builds, checks the production site on desktop and mobile Chromium, and deploys the verified artifact to GitHub Pages on `main`. Pull requests run the same build and browser checks without deploying. Test screenshots and reports are retained as workflow artifacts.
+## Explorer semantics
 
-One-time repository setup: **Settings → Pages → Build and deployment → Source → GitHub Actions**. The GitHub connector used to author files does not expose Pages administration. The deployment job requires `pages: write` and `id-token: write`; the build has read-only repository access.
+- Graph arrows summarize object-property **class contracts**, not instance assertions. They retain property direction and per-class cardinality; pagination keeps large neighborhoods readable. An accessible relationship list offers the same inspection actions.
+- Selecting an edge inspects the property on the declaring class. Following a node changes the focused class. Fields can include inherited contracts, and rules include targets on the selected class and its ancestors.
+- The triples view displays real source-backed OWL and structural/vocabulary SHACL, with referenced blank-node closure. Filter by subject, predicate, object or source; export the current filtered set as N-Triples. Blank-node display aliases do not change exported identities.
+- The temporal inspector lists declared date/time fields and record provenance. `createdAt` and `revision` are explicitly distinguished from a complete system-time history.
+- The correction controls are a **synthetic design illustration** of effective-time/known-time selection, not live queries and not an implemented bitemporal store.
+- Rules are inspectable SPARQL definitions. This viewer does not execute validation, reasoning, arbitrary SPARQL, GraphQL or operational commands. No claim of business completeness follows from viewing the definitions.
 
-Expected public URL: https://pli-poc.github.io/charge-weave/
+## Deployment and checks
 
-For a custom domain or renamed repository, update `base` in `vite.config.js` and the canonical Open Graph URL in `index.html` together. The generated charging-campus concept image is committed as compressed WebP. It illustrates the design direction and does not depict an operating ChargeWeave installation. Manrope fonts are served locally from the npm package. No customer logos, scale claims or certifications are implied.
+`.github/workflows/website-pages.yml` installs locked dependencies, builds, checks the production artifact with desktop and mobile Chromium, and deploys to GitHub Pages on `main`. Relevant model and RDF changes also trigger the website workflow. Pull requests run checks without deploying. Screenshots and reports are retained as workflow artifacts.
+
+Checks cover existing landing interactions, direct page loads, responsive overflow, navigation, class search, edge inspection, inheritance, source RDF export, rule inspection, temporal examples and class deep links.
+
+GitHub Pages must use **Settings → Pages → Source → GitHub Actions**. The deployment job requires `pages: write` and `id-token: write`; the build has read-only repository access.
+
+Public URL: https://pli-poc.github.io/charge-weave/
+
+For a custom domain or renamed repository, update the Vite `base` and page metadata origins together. There are no accounts, analytics, forms or live customer data. Manrope is served locally. The campus image and explorer concept were generated for this presentation; they do not depict an operating ChargeWeave installation. Both are committed as compressed WebP assets.

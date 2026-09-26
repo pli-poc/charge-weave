@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "test": "playwright test"
+    "test": "playwright test",
+    "prebuild": "node scripts/build-model.mjs",
+    "predev": "node scripts/build-model.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
@@ -18,6 +20,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@vitejs/plugin-react": "6.1.1",
+    "n3": "^2.7.12",
     "vite": "8.3.1"
   }
 }

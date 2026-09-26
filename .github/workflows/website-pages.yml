@@ -3,9 +3,25 @@ name: Website / GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ["website/**", ".github/workflows/website-pages.yml"]
+    paths:
+      [
+        "website/**",
+        "model/**",
+        "ontology/**",
+        "validation/**",
+        "queries/**",
+        ".github/workflows/website-pages.yml",
+      ]
   pull_request:
-    paths: ["website/**", ".github/workflows/website-pages.yml"]
+    paths:
+      [
+        "website/**",
+        "model/**",
+        "ontology/**",
+        "validation/**",
+        "queries/**",
+        ".github/workflows/website-pages.yml",
+      ]
   workflow_dispatch:
 
 permissions:

@@ -10,7 +10,7 @@ Each journey covers contracting, onboarding, operation, change, suspension and t
 
 ## Product presentation website
 
-The React marketing mockup lives in [`website/`](website/README.md), with planned capabilities, use cases, temporal design and the proposed runtime architecture. The [website workflow](https://github.com/pli-poc/charge-weave/actions/workflows/website-pages.yml) builds and checks desktop/mobile behavior before deploying to GitHub Pages. The website describes the product direction, not a production service.
+The React product site lives in [`website/`](website/README.md), with a landing overview and dedicated capability, architecture and roadmap pages. Its [ontology explorer](https://pli-poc.github.io/charge-weave/ontology/) exposes the published classes, relationships, OWL/SHACL triples, business rules and temporal definitions without requiring a local ontology tool. The [website workflow](https://github.com/pli-poc/charge-weave/actions/workflows/website-pages.yml) builds and checks desktop/mobile behavior before deploying to GitHub Pages. The website describes the product direction, not a production service.
 
 ## Start here
 
