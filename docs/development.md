@@ -34,6 +34,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |
 | `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
+| `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
 | `tools/build_queries.py` | Competency questions and CQ queries |
 | `tests/negative-cases.json`, `tools/test_*.py` | Validation reports |
 
@@ -59,7 +60,8 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Business and lifecycle acceptance | Valid/invalid business decisions and selected allowed/forbidden transitions |
 | Thirteen journey families | Complete conforming snapshots, cross-domain assertions and deliberate business faults |
 | Six adversarial families | Previously accepted business contradictions are rejected while legitimate counterpart snapshots remain valid |
-| Temporal audit evidence | All-class time inventory stays current; controlled boundary checks pass and independent full-graph temporal gaps are recorded, not declared closed |
+| Temporal audit evidence | All-class time inventory stays current; controlled boundary checks pass and all five full-graph fault classes must be rejected by their intended checks |
+| Temporal writer and query acceptance | Corrections, retractions, immutable aggregates, historical joins, source checkpoints, replay, calendars and forecasts follow the reference contract |
 | Current source naming | Removed platform name does not recur in current paths/content |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 
@@ -84,4 +86,4 @@ authoritative package is the Actions artifact, whose reports come from one run.
 No workflow automatically updates the benchmark from a moving website or treats
 technical success as independent business completeness. The completed semantic review has its own [findings and evidence boundary](business-domain-audit.md).
 
-Temporal review: run `python tools/audit_temporal.py`. After class contracts change, regenerate `docs/temporal-coverage.md` with `--write-inventory` and review the results. `reports/temporal-audit.json` separates successful audit controls from observed gaps.
+Temporal review: run `python tools/audit_temporal.py`. After class contracts change, regenerate `docs/temporal-coverage.md` with `--write-inventory` and review the results. `reports/temporal-audit.json` requires every controlled rejection. Run `python tools/test_temporal.py` for writer/query acceptance.

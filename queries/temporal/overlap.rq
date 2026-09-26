@@ -1,0 +1,12 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?commit ?slice ?graph ?start ?end
+WHERE {
+  # Bind tenant, scope, knownAt, windowStart and windowEnd; half-open overlap.
+  ?commit a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?recorded; cd:temporalSlice ?slice.
+  FILTER(?recorded<=?knownAt)
+  FILTER NOT EXISTS {?later cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?t. FILTER(?t>?recorded && ?t<=?knownAt)}
+  ?slice cd:validFrom ?start; cd:payloadGraph ?graph.
+  OPTIONAL {?slice cd:validUntil ?end}
+  FILTER(?windowStart<?windowEnd && ?start<?windowEnd && (!BOUND(?end)||?end>?windowStart))
+}
+ORDER BY ?start

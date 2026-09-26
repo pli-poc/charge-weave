@@ -36,4 +36,13 @@ def check(data,meta=False):
   return False,report,'Conforms: false\nInstance data contains trusted-schema redefinitions.\n'
  # Include the controlled individuals and transition table, not just schema inoculation.
  merged=ontology()+data
- return validate(merged,shacl_graph=shapes(),inference='none',advanced=True,meta_shacl=meta,allow_warnings=False)
+ ok,report,detail=validate(merged,shacl_graph=shapes(),inference='none',advanced=True,meta_shacl=meta,allow_warnings=False)
+ from temporal_integrity import integrity_errors
+ errors=integrity_errors(data)
+ if errors:
+  root=next(report.subjects(RDF.type,SH.ValidationReport))
+  report.set((root,SH.conforms,Literal(False)))
+  for node,path,shape,message in errors:
+   result=BNode();report.add((root,SH.result,result));report.add((result,RDF.type,SH.ValidationResult));report.add((result,SH.resultSeverity,SH.Violation));report.add((result,SH.focusNode,node));report.add((result,SH.resultPath,path));report.add((result,SH.sourceShape,C[shape]));report.add((result,SH.resultMessage,Literal(message)))
+  detail='Conforms: false (integrity supplement)\n'+detail+'\n'+ '\n'.join(e[3] for e in errors)
+ return bool(ok) and not errors,report,detail

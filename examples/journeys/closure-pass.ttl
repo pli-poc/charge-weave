@@ -190,7 +190,7 @@ ex:ChargingInterval a cd:ChargingInterval ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:exportedEnergyKWh 0.0 ;
     cd:importedEnergyKWh 0.0 ;
-    cd:interval ex:TimeWindow ;
+    cd:interval ex:SessionTimeWindow ;
     cd:intervalKind cd:intervalKind_Charging ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:session ex:ChargingSession ;
@@ -1690,6 +1690,28 @@ ex:TemplateApplication a cd:TemplateApplication ;
     cd:station ex:ChargingStation ;
     cd:tenant ex:Tenant .
 
+ex:TemporalSnapshotSelection a cd:TemporalSnapshotSelection ;
+    cd:canonicalId "TemporalSnapshotSelection-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:knownAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:selectedCommit ex:TemporalCommit ;
+    cd:selectedSlice ex:TemporalSlice ;
+    cd:selectionState cd:selectionState_Retracted ;
+    cd:snapshotScope <https://example.org/value/snapshotScope> ;
+    cd:tenant ex:Tenant ;
+    cd:validAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime .
+
+ex:TemporalStreamPolicy a cd:TemporalStreamPolicy ;
+    cd:allowedLatenessSeconds "1"^^xsd:nonNegativeInteger ;
+    cd:canonicalId "TemporalStreamPolicy-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:duplicateEventAction cd:duplicateEventAction_IgnoreIdentical ;
+    cd:lateEventAction cd:lateEventAction_Correct ;
+    cd:replayHorizonSeconds "1"^^xsd:positiveInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
 ex:TopUpOffer a cd:TopUpOffer ;
     cd:canonicalId "TopUpOffer-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -1949,7 +1971,7 @@ ex:CorporateBillingSnapshot a cd:CorporateBillingSnapshot ;
     cd:policyVersion "1"^^xsd:string ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:session ex:ChargingSession ;
-    cd:snapshotDigest "CorporateBillingSnapshot-snapshotDigest"^^xsd:string ;
+    cd:snapshotDigest "sha256:b70bcd166a734fc5205e8451f6cd461e0d440354f6334e43b6cbebd09c9a5ee4"^^xsd:string ;
     cd:tenant ex:Tenant .
 
 ex:CorrectedChargeDetailRecord a cd:ChargeDetailRecord ;
@@ -2279,6 +2301,19 @@ ex:ProcessStep a cd:ProcessStep ;
     cd:stepState cd:stepState_Pending ;
     cd:tenant ex:Tenant .
 
+ex:ProjectionWatermark a cd:ProjectionWatermark ;
+    cd:canonicalId "ProjectionWatermark-canonicalId"^^xsd:string ;
+    cd:completeThrough "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:maximumLatenessSeconds "1"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceOffset "1"^^xsd:nonNegativeInteger ;
+    cd:sourcePartition "ProjectionWatermark-sourcePartition"^^xsd:string ;
+    cd:sourceSystem "ProjectionWatermark-sourceSystem"^^xsd:string ;
+    cd:tenant ex:Tenant ;
+    cd:watermarkAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:watermarkState cd:watermarkState_Complete .
+
 ex:ProvisioningCertificate a cd:ProvisioningCertificate ;
     cd:canonicalId "ProvisioningCertificate-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2390,6 +2425,14 @@ ex:SessionEndEvidence a cd:SessionEndEvidence ;
     cd:sourceEvent ex:SourceEvent ;
     cd:tenant ex:Tenant .
 
+ex:SessionTimeWindow a cd:TimeWindow ;
+    cd:canonicalId "session-time-window"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:endsAt "2026-09-25T13:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:startsAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:tenant ex:Tenant .
+
 ex:SettlementBatch a cd:SettlementBatch ;
     cd:canonicalId "SettlementBatch-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2471,6 +2514,20 @@ ex:TaxRule a cd:TaxRule ;
     cd:taxName "TaxRule-taxName"^^xsd:string ;
     cd:tenant ex:Tenant ;
     cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
+
+ex:TemporalCommit a cd:TemporalCommit ;
+    cd:canonicalId "TemporalCommit-canonicalId"^^xsd:string ;
+    cd:commitReason "TemporalCommit-commitReason"^^xsd:string ;
+    cd:commitSequence "1"^^xsd:positiveInteger ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:mappingVersion "TemporalCommit-mappingVersion"^^xsd:string ;
+    cd:recordedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:schemaDigest "sha256:0000000000000000000000000000000000000000000000000000000000000000"^^xsd:string ;
+    cd:snapshotScope <https://example.org/value/snapshotScope> ;
+    cd:sourceWatermark ex:ProjectionWatermark ;
+    cd:temporalSlice ex:TemporalSlice ;
+    cd:tenant ex:Tenant .
 
 ex:Voucher a cd:Voucher ;
     cd:canonicalId "Voucher-canonicalId"^^xsd:string ;
@@ -2809,6 +2866,14 @@ ex:Tariff a cd:Tariff ;
     cd:tariffState cd:tariffState_Draft ;
     cd:tenant ex:Tenant .
 
+ex:TemporalSlice a cd:TemporalSlice ;
+    cd:canonicalId "TemporalSlice-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sliceState cd:sliceState_Retracted ;
+    cd:tenant ex:Tenant ;
+    cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
+
 ex:Wallet a cd:Wallet ;
     cd:balanceAmount 0.0 ;
     cd:balanceAsOf "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2992,7 +3057,7 @@ ex:TariffVersion a cd:TariffVersion ;
     cd:priceComponent ex:PriceComponent ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:roundingPolicy ex:RoundingPolicy ;
-    cd:snapshotDigest "TariffVersion-snapshotDigest"^^xsd:string ;
+    cd:snapshotDigest "sha256:4f378bc3b51687847185c0b5a28692868473f412f591137bd6abbdd62b0bcb16"^^xsd:string ;
     cd:tariff ex:Tariff ;
     cd:tariffMode cd:tariffMode_Priced ;
     cd:tenant ex:Tenant ;

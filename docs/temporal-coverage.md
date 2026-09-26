@@ -2,7 +2,7 @@
 
 Generated from every class contract by `python tools/audit_temporal.py --write-inventory`.
 Includes inherited fields. A date, event timestamp, interval link or revision is not evidence of complete bitemporal support.
-This table inventories structural coverage, not business completeness. See [the temporal review](temporal-model-review.md) for interpretation.
+This table inventories structural coverage, not business completeness. See [the temporal contract](temporal-contract.md) for the shared history semantics and closure evidence.
 
 | Module | Classes | Business date/time fields present | Linked time definitions present |
 |---|---:|---:|---:|
@@ -11,7 +11,7 @@ This table inventories structural coverage, not business completeness. See [the 
 | commands-booking | 6 | 3 | 2 |
 | device-management | 10 | 7 | 0 |
 | energy | 24 | 14 | 8 |
-| foundation | 15 | 7 | 1 |
+| foundation | 20 | 11 | 1 |
 | identity | 16 | 7 | 0 |
 | integration-experience | 21 | 7 | 1 |
 | operations | 13 | 7 | 4 |
@@ -25,282 +25,287 @@ This table inventories structural coverage, not business completeness. See [the 
 | subscriptions-benefits | 11 | 6 | 1 |
 | vehicles-authorization | 12 | 8 | 0 |
 
-| Class | Module | Business date/time fields | Linked intervals / recurrences | Record metadata |
-|---|---|---|---|---|
-| AssetLifecycleEvent | assets | effectiveAt | — | createdAt, revision |
-| CalibrationRecord | assets | validFrom, validUntil | — | createdAt, revision |
-| ChargingStation | assets | commissionedAt, manufacturedAt | — | createdAt, revision |
-| ChargingUnit | assets | — | — | createdAt, revision |
-| Connector | assets | — | — | createdAt, revision |
-| ConnectorCompatibility | assets | assessedAt | — | createdAt, revision |
-| DeviceCapability | assets | — | — | createdAt, revision |
-| ElectricalCircuit | assets | — | — | createdAt, revision |
-| ElectricalConnection | assets | — | — | createdAt, revision |
-| ElectricityMeter | assets | — | — | createdAt, revision |
-| EquipmentModel | assets | — | — | createdAt, revision |
-| Manufacturer | assets | — | — | createdAt, revision |
-| OperationalAcceptance | assets | acceptedAt | — | createdAt, revision |
-| OwnershipTransfer | assets | effectiveAt | — | createdAt, revision |
-| BillingProfile | billing-tax | — | — | createdAt, revision |
-| CreditNote | billing-tax | issuedAt | — | createdAt, revision |
-| CustomFee | billing-tax | assessedAt | — | createdAt, revision |
-| DocumentNumberSequence | billing-tax | — | — | createdAt, revision |
-| FiscalizationAttempt | billing-tax | attemptedAt | — | createdAt, revision |
-| Invoice | billing-tax | issuedAt, dueAt | — | createdAt, revision |
-| InvoiceLine | billing-tax | — | — | createdAt, revision |
-| RatedLine | billing-tax | — | — | createdAt, revision |
-| RatingCalculation | billing-tax | calculatedAt | — | createdAt, revision |
-| Receipt | billing-tax | issuedAt | — | createdAt, revision |
-| TaxDetermination | billing-tax | determinedAt | — | createdAt, revision |
-| TaxIdentifier | billing-tax | — | — | createdAt, revision |
-| TaxRule | billing-tax | validFrom, validUntil | — | createdAt, revision |
-| Booking | commands-booking | — | bookingWindow → TimeWindow | createdAt, revision |
-| BookingRequest | commands-booking | — | requestedWindow → TimeWindow | createdAt, revision |
-| CommandOutcome | commands-booking | reportedAt | — | createdAt, revision |
-| CommandParameter | commands-booking | — | — | createdAt, revision |
-| RemoteCommand | commands-booking | requestedAt, expiresAt | — | createdAt, revision |
-| Reservation | commands-booking | reservedAt, expiresAt | — | createdAt, revision |
-| ConfigurationTemplate | device-management | — | — | createdAt, revision |
-| ConfigurationTemplateEntry | device-management | — | — | createdAt, revision |
-| ConfigurationVariable | device-management | observedAt | — | createdAt, revision |
-| ConnectionObservation | device-management | observedAt, lastHeartbeatAt | — | createdAt, revision |
-| DiagnosticArtifact | device-management | requestedAt | — | createdAt, revision |
-| FirmwareDeployment | device-management | requestedAt, completedAt | — | createdAt, revision |
-| FirmwareRelease | device-management | releaseDate | — | createdAt, revision |
-| HardwareStatusObservation | device-management | observedAt | — | createdAt, revision |
-| ProtocolEndpoint | device-management | — | — | createdAt, revision |
-| TemplateApplication | device-management | requestedAt | — | createdAt, revision |
-| ChargingProfile | energy | relativeAnchor | — | createdAt, revision |
-| ChargingSchedule | energy | validFrom, validUntil | — | createdAt, revision |
-| ControlDecision | energy | — | interval → TimeWindow | createdAt, revision |
-| ControlGroupMembership | energy | validFrom, validUntil | — | createdAt, revision |
-| DemandResponseProgram | energy | — | — | createdAt, revision |
-| DistributedEnergyAsset | energy | — | — | createdAt, revision |
-| EnergyForecast | energy | issuedAt | horizon → TimeWindow | createdAt, revision |
-| ExportAgreement | energy | validFrom, validUntil | — | createdAt, revision |
-| FlexibilityActivation | energy | requestedAt | interval → TimeWindow | createdAt, revision |
-| FlexibilityAsset | energy | validUntil | — | createdAt, revision |
-| FlexibilityDelivery | energy | verifiedAt | — | createdAt, revision |
-| ForecastPoint | energy | — | interval → TimeWindow | createdAt, revision |
-| GridConnection | energy | — | effectiveWindow → TimeWindow | createdAt, revision |
-| LoadControlGroup | energy | — | — | createdAt, revision |
-| OverrideAuthorization | energy | validFrom, validUntil | — | createdAt, revision |
-| PhaseCurrentConstraint | energy | — | interval → TimeWindow | createdAt, revision |
-| PowerCabinet | energy | — | — | createdAt, revision |
-| PowerConstraint | energy | — | interval → TimeWindow | createdAt, revision |
-| PowerModuleAllocation | energy | — | interval → TimeWindow | createdAt, revision |
-| PriorityRule | energy | boostUntil | — | createdAt, revision |
-| ScheduleApplication | energy | appliedAt | — | createdAt, revision |
-| SchedulePeriod | energy | periodStart, periodEnd | — | createdAt, revision |
-| SmartChargingPreference | energy | departureAt | — | createdAt, revision |
-| UnmanagedLoadObservation | energy | observedAt | — | createdAt, revision |
-| Address | foundation | — | — | createdAt, revision |
-| Annotation | foundation | notedAt | — | createdAt, revision |
-| Currency | foundation | — | — | createdAt, revision |
-| CustomFieldDefinition | foundation | — | — | createdAt, revision |
-| CustomFieldValue | foundation | — | — | createdAt, revision |
-| EvidenceDocument | foundation | capturedAt | — | createdAt, revision |
-| ExchangeRate | foundation | quotedAt | — | createdAt, revision |
-| ExternalIdentifier | foundation | validFrom, validUntil | — | createdAt, revision |
-| GeoPosition | foundation | — | — | createdAt, revision |
-| Quantity | foundation | — | — | createdAt, revision |
-| Record | foundation | — | — | createdAt, revision |
-| RecurringWindow | foundation | localStart, localEnd | exceptionWindow → TimeWindow | createdAt, revision |
-| StateTransition | foundation | transitionedAt | — | createdAt, revision |
-| Tenant | foundation | — | — | — |
-| TimeWindow | foundation | startsAt, endsAt | — | createdAt, revision |
-| AccessGrant | identity | validFrom, validUntil | — | createdAt, revision |
-| AccountClosure | identity | requestedAt, completedAt | — | createdAt, revision |
-| ContactProfile | identity | — | — | createdAt, revision |
-| CustomerAccount | identity | — | — | createdAt, revision |
-| CustomerGroup | identity | — | — | createdAt, revision |
-| GroupMembership | identity | validFrom, validUntil | — | createdAt, revision |
-| LegalEntity | identity | — | — | createdAt, revision |
-| ManagementDelegation | identity | validFrom, validUntil | — | createdAt, revision |
-| OperatorService | identity | — | — | createdAt, revision |
-| PartyRole | identity | validFrom, validUntil | — | createdAt, revision |
-| Permission | identity | — | — | createdAt, revision |
-| Person | identity | — | — | createdAt, revision |
-| Principal | identity | — | — | createdAt, revision |
-| SecurityRole | identity | — | — | createdAt, revision |
-| ServiceEntitlement | identity | validFrom, validUntil | — | createdAt, revision |
-| UserDevice | identity | lastSeenAt | — | createdAt, revision |
-| ActionApproval | integration-experience | decidedAt | — | createdAt, revision |
-| ApiClient | integration-experience | — | — | createdAt, revision |
-| ApplicationInstallation | integration-experience | — | — | createdAt, revision |
-| AssistantRecommendation | integration-experience | generatedAt | — | createdAt, revision |
-| BrandProfile | integration-experience | — | — | createdAt, revision |
-| CommunicationLog | integration-experience | — | — | createdAt, revision |
-| ContentTemplate | integration-experience | — | — | createdAt, revision |
-| CustomerNotification | integration-experience | requestedAt | — | createdAt, revision |
-| EventDelivery | integration-experience | attemptedAt, nextRetryAt | — | createdAt, revision |
-| EventSubscription | integration-experience | — | — | createdAt, revision |
-| ExperienceChannel | integration-experience | — | — | createdAt, revision |
-| HelpArticle | integration-experience | — | — | createdAt, revision |
-| IntegrationConnection | integration-experience | — | — | createdAt, revision |
-| LifecycleSnapshot | integration-experience | effectiveAt | — | createdAt, revision |
-| MetricDefinition | integration-experience | — | — | createdAt, revision |
-| MetricObservation | integration-experience | calculatedAt | interval → TimeWindow | createdAt, revision |
-| MigrationBatch | integration-experience | — | — | createdAt, revision |
-| PlatformSetting | integration-experience | effectiveAt | — | createdAt, revision |
-| ProcessExecution | integration-experience | — | — | createdAt, revision |
-| ProcessStep | integration-experience | — | — | createdAt, revision |
-| ProtocolProfile | integration-experience | — | — | createdAt, revision |
-| AvailabilityPolicy | operations | — | — | createdAt, revision |
-| AvailabilityResult | operations | calculatedAt | interval → TimeWindow | createdAt, revision |
-| DowntimePeriod | operations | — | interval → TimeWindow | createdAt, revision |
-| InstallationJob | operations | scheduledAt, completedAt | — | createdAt, revision |
-| Issue | operations | openedAt, resolvedAt | — | createdAt, revision |
-| OperationalPeriod | operations | — | interval → TimeWindow | createdAt, revision |
-| RecoveryAttempt | operations | attemptedAt | — | createdAt, revision |
-| RecoveryExercise | operations | exercisedAt | — | createdAt, revision |
-| RecoveryPolicy | operations | — | — | createdAt, revision |
-| ServiceLevelBreach | operations | detectedAt | — | createdAt, revision |
-| ServiceLevelCommitment | operations | — | measurementWindow → TimeWindow | createdAt, revision |
-| VendorFaultDefinition | operations | — | — | createdAt, revision |
-| WorkOrder | operations | dueAt, completedAt | — | createdAt, revision |
-| AgreementLifecycleEvent | partners-settlement | effectiveAt, settlementCutoff | — | createdAt, revision |
-| ContractObligation | partners-settlement | dueAt | — | createdAt, revision |
-| CorporateBillingPolicy | partners-settlement | — | — | createdAt, revision |
-| CorporateBillingSnapshot | partners-settlement | capturedAt | — | createdAt, revision |
-| CorporateChargerRule | partners-settlement | — | — | createdAt, revision |
-| CorporateCostAllocation | partners-settlement | — | — | createdAt, revision |
-| CostAllocationRule | partners-settlement | — | — | createdAt, revision |
-| ObligationAssessment | partners-settlement | assessedAt | — | createdAt, revision |
-| PartnerInvitation | partners-settlement | expiresAt | — | createdAt, revision |
-| ReconciliationCase | partners-settlement | openedAt, resolvedAt | — | createdAt, revision |
-| ReimbursementApproval | partners-settlement | approvedAt | — | createdAt, revision |
-| ReimbursementPolicy | partners-settlement | validFromDate, validUntilDate | — | createdAt, revision |
-| ReimbursementRecord | partners-settlement | calculatedAt | — | createdAt, revision |
-| ReimbursementReport | partners-settlement | — | period → TimeWindow | createdAt, revision |
-| ReimbursementTaxCalculation | partners-settlement | — | — | createdAt, revision |
-| RevenueShareRule | partners-settlement | — | — | createdAt, revision |
-| ServiceAgreement | partners-settlement | validFrom, validUntil | — | createdAt, revision |
-| SettlementApproval | partners-settlement | approvedAt | — | createdAt, revision |
-| SettlementBatch | partners-settlement | — | period → TimeWindow | createdAt, revision |
-| SettlementItem | partners-settlement | — | — | createdAt, revision |
-| SettlementOverride | partners-settlement | — | interval → TimeWindow | createdAt, revision |
-| Chargeback | payments-ledger | responseDueAt | — | createdAt, revision |
-| DunningAction | payments-ledger | actionAt | — | createdAt, revision |
-| FinancialAccountReference | payments-ledger | — | — | createdAt, revision |
-| FinancialPosition | payments-ledger | — | — | createdAt, revision |
-| Journal | payments-ledger | postedAt | — | createdAt, revision |
-| JournalLine | payments-ledger | — | — | createdAt, revision |
-| LedgerAccount | payments-ledger | — | — | createdAt, revision |
-| PaymentAllocation | payments-ledger | allocatedAt | — | createdAt, revision |
-| PaymentAuthorization | payments-ledger | authorizedAt, expiresAt | — | createdAt, revision |
-| PaymentCapture | payments-ledger | capturedAt | — | createdAt, revision |
-| PaymentInstrument | payments-ledger | — | — | createdAt, revision |
-| PaymentIntent | payments-ledger | — | — | createdAt, revision |
-| PaymentRouting | payments-ledger | — | — | createdAt, revision |
-| PaymentTerminal | payments-ledger | — | — | createdAt, revision |
-| Payout | payments-ledger | scheduledAt, confirmedAt | — | createdAt, revision |
-| PayoutBatch | payments-ledger | scheduledAt | — | createdAt, revision |
-| ReconciliationResolution | payments-ledger | resolvedAt | — | createdAt, revision |
-| Refund | payments-ledger | requestedAt | — | createdAt, revision |
-| ServiceDispute | payments-ledger | openedAt, responseDueAt | — | createdAt, revision |
-| TopUpOffer | payments-ledger | validFrom, validUntil | — | createdAt, revision |
-| Voucher | payments-ledger | validFrom, validUntil | — | createdAt, revision |
-| VoucherRedemption | payments-ledger | redeemedAt | — | createdAt, revision |
-| Wallet | payments-ledger | balanceAsOf | — | createdAt, revision |
-| WalletEntry | payments-ledger | recordedAt | — | createdAt, revision |
-| ChargingArea | places | — | — | createdAt, revision |
-| ChargingSite | places | — | openingWindow → RecurringWindow | createdAt, revision |
-| MediaAsset | places | — | — | createdAt, revision |
-| ParkingSpace | places | occupancyObservedAt | — | createdAt, revision |
-| PublicListing | places | publishedAt | — | createdAt, revision |
-| ServiceNotice | places | validFrom, validUntil | — | createdAt, revision |
-| SharingAgreement | places | validFrom, validUntil | — | createdAt, revision |
-| SharingInvitation | places | expiresAt | — | createdAt, revision |
-| SiteAccessPolicy | places | — | openingWindow → RecurringWindow | createdAt, revision |
-| CommercialOffer | pricing | issuedAt, expiresAt | — | createdAt, revision |
-| CommercialResponsibility | pricing | validFrom, validUntil | — | createdAt, revision |
-| DiscountRule | pricing | — | — | createdAt, revision |
-| DynamicPriceFormula | pricing | — | — | createdAt, revision |
-| ElectricityPriceInterval | pricing | quotedAt | interval → TimeWindow, recurringWindow → RecurringWindow | createdAt, revision |
-| ElectricityPriceSchedule | pricing | — | — | createdAt, revision |
-| EnergyMix | pricing | — | reportingPeriod → TimeWindow | createdAt, revision |
-| EnergySourceShare | pricing | — | — | createdAt, revision |
-| FeeBounds | pricing | — | — | createdAt, revision |
-| OfferAcceptance | pricing | acceptedAt | — | createdAt, revision |
-| PreauthorizationPolicy | pricing | — | — | createdAt, revision |
-| PriceComponent | pricing | — | — | createdAt, revision |
-| PriceDisplay | pricing | effectiveAt | — | createdAt, revision |
-| PriceFreezePolicy | pricing | — | — | createdAt, revision |
-| PriceTier | pricing | — | — | createdAt, revision |
-| PricingCondition | pricing | — | — | createdAt, revision |
-| RoundingPolicy | pricing | — | — | createdAt, revision |
-| ScheduledTariffChange | pricing | effectiveAt | — | createdAt, revision |
-| SessionLimitPolicy | pricing | — | — | createdAt, revision |
-| SessionPricingPolicy | pricing | — | — | createdAt, revision |
-| SubsidyRule | pricing | — | — | createdAt, revision |
-| Tariff | pricing | — | — | createdAt, revision |
-| TariffAssignment | pricing | — | — | createdAt, revision |
-| TariffResolution | pricing | resolvedAt | — | createdAt, revision |
-| TariffSet | pricing | — | — | createdAt, revision |
-| TariffVersion | pricing | validFrom, validUntil | — | createdAt, revision |
-| PublicDataPublication | roaming | publishedAt, validUntil | — | createdAt, revision |
-| RoamingBehaviorPolicy | roaming | — | — | createdAt, revision |
-| RoamingCommand | roaming | receivedAt | — | createdAt, revision |
-| RoamingConnection | roaming | — | — | createdAt, revision |
-| RoamingExchange | roaming | acknowledgedAt | — | createdAt, revision |
-| RoamingModuleAgreement | roaming | — | — | createdAt, revision |
-| RoamingNetwork | roaming | — | — | createdAt, revision |
-| RoamingParty | roaming | — | — | createdAt, revision |
-| RoamingTariffFilter | roaming | — | — | createdAt, revision |
-| RoamingTariffMapping | roaming | importedAt | — | createdAt, revision |
-| SynchronizationCursor | roaming | lastSuccessfulAt, watermarkAt | — | createdAt, revision |
-| AccessDecision | security-governance | decidedAt | — | createdAt, revision |
-| AccessTokenLease | security-governance | issuedAt, expiresAt, revokedAt | — | createdAt, revision |
-| AuditEntry | security-governance | eventAt | — | createdAt, revision |
-| CertificateLifecycleEvent | security-governance | eventAt | — | createdAt, revision |
-| CertificateRecord | security-governance | validFrom, validUntil | — | createdAt, revision |
-| ComplianceAssessment | security-governance | assessedAt | — | createdAt, revision |
-| ConsentDecision | security-governance | decidedAt | — | createdAt, revision |
-| DataDisposition | security-governance | requestedAt, completedAt | — | createdAt, revision |
-| DataSubjectRequest | security-governance | receivedAt, responseDueAt, completedAt | — | createdAt, revision |
-| EvidenceVerification | security-governance | checkedAt | — | createdAt, revision |
-| LegalHold | security-governance | validFrom, reviewAt, releasedAt | — | createdAt, revision |
-| PolicyDocument | security-governance | validFrom, validUntil | — | createdAt, revision |
-| ProcessingPurpose | security-governance | — | — | createdAt, revision |
-| RetentionPolicy | security-governance | — | — | createdAt, revision |
-| SecurityEvent | security-governance | eventAt | — | createdAt, revision |
-| BillingReadinessAssessment | sessions-metering | assessedAt | — | createdAt, revision |
-| ChargeDetailRecord | sessions-metering | receivedAt | period → TimeWindow | createdAt, revision |
-| ChargingInterval | sessions-metering | — | interval → TimeWindow | createdAt, revision |
-| ChargingSession | sessions-metering | startedAt, endedAt | — | createdAt, revision |
-| ClockAssessment | sessions-metering | assessedAt | — | createdAt, revision |
-| EventProcessingOutcome | sessions-metering | processedAt | — | createdAt, revision |
-| MeterDelta | sessions-metering | — | — | createdAt, revision |
-| MeterObservation | sessions-metering | observedAt | — | createdAt, revision |
-| MeterRegisterEpoch | sessions-metering | validFrom, validUntil | — | createdAt, revision |
-| ProtocolTransaction | sessions-metering | startedAt, endedAt | — | createdAt, revision |
-| RecordCorrection | sessions-metering | issuedAt | — | createdAt, revision |
-| SessionEndEvidence | sessions-metering | finalizedAt | — | createdAt, revision |
-| SessionEvent | sessions-metering | — | — | createdAt, revision |
-| SignedMeterEvidence | sessions-metering | verifiedAt | — | createdAt, revision |
-| SourceEvent | sessions-metering | occurredAt, receivedAt | — | createdAt, revision |
-| UsageAggregate | sessions-metering | — | interval → TimeWindow | createdAt, revision |
-| AllowanceBalance | subscriptions-benefits | — | — | createdAt, revision |
-| AllowanceConsumption | subscriptions-benefits | recordedAt | — | createdAt, revision |
-| BenefitAllowance | subscriptions-benefits | — | — | createdAt, revision |
-| BenefitReservation | subscriptions-benefits | expiresAt | — | createdAt, revision |
-| BillingPeriod | subscriptions-benefits | — | period → TimeWindow | createdAt, revision |
-| CouponConsumption | subscriptions-benefits | consumedAt | — | createdAt, revision |
-| EnergyCoupon | subscriptions-benefits | validFrom, validUntil | — | createdAt, revision |
-| EnergyCouponTemplate | subscriptions-benefits | validFrom, validUntil | — | createdAt, revision |
-| Subscription | subscriptions-benefits | startsAt, endsAt, cancelledAt | — | createdAt, revision |
-| SubscriptionBillingPolicy | subscriptions-benefits | — | — | createdAt, revision |
-| SubscriptionPlan | subscriptions-benefits | — | — | createdAt, revision |
-| AuthorizationDecision | vehicles-authorization | decidedAt, expiresAt | — | createdAt, revision |
-| AuthorizationRequest | vehicles-authorization | requestedAt | — | createdAt, revision |
-| ChargingCredential | vehicles-authorization | validFrom, validUntil | — | createdAt, revision |
-| CredentialAssignment | vehicles-authorization | validFrom, validUntil | — | createdAt, revision |
-| LocalAuthorizationEntry | vehicles-authorization | validUntil | — | createdAt, revision |
-| LocalAuthorizationList | vehicles-authorization | generatedAt | — | createdAt, revision |
-| OfflineAuthorizationAssessment | vehicles-authorization | — | — | createdAt, revision |
-| PlugAndChargeEnrollment | vehicles-authorization | — | — | createdAt, revision |
-| ProvisioningCertificate | vehicles-authorization | — | — | createdAt, revision |
-| Vehicle | vehicles-authorization | — | — | createdAt, revision |
-| VehicleAssignment | vehicles-authorization | validFrom, validUntil | — | createdAt, revision |
-| VehicleTelemetry | vehicles-authorization | observedAt | — | createdAt, revision |
+| Class | Module | Temporal policy | Business date/time fields | Linked intervals / recurrences | Record metadata |
+|---|---|---|---|---|---|
+| AssetLifecycleEvent | assets | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| CalibrationRecord | assets | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| ChargingStation | assets | snapshot-versioned | commissionedAt, manufacturedAt | — | createdAt, revision |
+| ChargingUnit | assets | snapshot-versioned | — | — | createdAt, revision |
+| Connector | assets | snapshot-versioned | — | — | createdAt, revision |
+| ConnectorCompatibility | assets | snapshot-versioned | assessedAt | — | createdAt, revision |
+| DeviceCapability | assets | snapshot-versioned | — | — | createdAt, revision |
+| ElectricalCircuit | assets | snapshot-versioned | — | — | createdAt, revision |
+| ElectricalConnection | assets | snapshot-versioned | — | — | createdAt, revision |
+| ElectricityMeter | assets | snapshot-versioned | — | — | createdAt, revision |
+| EquipmentModel | assets | snapshot-versioned | — | — | createdAt, revision |
+| Manufacturer | assets | snapshot-versioned | — | — | createdAt, revision |
+| OperationalAcceptance | assets | snapshot-versioned | acceptedAt | — | createdAt, revision |
+| OwnershipTransfer | assets | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| BillingProfile | billing-tax | snapshot-versioned | — | — | createdAt, revision |
+| CreditNote | billing-tax | snapshot-versioned | issuedAt | — | createdAt, revision |
+| CustomFee | billing-tax | snapshot-versioned | assessedAt | — | createdAt, revision |
+| DocumentNumberSequence | billing-tax | snapshot-versioned | — | — | createdAt, revision |
+| FiscalizationAttempt | billing-tax | snapshot-versioned | attemptedAt | — | createdAt, revision |
+| Invoice | billing-tax | immutable-aggregate | issuedAt, dueAt | — | createdAt, revision |
+| InvoiceLine | billing-tax | snapshot-versioned | — | — | createdAt, revision |
+| RatedLine | billing-tax | snapshot-versioned | — | — | createdAt, revision |
+| RatingCalculation | billing-tax | immutable-aggregate | calculatedAt | — | createdAt, revision |
+| Receipt | billing-tax | snapshot-versioned | issuedAt | — | createdAt, revision |
+| TaxDetermination | billing-tax | snapshot-versioned | determinedAt | — | createdAt, revision |
+| TaxIdentifier | billing-tax | snapshot-versioned | — | — | createdAt, revision |
+| TaxRule | billing-tax | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| Booking | commands-booking | snapshot-versioned | — | bookingWindow → TimeWindow | createdAt, revision |
+| BookingRequest | commands-booking | snapshot-versioned | — | requestedWindow → TimeWindow | createdAt, revision |
+| CommandOutcome | commands-booking | snapshot-versioned | reportedAt | — | createdAt, revision |
+| CommandParameter | commands-booking | snapshot-versioned | — | — | createdAt, revision |
+| RemoteCommand | commands-booking | snapshot-versioned | requestedAt, expiresAt | — | createdAt, revision |
+| Reservation | commands-booking | snapshot-versioned | reservedAt, expiresAt | — | createdAt, revision |
+| ConfigurationTemplate | device-management | snapshot-versioned | — | — | createdAt, revision |
+| ConfigurationTemplateEntry | device-management | snapshot-versioned | — | — | createdAt, revision |
+| ConfigurationVariable | device-management | snapshot-versioned | observedAt | — | createdAt, revision |
+| ConnectionObservation | device-management | snapshot-versioned | observedAt, lastHeartbeatAt | — | createdAt, revision |
+| DiagnosticArtifact | device-management | snapshot-versioned | requestedAt | — | createdAt, revision |
+| FirmwareDeployment | device-management | snapshot-versioned | requestedAt, completedAt | — | createdAt, revision |
+| FirmwareRelease | device-management | snapshot-versioned | releaseDate | — | createdAt, revision |
+| HardwareStatusObservation | device-management | snapshot-versioned | observedAt | — | createdAt, revision |
+| ProtocolEndpoint | device-management | snapshot-versioned | — | — | createdAt, revision |
+| TemplateApplication | device-management | snapshot-versioned | requestedAt | — | createdAt, revision |
+| ChargingProfile | energy | snapshot-versioned | relativeAnchor | — | createdAt, revision |
+| ChargingSchedule | energy | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| ControlDecision | energy | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| ControlGroupMembership | energy | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| DemandResponseProgram | energy | snapshot-versioned | — | — | createdAt, revision |
+| DistributedEnergyAsset | energy | snapshot-versioned | — | — | createdAt, revision |
+| EnergyForecast | energy | snapshot-versioned | issuedAt | horizon → TimeWindow | createdAt, revision |
+| ExportAgreement | energy | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| FlexibilityActivation | energy | snapshot-versioned | requestedAt | interval → TimeWindow | createdAt, revision |
+| FlexibilityAsset | energy | snapshot-versioned | validUntil | — | createdAt, revision |
+| FlexibilityDelivery | energy | snapshot-versioned | verifiedAt | — | createdAt, revision |
+| ForecastPoint | energy | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| GridConnection | energy | snapshot-versioned | — | effectiveWindow → TimeWindow | createdAt, revision |
+| LoadControlGroup | energy | snapshot-versioned | — | — | createdAt, revision |
+| OverrideAuthorization | energy | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| PhaseCurrentConstraint | energy | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| PowerCabinet | energy | snapshot-versioned | — | — | createdAt, revision |
+| PowerConstraint | energy | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| PowerModuleAllocation | energy | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| PriorityRule | energy | snapshot-versioned | boostUntil | — | createdAt, revision |
+| ScheduleApplication | energy | snapshot-versioned | appliedAt | — | createdAt, revision |
+| SchedulePeriod | energy | snapshot-versioned | periodStart, periodEnd | — | createdAt, revision |
+| SmartChargingPreference | energy | snapshot-versioned | departureAt | — | createdAt, revision |
+| UnmanagedLoadObservation | energy | snapshot-versioned | observedAt | — | createdAt, revision |
+| Address | foundation | snapshot-versioned | — | — | createdAt, revision |
+| Annotation | foundation | snapshot-versioned | notedAt | — | createdAt, revision |
+| Currency | foundation | snapshot-versioned | — | — | createdAt, revision |
+| CustomFieldDefinition | foundation | snapshot-versioned | — | — | createdAt, revision |
+| CustomFieldValue | foundation | snapshot-versioned | — | — | createdAt, revision |
+| EvidenceDocument | foundation | immutable-aggregate | capturedAt | — | createdAt, revision |
+| ExchangeRate | foundation | snapshot-versioned | quotedAt | — | createdAt, revision |
+| ExternalIdentifier | foundation | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| GeoPosition | foundation | snapshot-versioned | — | — | createdAt, revision |
+| ProjectionWatermark | foundation | history-metadata | watermarkAt, completeThrough | — | createdAt, revision |
+| Quantity | foundation | snapshot-versioned | — | — | createdAt, revision |
+| Record | foundation | abstract | — | — | createdAt, revision |
+| RecurringWindow | foundation | snapshot-versioned | localStart, localEnd | exceptionWindow → TimeWindow | createdAt, revision |
+| StateTransition | foundation | snapshot-versioned | transitionedAt | — | createdAt, revision |
+| TemporalCommit | foundation | history-metadata | recordedAt | — | createdAt, revision |
+| TemporalSlice | foundation | history-metadata | validFrom, validUntil | — | createdAt, revision |
+| TemporalSnapshotSelection | foundation | history-metadata | validAt, knownAt | — | createdAt, revision |
+| TemporalStreamPolicy | foundation | history-metadata | — | — | createdAt, revision |
+| Tenant | foundation | tenant-context | — | — | — |
+| TimeWindow | foundation | snapshot-versioned | startsAt, endsAt | — | createdAt, revision |
+| AccessGrant | identity | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| AccountClosure | identity | snapshot-versioned | requestedAt, completedAt | — | createdAt, revision |
+| ContactProfile | identity | snapshot-versioned | — | — | createdAt, revision |
+| CustomerAccount | identity | snapshot-versioned | — | — | createdAt, revision |
+| CustomerGroup | identity | snapshot-versioned | — | — | createdAt, revision |
+| GroupMembership | identity | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| LegalEntity | identity | snapshot-versioned | — | — | createdAt, revision |
+| ManagementDelegation | identity | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| OperatorService | identity | snapshot-versioned | — | — | createdAt, revision |
+| PartyRole | identity | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| Permission | identity | snapshot-versioned | — | — | createdAt, revision |
+| Person | identity | snapshot-versioned | — | — | createdAt, revision |
+| Principal | identity | snapshot-versioned | — | — | createdAt, revision |
+| SecurityRole | identity | snapshot-versioned | — | — | createdAt, revision |
+| ServiceEntitlement | identity | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| UserDevice | identity | snapshot-versioned | lastSeenAt | — | createdAt, revision |
+| ActionApproval | integration-experience | snapshot-versioned | decidedAt | — | createdAt, revision |
+| ApiClient | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| ApplicationInstallation | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| AssistantRecommendation | integration-experience | snapshot-versioned | generatedAt | — | createdAt, revision |
+| BrandProfile | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| CommunicationLog | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| ContentTemplate | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| CustomerNotification | integration-experience | snapshot-versioned | requestedAt | — | createdAt, revision |
+| EventDelivery | integration-experience | snapshot-versioned | attemptedAt, nextRetryAt | — | createdAt, revision |
+| EventSubscription | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| ExperienceChannel | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| HelpArticle | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| IntegrationConnection | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| LifecycleSnapshot | integration-experience | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| MetricDefinition | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| MetricObservation | integration-experience | snapshot-versioned | calculatedAt | interval → TimeWindow | createdAt, revision |
+| MigrationBatch | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| PlatformSetting | integration-experience | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| ProcessExecution | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| ProcessStep | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| ProtocolProfile | integration-experience | snapshot-versioned | — | — | createdAt, revision |
+| AvailabilityPolicy | operations | snapshot-versioned | — | — | createdAt, revision |
+| AvailabilityResult | operations | snapshot-versioned | calculatedAt | interval → TimeWindow | createdAt, revision |
+| DowntimePeriod | operations | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| InstallationJob | operations | snapshot-versioned | scheduledAt, completedAt | — | createdAt, revision |
+| Issue | operations | snapshot-versioned | openedAt, resolvedAt | — | createdAt, revision |
+| OperationalPeriod | operations | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| RecoveryAttempt | operations | snapshot-versioned | attemptedAt | — | createdAt, revision |
+| RecoveryExercise | operations | snapshot-versioned | exercisedAt | — | createdAt, revision |
+| RecoveryPolicy | operations | snapshot-versioned | — | — | createdAt, revision |
+| ServiceLevelBreach | operations | snapshot-versioned | detectedAt | — | createdAt, revision |
+| ServiceLevelCommitment | operations | snapshot-versioned | — | measurementWindow → TimeWindow | createdAt, revision |
+| VendorFaultDefinition | operations | snapshot-versioned | — | — | createdAt, revision |
+| WorkOrder | operations | snapshot-versioned | dueAt, completedAt | — | createdAt, revision |
+| AgreementLifecycleEvent | partners-settlement | snapshot-versioned | effectiveAt, settlementCutoff | — | createdAt, revision |
+| ContractObligation | partners-settlement | snapshot-versioned | dueAt | — | createdAt, revision |
+| CorporateBillingPolicy | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| CorporateBillingSnapshot | partners-settlement | immutable-aggregate | capturedAt | — | createdAt, revision |
+| CorporateChargerRule | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| CorporateCostAllocation | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| CostAllocationRule | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| ObligationAssessment | partners-settlement | snapshot-versioned | assessedAt | — | createdAt, revision |
+| PartnerInvitation | partners-settlement | snapshot-versioned | expiresAt | — | createdAt, revision |
+| ReconciliationCase | partners-settlement | snapshot-versioned | openedAt, resolvedAt | — | createdAt, revision |
+| ReimbursementApproval | partners-settlement | snapshot-versioned | approvedAt | — | createdAt, revision |
+| ReimbursementPolicy | partners-settlement | snapshot-versioned | validFromDate, validUntilDate | — | createdAt, revision |
+| ReimbursementRecord | partners-settlement | snapshot-versioned | calculatedAt | — | createdAt, revision |
+| ReimbursementReport | partners-settlement | snapshot-versioned | — | period → TimeWindow | createdAt, revision |
+| ReimbursementTaxCalculation | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| RevenueShareRule | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| ServiceAgreement | partners-settlement | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| SettlementApproval | partners-settlement | snapshot-versioned | approvedAt | — | createdAt, revision |
+| SettlementBatch | partners-settlement | snapshot-versioned | — | period → TimeWindow | createdAt, revision |
+| SettlementItem | partners-settlement | snapshot-versioned | — | — | createdAt, revision |
+| SettlementOverride | partners-settlement | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| Chargeback | payments-ledger | snapshot-versioned | responseDueAt | — | createdAt, revision |
+| DunningAction | payments-ledger | snapshot-versioned | actionAt | — | createdAt, revision |
+| FinancialAccountReference | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| FinancialPosition | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| Journal | payments-ledger | immutable-aggregate | postedAt | — | createdAt, revision |
+| JournalLine | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| LedgerAccount | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| PaymentAllocation | payments-ledger | snapshot-versioned | allocatedAt | — | createdAt, revision |
+| PaymentAuthorization | payments-ledger | snapshot-versioned | authorizedAt, expiresAt | — | createdAt, revision |
+| PaymentCapture | payments-ledger | snapshot-versioned | capturedAt | — | createdAt, revision |
+| PaymentInstrument | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| PaymentIntent | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| PaymentRouting | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| PaymentTerminal | payments-ledger | snapshot-versioned | — | — | createdAt, revision |
+| Payout | payments-ledger | snapshot-versioned | scheduledAt, confirmedAt | — | createdAt, revision |
+| PayoutBatch | payments-ledger | snapshot-versioned | scheduledAt | — | createdAt, revision |
+| ReconciliationResolution | payments-ledger | snapshot-versioned | resolvedAt | — | createdAt, revision |
+| Refund | payments-ledger | snapshot-versioned | requestedAt | — | createdAt, revision |
+| ServiceDispute | payments-ledger | snapshot-versioned | openedAt, responseDueAt | — | createdAt, revision |
+| TopUpOffer | payments-ledger | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| Voucher | payments-ledger | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| VoucherRedemption | payments-ledger | snapshot-versioned | redeemedAt | — | createdAt, revision |
+| Wallet | payments-ledger | snapshot-versioned | balanceAsOf | — | createdAt, revision |
+| WalletEntry | payments-ledger | snapshot-versioned | recordedAt | — | createdAt, revision |
+| ChargingArea | places | snapshot-versioned | — | — | createdAt, revision |
+| ChargingSite | places | snapshot-versioned | — | openingWindow → RecurringWindow | createdAt, revision |
+| MediaAsset | places | snapshot-versioned | — | — | createdAt, revision |
+| ParkingSpace | places | snapshot-versioned | occupancyObservedAt | — | createdAt, revision |
+| PublicListing | places | snapshot-versioned | publishedAt | — | createdAt, revision |
+| ServiceNotice | places | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| SharingAgreement | places | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| SharingInvitation | places | snapshot-versioned | expiresAt | — | createdAt, revision |
+| SiteAccessPolicy | places | snapshot-versioned | — | openingWindow → RecurringWindow | createdAt, revision |
+| CommercialOffer | pricing | immutable-aggregate | issuedAt, expiresAt | — | createdAt, revision |
+| CommercialResponsibility | pricing | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| DiscountRule | pricing | snapshot-versioned | — | — | createdAt, revision |
+| DynamicPriceFormula | pricing | snapshot-versioned | — | — | createdAt, revision |
+| ElectricityPriceInterval | pricing | snapshot-versioned | quotedAt | interval → TimeWindow, recurringWindow → RecurringWindow | createdAt, revision |
+| ElectricityPriceSchedule | pricing | snapshot-versioned | — | — | createdAt, revision |
+| EnergyMix | pricing | snapshot-versioned | — | reportingPeriod → TimeWindow | createdAt, revision |
+| EnergySourceShare | pricing | snapshot-versioned | — | — | createdAt, revision |
+| FeeBounds | pricing | snapshot-versioned | — | — | createdAt, revision |
+| OfferAcceptance | pricing | snapshot-versioned | acceptedAt | — | createdAt, revision |
+| PreauthorizationPolicy | pricing | snapshot-versioned | — | — | createdAt, revision |
+| PriceComponent | pricing | snapshot-versioned | — | — | createdAt, revision |
+| PriceDisplay | pricing | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| PriceFreezePolicy | pricing | snapshot-versioned | — | — | createdAt, revision |
+| PriceTier | pricing | snapshot-versioned | — | — | createdAt, revision |
+| PricingCondition | pricing | snapshot-versioned | — | — | createdAt, revision |
+| RoundingPolicy | pricing | snapshot-versioned | — | — | createdAt, revision |
+| ScheduledTariffChange | pricing | snapshot-versioned | effectiveAt | — | createdAt, revision |
+| SessionLimitPolicy | pricing | snapshot-versioned | — | — | createdAt, revision |
+| SessionPricingPolicy | pricing | snapshot-versioned | — | — | createdAt, revision |
+| SubsidyRule | pricing | snapshot-versioned | — | — | createdAt, revision |
+| Tariff | pricing | snapshot-versioned | — | — | createdAt, revision |
+| TariffAssignment | pricing | snapshot-versioned | — | — | createdAt, revision |
+| TariffResolution | pricing | snapshot-versioned | resolvedAt | — | createdAt, revision |
+| TariffSet | pricing | snapshot-versioned | — | — | createdAt, revision |
+| TariffVersion | pricing | immutable-aggregate | validFrom, validUntil | — | createdAt, revision |
+| PublicDataPublication | roaming | snapshot-versioned | publishedAt, validUntil | — | createdAt, revision |
+| RoamingBehaviorPolicy | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingCommand | roaming | snapshot-versioned | receivedAt | — | createdAt, revision |
+| RoamingConnection | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingExchange | roaming | snapshot-versioned | acknowledgedAt | — | createdAt, revision |
+| RoamingModuleAgreement | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingNetwork | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingParty | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingTariffFilter | roaming | snapshot-versioned | — | — | createdAt, revision |
+| RoamingTariffMapping | roaming | snapshot-versioned | importedAt | — | createdAt, revision |
+| SynchronizationCursor | roaming | snapshot-versioned | lastSuccessfulAt, watermarkAt | — | createdAt, revision |
+| AccessDecision | security-governance | immutable-aggregate | decidedAt | — | createdAt, revision |
+| AccessTokenLease | security-governance | snapshot-versioned | issuedAt, expiresAt, revokedAt | — | createdAt, revision |
+| AuditEntry | security-governance | snapshot-versioned | eventAt | — | createdAt, revision |
+| CertificateLifecycleEvent | security-governance | snapshot-versioned | eventAt | — | createdAt, revision |
+| CertificateRecord | security-governance | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| ComplianceAssessment | security-governance | snapshot-versioned | assessedAt | — | createdAt, revision |
+| ConsentDecision | security-governance | immutable-aggregate | decidedAt | — | createdAt, revision |
+| DataDisposition | security-governance | snapshot-versioned | requestedAt, completedAt | — | createdAt, revision |
+| DataSubjectRequest | security-governance | snapshot-versioned | receivedAt, responseDueAt, completedAt | — | createdAt, revision |
+| EvidenceVerification | security-governance | snapshot-versioned | checkedAt | — | createdAt, revision |
+| LegalHold | security-governance | snapshot-versioned | validFrom, reviewAt, releasedAt | — | createdAt, revision |
+| PolicyDocument | security-governance | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| ProcessingPurpose | security-governance | snapshot-versioned | — | — | createdAt, revision |
+| RetentionPolicy | security-governance | snapshot-versioned | — | — | createdAt, revision |
+| SecurityEvent | security-governance | snapshot-versioned | eventAt | — | createdAt, revision |
+| BillingReadinessAssessment | sessions-metering | snapshot-versioned | assessedAt | — | createdAt, revision |
+| ChargeDetailRecord | sessions-metering | immutable-aggregate | receivedAt | period → TimeWindow | createdAt, revision |
+| ChargingInterval | sessions-metering | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| ChargingSession | sessions-metering | snapshot-versioned | startedAt, endedAt | — | createdAt, revision |
+| ClockAssessment | sessions-metering | snapshot-versioned | assessedAt | — | createdAt, revision |
+| EventProcessingOutcome | sessions-metering | snapshot-versioned | processedAt | — | createdAt, revision |
+| MeterDelta | sessions-metering | snapshot-versioned | — | — | createdAt, revision |
+| MeterObservation | sessions-metering | snapshot-versioned | observedAt | — | createdAt, revision |
+| MeterRegisterEpoch | sessions-metering | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| ProtocolTransaction | sessions-metering | snapshot-versioned | startedAt, endedAt | — | createdAt, revision |
+| RecordCorrection | sessions-metering | immutable-aggregate | issuedAt | — | createdAt, revision |
+| SessionEndEvidence | sessions-metering | snapshot-versioned | finalizedAt | — | createdAt, revision |
+| SessionEvent | sessions-metering | snapshot-versioned | — | — | createdAt, revision |
+| SignedMeterEvidence | sessions-metering | snapshot-versioned | verifiedAt | — | createdAt, revision |
+| SourceEvent | sessions-metering | immutable-aggregate | occurredAt, receivedAt | — | createdAt, revision |
+| UsageAggregate | sessions-metering | snapshot-versioned | — | interval → TimeWindow | createdAt, revision |
+| AllowanceBalance | subscriptions-benefits | snapshot-versioned | — | — | createdAt, revision |
+| AllowanceConsumption | subscriptions-benefits | snapshot-versioned | recordedAt | — | createdAt, revision |
+| BenefitAllowance | subscriptions-benefits | snapshot-versioned | — | — | createdAt, revision |
+| BenefitReservation | subscriptions-benefits | snapshot-versioned | expiresAt | — | createdAt, revision |
+| BillingPeriod | subscriptions-benefits | snapshot-versioned | — | period → TimeWindow | createdAt, revision |
+| CouponConsumption | subscriptions-benefits | snapshot-versioned | consumedAt | — | createdAt, revision |
+| EnergyCoupon | subscriptions-benefits | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| EnergyCouponTemplate | subscriptions-benefits | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| Subscription | subscriptions-benefits | snapshot-versioned | startsAt, endsAt, cancelledAt | — | createdAt, revision |
+| SubscriptionBillingPolicy | subscriptions-benefits | snapshot-versioned | — | — | createdAt, revision |
+| SubscriptionPlan | subscriptions-benefits | snapshot-versioned | — | — | createdAt, revision |
+| AuthorizationDecision | vehicles-authorization | immutable-aggregate | decidedAt, expiresAt | — | createdAt, revision |
+| AuthorizationRequest | vehicles-authorization | snapshot-versioned | requestedAt | — | createdAt, revision |
+| ChargingCredential | vehicles-authorization | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| CredentialAssignment | vehicles-authorization | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| LocalAuthorizationEntry | vehicles-authorization | snapshot-versioned | validUntil | — | createdAt, revision |
+| LocalAuthorizationList | vehicles-authorization | snapshot-versioned | generatedAt | — | createdAt, revision |
+| OfflineAuthorizationAssessment | vehicles-authorization | snapshot-versioned | — | — | createdAt, revision |
+| PlugAndChargeEnrollment | vehicles-authorization | snapshot-versioned | — | — | createdAt, revision |
+| ProvisioningCertificate | vehicles-authorization | snapshot-versioned | — | — | createdAt, revision |
+| Vehicle | vehicles-authorization | snapshot-versioned | — | — | createdAt, revision |
+| VehicleAssignment | vehicles-authorization | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
+| VehicleTelemetry | vehicles-authorization | snapshot-versioned | observedAt | — | createdAt, revision |

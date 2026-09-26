@@ -1,0 +1,9 @@
+PREFIX cd: <https://example.org/charge-domain#>
+# Snapshot-local query. Bind targetAt and forecastTarget; issue time is distinct from forecast horizon.
+SELECT ?forecast ?issued ?value WHERE {
+  ?forecast a cd:EnergyForecast; cd:forecastTarget ?forecastTarget; cd:issuedAt ?issued; cd:forecastPoint ?point.
+  ?point cd:interval ?interval; cd:predictedValue ?value.
+  ?interval cd:startsAt ?start; cd:endsAt ?end.
+  FILTER(?issued<=?knownAt && ?start<=?targetAt && ?targetAt<?end)
+}
+ORDER BY DESC(?issued)

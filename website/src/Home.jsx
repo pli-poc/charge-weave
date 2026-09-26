@@ -81,7 +81,7 @@ export const capabilities = [
     title: "History and traceability",
     summary: "Understand what changed. And when.",
     detail:
-      "The proposed temporal design separates when a fact applied from when it was recorded, so late data and corrections can be explained.",
+      "The temporal contract separates when a fact applied from when it was recorded, with executable correction and history examples.",
     points: [
       "Effective time and recorded time",
       "Historical policies and evidence lineage",
@@ -415,7 +415,7 @@ export default function Home() {
               </h2>
               <p className="section-copy">
                 A tariff changes. A meter reading arrives late. A session is
-                corrected. The planned temporal architecture preserves both
+                corrected. The temporal reference contract preserves both
                 business time and recorded time, so the past remains
                 explainable.
               </p>

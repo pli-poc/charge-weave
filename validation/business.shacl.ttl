@@ -1132,13 +1132,13 @@ SELECT $this WHERE { $this cd:agreementAction cd:agreementAction_Terminate. FILT
     sh:targetClass cd:AgreementLifecycleEvent .
 
 cd:B114 a sh:NodeShape ;
-    sh:sparql [ sh:message "B114: An active entitlement is backed by an active agreement and begins inside its effective period." ;
+    sh:sparql [ sh:message "B114: An active entitlement is fully contained in its active backing agreement." ;
             sh:select """PREFIX cd: <https://example.org/charge-domain#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT $this WHERE { $this cd:entitlementState cd:entitlementState_Active; cd:serviceAgreement ?a; cd:validFrom ?t. FILTER NOT EXISTS {?a cd:agreementState cd:agreementState_Active; cd:validFrom ?s. OPTIONAL {?a cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e) || ?t<?e))} }""" ] ;
+SELECT $this WHERE { $this cd:entitlementState cd:entitlementState_Active; cd:serviceAgreement ?a; cd:validFrom ?t. OPTIONAL {$this cd:validUntil ?until} FILTER NOT EXISTS {?a cd:agreementState cd:agreementState_Active; cd:validFrom ?s. OPTIONAL {?a cd:validUntil ?e} FILTER(?t>=?s && (!BOUND(?e) || (?t<?e && BOUND(?until) && ?until<=?e)))} }""" ] ;
     sh:targetClass cd:ServiceEntitlement .
 
 cd:B115 a sh:NodeShape ;
@@ -1720,4 +1720,124 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT $this WHERE { $this cd:allowance/cd:allowanceDimension cd:allowanceDimension_Money. FILTER NOT EXISTS {$this cd:currency ?c} }""" ] ;
     sh:targetClass cd:AllowanceBalance .
+
+cd:B173 a sh:NodeShape ;
+    sh:sparql [ sh:message "B173: Session intervals are contained within the parent session." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:session ?s; cd:interval ?i. ?s cd:startedAt ?start. OPTIONAL {?s cd:endedAt ?end} ?i cd:startsAt ?a; cd:endsAt ?b. FILTER(?a<?start || (BOUND(?end) && ?b>?end)) }""" ] ;
+    sh:targetClass cd:ChargingInterval .
+
+cd:B174 a sh:NodeShape ;
+    sh:sparql [ sh:message "B174: One online selection set cannot expose overlapping candidate versions of the same tariff identity." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this (cd:defaultTariff|cd:tariffAssignment/cd:assignedTariff) ?x,?y. ?x cd:tariff ?t; cd:validFrom ?a. OPTIONAL {?x cd:validUntil ?b} ?y cd:tariff ?t; cd:validFrom ?c. OPTIONAL {?y cd:validUntil ?d} FILTER(?x!=?y && (!BOUND(?b)||?c<?b) && (!BOUND(?d)||?a<?d)) }""" ] ;
+    sh:targetClass cd:TariffSet .
+
+cd:B175 a sh:NodeShape ;
+    sh:sparql [ sh:message "B175: Calendar-date values must identify real Gregorian dates." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this ?p ?v. ?p cd:calendarDate true. BIND(xsd:integer(SUBSTR(STR(?v),1,4)) AS ?y) BIND(xsd:integer(SUBSTR(STR(?v),6,2)) AS ?m) BIND(xsd:integer(SUBSTR(STR(?v),9,2)) AS ?d) BIND((?y - FLOOR(?y/4)*4 = 0 && (?y - FLOOR(?y/100)*100 != 0 || ?y - FLOOR(?y/400)*400 = 0)) AS ?leap) FILTER(?y<1 || ?m<1 || ?m>12 || ?d<1 || ?d>31 || (?m IN (4,6,9,11) && ?d>30) || (?m=2 && (?d>29 || (?d=29 && !?leap)))) }""" ] ;
+    sh:targetClass cd:Record .
+
+cd:B176 a sh:NodeShape ;
+    sh:sparql [ sh:message "B176: Present temporal slices have an immutable graph and digest; retractions have neither." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { {$this cd:sliceState cd:sliceState_Present. FILTER(!EXISTS {$this cd:payloadGraph ?g} || !EXISTS {$this cd:contentDigest ?d})} UNION {$this cd:sliceState cd:sliceState_Retracted. FILTER(EXISTS {$this cd:payloadGraph ?g} || EXISTS {$this cd:contentDigest ?d})} }""" ] ;
+    sh:targetClass cd:TemporalSlice .
+
+cd:B177 a sh:NodeShape ;
+    sh:sparql [ sh:message "B177: Commit slices form a non-overlapping effective-time map." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:temporalSlice ?x,?y. ?x cd:validFrom ?a. ?y cd:validFrom ?c. OPTIONAL {?x cd:validUntil ?b} OPTIONAL {?y cd:validUntil ?d} FILTER(?x!=?y && (!BOUND(?b)||?c<?b) && (!BOUND(?d)||?a<?d)) }""" ] ;
+    sh:targetClass cd:TemporalCommit .
+
+cd:B178 a sh:NodeShape ;
+    sh:sparql [ sh:message "B178: Successor commits preserve scope and tenant, advance recording time and sequence, and cannot branch or cycle." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { {$this cd:previousCommit ?p; cd:recordedAt ?now; cd:commitSequence ?n; cd:tenant ?tenant; cd:snapshotScope ?scope. FILTER NOT EXISTS {?p cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?before; cd:commitSequence ?old. FILTER(?now>?before && ?n=?old+1)}} UNION {$this cd:previousCommit+ $this} UNION {$this cd:previousCommit ?p. ?other a cd:TemporalCommit; cd:previousCommit ?p. FILTER(?other!=$this)} UNION {$this cd:commitSequence ?n. FILTER NOT EXISTS {$this cd:previousCommit ?p} FILTER(?n!=1)} UNION {$this cd:tenant ?t; cd:snapshotScope ?scope. ?other a cd:TemporalCommit; cd:tenant ?t; cd:snapshotScope ?scope. FILTER(?other!=$this) FILTER NOT EXISTS {$this cd:previousCommit ?p} FILTER NOT EXISTS {?other cd:previousCommit ?q}} UNION {$this cd:tenant ?t; cd:snapshotScope ?scope; cd:recordedAt ?time. ?other a cd:TemporalCommit; cd:tenant ?t; cd:snapshotScope ?scope; cd:recordedAt ?time. FILTER(?other!=$this)} }""" ] ;
+    sh:targetClass cd:TemporalCommit .
+
+cd:B179 a sh:NodeShape ;
+    sh:sparql [ sh:message "B179: Committed projections have complete, unique, non-future and monotonic source checkpoints." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { {$this cd:sourceWatermark ?w. FILTER NOT EXISTS {?w cd:watermarkState cd:watermarkState_Complete}} UNION {$this cd:recordedAt ?r; cd:sourceWatermark/cd:watermarkAt ?w. FILTER(?w>?r)} UNION {$this cd:sourceWatermark ?x,?y. ?x cd:sourceSystem ?source; cd:sourcePartition ?part. ?y cd:sourceSystem ?source; cd:sourcePartition ?part. FILTER(?x!=?y)} UNION {$this cd:previousCommit/cd:sourceWatermark ?old. ?old cd:sourceSystem ?source; cd:sourcePartition ?part; cd:sourceOffset ?offset; cd:completeThrough ?time. FILTER NOT EXISTS {$this cd:sourceWatermark ?new. ?new cd:sourceSystem ?source; cd:sourcePartition ?part; cd:sourceOffset ?newOffset; cd:completeThrough ?newTime. FILTER(?newOffset>=?offset && ?newTime>=?time)}} }""" ] ;
+    sh:targetClass cd:TemporalCommit .
+
+cd:B180 a sh:NodeShape ;
+    sh:sparql [ sh:message "B180: A source completeness cutoff cannot exceed its watermark observation time." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:completeThrough ?t; cd:watermarkAt ?w. FILTER(?t>?w) }""" ] ;
+    sh:targetClass cd:ProjectionWatermark .
+
+cd:B181 a sh:NodeShape ;
+    sh:sparql [ sh:message "B181: Assignments of a credential cannot overlap inside a coherent validation snapshot." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:credential ?k; cd:validFrom ?a; cd:validUntil ?b. ?other a cd:CredentialAssignment; cd:credential ?k; cd:validFrom ?c; cd:validUntil ?d. FILTER(?other!=$this && ?a<?d && ?c<?b) }""" ] ;
+    sh:targetClass cd:CredentialAssignment .
+
+cd:B182 a sh:NodeShape ;
+    sh:sparql [ sh:message "B182: Coincident module allocations must remain within cabinet power capacity." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:totalCabinetPowerKW ?capacity. {SELECT $this ?point (SUM(?power) AS ?total) WHERE {{SELECT DISTINCT $this ?point WHERE {?anchor a cd:PowerModuleAllocation; cd:powerCabinet $this; cd:interval/cd:startsAt ?point}} ?allocation a cd:PowerModuleAllocation; cd:powerCabinet $this; cd:allocatedPowerKW ?power; cd:interval ?i. ?i cd:startsAt ?s; cd:endsAt ?e. FILTER(?s<=?point && ?point<?e)} GROUP BY $this ?point} FILTER(?total>?capacity) }""" ] ;
+    sh:targetClass cd:PowerCabinet .
+
+cd:B183 a sh:NodeShape ;
+    sh:sparql [ sh:message "B183: Confirmed bookings cannot allocate the same charging unit during overlapping windows." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ?unit; cd:bookingWindow ?i. ?i cd:startsAt ?a; cd:endsAt ?b. ?other a cd:Booking; cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ?unit; cd:bookingWindow ?j. ?j cd:startsAt ?c; cd:endsAt ?d. FILTER(?other!=$this && ?a<?d && ?c<?b) }""" ] ;
+    sh:targetClass cd:Booking .
+
+cd:B184 a sh:NodeShape ;
+    sh:sparql [ sh:message "B184: Snapshot selection must identify the latest matching commit and slice, or explicitly report unavailability." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { { $this cd:selectionState ?state. OPTIONAL {$this cd:selectedCommit ?c} OPTIONAL {$this cd:selectedSlice ?s} FILTER((?state=cd:selectionState_Unavailable && (BOUND(?c)||BOUND(?s))) || (?state!=cd:selectionState_Unavailable && (!BOUND(?c)||!BOUND(?s)))) } UNION { $this cd:selectedCommit ?c; cd:selectedSlice ?s; cd:selectionState ?state; cd:validAt ?v; cd:knownAt ?k; cd:snapshotScope ?scope; cd:tenant ?tenant. FILTER NOT EXISTS {?c cd:temporalSlice ?s; cd:snapshotScope ?scope; cd:tenant ?tenant; cd:recordedAt ?r. ?s cd:validFrom ?a; cd:sliceState ?ss. OPTIONAL {?s cd:validUntil ?b} FILTER(?r<=?k && ?a<=?v && (!BOUND(?b)||?v<?b) && ((?state=cd:selectionState_Present && ?ss=cd:sliceState_Present)||(?state=cd:selectionState_Retracted && ?ss=cd:sliceState_Retracted))) FILTER NOT EXISTS {?new a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?nr. FILTER(?r<?nr && ?nr<=?k)}} } UNION { $this cd:selectionState cd:selectionState_Unavailable; cd:validAt ?v; cd:knownAt ?k; cd:snapshotScope ?scope; cd:tenant ?tenant. ?c a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?r; cd:temporalSlice ?s. ?s cd:validFrom ?a. OPTIONAL {?s cd:validUntil ?b} FILTER(?r<=?k && ?a<=?v && (!BOUND(?b)||?v<?b)) FILTER NOT EXISTS {?new a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?nr. FILTER(?r<?nr && ?nr<=?k)} } }""" ] ;
+    sh:targetClass cd:TemporalSnapshotSelection .
 

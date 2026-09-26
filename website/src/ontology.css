@@ -1547,3 +1547,16 @@
 .temporal-windows .linked-time + .linked-time { margin-top: 12px; }
 .temporal-fields .time-field span { max-width: 62%; text-align: right; }
 .temporal-coverage .explorer-chip { white-space: normal; }
+
+.snapshot-evidence, .temporal-timeline, .temporal-query { margin-top: 14px; font-size: 11px; line-height: 1.55; min-width: 0; }
+.snapshot-evidence p { margin: 8px 0; }
+.snapshot-evidence code { display: block; overflow-wrap: anywhere; color: #adbed1; font-size: 10px; }
+.temporal-lab details { margin-top: 12px; }
+.temporal-lab summary { cursor: pointer; color: #c7d6e8; }
+.temporal-lab pre { overflow: auto; max-height: 260px; padding: 10px; background: #0e1622; font-size: 10px; white-space: pre; }
+.temporal-timeline table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.temporal-timeline th, .temporal-timeline td { text-align: left; vertical-align: top; padding: 6px 3px; border-bottom: 1px solid #2b384a; }
+.temporal-timeline th:first-child { width: 78px; }
+.temporal-timeline button { display: block; color: #bacde1; font-size: 10px; padding: 4px 2px; text-align: left; border: 0; background: transparent; cursor: pointer; }
+.temporal-timeline .is-selected { background: #192c3d; }
+.temporal-timeline button[aria-pressed="true"] { color: #9ae0c1; font-weight: 700; }

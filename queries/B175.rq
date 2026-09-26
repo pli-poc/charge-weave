@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:Record . ?this ?p ?v. ?p cd:calendarDate true. BIND(xsd:integer(SUBSTR(STR(?v),1,4)) AS ?y) BIND(xsd:integer(SUBSTR(STR(?v),6,2)) AS ?m) BIND(xsd:integer(SUBSTR(STR(?v),9,2)) AS ?d) BIND((?y - FLOOR(?y/4)*4 = 0 && (?y - FLOOR(?y/100)*100 != 0 || ?y - FLOOR(?y/400)*400 = 0)) AS ?leap) FILTER(?y<1 || ?m<1 || ?m>12 || ?d<1 || ?d>31 || (?m IN (4,6,9,11) && ?d>30) || (?m=2 && (?d>29 || (?d=29 && !?leap)))) }

@@ -11,15 +11,15 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-001 | Tenant identity and isolation | J17 | Record, Tenant, ExternalIdentifier | B001, B002, B003, B004 | UNIT-B001-REJECT, UNIT-B002-REJECT, UNIT-B003-REJECT, UNIT-B004-REJECT, REF-PASS |
 | BR-002 | Typed extensibility | J19 | CustomFieldDefinition, CustomFieldValue | B005 | UNIT-B005-REJECT, REF-PASS |
 | BR-003 | Service and physical topology | J03 | OperatorService, ChargingStation, ChargingArea, ChargingSite, ParkingSpace, ElectricalCircuit, LoadControlGroup, PaymentTerminal | B006, B007, B008, B009, B010, B011, B012, B013, B014, B015, B016, B017, B018 | UNIT-B006-REJECT, UNIT-B007-REJECT, UNIT-B008-REJECT, UNIT-B009-REJECT, UNIT-B010-REJECT, UNIT-B011-REJECT, UNIT-B012-REJECT, UNIT-B013-REJECT, UNIT-B014-REJECT, UNIT-B015-REJECT, UNIT-B016-REJECT, UNIT-B017-REJECT, UNIT-B018-REJECT, REF-PASS |
-| BR-004 | Electrical capability and cabinet sharing | J15 | ChargingUnit, PowerCabinet, PowerModuleAllocation | B019, B097, B098, B108 | UNIT-B019-REJECT, UNIT-B097-REJECT, UNIT-B098-REJECT, UNIT-B108-REJECT, REF-PASS |
+| BR-004 | Electrical capability and cabinet sharing | J15 | ChargingUnit, PowerCabinet, PowerModuleAllocation | B019, B097, B098, B108, B182 | UNIT-B019-REJECT, UNIT-B097-REJECT, UNIT-B098-REJECT, UNIT-B108-REJECT, REF-PASS, UNIT-B182-REJECT |
 | BR-005 | Public access and payment information | J04 | PublicListing | B020 | UNIT-B020-REJECT, REF-PASS |
 | BR-006 | Authorization identity and target | J05 | AuthorizationRequest, AuthorizationDecision, ChargingSession | B021, B022, B026, B028 | UNIT-B021-REJECT, UNIT-B022-REJECT, UNIT-B026-REJECT, UNIT-B028-REJECT, REF-PASS |
 | BR-007 | Charging lifecycle and termination evidence | J06 | ChargingSession, SessionEndEvidence, StateTransition | B023, B024, B025, B074 | UNIT-B023-REJECT, UNIT-B024-REJECT, UNIT-B025-REJECT, UNIT-B074-REJECT, REF-PASS |
-| BR-008 | Versioned tariff selection and pricing bounds | J08 | TariffVersion, TariffSet, DynamicPriceFormula, DiscountRule, FeeBounds, PriceTier, SessionPricingPolicy, RatingCalculation | B027, B034, B035, B036, B037, B038, B041, B084, B091, B092, B093, B094, B102, B107, B109 | UNIT-B027-REJECT, UNIT-B034-REJECT, UNIT-B035-REJECT, UNIT-B036-REJECT, UNIT-B037-REJECT, UNIT-B038-REJECT, UNIT-B041-REJECT, UNIT-B084-REJECT, UNIT-B091-REJECT, UNIT-B092-REJECT, UNIT-B093-REJECT, UNIT-B094-REJECT, UNIT-B102-REJECT, UNIT-B107-REJECT, UNIT-B109-REJECT, REF-PASS |
+| BR-008 | Versioned tariff selection and pricing bounds | J08 | TariffVersion, TariffSet, DynamicPriceFormula, DiscountRule, FeeBounds, PriceTier, SessionPricingPolicy, RatingCalculation | B027, B034, B035, B036, B037, B038, B041, B084, B091, B092, B093, B094, B102, B107, B109, B174 | UNIT-B027-REJECT, UNIT-B034-REJECT, UNIT-B035-REJECT, UNIT-B036-REJECT, UNIT-B037-REJECT, UNIT-B038-REJECT, UNIT-B041-REJECT, UNIT-B084-REJECT, UNIT-B091-REJECT, UNIT-B092-REJECT, UNIT-B093-REJECT, UNIT-B094-REJECT, UNIT-B102-REJECT, UNIT-B107-REJECT, UNIT-B109-REJECT, REF-PASS, UNIT-B174-REJECT |
 | BR-009 | Clock and signed meter evidence | J07 | SourceEvent, SignedMeterEvidence, ClockAssessment | B029, B030 | UNIT-B029-REJECT, UNIT-B030-REJECT, REF-PASS |
 | BR-010 | Charge record identity and lineage | J08 | ChargeDetailRecord | B031, B032, B033 | UNIT-B031-REJECT, UNIT-B032-REJECT, UNIT-B033-REJECT, REF-PASS |
 | BR-011 | Schedules, forecasts and charging profiles | J15 | ChargingSchedule, ForecastPoint, ChargingProfile | B062, B063, B064, B099 | UNIT-B062-REJECT, UNIT-B063-REJECT, UNIT-B064-REJECT, UNIT-B099-REJECT, REF-PASS |
-| BR-012 | Energy intervals and recurring time | J15 | ElectricityPriceInterval, EnergyMix, TimeWindow, SchedulePeriod, RecurringWindow | B039, B040, B075, B076, B077, B082 | UNIT-B039-REJECT, UNIT-B040-REJECT, UNIT-B075-REJECT, UNIT-B076-REJECT, UNIT-B077-REJECT, UNIT-B082-REJECT, REF-PASS |
+| BR-012 | Energy intervals and recurring time | J15 | ElectricityPriceInterval, EnergyMix, TimeWindow, SchedulePeriod, RecurringWindow | B039, B040, B075, B076, B077, B082, B173, B175 | UNIT-B039-REJECT, UNIT-B040-REJECT, UNIT-B075-REJECT, UNIT-B076-REJECT, UNIT-B077-REJECT, UNIT-B082-REJECT, REF-PASS, UNIT-B173-REJECT, UNIT-B175-REJECT |
 | BR-013 | Invoice arithmetic and due dates | J09 | Invoice, InvoiceLine, RatedLine, TaxDetermination | B042, B043, B044, B080 | UNIT-B042-REJECT, UNIT-B043-REJECT, UNIT-B044-REJECT, UNIT-B080-REJECT, REF-PASS |
 | BR-014 | Collection, refunds, holds and payouts | J09 | PaymentAuthorization, PaymentCapture, Refund, PaymentIntent, Payout, PayoutBatch, PreauthorizationPolicy | B045, B046, B047, B048, B049, B083, B095, B096, B103, B106 | UNIT-B045-REJECT, UNIT-B046-REJECT, UNIT-B047-REJECT, UNIT-B048-REJECT, UNIT-B049-REJECT, UNIT-B083-REJECT, UNIT-B095-REJECT, UNIT-B096-REJECT, UNIT-B103-REJECT, UNIT-B106-REJECT, REF-PASS |
 | BR-015 | Double-entry currency balance | J09 | Journal, JournalLine, LedgerAccount | B050, B051 | UNIT-B050-REJECT, UNIT-B051-REJECT, REF-PASS |
@@ -33,14 +33,14 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-023 | Callback delivery and retry termination | J19 | EventDelivery, EventSubscription | B072 | UNIT-B072-REJECT, REF-PASS |
 | BR-024 | Command acknowledgment versus completion | J06 | RemoteCommand, CommandOutcome | B073, B078 | UNIT-B073-REJECT, UNIT-B078-REJECT, REF-PASS |
 | BR-025 | Reimbursement date boundaries | J13 | ReimbursementPolicy | B079 | UNIT-B079-REJECT, REF-PASS |
-| BR-026 | Reservation expiry | J04 | Reservation, Booking | B081 | UNIT-B081-REJECT, REF-PASS |
+| BR-026 | Reservation expiry | J04 | Reservation, Booking | B081, B183 | UNIT-B081-REJECT, REF-PASS, UNIT-B183-REJECT |
 | BR-027 | Settlement agreement and currency identity | J12 | SettlementBatch, SettlementItem | B085 | UNIT-B085-REJECT, REF-PASS |
 | BR-028 | API token revocation and expiry | J17 | AccessTokenLease | B100, B101 | UNIT-B100-REJECT, UNIT-B101-REJECT, REF-PASS |
 | BR-110 | An active agreement has evidence of acceptance and at least one allocated contractual obligation. | J01 | ServiceAgreement | B110 | BR-110-PASS, BR-110-REJECT |
 | BR-111 | Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment. | J01 | ContractObligation | B111 | BR-111-PASS, BR-111-REJECT |
 | BR-112 | Amendment and renewal create a distinct successor version retaining the contract identity. | J01 | AgreementLifecycleEvent | B112 | BR-112-PASS, BR-112-REJECT |
 | BR-113 | Termination identifies who retains residual liability and the settlement cutoff. | J01 | AgreementLifecycleEvent | B113 | BR-113-PASS, BR-113-REJECT |
-| BR-114 | An active entitlement is backed by an active agreement and begins inside its effective period. | J02 | ServiceEntitlement | B114 | BR-114-PASS, BR-114-REJECT |
+| BR-114 | An active entitlement is fully contained in its active backing agreement. | J02 | ServiceEntitlement | B114 | BR-114-PASS, BR-114-REJECT |
 | BR-115 | Completed closure revokes active access and preserves ownership of any nonzero liability. | J02 | AccountClosure | B115 | BR-115-PASS, BR-115-REJECT |
 | BR-116 | An operating station has an accepted operational handover for that same asset. | J03 | ChargingStation | B116 | BR-116-PASS, BR-116-REJECT |
 | BR-117 | Accepted handover requires successful safety, protocol and metering assessments and evidence. | J03 | OperationalAcceptance | B117 | BR-117-PASS, BR-117-REJECT |
@@ -99,6 +99,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-170 | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. | J14 | AllowanceBalance | B170 | BR-170-PASS, BR-170-REJECT |
 | BR-171 | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. | J14 | AllowanceBalance | B171 | BR-171-PASS, BR-171-REJECT, ADV-ALLOWANCE-ALLOW, ADV-ALLOWANCE-REJECT |
 | BR-172 | Money-denominated allowances identify a currency instead of being treated as energy credits. | J14 | AllowanceBalance | B172 | BR-172-PASS, BR-172-REJECT |
+| BR-180 | Historical decisions and relationships are selected from immutable, complete bitemporal scopes with explicit source checkpoints. | J20 | TemporalCommit, TemporalSlice, ProjectionWatermark, TemporalSnapshotSelection, TemporalStreamPolicy | B176, B177, B178, B179, B180, B181, B184 | REF-PASS, UNIT-B176-REJECT, UNIT-B177-REJECT, UNIT-B178-REJECT, UNIT-B179-REJECT, UNIT-B180-REJECT, UNIT-B181-REJECT, UNIT-B184-REJECT |
 
 ## BR-001 — Tenant identity and isolation
 
@@ -802,13 +803,13 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 |---|---|
 | AgreementLifecycleEvent | serviceAgreement, agreementAction, effectiveAt, accountableParty, decisionEvidence, successorAgreement, residualLiabilityOwner, settlementCutoff |
 
-## BR-114 — An active entitlement is backed by an active agreement and begins inside its effective period.
+## BR-114 — An active entitlement is fully contained in its active backing agreement.
 
 - Accountable: Service provider.
 - Financial ownership: Creditor or designated successor.
 - Actors: Driver, FleetManager, Employer, PrivacyController.
 - Preconditions: The described decision is evaluated over a complete authorized snapshot with explicit identities and evidence references.
-- Normal outcome: An active entitlement is backed by an active agreement and begins inside its effective period.
+- Normal outcome: An active entitlement is fully contained in its active backing agreement.
 - Exception outcome: Reject the violating decision; the rejection scenario identifies B114.
 - Review finding: No dedicated end-to-end contract for this decision existed in the imported model.
 - Disposition: semantic-contract-covered.
@@ -1981,3 +1982,23 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | Concept | Reviewed relationship/value paths |
 |---|---|
 | AllowanceBalance | customer, allowance, billingPeriod, openingValue, grantedValue, consumedValue, reservedValue, expiredValue, closingValue, currency, unitIri |
+
+## BR-180 — Historical decisions and relationships are selected from immutable, complete bitemporal scopes with explicit source checkpoints.
+
+- Accountable: Named accountable party.
+- Financial ownership: Named financial owner.
+- Actors: AllActors, Finance, Auditor, PlatformOperator.
+- Preconditions: The described decision is evaluated over a complete authorized snapshot with explicit identities and evidence references.
+- Normal outcome: Historical snapshots remain reproducible after corrections, retractions and current access revocation.
+- Exception outcome: Reject ambiguous, incomplete, stale, conflicting or non-monotonic writes; quarantine events outside the replay horizon.
+- Review finding: Temporal review T01–T09
+- Disposition: reference-contract-implemented.
+- Adversarial review: Not challenged by this six-family review.
+- Sources: CW-POLICY.
+- Associated full-graph journey snapshots: JOURNEY-CLOSURE-PASS, JOURNEY-CLOSURE-REJECT, JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
+- Structural contracts: TemporalCommitShape, TemporalSliceShape, ProjectionWatermarkShape.
+- Runtime acceptance: The executable reference adapter enforces these rules in-process. A production adapter must preserve the same atomic compare-and-swap, authorization, durability, and retention behavior under concurrency.
+
+| Concept | Reviewed relationship/value paths |
+|---|---|
+| TemporalCommit | snapshotScope, recordedAt, previousCommit, temporalSlice, sourceWatermark, schemaDigest |

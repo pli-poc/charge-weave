@@ -407,6 +407,6 @@ Lead: Business process owner. Accountable: Named accountable party. Financial ow
 
 Concrete domain concepts: ProcessExecution, ProcessStep, LifecycleSnapshot, StateTransition.
 
-Requirements: BR-163, BR-164, BR-166, BR-167, BR-168.
+Requirements: BR-163, BR-164, BR-166, BR-167, BR-168, BR-180.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.

@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:Booking . ?this cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ?unit; cd:bookingWindow ?i. ?i cd:startsAt ?a; cd:endsAt ?b. ?other a cd:Booking; cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ?unit; cd:bookingWindow ?j. ?j cd:startsAt ?c; cd:endsAt ?d. FILTER(?other!=?this && ?a<?d && ?c<?b) }

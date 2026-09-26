@@ -373,7 +373,8 @@
       "B019",
       "B097",
       "B098",
-      "B108"
+      "B108",
+      "B182"
     ],
     "sources": [
       "CW-POLICY"
@@ -386,7 +387,8 @@
       "UNIT-B097-REJECT",
       "UNIT-B098-REJECT",
       "UNIT-B108-REJECT",
-      "REF-PASS"
+      "REF-PASS",
+      "UNIT-B182-REJECT"
     ],
     "finding": "Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.",
     "disposition": "semantic-contract-covered",
@@ -737,7 +739,8 @@
       "B094",
       "B102",
       "B107",
-      "B109"
+      "B109",
+      "B174"
     ],
     "sources": [
       "OCPI-TARIFF"
@@ -761,7 +764,8 @@
       "UNIT-B102-REJECT",
       "UNIT-B107-REJECT",
       "UNIT-B109-REJECT",
-      "REF-PASS"
+      "REF-PASS",
+      "UNIT-B174-REJECT"
     ],
     "finding": "Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.",
     "disposition": "semantic-contract-covered",
@@ -1169,7 +1173,9 @@
       "B075",
       "B076",
       "B077",
-      "B082"
+      "B082",
+      "B173",
+      "B175"
     ],
     "sources": [
       "OCPI-TARIFF"
@@ -1184,7 +1190,9 @@
       "UNIT-B076-REJECT",
       "UNIT-B077-REJECT",
       "UNIT-B082-REJECT",
-      "REF-PASS"
+      "REF-PASS",
+      "UNIT-B173-REJECT",
+      "UNIT-B175-REJECT"
     ],
     "finding": "Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.",
     "disposition": "semantic-contract-covered",
@@ -2478,7 +2486,8 @@
       "Booking"
     ],
     "rules": [
-      "B081"
+      "B081",
+      "B183"
     ],
     "sources": [
       "OCA-CORE"
@@ -2488,7 +2497,8 @@
     "exceptionOutcome": "Reject the specified contradictions using the named constraint; retain an attributable case for runtime recovery.",
     "scenarios": [
       "UNIT-B081-REJECT",
-      "REF-PASS"
+      "REF-PASS",
+      "UNIT-B183-REJECT"
     ],
     "finding": "Existing representation retained; reviewed against the independent journey and strengthened by the related new requirements.",
     "disposition": "semantic-contract-covered",
@@ -2901,7 +2911,7 @@
   {
     "id": "BR-114",
     "kind": "audit-gap-closure",
-    "statement": "An active entitlement is backed by an active agreement and begins inside its effective period.",
+    "statement": "An active entitlement is fully contained in its active backing agreement.",
     "journey": "J02",
     "phase": "suspension",
     "actors": [
@@ -2922,7 +2932,7 @@
       "CW-POLICY"
     ],
     "preconditions": "The described decision is evaluated over a complete authorized snapshot with explicit identities and evidence references.",
-    "normalOutcome": "An active entitlement is backed by an active agreement and begins inside its effective period.",
+    "normalOutcome": "An active entitlement is fully contained in its active backing agreement.",
     "exceptionOutcome": "Reject the violating decision; the rejection scenario identifies B114.",
     "scenarios": [
       "BR-114-PASS",
@@ -6413,6 +6423,80 @@
       "JOURNEY-REIMBURSEMENT-REJECT",
       "JOURNEY-ALLOWANCE-PASS",
       "JOURNEY-ALLOWANCE-REJECT"
+    ]
+  },
+  {
+    "id": "BR-180",
+    "kind": "temporal-contract",
+    "statement": "Historical decisions and relationships are selected from immutable, complete bitemporal scopes with explicit source checkpoints.",
+    "journey": "J20",
+    "phase": "change",
+    "actors": [
+      "AllActors",
+      "Finance",
+      "Auditor",
+      "PlatformOperator"
+    ],
+    "accountableParty": "Named accountable party",
+    "financialOwner": "Named financial owner",
+    "classes": [
+      "TemporalCommit",
+      "TemporalSlice",
+      "ProjectionWatermark",
+      "TemporalSnapshotSelection",
+      "TemporalStreamPolicy"
+    ],
+    "rules": [
+      "B176",
+      "B177",
+      "B178",
+      "B179",
+      "B180",
+      "B181",
+      "B184"
+    ],
+    "sources": [
+      "CW-POLICY"
+    ],
+    "preconditions": "The described decision is evaluated over a complete authorized snapshot with explicit identities and evidence references.",
+    "normalOutcome": "Historical snapshots remain reproducible after corrections, retractions and current access revocation.",
+    "exceptionOutcome": "Reject ambiguous, incomplete, stale, conflicting or non-monotonic writes; quarantine events outside the replay horizon.",
+    "scenarios": [
+      "REF-PASS",
+      "UNIT-B176-REJECT",
+      "UNIT-B177-REJECT",
+      "UNIT-B178-REJECT",
+      "UNIT-B179-REJECT",
+      "UNIT-B180-REJECT",
+      "UNIT-B181-REJECT",
+      "UNIT-B184-REJECT"
+    ],
+    "finding": "Temporal review T01\u2013T09",
+    "disposition": "reference-contract-implemented",
+    "runtimeObligation": "The executable reference adapter enforces these rules in-process. A production adapter must preserve the same atomic compare-and-swap, authorization, durability, and retention behavior under concurrency.",
+    "relationships": [
+      {
+        "class": "TemporalCommit",
+        "properties": [
+          "snapshotScope",
+          "recordedAt",
+          "previousCommit",
+          "temporalSlice",
+          "sourceWatermark",
+          "schemaDigest"
+        ]
+      }
+    ],
+    "structuralShapes": [
+      "TemporalCommitShape",
+      "TemporalSliceShape",
+      "ProjectionWatermarkShape"
+    ],
+    "journeyScenarios": [
+      "JOURNEY-CLOSURE-PASS",
+      "JOURNEY-CLOSURE-REJECT",
+      "JOURNEY-PROCESS-PASS",
+      "JOURNEY-PROCESS-REJECT"
     ]
   }
 ]

@@ -7,23 +7,23 @@ cd:CommandOutcome a owl:Class ;
     rdfs:label "Command Outcome"@en ;
     rdfs:comment "Reported acknowledgement or terminal outcome of one command."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:OutcomeStateCode ;
-            owl:onProperty cd:outcomeState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:reportedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:reasonCode ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:command ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:reasonCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:OutcomeStateCode ;
+            owl:onProperty cd:outcomeState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:OutcomeKindCode ;
             owl:onProperty cd:outcomeKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:reportedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "commands-booking" .
@@ -32,26 +32,26 @@ cd:Reservation a owl:Class ;
     rdfs:label "Reservation"@en ;
     rdfs:comment "Immediate resource hold with an expiry and optional booking linkage."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ReservationStateCode ;
-            owl:onProperty cd:reservationState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:expiresAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:reservedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingSession ;
             owl:onProperty cd:session ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingUnit ;
-            owl:onProperty cd:chargingUnit ],
+            owl:allValuesFrom cd:ReservationStateCode ;
+            owl:onProperty cd:reservationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Booking ;
             owl:onProperty cd:booking ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingUnit ;
+            owl:onProperty cd:chargingUnit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "commands-booking" .
@@ -60,12 +60,6 @@ cd:BookingRequest a owl:Class ;
     rdfs:label "Booking Request"@en ;
     rdfs:comment "Request to allocate charging or parking over a future interval, including modification/cancellation intent."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:RequestStateCode ;
-            owl:onProperty cd:requestState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RequestKindCode ;
-            owl:onProperty cd:requestKind ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
         [ a owl:Restriction ;
@@ -75,11 +69,17 @@ cd:BookingRequest a owl:Class ;
             owl:allValuesFrom cd:Booking ;
             owl:onProperty cd:previousBooking ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSite ;
-            owl:onProperty cd:site ],
+            owl:allValuesFrom cd:RequestKindCode ;
+            owl:onProperty cd:requestKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:requestedEnergyKWh ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RequestStateCode ;
+            owl:onProperty cd:requestState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingSite ;
+            owl:onProperty cd:site ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "commands-booking" .
@@ -101,11 +101,23 @@ cd:RemoteCommand a owl:Class ;
     rdfs:label "Remote Command"@en ;
     rdfs:comment "Persisted asynchronous action request; acknowledgement and achieved outcome are separate."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:idempotencyKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:expiresAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:requestedAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:requestedBy ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:correlationId ],
+            owl:allValuesFrom cd:CommandStateCode ;
+            owl:onProperty cd:commandState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CommandParameter ;
+            owl:onProperty cd:commandParameter ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:targetRecord ],
@@ -113,20 +125,8 @@ cd:RemoteCommand a owl:Class ;
             owl:allValuesFrom cd:SourceEvent ;
             owl:onProperty cd:sourceEvent ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:requestedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CommandStateCode ;
-            owl:onProperty cd:commandState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:expiresAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CommandParameter ;
-            owl:onProperty cd:commandParameter ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:idempotencyKey ],
+            owl:onProperty cd:correlationId ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "commands-booking" .
@@ -138,14 +138,14 @@ cd:Booking a owl:Class ;
             owl:allValuesFrom cd:TimeWindow ;
             owl:onProperty cd:bookingWindow ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:BookingRequest ;
-            owl:onProperty cd:bookingRequest ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ParkingSpace ;
             owl:onProperty cd:parkingSpace ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:BookingStateCode ;
             owl:onProperty cd:bookingState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BookingRequest ;
+            owl:onProperty cd:bookingRequest ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingUnit ;
             owl:onProperty cd:chargingUnit ],

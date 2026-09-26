@@ -16212,5 +16212,273 @@
         "values": null
       }
     ]
+  },
+  "TemporalCommit": {
+    "module": "foundation",
+    "parent": "Record",
+    "definition": "Immutable recorded-time revision of a complete effective-time map for one tenant and coherent validation scope. System end is derived from its successor commit.",
+    "fields": [
+      {
+        "property": "snapshotScope",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "recordedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "commitSequence",
+        "type": "datatype",
+        "range": "positiveInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "previousCommit",
+        "type": "object",
+        "range": "TemporalCommit",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "temporalSlice",
+        "type": "object",
+        "range": "TemporalSlice",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "sourceWatermark",
+        "type": "object",
+        "range": "ProjectionWatermark",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "schemaDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "mappingVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "commitReason",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "TemporalSlice": {
+    "module": "foundation",
+    "parent": "Record",
+    "definition": "Half-open business-time slice selecting one immutable RDF payload graph or an explicit retraction. It belongs to a commit and cannot overlap its sibling slices.",
+    "fields": [
+      {
+        "property": "validFrom",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "validUntil",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "payloadGraph",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "contentDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "sliceState",
+        "type": "enum",
+        "range": "SliceStateCode",
+        "cardinality": "!",
+        "values": [
+          "Present",
+          "Retracted"
+        ]
+      }
+    ]
+  },
+  "ProjectionWatermark": {
+    "module": "foundation",
+    "parent": "Record",
+    "definition": "Source-partition checkpoint defining completeness and lateness for a reproducible semantic projection; offsets are monotonic within a source partition.",
+    "fields": [
+      {
+        "property": "sourceSystem",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourcePartition",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceOffset",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "watermarkAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "completeThrough",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "maximumLatenessSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "watermarkState",
+        "type": "enum",
+        "range": "WatermarkStateCode",
+        "cardinality": "!",
+        "values": [
+          "Complete",
+          "Incomplete"
+        ]
+      }
+    ]
+  },
+  "TemporalSnapshotSelection": {
+    "module": "foundation",
+    "parent": "Record",
+    "definition": "Evidence of a valid-time and known-time selection inside one committed scope; queries use only its selected graph and the recorded schema version.",
+    "fields": [
+      {
+        "property": "selectedCommit",
+        "type": "object",
+        "range": "TemporalCommit",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "selectedSlice",
+        "type": "object",
+        "range": "TemporalSlice",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "validAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "knownAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "snapshotScope",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "selectionState",
+        "type": "enum",
+        "range": "SelectionStateCode",
+        "cardinality": "!",
+        "values": [
+          "Present",
+          "Retracted",
+          "Unavailable"
+        ]
+      }
+    ]
+  },
+  "TemporalStreamPolicy": {
+    "module": "foundation",
+    "parent": "Record",
+    "definition": "Explicit policy for event-time disorder and corrections. Beyond-retention evidence is quarantined, and historical payloads are preserved by the reference writer.",
+    "fields": [
+      {
+        "property": "allowedLatenessSeconds",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "replayHorizonSeconds",
+        "type": "datatype",
+        "range": "positiveInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "lateEventAction",
+        "type": "enum",
+        "range": "LateEventActionCode",
+        "cardinality": "!",
+        "values": [
+          "Correct",
+          "Quarantine"
+        ]
+      },
+      {
+        "property": "duplicateEventAction",
+        "type": "enum",
+        "range": "DuplicateEventActionCode",
+        "cardinality": "!",
+        "values": [
+          "IgnoreIdentical",
+          "RejectConflict"
+        ]
+      }
+    ]
   }
 }

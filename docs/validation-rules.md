@@ -117,7 +117,7 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B111 | ContractObligation | Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment. |
 | B112 | AgreementLifecycleEvent | Amendment and renewal create a distinct successor version retaining the contract identity. |
 | B113 | AgreementLifecycleEvent | Termination identifies who retains residual liability and the settlement cutoff. |
-| B114 | ServiceEntitlement | An active entitlement is backed by an active agreement and begins inside its effective period. |
+| B114 | ServiceEntitlement | An active entitlement is fully contained in its active backing agreement. |
 | B115 | AccountClosure | Completed closure revokes active access and preserves ownership of any nonzero liability. |
 | B116 | ChargingStation | An operating station has an accepted operational handover for that same asset. |
 | B117 | OperationalAcceptance | Accepted handover requires successful safety, protocol and metering assessments and evidence. |
@@ -176,3 +176,15 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B170 | AllowanceBalance | Remaining allowance reconciles opening rollover, grants, consumption, reservations and expired value without a negative balance. |
 | B171 | AllowanceBalance | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. |
 | B172 | AllowanceBalance | Money-denominated allowances identify a currency instead of being treated as energy credits. |
+| B173 | ChargingInterval | Session intervals are contained within the parent session. |
+| B174 | TariffSet | One online selection set cannot expose overlapping candidate versions of the same tariff identity. |
+| B175 | Record | Calendar-date values must identify real Gregorian dates. |
+| B176 | TemporalSlice | Present temporal slices have an immutable graph and digest; retractions have neither. |
+| B177 | TemporalCommit | Commit slices form a non-overlapping effective-time map. |
+| B178 | TemporalCommit | Successor commits preserve scope and tenant, advance recording time and sequence, and cannot branch or cycle. |
+| B179 | TemporalCommit | Committed projections have complete, unique, non-future and monotonic source checkpoints. |
+| B180 | ProjectionWatermark | A source completeness cutoff cannot exceed its watermark observation time. |
+| B181 | CredentialAssignment | Assignments of a credential cannot overlap inside a coherent validation snapshot. |
+| B182 | PowerCabinet | Coincident module allocations must remain within cabinet power capacity. |
+| B183 | Booking | Confirmed bookings cannot allocate the same charging unit during overlapping windows. |
+| B184 | TemporalSnapshotSelection | Snapshot selection must identify the latest matching commit and slice, or explicitly report unavailability. |

@@ -8,14 +8,11 @@ cd:Chargeback a owl:Class ;
     rdfs:label "Chargeback"@en ;
     rdfs:comment "Dispute raised through a payment provider with evidential deadline and outcome."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:DisputeStateCode ;
-            owl:onProperty cd:disputeState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentCapture ;
             owl:onProperty cd:paymentCapture ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:disputedAmount ],
@@ -23,11 +20,14 @@ cd:Chargeback a owl:Class ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:responseDueAt ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:DisputeStateCode ;
+            owl:onProperty cd:disputeState ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:reasonCode ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:evidence ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -36,11 +36,14 @@ cd:DunningAction a owl:Class ;
     rdfs:label "Dunning Action"@en ;
     rdfs:comment "Versioned decision to remind, suspend collection or write off overdue debt while respecting an active dispute."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:actionAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ActionKindCode ;
+            owl:onProperty cd:actionKind ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:actionEvidence ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:FinancialPosition ;
-            owl:onProperty cd:financialPosition ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Principal ;
             owl:onProperty cd:approvedBy ],
@@ -48,11 +51,8 @@ cd:DunningAction a owl:Class ;
             owl:allValuesFrom cd:ServiceDispute ;
             owl:onProperty cd:serviceDispute ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ActionKindCode ;
-            owl:onProperty cd:actionKind ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:actionAt ],
+            owl:allValuesFrom cd:FinancialPosition ;
+            owl:onProperty cd:financialPosition ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -61,17 +61,17 @@ cd:PaymentTerminal a owl:Class ;
     rdfs:label "Payment Terminal"@en ;
     rdfs:comment "Payment device serving exactly one station or charging area."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:terminalSerial ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:preauthorizationAmount ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingArea ;
             owl:onProperty cd:area ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:supportedLanguage ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:terminalType ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:terminalSerial ],
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integration ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:terminalName ],
@@ -79,17 +79,17 @@ cd:PaymentTerminal a owl:Class ;
             owl:allValuesFrom cd:ChargingStation ;
             owl:onProperty cd:station ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ContentTemplate ;
-            owl:onProperty cd:displayTemplate ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:integration ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:preauthorizationAmount ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:terminalType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:supportedLanguage ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ContentTemplate ;
+            owl:onProperty cd:displayTemplate ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -98,20 +98,20 @@ cd:PayoutBatch a owl:Class ;
     rdfs:label "Payout Batch"@en ;
     rdfs:comment "Currency-specific group of disbursements for a funding entity and execution date."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:scheduledAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:fundingParty ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:batchTotal ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:fundingParty ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:scheduledAt ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Payout ;
             owl:onProperty cd:payout ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:batchTotal ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -120,8 +120,8 @@ cd:ReconciliationResolution a owl:Class ;
     rdfs:label "Reconciliation Resolution"@en ;
     rdfs:comment "Resolution of a missing, duplicate or mismatched record, preserving matching identifiers, disposition, corrective evidence and residual liability owner."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:resolvedAt ],
+            owl:allValuesFrom cd:ResolutionKindCode ;
+            owl:onProperty cd:resolutionKind ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ReconciliationCase ;
             owl:onProperty cd:reconciliationCase ],
@@ -129,14 +129,14 @@ cd:ReconciliationResolution a owl:Class ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:financialOwner ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ResolutionKindCode ;
-            owl:onProperty cd:resolutionKind ],
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:resolutionEvidence ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:RecordCorrection ;
             owl:onProperty cd:correction ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:resolutionEvidence ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:resolvedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -145,26 +145,26 @@ cd:Refund a owl:Class ;
     rdfs:label "Refund"@en ;
     rdfs:comment "Payment reversal request and result linked to one original capture."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:requestedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:providerReference ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:refundAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RefundStateCode ;
-            owl:onProperty cd:refundState ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:refundReason ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentCapture ;
             owl:onProperty cd:paymentCapture ],
         [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:providerReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RefundStateCode ;
+            owl:onProperty cd:refundState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:refundAmount ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:requestedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -173,23 +173,23 @@ cd:TopUpOffer a owl:Class ;
     rdfs:label "Top Up Offer"@en ;
     rdfs:comment "Purchase offer for funding a wallet, separating purchase price and credited value."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:creditAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:purchaseAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:creditAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
             owl:onProperty cd:offerName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:validUntil ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -198,23 +198,23 @@ cd:VoucherRedemption a owl:Class ;
     rdfs:label "Voucher Redemption"@en ;
     rdfs:comment "Recorded application of voucher value to a customer's wallet."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:redeemedAt ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:WalletEntry ;
             owl:onProperty cd:walletEntry ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Wallet ;
-            owl:onProperty cd:wallet ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:redeemedAmount ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:redeemedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Voucher ;
             owl:onProperty cd:voucher ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:idempotencyKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Wallet ;
+            owl:onProperty cd:wallet ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:redeemedAmount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -223,23 +223,23 @@ cd:FinancialAccountReference a owl:Class ;
     rdfs:label "Financial Account Reference"@en ;
     rdfs:comment "Payment-provider or vault reference to bank details with masked display values; raw credentials are not required in the graph."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:AccountSchemeCode ;
-            owl:onProperty cd:accountScheme ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:maskedAccount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:accountHolder ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:bankCountryCode ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:bankIdentifierCode ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:accountReference ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:bankCountryCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:maskedAccount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AccountSchemeCode ;
+            owl:onProperty cd:accountScheme ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:accountHolder ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -248,17 +248,17 @@ cd:JournalLine a owl:Class ;
     rdfs:label "Journal Line"@en ;
     rdfs:comment "Signed debit-positive accounting amount in one currency account."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:LedgerAccount ;
+            owl:onProperty cd:ledgerAccount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
             owl:allValuesFrom rdf:langString ;
             owl:onProperty cd:lineDescription ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:signedAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LedgerAccount ;
-            owl:onProperty cd:ledgerAccount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -267,17 +267,17 @@ cd:LedgerAccount a owl:Class ;
     rdfs:label "Ledger Account"@en ;
     rdfs:comment "Currency-specific accounting account within a tenant ledger."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:accountCode ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:ownerParty ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AccountCategoryCode ;
             owl:onProperty cd:accountCategory ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:accountCode ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -286,17 +286,14 @@ cd:PaymentAllocation a owl:Class ;
     rdfs:label "Payment Allocation"@en ;
     rdfs:comment "Allocation of a confirmed collection to an identified receivable, with matching currency and no duplicated financial effect."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:FinancialPosition ;
-            owl:onProperty cd:financialPosition ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:allocatedAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentCapture ;
             owl:onProperty cd:paymentCapture ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:AllocationStateCode ;
-            owl:onProperty cd:allocationState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:allocatedAt ],
+            owl:allValuesFrom cd:FinancialPosition ;
+            owl:onProperty cd:financialPosition ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:allocationEvidence ],
@@ -304,8 +301,11 @@ cd:PaymentAllocation a owl:Class ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:allocatedAmount ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:allocatedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AllocationStateCode ;
+            owl:onProperty cd:allocationState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -314,17 +314,11 @@ cd:PaymentAuthorization a owl:Class ;
     rdfs:label "Payment Authorization"@en ;
     rdfs:comment "PSP authorization or preauthorization; does not prove capture."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:authorizedAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:authorizedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:expiresAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PaymentIntent ;
-            owl:onProperty cd:paymentIntent ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:AuthorizationStateCode ;
             owl:onProperty cd:authorizationState ],
@@ -332,8 +326,14 @@ cd:PaymentAuthorization a owl:Class ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:providerReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:authorizedAt ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:authorizedAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentIntent ;
+            owl:onProperty cd:paymentIntent ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -345,20 +345,20 @@ cd:PaymentInstrument a owl:Class ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:provider ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:InstrumentKindCode ;
             owl:onProperty cd:instrumentKind ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:InstrumentStateCode ;
-            owl:onProperty cd:instrumentState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:providerInstrumentReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:expiryMonth ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:providerInstrumentReference ],
+            owl:allValuesFrom cd:InstrumentStateCode ;
+            owl:onProperty cd:instrumentState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -367,17 +367,17 @@ cd:PaymentRouting a owl:Class ;
     rdfs:label "Payment Routing"@en ;
     rdfs:comment "Deterministic choice of payment service and merchant account for a transaction."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:IntegrationConnection ;
-            owl:onProperty cd:integrationConnection ],
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty cd:routePriority ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:merchantAccountReference ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:integer ;
-            owl:onProperty cd:routePriority ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:PricingCondition ;
             owl:onProperty cd:pricingCondition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:IntegrationConnection ;
+            owl:onProperty cd:integrationConnection ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -386,35 +386,35 @@ cd:Payout a owl:Class ;
     rdfs:label "Payout"@en ;
     rdfs:comment "Disbursement to a beneficiary account, distinct from collection of a driver's payment."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:payoutReference ],
+            owl:allValuesFrom cd:FinancialAccountReference ;
+            owl:onProperty cd:financialAccount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:beneficiary ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:payoutAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:FinancialAccountReference ;
-            owl:onProperty cd:financialAccount ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:scheduledAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ReimbursementRecord ;
+            owl:onProperty cd:reimbursementRecord ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:SettlementBatch ;
+            owl:onProperty cd:settlementBatch ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:payoutReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PayoutStateCode ;
             owl:onProperty cd:payoutState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:scheduledAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:confirmedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:SettlementBatch ;
-            owl:onProperty cd:settlementBatch ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:beneficiary ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ReimbursementRecord ;
-            owl:onProperty cd:reimbursementRecord ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -423,17 +423,17 @@ cd:ServiceDispute a owl:Class ;
     rdfs:label "Service Dispute"@en ;
     rdfs:comment "Customer or partner complaint distinct from a card-network chargeback; captures disputed service, accountable resolver, deadline and remedy."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:financialOwner ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:EvidenceDocument ;
-            owl:onProperty cd:resolutionEvidence ],
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:claimant ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:DisputeCaseStateCode ;
             owl:onProperty cd:disputeCaseState ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:resolutionEvidence ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:accountableParty ],
+            owl:onProperty cd:financialOwner ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:remedyRecord ],
@@ -441,14 +441,14 @@ cd:ServiceDispute a owl:Class ;
             owl:allValuesFrom cd:Record ;
             owl:onProperty cd:disputedRecord ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:claimant ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:openedAt ],
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:accountableParty ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:responseDueAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:openedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -458,13 +458,7 @@ cd:Voucher a owl:Class ;
     rdfs:comment "Monetary redemption instrument with opaque code reference and finite redemption terms."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validFrom ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:faceValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
+            owl:onProperty cd:validUntil ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:VoucherStateCode ;
             owl:onProperty cd:voucherState ],
@@ -476,7 +470,13 @@ cd:Voucher a owl:Class ;
             owl:onProperty cd:redemptionLimit ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:validUntil ],
+            owl:onProperty cd:validFrom ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:faceValue ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -485,23 +485,23 @@ cd:WalletEntry a owl:Class ;
     rdfs:label "Wallet Entry"@en ;
     rdfs:comment "Signed customer balance movement linked to immutable journal evidence."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EntryReasonCode ;
-            owl:onProperty cd:entryReason ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:recordedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:Wallet ;
             owl:onProperty cd:wallet ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:recordedAt ],
+            owl:allValuesFrom cd:Journal ;
+            owl:onProperty cd:journal ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:signedAmount ],
+            owl:allValuesFrom cd:EntryReasonCode ;
+            owl:onProperty cd:entryReason ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:idempotencyKey ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Journal ;
-            owl:onProperty cd:journal ],
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:signedAmount ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -513,20 +513,20 @@ cd:FinancialPosition a owl:Class ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:collectedAmount ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:LegalEntity ;
-            owl:onProperty cd:creditor ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:writtenOffAmount ],
+            owl:onProperty cd:outstandingAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:LegalEntity ;
             owl:onProperty cd:financialOwner ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:debtor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:outstandingAmount ],
+            owl:onProperty cd:creditedAmount ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:originalAmount ],
@@ -535,13 +535,13 @@ cd:FinancialPosition a owl:Class ;
             owl:onProperty cd:sourceRecord ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
-            owl:onProperty cd:creditedAmount ],
+            owl:onProperty cd:writtenOffAmount ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:LegalEntity ;
+            owl:onProperty cd:creditor ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PositionStateCode ;
             owl:onProperty cd:positionState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Record ;
-            owl:onProperty cd:debtor ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -550,12 +550,6 @@ cd:Journal a owl:Class ;
     rdfs:label "Journal"@en ;
     rdfs:comment "Balanced accounting posting group; posted entries are immutable."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:postedAt ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Journal ;
-            owl:onProperty cd:reversalOf ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:postingReference ],
         [ a owl:Restriction ;
@@ -564,6 +558,12 @@ cd:Journal a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom cd:JournalStateCode ;
             owl:onProperty cd:journalState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Journal ;
+            owl:onProperty cd:reversalOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:postedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -572,17 +572,17 @@ cd:PaymentIntent a owl:Class ;
     rdfs:label "Payment Intent"@en ;
     rdfs:comment "Commercial obligation to collect money with provider-independent lifecycle."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:providerOrderReference ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:CustomerAccount ;
-            owl:onProperty cd:customer ],
+            owl:allValuesFrom cd:Invoice ;
+            owl:onProperty cd:invoice ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:idempotencyKey ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PaymentInstrument ;
-            owl:onProperty cd:paymentInstrument ],
+            owl:allValuesFrom cd:ChargingSession ;
+            owl:onProperty cd:session ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:requestedAmount ],
@@ -590,17 +590,17 @@ cd:PaymentIntent a owl:Class ;
             owl:allValuesFrom cd:PaymentStateCode ;
             owl:onProperty cd:paymentState ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:CustomerAccount ;
+            owl:onProperty cd:customer ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentInstrument ;
+            owl:onProperty cd:paymentInstrument ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:providerOrderReference ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentRouting ;
             owl:onProperty cd:paymentRouting ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Invoice ;
-            owl:onProperty cd:invoice ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingSession ;
-            owl:onProperty cd:session ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .
@@ -609,14 +609,14 @@ cd:Wallet a owl:Class ;
     rdfs:label "Wallet"@en ;
     rdfs:comment "Customer monetary balance projection, backed by immutable ledger entries."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:WalletStateCode ;
+            owl:onProperty cd:walletState ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:Currency ;
             owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:CustomerAccount ;
             owl:onProperty cd:customer ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:WalletStateCode ;
-            owl:onProperty cd:walletState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:balanceAmount ],
@@ -631,32 +631,32 @@ cd:PaymentCapture a owl:Class ;
     rdfs:label "Payment Capture"@en ;
     rdfs:comment "Confirmed or pending capture against a payment intent."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentAuthorization ;
+            owl:onProperty cd:paymentAuthorization ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:capturedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaymentIntent ;
+            owl:onProperty cd:paymentIntent ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:CaptureStateCode ;
             owl:onProperty cd:captureState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:providerReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:PaymentAllocation ;
             owl:onProperty cd:paymentAllocation ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:PaymentIntent ;
-            owl:onProperty cd:paymentIntent ],
+            owl:allValuesFrom cd:Currency ;
+            owl:onProperty cd:currency ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:idempotencyKey ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:decimal ;
             owl:onProperty cd:capturedAmount ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:Currency ;
-            owl:onProperty cd:currency ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:providerReference ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:PaymentAuthorization ;
-            owl:onProperty cd:paymentAuthorization ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:capturedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "payments-ledger" .

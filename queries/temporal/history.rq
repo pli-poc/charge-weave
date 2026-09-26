@@ -1,0 +1,11 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?commit ?slice ?validFrom ?validUntil ?systemFrom ?systemUntil ?state ?graph ?reason
+WHERE {
+  ?commit a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope;
+          cd:recordedAt ?systemFrom; cd:temporalSlice ?slice; cd:commitReason ?reason.
+  ?slice cd:validFrom ?validFrom; cd:sliceState ?state.
+  OPTIONAL { ?slice cd:validUntil ?validUntil. }
+  OPTIONAL { ?slice cd:payloadGraph ?graph. }
+  OPTIONAL { ?next cd:previousCommit ?commit; cd:recordedAt ?systemUntil. }
+}
+ORDER BY ?systemFrom ?validFrom

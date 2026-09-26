@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COUNTED_REPORTS = ('generated-checks.json', 'business-tests.json', 'boundary-tests.json',
                    'trust-boundary-tests.json', 'release-checks.json',
                    'business-acceptance.json', 'business-traceability.json',
-                   'lifecycle-tests.json', 'naming-checks.json', 'temporal-audit.json') + tuple(
+                   'lifecycle-tests.json', 'naming-checks.json', 'temporal-audit.json', 'temporal-tests.json') + tuple(
     'journey-' + family + '.json' for family in
     ('closure', 'charge', 'credit', 'offline', 'reimbursement', 'privacy', 'energy',
      'migration', 'asset', 'allowance', 'access', 'settlement', 'process'))
@@ -58,7 +58,7 @@ def main():
         raise ValueError('Checkout does not match the GitHub Actions commit')
     files = project_files(ROOT) + [ROOT / 'reports' / name for name in REPORTS]
     manifest = {
-        'product': 'ChargeWeave', 'ontologyVersion': '1.1.1', 'commit': commit,
+        'product': 'ChargeWeave', 'ontologyVersion': '1.2.0', 'commit': commit,
         'createdAt': datetime.now(timezone.utc).isoformat(),
         'workflowRun': os.environ.get('GITHUB_RUN_ID'),
         'workflowAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'),

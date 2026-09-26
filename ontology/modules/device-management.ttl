@@ -8,28 +8,28 @@ cd:ConfigurationVariable a owl:Class ;
     rdfs:comment "Desired and observed device configuration, including component and EVSE addressing."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:observedValue ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ConfigurationStateCode ;
-            owl:onProperty cd:configurationState ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:attributeType ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingStation ;
-            owl:onProperty cd:station ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:variableName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:desiredValue ],
         [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:componentName ],
+            owl:onProperty cd:attributeType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:observedValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ConfigurationStateCode ;
+            owl:onProperty cd:configurationState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:observedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:componentName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -39,13 +39,13 @@ cd:ConnectionObservation a owl:Class ;
     rdfs:comment "Network reachability observation separated from physical availability and administrative state."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:observedAt ],
+            owl:onProperty cd:lastHeartbeatAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ConnectionStateCode ;
             owl:onProperty cd:connectionState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:lastHeartbeatAt ],
+            owl:onProperty cd:observedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingStation ;
             owl:onProperty cd:station ],
@@ -57,20 +57,20 @@ cd:DiagnosticArtifact a owl:Class ;
     rdfs:label "Diagnostic Artifact"@en ;
     rdfs:comment "Diagnostic or security log collection associated with a request and result."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:RemoteCommand ;
+            owl:onProperty cd:command ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:artifact ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DiagnosticStateCode ;
+            owl:onProperty cd:diagnosticState ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ChargingStation ;
             owl:onProperty cd:station ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:RemoteCommand ;
-            owl:onProperty cd:command ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:DiagnosticStateCode ;
-            owl:onProperty cd:diagnosticState ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -79,26 +79,26 @@ cd:FirmwareDeployment a owl:Class ;
     rdfs:label "Firmware Deployment"@en ;
     rdfs:comment "Scheduled rollout to a station with explicit progression and rollback reference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingStation ;
-            owl:onProperty cd:station ],
-        [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:completedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:FirmwareRelease ;
-            owl:onProperty cd:rollbackFirmware ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:command ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom cd:FirmwareRelease ;
-            owl:onProperty cd:firmware ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:DeploymentStateCode ;
             owl:onProperty cd:deploymentState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FirmwareRelease ;
+            owl:onProperty cd:firmware ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FirmwareRelease ;
+            owl:onProperty cd:rollbackFirmware ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -113,14 +113,14 @@ cd:HardwareStatusObservation a owl:Class ;
             owl:allValuesFrom cd:SourceEvent ;
             owl:onProperty cd:sourceEvent ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:dateTime ;
-            owl:onProperty cd:observedAt ],
+            owl:allValuesFrom cd:HardwareStateCode ;
+            owl:onProperty cd:hardwareState ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:VendorFaultDefinition ;
             owl:onProperty cd:vendorFault ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:HardwareStateCode ;
-            owl:onProperty cd:hardwareState ],
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:observedAt ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -129,26 +129,26 @@ cd:ProtocolEndpoint a owl:Class ;
     rdfs:label "Protocol Endpoint"@en ;
     rdfs:comment "Versioned charger communication endpoint with identity and credential reference."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:endpointUrl ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:ExternalIdentifier ;
             owl:onProperty cd:endpointIdentity ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:anyURI ;
-            owl:onProperty cd:credentialReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ProtocolNameCode ;
             owl:onProperty cd:protocolName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:securityProfile ],
+            owl:onProperty cd:protocolVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:credentialReference ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:protocolVersion ],
+            owl:onProperty cd:securityProfile ],
         [ a owl:Restriction ;
             owl:allValuesFrom cd:ProtocolProfile ;
             owl:onProperty cd:protocolProfile ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty cd:endpointUrl ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -157,20 +157,20 @@ cd:TemplateApplication a owl:Class ;
     rdfs:label "Template Application"@en ;
     rdfs:comment "Auditable attempt to apply a configuration template to a station."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:ChargingStation ;
-            owl:onProperty cd:station ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:RemoteCommand ;
             owl:onProperty cd:command ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ConfigurationTemplate ;
-            owl:onProperty cd:configurationTemplate ],
+            owl:allValuesFrom cd:ApplicationStateCode ;
+            owl:onProperty cd:applicationState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ChargingStation ;
+            owl:onProperty cd:station ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:dateTime ;
             owl:onProperty cd:requestedAt ],
         [ a owl:Restriction ;
-            owl:allValuesFrom cd:ApplicationStateCode ;
-            owl:onProperty cd:applicationState ],
+            owl:allValuesFrom cd:ConfigurationTemplate ;
+            owl:onProperty cd:configurationTemplate ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -179,14 +179,14 @@ cd:ConfigurationTemplate a owl:Class ;
     rdfs:label "Configuration Template"@en ;
     rdfs:comment "Reusable versioned collection of desired device configuration values."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:templateName ],
+        [ a owl:Restriction ;
             owl:allValuesFrom cd:ConfigurationTemplateEntry ;
             owl:onProperty cd:templateEntry ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:templateVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:templateName ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -196,9 +196,6 @@ cd:ConfigurationTemplateEntry a owl:Class ;
     rdfs:comment "One typed variable assignment within a configuration template."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:attributeType ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
             owl:onProperty cd:variableName ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
@@ -206,6 +203,9 @@ cd:ConfigurationTemplateEntry a owl:Class ;
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:lexicalValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:attributeType ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .
@@ -214,20 +214,20 @@ cd:FirmwareRelease a owl:Class ;
     rdfs:label "Firmware Release"@en ;
     rdfs:comment "Firmware artifact with immutable digest, compatibility and verification information."@en ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom cd:EquipmentModel ;
-            owl:onProperty cd:compatibleModel ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty cd:firmwareVersion ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:boolean ;
-            owl:onProperty cd:signatureVerified ],
-        [ a owl:Restriction ;
             owl:allValuesFrom cd:EvidenceDocument ;
             owl:onProperty cd:firmwareArtifact ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty cd:releaseDate ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:EquipmentModel ;
+            owl:onProperty cd:compatibleModel ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:boolean ;
+            owl:onProperty cd:signatureVerified ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:firmwareVersion ],
         cd:Record ;
     cd:definitionStatus "Defined" ;
     cd:module "device-management" .

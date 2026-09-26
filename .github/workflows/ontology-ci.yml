@@ -58,6 +58,9 @@ jobs:
           - gate: Temporal audit evidence
             id: temporal-audit
             command: python tools/audit_temporal.py
+          - gate: Temporal writer and query acceptance
+            id: temporal-writer
+            command: python tools/test_temporal.py
           - gate: Current source naming
             id: naming
             command: python tools/check_naming.py

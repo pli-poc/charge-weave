@@ -13,6 +13,7 @@ from rdf_equal import equivalent
 ROOT = Path(__file__).resolve().parents[1]
 GENERATED_DIRS = ('ontology', 'validation', 'queries', 'examples')
 GENERATED_FILES = (
+    'model/temporal-example.json', 'docs/temporal-coverage.md',
     'model/catalog.json', 'model/property-types.json', 'model/rules.json',
     'model/transitions.json', 'model/competency-questions.json',
     'benchmark/resource-coverage.json', 'benchmark/endpoint-coverage.json',
@@ -39,6 +40,7 @@ def main():
         for name in ('tools', 'model', 'benchmark', 'requirements', 'tests'):
             shutil.copytree(ROOT / name, rebuilt / name,
                             ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        shutil.copy2(ROOT / 'requirements.txt', rebuilt / 'requirements.txt')
         for name in GENERATED_DIRS + ('docs', 'reports'):
             (rebuilt / name).mkdir(parents=True, exist_ok=True)
         (rebuilt / 'ontology/modules').mkdir()

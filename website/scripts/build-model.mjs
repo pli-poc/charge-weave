@@ -119,6 +119,8 @@ const data = {
   rules,
   relations,
   prefixes,
+  temporalPolicy: JSON.parse(read("model/temporal-policy.json")),
+  temporalExample: JSON.parse(read("model/temporal-example.json")),
 };
 fs.mkdirSync(path.join(root, "website/src/generated"), { recursive: true });
 fs.writeFileSync(path.join(root, "website/public", triplesFile), triplesJson);

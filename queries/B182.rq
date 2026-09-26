@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:PowerCabinet . ?this cd:totalCabinetPowerKW ?capacity. {SELECT ?this ?point (SUM(?power) AS ?total) WHERE {{SELECT DISTINCT ?this ?point WHERE {?anchor a cd:PowerModuleAllocation; cd:powerCabinet ?this; cd:interval/cd:startsAt ?point}} ?allocation a cd:PowerModuleAllocation; cd:powerCabinet ?this; cd:allocatedPowerKW ?power; cd:interval ?i. ?i cd:startsAt ?s; cd:endsAt ?e. FILTER(?s<=?point && ?point<?e)} GROUP BY ?this ?point} FILTER(?total>?capacity) }

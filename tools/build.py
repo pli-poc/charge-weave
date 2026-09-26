@@ -36,8 +36,8 @@ for k,ts in prop_types.items():
  assert len({t[0] for t in ts})==1,(k,ts)
 ont=graph(); shapes=graph(); concepts=graph();mods={m:graph() for m in sorted({i['module'] for i in classes.values()})}
 root=URIRef('https://example.org/charge-domain')
-ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.1.1')));ont.add((root,OWL.versionInfo,Literal('1.1.1')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
-for ap in ['module','definitionStatus','abstract','sameTenant','benchmarkSource','operationTarget','sourcePath']:
+ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.2.0')));ont.add((root,OWL.versionInfo,Literal('1.2.0')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))
+for ap in ['module','definitionStatus','abstract','sameTenant','benchmarkSource','operationTarget','sourcePath','calendarDate']:
  ont.add((C[ap],RDF.type,OWL.AnnotationProperty))
 for c,i in classes.items():
  g=mods[i['module']];n=C[c]
@@ -69,6 +69,7 @@ for c,i in classes.items():
    b=BNode();g.add((b,RDF.type,OWL.Restriction));g.add((b,OWL.onProperty,p));g.add((b,OWL.allValuesFrom,rr));g.add((n,RDFS.subClassOf,b))
 # Properties may be reused by classes. Use explicit range union rather than intersecting global ranges.
 for k,ts in sorted(prop_types.items()):
+ if any(t[1]=='date' for t in ts):ont.add((C[k],C.calendarDate,Literal(True)))
  p=C[k];typ=next(iter(ts))[0]; ont.add((p,RDF.type,OWL.DatatypeProperty if typ=='datatype' else OWL.ObjectProperty));ont.add((p,RDFS.label,Literal(snake_label(k),lang='en')))
  users=sorted(prop_users[k]);ont.add((p,RDFS.comment,Literal('Domain relation or value '+snake_label(k)+'; per-class meaning, range and cardinality are specified in the linked class contracts. Used by '+', '.join(users)+'.',lang='en')))
  if typ=='datatype':

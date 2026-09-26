@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "test": "playwright test",
-    "prebuild": "node scripts/build-model.mjs",
+    "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
     "predev": "node scripts/build-model.mjs"
   },
   "dependencies": {

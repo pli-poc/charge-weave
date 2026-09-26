@@ -4,13 +4,15 @@
 
 A modular business ontology for charging management: CPO and eMSP services, public and ad hoc charging, fleet/workplace and home charging, roaming, payments, settlement, energy control and governance.
 
-Version **1.1.1** includes **277 classes in 18 modules, 1,165 properties, 206 controlled code schemes and 172 SHACL-SPARQL business rules**. The independent business review defines **91 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
+Version **1.2.0** includes **282 classes in 18 modules, 1,189 properties, 211 controlled code schemes and 184 SHACL-SPARQL business rules**. The independent business review defines **92 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 
 ## Temporal modelling status
 
-Temporal support is **partial**: validity periods, event/receipt timestamps and selected version/correction records exist. A shared bitemporal assertion/snapshot contract and executable `validAt` / `knownAt` queries are not implemented. Read the [whole-model temporal review](docs/temporal-model-review.md) and [all-class inventory](docs/temporal-coverage.md). The temporal audit gate records demonstrated gaps; passing it does not close those gaps.
+The [bitemporal contract](docs/temporal-contract.md) defines immutable scoped snapshots, `validAt` / `knownAt` selection, correction/retraction, aggregate integrity, source checkpoints and calendar/stream policies. An executable reference writer and standard SPARQL queries prove the behavior. The viewer exposes the committed fixture and its evidence. Every class has an explicit policy in the [inventory](docs/temporal-coverage.md).
+
+The strict temporal regression gate rejects the demonstrated faults from the [original review](docs/temporal-model-review.md). Production database integration and a native SPARQL-T facade remain separate implementation work.
 
 ## Product presentation website
 

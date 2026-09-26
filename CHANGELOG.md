@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — Bitemporal contracts and executable evidence — 2026-09-26
+
+- Add scoped immutable commits, effective slices, snapshot selection, projection checkpoints and stream policies; classify every class across all 18 modules.
+- Implement an in-process writer with compare-and-swap, correction splitting, retraction, immutable aggregate enforcement, exact digest checks and standard SPARQL history queries.
+- Add 12 business rules, strengthen entitlement containment, and validate calendar/DST, stream and forecast cutoffs. Keep historical financial references separate from live tariff selection conflicts.
+- Turn temporal probes into strict regression gates and bind the viewer to committed RDF evidence with 63 cross-implementation selections.
+- Document replay, migration and the remaining production database/native SPARQL-T integration boundary.
+
 ## 1.1.1 — Adversarial cross-record review — 2026-09-25
 
 - Preserve full-validator baseline evidence for six previously accepted business contradictions.

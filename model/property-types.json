@@ -7004,5 +7004,149 @@
       "datatype",
       "decimal"
     ]
+  ],
+  "snapshotScope": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "commitSequence": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "previousCommit": [
+    [
+      "object",
+      "TemporalCommit"
+    ]
+  ],
+  "temporalSlice": [
+    [
+      "object",
+      "TemporalSlice"
+    ]
+  ],
+  "sourceWatermark": [
+    [
+      "object",
+      "ProjectionWatermark"
+    ]
+  ],
+  "schemaDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "mappingVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "commitReason": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "payloadGraph": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "sliceState": [
+    [
+      "enum",
+      "SliceStateCode"
+    ]
+  ],
+  "sourcePartition": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "sourceOffset": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "completeThrough": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "maximumLatenessSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "watermarkState": [
+    [
+      "enum",
+      "WatermarkStateCode"
+    ]
+  ],
+  "selectedCommit": [
+    [
+      "object",
+      "TemporalCommit"
+    ]
+  ],
+  "selectedSlice": [
+    [
+      "object",
+      "TemporalSlice"
+    ]
+  ],
+  "validAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "knownAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "selectionState": [
+    [
+      "enum",
+      "SelectionStateCode"
+    ]
+  ],
+  "allowedLatenessSeconds": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "replayHorizonSeconds": [
+    [
+      "datatype",
+      "positiveInteger"
+    ]
+  ],
+  "lateEventAction": [
+    [
+      "enum",
+      "LateEventActionCode"
+    ]
+  ],
+  "duplicateEventAction": [
+    [
+      "enum",
+      "DuplicateEventActionCode"
+    ]
   ]
 }

@@ -1277,6 +1277,82 @@ Parent: Record. Shape: `StateTransitionShape`.
 | transitionSequence | positiveInteger | ? |
 | responsibleParty | LegalEntity | ? |
 
+### TemporalCommit
+
+Immutable recorded-time revision of a complete effective-time map for one tenant and coherent validation scope. System end is derived from its successor commit.
+
+Parent: Record. Shape: `TemporalCommitShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| snapshotScope | IRI | ! |
+| recordedAt | dateTime | ! |
+| commitSequence | positiveInteger | ! |
+| previousCommit | TemporalCommit | ? |
+| temporalSlice | TemporalSlice | + |
+| sourceWatermark | ProjectionWatermark | + |
+| schemaDigest | string | ! |
+| mappingVersion | string | ! |
+| commitReason | string | ! |
+
+### TemporalSlice
+
+Half-open business-time slice selecting one immutable RDF payload graph or an explicit retraction. It belongs to a commit and cannot overlap its sibling slices.
+
+Parent: Record. Shape: `TemporalSliceShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| validFrom | dateTime | ! |
+| validUntil | dateTime | ? |
+| payloadGraph | IRI | ? |
+| contentDigest | string | ? |
+| sliceState | Present, Retracted | ! |
+
+### ProjectionWatermark
+
+Source-partition checkpoint defining completeness and lateness for a reproducible semantic projection; offsets are monotonic within a source partition.
+
+Parent: Record. Shape: `ProjectionWatermarkShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| sourceSystem | string | ! |
+| sourcePartition | string | ! |
+| sourceOffset | nonNegativeInteger | ! |
+| watermarkAt | dateTime | ! |
+| completeThrough | dateTime | ! |
+| maximumLatenessSeconds | nonNegativeInteger | ! |
+| watermarkState | Complete, Incomplete | ! |
+
+### TemporalSnapshotSelection
+
+Evidence of a valid-time and known-time selection inside one committed scope; queries use only its selected graph and the recorded schema version.
+
+Parent: Record. Shape: `TemporalSnapshotSelectionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| selectedCommit | TemporalCommit | ? |
+| selectedSlice | TemporalSlice | ? |
+| validAt | dateTime | ! |
+| knownAt | dateTime | ! |
+| snapshotScope | IRI | ! |
+| selectionState | Present, Retracted, Unavailable | ! |
+
+### TemporalStreamPolicy
+
+Explicit policy for event-time disorder and corrections. Beyond-retention evidence is quarantined, and historical payloads are preserved by the reference writer.
+
+Parent: Record. Shape: `TemporalStreamPolicyShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| allowedLatenessSeconds | nonNegativeInteger | ! |
+| replayHorizonSeconds | positiveInteger | ! |
+| lateEventAction | Correct, Quarantine | ! |
+| duplicateEventAction | IgnoreIdentical, RejectConflict | ! |
+
 ## identity
 
 ### LegalEntity

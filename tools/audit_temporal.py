@@ -1,7 +1,6 @@
 """Inventory every class and capture temporal gaps without claiming completeness.
 
-Controls must pass. Probe conformance is an observation, never a requirement to
-keep accepting a gap; a future fix changes its reported outcome, not this gate.
+Controls and formerly accepted temporal faults must pass their expected rejection checks.
 """
 from pathlib import Path
 import argparse
@@ -17,11 +16,13 @@ def inventory(catalog):
     def inherited(name):
         parent = catalog[name]['parent']
         return catalog[name]['fields'] + (inherited(parent) if parent else [])
+    from temporal_integrity import policy
+    policies = policy()['classPolicies']
     rows = []
     for name, info in sorted(catalog.items(), key=lambda kv: (kv[1]['module'], kv[0])):
         fields = inherited(name)
         rows.append({
-            'class': name, 'module': info['module'],
+            'class': name, 'module': info['module'], 'policy': policies[name],
             'timeFields': [f['property'] for f in fields if f['range'] in ('dateTime', 'date', 'time') and f['property'] != 'createdAt'],
             'intervalLinks': [f['property'] + ' → ' + f['range'] for f in fields if f['range'] in ('TimeWindow', 'RecurringWindow')],
             'recordProvenance': [f['property'] for f in fields if f['property'] in ('createdAt', 'revision')],
@@ -33,15 +34,15 @@ def inventory_markdown(rows):
     lines = ['# Temporal field inventory', '',
         'Generated from every class contract by `python tools/audit_temporal.py --write-inventory`.',
         'Includes inherited fields. A date, event timestamp, interval link or revision is not evidence of complete bitemporal support.',
-        'This table inventories structural coverage, not business completeness. See [the temporal review](temporal-model-review.md) for interpretation.', '',
+        'This table inventories structural coverage, not business completeness. See [the temporal contract](temporal-contract.md) for the shared history semantics and closure evidence.', '',
         '| Module | Classes | Business date/time fields present | Linked time definitions present |',
         '|---|---:|---:|---:|']
     for module in sorted({r['module'] for r in rows}):
         subset = [r for r in rows if r['module'] == module]
         lines.append(f"| {module} | {len(subset)} | {sum(bool(r['timeFields']) for r in subset)} | {sum(bool(r['intervalLinks']) for r in subset)} |")
-    lines += ['', '| Class | Module | Business date/time fields | Linked intervals / recurrences | Record metadata |', '|---|---|---|---|---|']
+    lines += ['', '| Class | Module | Temporal policy | Business date/time fields | Linked intervals / recurrences | Record metadata |', '|---|---|---|---|---|---|']
     for r in rows:
-        lines.append('| ' + ' | '.join([r['class'], r['module'], ', '.join(r['timeFields']) or '—', ', '.join(r['intervalLinks']) or '—', ', '.join(r['recordProvenance']) or '—']) + ' |')
+        lines.append('| ' + ' | '.join([r['class'], r['module'], r['policy'], ', '.join(r['timeFields']) or '—', ', '.join(r['intervalLinks']) or '—', ', '.join(r['recordProvenance']) or '—']) + ' |')
     return '\n'.join(lines) + '\n'
 
 
@@ -119,11 +120,18 @@ def main():
     g.set((new, C.versionTag, Literal('2', datatype=XSD.string)))
     g.set((new, C.priceComponent, component))
     g.set((component, C.unitPrice, Literal('0.45', datatype=XSD.decimal)))
+    assignment = clone_record(g, E.TariffAssignment, 'AuditSecondAssignment')
+    g.set((assignment, C.assignedTariff, new))
+    g.set((assignment, C.priority, Literal(99, datatype=XSD.integer)))
+    g.add((E.TariffSet, C.tariffAssignment, assignment))
     observations.append(observe('two-effective-versions-of-same-tariff', g))
+    expected_shapes = ['B173','B114','B175','DigestIntegrity','B174']
+    for observation,shape in zip(observations,expected_shapes):
+        checks.append({'test':observation['scenario'], 'passed':not observation['conforms'] and shape in observation['reportedShapes'], 'expectedShape':shape})
     result = {
         'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=P, text=True).strip(),
         'schemaSHA256': hashlib.sha256((P / 'model/domain.schema').read_bytes()).hexdigest(),
-        'scope': 'Structural inventory of all classes, full-graph gap observations and six audit controls. Passing controls do not close observed temporal gaps or prove a bitemporal runtime.',
+        'scope': 'Structural inventory of all classes, five full-graph regression rejections and six inventory/boundary controls. Temporal writer behavior has its own acceptance gate.',
         'passed': sum(c['passed'] for c in checks), 'total': len(checks), 'checks': checks,
         'classCount': len(rows), 'moduleCount': len({r['module'] for r in rows}),
         'classesWithBusinessTimeFields': sum(bool(r['timeFields']) for r in rows),

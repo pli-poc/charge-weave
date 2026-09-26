@@ -17,6 +17,8 @@ tests:
 	$(PYTHON) tools/test_lifecycle.py
 	$(PYTHON) tools/check_audit.py
 	$(PYTHON) tools/check_naming.py
+	$(PYTHON) tools/audit_temporal.py
+	$(PYTHON) tools/test_temporal.py
 reason:
 	$(PYTHON) tools/check_owl.py
 release:

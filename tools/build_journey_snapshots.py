@@ -1,5 +1,6 @@
 """Author coherent journey snapshots and one meaningful business fault for each."""
 from runtime import *
+from temporal_integrity import stamp_digests
 from rdflib import XSD
 import json
 
@@ -33,6 +34,7 @@ def save(name, title, graph, query, mutate, rule, journeys):
         data = graph + Graph()
         if not valid:
             mutate(data)
+        stamp_digests(data)
         suffix = 'pass' if valid else 'reject'
         path = f'examples/journeys/{name}-{suffix}.ttl'
         (P / path).write_text(data.serialize(format='turtle').rstrip() + '\n')

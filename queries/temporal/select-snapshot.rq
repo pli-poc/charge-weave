@@ -1,0 +1,17 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?commit ?slice ?graph ?digest ?validFrom ?validUntil ?systemFrom ?systemUntil ?schemaDigest
+WHERE {
+  # Bind tenant, scope, validAt and knownAt. Never union historical payload graphs.
+  ?commit a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope;
+          cd:recordedAt ?systemFrom; cd:temporalSlice ?slice; cd:schemaDigest ?schemaDigest.
+  FILTER(?systemFrom <= ?knownAt)
+  FILTER NOT EXISTS {
+    ?later a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?laterTime.
+    FILTER(?laterTime > ?systemFrom && ?laterTime <= ?knownAt)
+  }
+  OPTIONAL { ?next cd:previousCommit ?commit; cd:recordedAt ?systemUntil. }
+  ?slice cd:validFrom ?validFrom.
+  OPTIONAL { ?slice cd:validUntil ?validUntil. }
+  FILTER(?validFrom <= ?validAt && (!BOUND(?validUntil) || ?validAt < ?validUntil))
+  OPTIONAL { ?slice cd:payloadGraph ?graph; cd:contentDigest ?digest. }
+}

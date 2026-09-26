@@ -2,7 +2,9 @@
 
 Review date: 26 September 2026. Baseline: `1106a5eb083b3f1df0446905550e9074fcb844bc`, ontology 1.1.1.
 
-**Verdict: temporal foundations are present, but the model does not yet define a complete bitemporal CPMS.** The ontology viewer displays source definitions and a synthetic correction example; it is not a temporal query engine. This review leaves the product proposition and database selection for a later step.
+**Historical baseline — closure update:** Version 1.2.0 implements the model/reference/viewer closure described in [the temporal contract](temporal-contract.md). Findings and observations below describe the reviewed 1.1.1 baseline. The current audit requires rejection of the five fault classes; its tariff probe explicitly places both versions in one live selection pool.
+
+**Baseline verdict: temporal foundations are present, but the model does not yet define a complete bitemporal CPMS.** The ontology viewer displays source definitions and a synthetic correction example; it is not a temporal query engine. This review leaves the product proposition and database selection for a later step.
 
 ## What was reviewed
 

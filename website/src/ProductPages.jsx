@@ -68,12 +68,12 @@ const sections = {
   },
   history: {
     headline: "Explain a decision in its original context.",
-    body: "Validity windows, event timestamps and record provenance are already represented where the domain requires them. The proposed storage architecture adds the ability to distinguish business time from the history of what the system knew.",
+    body: "The model separates business time from the history of what the system knew. Immutable scope snapshots and executable reference queries preserve the original context of corrections and decisions.",
     classes: ["TimeWindow", "TariffVersion", "SourceEvent", "AuditEntry"],
     example:
-      "A late tariff correction may apply to an earlier business date. A future temporal query should distinguish the corrected view from the view available before the correction.",
+      "A late tariff correction may apply to an earlier business date. The reference temporal query distinguishes the corrected view from the view available before the correction.",
     boundary:
-      "The current createdAt and revision fields are provenance. They are not, by themselves, a complete bitemporal storage implementation.",
+      "The reference writer and fixture demonstrate the temporal contract. Production storage and service integration remain planned.",
   },
   integrations: {
     headline: "Share meaning across system boundaries.",
@@ -404,12 +404,12 @@ function ArchitecturePage() {
               </a>
             </article>
             <article>
-              <span>System time · proposed storage</span>
+              <span>System time · reference contract</span>
               <h3>Known on</h3>
               <p>
-                The history of when a stored fact was known to the system. This
-                requires a storage design beyond createdAt and revision
-                metadata.
+                TemporalCommit records when an immutable scope became known.
+                TemporalSlice selects its effective interval; corrections preserve
+                prior answers.
               </p>
               <a href={`${base}ontology/`}>
                 Try the temporal inspector <ArrowRight size={15} />

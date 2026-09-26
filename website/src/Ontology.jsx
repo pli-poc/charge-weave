@@ -32,6 +32,7 @@ import {
   loadSubjects,
 } from "./model-utils";
 import "./ontology.css";
+import TemporalFixture from "./TemporalFixture";
 import { isTime, isTimeLink, timeRole } from "./temporal-utils";
 const base = import.meta.env.BASE_URL,
   repo = "https://github.com/pli-poc/charge-weave";
@@ -44,18 +45,6 @@ function TimeInspector({ name, relationship }) {
   const fields = fieldsFor(name),
     times = fields.filter((f) => isTime(f) && f.property !== "createdAt"),
     windows = fields.filter(isTimeLink);
-  const [validAt, setValidAt] = useState("2026-05-02"),
-    [knownAt, setKnownAt] = useState("2026-05-02");
-  const value =
-    !validAt ||
-    !knownAt ||
-    validAt < "2026-05-01" ||
-    validAt >= "2026-06-01" ||
-    knownAt < "2026-05-01"
-      ? null
-      : knownAt < "2026-05-03"
-        ? "€0.30"
-        : "€0.35";
   return (
     <>
       {relationship?.type === "object" && (
@@ -104,7 +93,7 @@ function TimeInspector({ name, relationship }) {
               <p className="inspector-hint">
                 {cardinality[f.cardinality]} · declared on {f.owner} · {f.range === "TimeWindow"
                   ? "startsAt ≤ instant < endsAt; the referenced interval is half-open."
-                  : "Local start/end, weekday, timezone and exception windows; DST expansion is a runtime responsibility."}
+                  : "Local start/end, weekday, timezone and exception windows; Expansion uses pinned timezone data with explicit DST fold and gap policies."}
               </p>
             </div>
           ))}
@@ -127,58 +116,17 @@ function TimeInspector({ name, relationship }) {
       </div>
       <div className="inspector-section temporal-coverage">
         <p className="inspector-label">System-time history</p>
-        <Chip tone="amber">Not defined in model {model.version}</Chip>
+        <Chip>Shared snapshot contract · {model.version}</Chip>
         <p className="inspector-copy">
-          This schema has no shared system-time interval or validAt / knownAt
-          snapshot contract. Revision and receipt timestamps cannot supply that history.
-          Queries and validation use standard SPARQL; a SPARQL-T engine is not implemented.
+          Class policy: {model.temporalPolicy.classPolicies[name]}. TemporalCommit records when a coherent scope became known;
+          TemporalSlice selects the business interval. Every joined record is read from the same immutable payload graph.
         </p>
-        <a className="inspector-link" href={sourceLink("docs/temporal-model-review.md")} target="_blank" rel="noreferrer">
-          Read the whole-model temporal review <ArrowUpRight size={14} />
+        <p className="inspector-copy">The reference writer executes validAt / knownAt queries in standard SPARQL. Production storage integration and a native SPARQL-T facade remain separate work.</p>
+        <a className="inspector-link" href={sourceLink("docs/temporal-contract.md")} target="_blank" rel="noreferrer">
+          Read the temporal contract and acceptance evidence <ArrowUpRight size={14} />
         </a>
       </div>
-      <div className="inspector-section temporal-lab">
-        <Chip tone="amber">Illustration · not selected-class data</Chip>
-        <h3>Two questions. Two times.</h3>
-        <p className="inspector-copy">
-          Explore a synthetic tariff correction. These controls illustrate the
-          planned query semantics.
-        </p>
-        <label>
-          Effective on
-          <input
-            type="date"
-            value={validAt}
-            onChange={(e) => setValidAt(e.target.value)}
-          />
-        </label>
-        <label>
-          Known on
-          <input
-            type="date"
-            value={knownAt}
-            onChange={(e) => setKnownAt(e.target.value)}
-          />
-        </label>
-        <div className="temporal-result" aria-live="polite">
-          <span>Illustrative energy rate</span>
-          <strong>
-            {value ? (
-              <>
-                {value}
-                <small> / kWh</small>
-              </>
-            ) : (
-              "No example value"
-            )}
-          </strong>
-        </div>
-        <p className="inspector-hint">
-          Valid during May 2026. A rate of €0.30 is known on 1 May; a correction
-          to €0.35 is recorded on 3 May, effective from 1 May. No live query or
-          current bitemporal store is involved.
-        </p>
-      </div>
+      <TemporalFixture />
     </>
   );
 }
@@ -1123,7 +1071,7 @@ export default function Ontology() {
                       {f.property} → {f.range}
                     </button>
                   ))}
-                  No shared system-time history is defined. Open Temporal for field meanings and coverage.
+                  Shared history uses TemporalCommit and TemporalSlice. Open Temporal for the class policy and executable evidence.
                 </div>
                 <button
                   className="inspector-link"

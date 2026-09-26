@@ -170,5 +170,17 @@
   "B169": "ex:this cd:currency ex:USD; cd:issuer ex:p; cd:originalInvoice ex:i; cd:creditAmount 10.0. ex:i cd:currency ex:EUR; cd:issuer ex:p; cd:grossAmount 20.0.",
   "B170": "ex:this cd:openingValue 5.0; cd:grantedValue 20.0; cd:consumedValue 10.0; cd:reservedValue 20.0; cd:expiredValue 0.0; cd:closingValue -5.0.",
   "B171": "ex:this cd:customer ex:a. ex:usage cd:allowanceBalance ex:this; cd:session ex:s. ex:s cd:customer ex:b.",
-  "B172": "ex:this cd:allowance ex:a. ex:a cd:allowanceDimension cd:allowanceDimension_Money."
+  "B172": "ex:this cd:allowance ex:a. ex:a cd:allowanceDimension cd:allowanceDimension_Money.",
+  "B173": "ex:this cd:session ex:s; cd:interval ex:i. ex:s cd:startedAt \"2026-09-25T12:00:00Z\"^^xsd:dateTime; cd:endedAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime. ex:i cd:startsAt \"2026-09-25T11:00:00Z\"^^xsd:dateTime; cd:endsAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime.",
+  "B174": "ex:this cd:defaultTariff ex:a; cd:tariffAssignment ex:assignment. ex:assignment cd:assignedTariff ex:b. ex:a cd:tariff ex:t; cd:validFrom \"2026-09-25T10:00:00Z\"^^xsd:dateTime. ex:b cd:tariff ex:t; cd:validFrom \"2026-09-25T11:00:00Z\"^^xsd:dateTime.",
+  "B175": "ex:this cd:validFromDate \"2026-02-30\".",
+  "B176": "ex:this cd:sliceState cd:sliceState_Present.",
+  "B177": "ex:this cd:temporalSlice ex:a,ex:b. ex:a cd:validFrom \"2026-09-25T10:00:00Z\"^^xsd:dateTime. ex:b cd:validFrom \"2026-09-25T11:00:00Z\"^^xsd:dateTime.",
+  "B178": "ex:this cd:previousCommit ex:p; cd:tenant ex:t; cd:snapshotScope ex:scope; cd:recordedAt \"2026-09-25T11:00:00Z\"^^xsd:dateTime; cd:commitSequence 2. ex:p cd:tenant ex:t; cd:snapshotScope ex:scope; cd:recordedAt \"2026-09-25T12:00:00Z\"^^xsd:dateTime; cd:commitSequence 1.",
+  "B179": "ex:this cd:sourceWatermark ex:w. ex:w cd:watermarkState cd:watermarkState_Incomplete.",
+  "B180": "ex:this cd:completeThrough \"2026-09-25T13:00:00Z\"^^xsd:dateTime; cd:watermarkAt \"2026-09-25T12:00:00Z\"^^xsd:dateTime.",
+  "B181": "ex:this cd:credential ex:k; cd:validFrom \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:validUntil \"2026-09-25T13:00:00Z\"^^xsd:dateTime. ex:other a cd:CredentialAssignment; cd:credential ex:k; cd:validFrom \"2026-09-25T11:00:00Z\"^^xsd:dateTime; cd:validUntil \"2026-09-25T14:00:00Z\"^^xsd:dateTime.",
+  "B182": "ex:this cd:totalCabinetPowerKW 10. ex:a a cd:PowerModuleAllocation; cd:powerCabinet ex:this; cd:allocatedPowerKW 6; cd:interval ex:i. ex:b a cd:PowerModuleAllocation; cd:powerCabinet ex:this; cd:allocatedPowerKW 6; cd:interval ex:i. ex:i cd:startsAt \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:endsAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime.",
+  "B183": "ex:this cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ex:u; cd:bookingWindow ex:i. ex:other a cd:Booking; cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ex:u; cd:bookingWindow ex:i. ex:i cd:startsAt \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:endsAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime.",
+  "B184": "ex:this a cd:TemporalSnapshotSelection; cd:selectionState cd:selectionState_Present ."
 }

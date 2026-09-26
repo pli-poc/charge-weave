@@ -26,7 +26,7 @@ Each business record has a persistent IRI, tenant, canonical identifier, creatio
 
 External identifiers carry a scheme and assigning authority. Equal integers from different APIs do not establish `owl:sameAs`. Canonical identifiers are unique within a tenant across record classes. Cross-tenant references are rejected for typed business relations. Represent a remote roaming party within the local tenant; a data-sharing service mediates access to another tenant's records.
 
-Instants use timezone-qualified `xsd:dateTime`. Intervals are normally half-open: start inclusive, end exclusive. Reimbursement validity uses inclusive calendar dates. Local recurring windows carry an IANA timezone and an overnight flag; expanding daylight-saving gaps and folds is a scheduling-service responsibility. The schema DSL's `date` and `time` aliases serialize as canonical `xsd:string` values (`YYYY-MM-DD`, `HH:MM:SS`). This avoids relying on datatypes outside the OWL 2 datatype map. SHACL checks their format and ordering; application ingestion must additionally reject impossible calendar dates.
+Instants use timezone-qualified `xsd:dateTime`. Intervals are normally half-open: start inclusive, end exclusive. Reimbursement validity uses inclusive calendar dates. Local recurring windows carry an IANA timezone and an overnight flag; the reference expansion uses pinned timezone data with explicit fold/gap policies. The schema DSL's `date` and `time` aliases serialize as canonical `xsd:string` values (`YYYY-MM-DD`, `HH:MM:SS`). This avoids relying on datatypes outside the OWL 2 datatype map. SHACL checks format, ordering and actual Gregorian calendar validity (B175); the runtime integrity supplement validates timezone identifiers.
 
 Use decimal values for money and energy. Currency, minor-unit precision, measurement unit, import/export direction, quantity thresholds and rounding policies are explicit. A negative wholesale unit price can be legitimate; imported and exported energy are separate nonnegative quantities. Do not use binary floating point for financial values.
 
@@ -39,6 +39,10 @@ Mandatory fields and maximum cardinalities are data contracts in SHACL. OWL's op
 Classes are extensible. Shapes are not globally closed, so additional declared or external properties can coexist with the canonical model. Unknown predicates in the controlled `cd:` namespace are rejected on business records. Using an otherwise known predicate on an unrelated class is not universally prohibited by this open extension policy; applications should expose class-specific write contracts from the dictionary. This is intentional and must not be mistaken for a closed JSON schema.
 
 Controlled values are named SKOS concepts, grouped into OWL enumeration classes. API integers and short strings are mapped at the integration boundary. State transitions for nine core lifecycle properties are explicit records referencing a reviewed transition table with 80 allowed transitions. Other lifecycle tables require an explicitly reviewed extension; scalar state fields can still be recorded and audited. The table is canonical domain policy, not a claim to reproduce External platform's internal state machine.
+
+## Bitemporal selection
+
+The [temporal contract](temporal-contract.md) is normative for version 1.2.0. Immutable, complete scope graphs share a valid-time and known-time context across every joined record. Commits, slices, checkpoints, aggregate boundaries, recording-time authority, query behavior and migration are specified there. `tools/temporal_store.py` is the executable reference adapter; it is not a production database.
 
 ## Versioned evidence
 

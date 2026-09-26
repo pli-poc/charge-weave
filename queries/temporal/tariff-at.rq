@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+# Execute only on a graph selected by select-snapshot.rq or TemporalStore.query.
+SELECT ?tariff ?version ?component ?price WHERE {
+  ?version a cd:TariffVersion; cd:tariff ?tariff; cd:priceComponent ?component.
+  ?component cd:unitPrice ?price.
+}

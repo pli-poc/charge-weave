@@ -2155,6 +2155,18 @@ cd:ProcessingPurposeShape a sh:NodeShape ;
         cd:ProcessingPurpose_transferSafeguardEvidenceShape ;
     sh:targetClass cd:ProcessingPurpose .
 
+cd:ProjectionWatermarkShape a sh:NodeShape ;
+    sh:description "Source-partition checkpoint defining completeness and lateness for a reproducible semantic projection; offsets are monotonic within a source partition." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:ProjectionWatermark_completeThroughShape,
+        cd:ProjectionWatermark_maximumLatenessSecondsShape,
+        cd:ProjectionWatermark_sourceOffsetShape,
+        cd:ProjectionWatermark_sourcePartitionShape,
+        cd:ProjectionWatermark_sourceSystemShape,
+        cd:ProjectionWatermark_watermarkAtShape,
+        cd:ProjectionWatermark_watermarkStateShape ;
+    sh:targetClass cd:ProjectionWatermark .
+
 cd:ProtocolEndpointShape a sh:NodeShape ;
     sh:description "Versioned charger communication endpoint with identity and credential reference." ;
     sh:nodeKind sh:IRI ;
@@ -3097,6 +3109,50 @@ cd:TemplateApplicationShape a sh:NodeShape ;
         cd:TemplateApplication_requestedAtShape,
         cd:TemplateApplication_stationShape ;
     sh:targetClass cd:TemplateApplication .
+
+cd:TemporalCommitShape a sh:NodeShape ;
+    sh:description "Immutable recorded-time revision of a complete effective-time map for one tenant and coherent validation scope. System end is derived from its successor commit." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:TemporalCommit_commitReasonShape,
+        cd:TemporalCommit_commitSequenceShape,
+        cd:TemporalCommit_mappingVersionShape,
+        cd:TemporalCommit_previousCommitShape,
+        cd:TemporalCommit_recordedAtShape,
+        cd:TemporalCommit_schemaDigestShape,
+        cd:TemporalCommit_snapshotScopeShape,
+        cd:TemporalCommit_sourceWatermarkShape,
+        cd:TemporalCommit_temporalSliceShape ;
+    sh:targetClass cd:TemporalCommit .
+
+cd:TemporalSliceShape a sh:NodeShape ;
+    sh:description "Half-open business-time slice selecting one immutable RDF payload graph or an explicit retraction. It belongs to a commit and cannot overlap its sibling slices." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:TemporalSlice_contentDigestShape,
+        cd:TemporalSlice_payloadGraphShape,
+        cd:TemporalSlice_sliceStateShape,
+        cd:TemporalSlice_validFromShape,
+        cd:TemporalSlice_validUntilShape ;
+    sh:targetClass cd:TemporalSlice .
+
+cd:TemporalSnapshotSelectionShape a sh:NodeShape ;
+    sh:description "Evidence of a valid-time and known-time selection inside one committed scope; queries use only its selected graph and the recorded schema version." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:TemporalSnapshotSelection_knownAtShape,
+        cd:TemporalSnapshotSelection_selectedCommitShape,
+        cd:TemporalSnapshotSelection_selectedSliceShape,
+        cd:TemporalSnapshotSelection_selectionStateShape,
+        cd:TemporalSnapshotSelection_snapshotScopeShape,
+        cd:TemporalSnapshotSelection_validAtShape ;
+    sh:targetClass cd:TemporalSnapshotSelection .
+
+cd:TemporalStreamPolicyShape a sh:NodeShape ;
+    sh:description "Explicit policy for event-time disorder and corrections. Beyond-retention evidence is quarantined, and historical payloads are preserved by the reference writer." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:TemporalStreamPolicy_allowedLatenessSecondsShape,
+        cd:TemporalStreamPolicy_duplicateEventActionShape,
+        cd:TemporalStreamPolicy_lateEventActionShape,
+        cd:TemporalStreamPolicy_replayHorizonSecondsShape ;
+    sh:targetClass cd:TemporalStreamPolicy .
 
 cd:TenantShape a sh:NodeShape ;
     sh:description "Administrative data-isolation boundary, independent of legal entities and brands." ;
@@ -13993,6 +14049,70 @@ cd:ProcessingPurpose_transferSafeguardEvidenceShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:transferSafeguardEvidence .
 
+cd:ProjectionWatermark_completeThroughShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.completeThrough violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "complete Through" ;
+    sh:path cd:completeThrough ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:ProjectionWatermark_maximumLatenessSecondsShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.maximumLatenessSeconds violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "maximum Lateness Seconds" ;
+    sh:path cd:maximumLatenessSeconds .
+
+cd:ProjectionWatermark_sourceOffsetShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.sourceOffset violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "source Offset" ;
+    sh:path cd:sourceOffset .
+
+cd:ProjectionWatermark_sourcePartitionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.sourcePartition violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "source Partition" ;
+    sh:path cd:sourcePartition .
+
+cd:ProjectionWatermark_sourceSystemShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.sourceSystem violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "source System" ;
+    sh:path cd:sourceSystem .
+
+cd:ProjectionWatermark_watermarkAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.watermarkAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "watermark At" ;
+    sh:path cd:watermarkAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:ProjectionWatermark_watermarkStateShape a sh:PropertyShape ;
+    sh:class cd:WatermarkStateCode ;
+    sh:in ( cd:watermarkState_Complete cd:watermarkState_Incomplete ) ;
+    sh:maxCount 1 ;
+    sh:message "ProjectionWatermark.watermarkState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "watermark State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:watermarkState .
+
 cd:ProtocolEndpoint_credentialReferenceShape a sh:PropertyShape ;
     sh:datatype xsd:anyURI ;
     sh:maxCount 1 ;
@@ -18803,6 +18923,216 @@ cd:TemplateApplication_stationShape a sh:PropertyShape ;
     sh:name "station" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:station .
+
+cd:TemporalCommit_commitReasonShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.commitReason violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "commit Reason" ;
+    sh:path cd:commitReason .
+
+cd:TemporalCommit_commitSequenceShape a sh:PropertyShape ;
+    sh:datatype xsd:positiveInteger ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.commitSequence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 1 ;
+    sh:name "commit Sequence" ;
+    sh:path cd:commitSequence .
+
+cd:TemporalCommit_mappingVersionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.mappingVersion violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "mapping Version" ;
+    sh:path cd:mappingVersion .
+
+cd:TemporalCommit_previousCommitShape a sh:PropertyShape ;
+    sh:class cd:TemporalCommit ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.previousCommit violates its domain contract." ;
+    sh:name "previous Commit" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:previousCommit .
+
+cd:TemporalCommit_recordedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.recordedAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "recorded At" ;
+    sh:path cd:recordedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:TemporalCommit_schemaDigestShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.schemaDigest violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "schema Digest" ;
+    sh:path cd:schemaDigest .
+
+cd:TemporalCommit_snapshotScopeShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "TemporalCommit.snapshotScope violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "snapshot Scope" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:snapshotScope .
+
+cd:TemporalCommit_sourceWatermarkShape a sh:PropertyShape ;
+    sh:class cd:ProjectionWatermark ;
+    sh:message "TemporalCommit.sourceWatermark violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Watermark" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sourceWatermark .
+
+cd:TemporalCommit_temporalSliceShape a sh:PropertyShape ;
+    sh:class cd:TemporalSlice ;
+    sh:message "TemporalCommit.temporalSlice violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "temporal Slice" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:temporalSlice .
+
+cd:TemporalSlice_contentDigestShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSlice.contentDigest violates its domain contract." ;
+    sh:minLength 1 ;
+    sh:name "content Digest" ;
+    sh:path cd:contentDigest ;
+    sh:pattern "^sha256:[a-f0-9]{64}$" .
+
+cd:TemporalSlice_payloadGraphShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSlice.payloadGraph violates its domain contract." ;
+    sh:name "payload Graph" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:payloadGraph .
+
+cd:TemporalSlice_sliceStateShape a sh:PropertyShape ;
+    sh:class cd:SliceStateCode ;
+    sh:in ( cd:sliceState_Present cd:sliceState_Retracted ) ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSlice.sliceState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "slice State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sliceState .
+
+cd:TemporalSlice_validFromShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSlice.validFrom violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid From" ;
+    sh:path cd:validFrom ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:TemporalSlice_validUntilShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSlice.validUntil violates its domain contract." ;
+    sh:name "valid Until" ;
+    sh:path cd:validUntil ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:TemporalSnapshotSelection_knownAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.knownAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "known At" ;
+    sh:path cd:knownAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:TemporalSnapshotSelection_selectedCommitShape a sh:PropertyShape ;
+    sh:class cd:TemporalCommit ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.selectedCommit violates its domain contract." ;
+    sh:name "selected Commit" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:selectedCommit .
+
+cd:TemporalSnapshotSelection_selectedSliceShape a sh:PropertyShape ;
+    sh:class cd:TemporalSlice ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.selectedSlice violates its domain contract." ;
+    sh:name "selected Slice" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:selectedSlice .
+
+cd:TemporalSnapshotSelection_selectionStateShape a sh:PropertyShape ;
+    sh:class cd:SelectionStateCode ;
+    sh:in ( cd:selectionState_Present cd:selectionState_Retracted cd:selectionState_Unavailable ) ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.selectionState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "selection State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:selectionState .
+
+cd:TemporalSnapshotSelection_snapshotScopeShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.snapshotScope violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "snapshot Scope" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:snapshotScope .
+
+cd:TemporalSnapshotSelection_validAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "TemporalSnapshotSelection.validAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "valid At" ;
+    sh:path cd:validAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:TemporalStreamPolicy_allowedLatenessSecondsShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "TemporalStreamPolicy.allowedLatenessSeconds violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "allowed Lateness Seconds" ;
+    sh:path cd:allowedLatenessSeconds .
+
+cd:TemporalStreamPolicy_duplicateEventActionShape a sh:PropertyShape ;
+    sh:class cd:DuplicateEventActionCode ;
+    sh:in ( cd:duplicateEventAction_IgnoreIdentical cd:duplicateEventAction_RejectConflict ) ;
+    sh:maxCount 1 ;
+    sh:message "TemporalStreamPolicy.duplicateEventAction violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "duplicate Event Action" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:duplicateEventAction .
+
+cd:TemporalStreamPolicy_lateEventActionShape a sh:PropertyShape ;
+    sh:class cd:LateEventActionCode ;
+    sh:in ( cd:lateEventAction_Correct cd:lateEventAction_Quarantine ) ;
+    sh:maxCount 1 ;
+    sh:message "TemporalStreamPolicy.lateEventAction violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "late Event Action" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:lateEventAction .
+
+cd:TemporalStreamPolicy_replayHorizonSecondsShape a sh:PropertyShape ;
+    sh:datatype xsd:positiveInteger ;
+    sh:maxCount 1 ;
+    sh:message "TemporalStreamPolicy.replayHorizonSeconds violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 1 ;
+    sh:name "replay Horizon Seconds" ;
+    sh:path cd:replayHorizonSeconds .
 
 cd:Tenant_tenantKeyShape a sh:PropertyShape ;
     sh:datatype xsd:string ;

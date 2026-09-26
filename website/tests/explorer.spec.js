@@ -72,6 +72,23 @@ test("ontology relationships, real triples, inheritance and temporal inspector w
   await expect(page.locator(".temporal-result")).toContainText("€0.30");
   await page.getByLabel("Known on", { exact: true }).fill("2026-05-04");
   await expect(page.locator(".temporal-result")).toContainText("€0.35");
+  await page.getByLabel("Effective on", { exact: true }).fill("2026-05-16");
+  await page.getByLabel("Known on", { exact: true }).fill("2026-05-06");
+  await expect(page.locator(".temporal-result")).toContainText("€0.32");
+  await page.getByText("Selected snapshot evidence", { exact: true }).click();
+  await expect(page.locator(".snapshot-evidence")).toContainText("offset 3");
+  await expect(page.locator(".snapshot-evidence")).toContainText("urn:chargeweave:payload:");
+  await page.getByLabel("Effective on", { exact: true }).fill("2026-05-18");
+  await page.getByLabel("Known on", { exact: true }).fill("2026-05-08");
+  await expect(page.locator(".temporal-result")).toContainText("Explicitly withdrawn");
+  await page.getByLabel("Effective on", { exact: true }).fill("2026-05-19");
+  await expect(page.locator(".temporal-result")).toContainText("€0.32");
+  await page.getByText("Business time × knowledge history", { exact: true }).click();
+  await expect(page.locator(".temporal-timeline tbody tr")).toHaveCount(4);
+  await page.getByText("Reproduce with SPARQL", { exact: true }).click();
+  await expect(page.locator(".temporal-query pre")).toContainText("SELECT");
+  await page.screenshot({ path: testInfo.outputPath("temporal-evidence.png"), fullPage: true });
+  await testInfo.attach("temporal-evidence", { path: testInfo.outputPath("temporal-evidence.png"), contentType: "image/png" });
   await page.getByLabel("Effective on", { exact: true }).fill("2026-06-01");
   await expect(page.locator(".temporal-result")).toContainText(
     "No example value",
@@ -163,8 +180,8 @@ test("temporal inspector exposes interval links, time roles and coverage boundar
     await page.getByRole("button", { name: "Temporal", exact: true }).click();
     await expect(page.locator(".temporal-windows")).toContainText(`${link} → ${range}`);
     await expect(page.locator(".temporal-windows a").filter({ hasText: `${link} → ${range}` })).toHaveAttribute("href", `/charge-weave/ontology/?class=${range}`);
-    await expect(page.locator(".temporal-coverage")).toContainText("Not defined in model");
-    await expect(page.locator(".temporal-lab")).toContainText("not selected-class data");
+    await expect(page.locator(".temporal-coverage")).toContainText("Shared snapshot contract");
+    await expect(page.locator(".temporal-lab")).toContainText("independent of the selected class");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await page.goto("ontology/?class=SourceEvent");
