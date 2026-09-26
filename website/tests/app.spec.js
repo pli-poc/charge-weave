@@ -12,7 +12,7 @@ test("the isolated console is published under the corporate site and presents th
   await expect(page).toHaveTitle("Operations console — ChargeWeave");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Network overview");
   await expect(page.getByText("Owned charging operations in the Netherlands and Belgium", { exact: false })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sites & parking" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sites & parking", exact: true })).toBeVisible();
   await expect(page.locator(".kpi-grid")).toContainText(/€\s?2\.463,04/);
   if (testInfo.project.name === "desktop") {
     const screenshot = testInfo.outputPath("operations-overview.png");
@@ -31,14 +31,14 @@ test("the isolated console is published under the corporate site and presents th
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Open navigation" }).click();
-  await page.getByRole("button", { name: "Chargecard roaming" }).click();
+  await page.getByRole("button", { name: "Chargecard roaming", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Chargecard roaming" })).toBeVisible();
   await expect(page.locator(".table-wrap")).toContainText("Germany");
   await expect(page.locator(".table-wrap")).toContainText("France");
   await expect(page.locator(".table-wrap")).toContainText("€");
 
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Open navigation" }).click();
-  await page.getByRole("button", { name: "Data explorer" }).click();
+  await page.getByRole("button", { name: "Data explorer", exact: true }).click();
   await page.getByRole("tab", { name: "Table" }).click();
   await expect(page.locator(".data-canvas-content")).toContainText("Amount (EUR)");
   await expect(page.locator(".data-inspector")).toContainText("Recorded time");
@@ -52,9 +52,9 @@ test("the console navigation and country filter work at desktop and mobile sizes
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Open navigation" }).click();
   }
-  await page.getByRole("button", { name: "Sites & parking" }).click();
+  await page.getByRole("button", { name: "Sites & parking", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Sites & parking" })).toBeVisible();
-  await page.getByRole("button", { name: "BE Belgium" }).click();
+  await page.getByRole("button", { name: "BE Belgium", exact: true }).click();
   await expect(page.locator(".table-wrap")).toContainText("Antwerpen");
   await expect(page.locator(".table-wrap")).not.toContainText("Rotterdam");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
