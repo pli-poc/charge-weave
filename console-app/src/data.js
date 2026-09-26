@@ -4,11 +4,13 @@ export const DEMO_SOURCE = Object.freeze({
   label: "Synthetic demo data",
 });
 
+// City-center points for the illustrative map only; they are not charger coordinates.
 export const ownSites = Object.freeze([
   {
     id: "NL-RTM-01",
     name: "Maasboulevard",
     city: "Rotterdam",
+    coordinates: { lat: 51.9244, lon: 4.4777 },
     country: "NL",
     setting: "Public charging hub",
     parkingSpaces: 108,
@@ -24,6 +26,7 @@ export const ownSites = Object.freeze([
     id: "NL-AMS-02",
     name: "Arena parking P2",
     city: "Amsterdam",
+    coordinates: { lat: 52.3676, lon: 4.9041 },
     country: "NL",
     setting: "Event parking",
     parkingSpaces: 480,
@@ -39,6 +42,7 @@ export const ownSites = Object.freeze([
     id: "NL-UTR-03",
     name: "Jaarbeurs P4",
     city: "Utrecht",
+    coordinates: { lat: 52.0907, lon: 5.1214 },
     country: "NL",
     setting: "Parking garage",
     parkingSpaces: 310,
@@ -54,6 +58,7 @@ export const ownSites = Object.freeze([
     id: "NL-EIN-04",
     name: "High Tech Campus",
     city: "Eindhoven",
+    coordinates: { lat: 51.4416, lon: 5.4697 },
     country: "NL",
     setting: "Workplace campus",
     parkingSpaces: 146,
@@ -69,6 +74,7 @@ export const ownSites = Object.freeze([
     id: "BE-ANR-01",
     name: "Antwerpen Zuid P+R",
     city: "Antwerpen",
+    coordinates: { lat: 51.2194, lon: 4.4025 },
     country: "BE",
     setting: "Park and ride",
     parkingSpaces: 260,
@@ -84,6 +90,7 @@ export const ownSites = Object.freeze([
     id: "BE-GEN-02",
     name: "Gent Zuid Parking",
     city: "Gent",
+    coordinates: { lat: 51.0543, lon: 3.7174 },
     country: "BE",
     setting: "City parking",
     parkingSpaces: 195,
@@ -99,6 +106,7 @@ export const ownSites = Object.freeze([
     id: "BE-BRU-03",
     name: "Brussels North P2",
     city: "Brussel",
+    coordinates: { lat: 50.8503, lon: 4.3517 },
     country: "BE",
     setting: "Parking garage",
     parkingSpaces: 340,
@@ -114,6 +122,7 @@ export const ownSites = Object.freeze([
     id: "BE-LEU-04",
     name: "Leuven Campus West",
     city: "Leuven",
+    coordinates: { lat: 50.8798, lon: 4.7005 },
     country: "BE",
     setting: "Workplace campus",
     parkingSpaces: 85,
@@ -260,6 +269,7 @@ export const liveSessions = Object.freeze([
   },
 ]);
 
+// City-center points for synthetic roaming fixtures; they are not charger coordinates.
 export const roamingSessions = Object.freeze([
   {
     id: "RC-2026-091842",
@@ -267,6 +277,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "DE",
     partner: "RheinCharge",
     location: "Aachen Hauptbahnhof",
+    coordinates: { lat: 50.7753, lon: 6.0839 },
     chargePoint: "DE-AC-044",
     token: "•••• 4821",
     energyKwh: 38.4,
@@ -281,6 +292,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "FR",
     partner: "NordLink",
     location: "Lille Centre",
+    coordinates: { lat: 50.6292, lon: 3.0573 },
     chargePoint: "FR-LIL-128",
     token: "•••• 4821",
     energyKwh: 22.7,
@@ -295,6 +307,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "BE",
     partner: "Local network partner",
     location: "Liège Guillemins",
+    coordinates: { lat: 50.6326, lon: 5.5797 },
     chargePoint: "BE-LGG-016",
     token: "•••• 1066",
     energyKwh: 31.6,
@@ -309,6 +322,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "NL",
     partner: "City network partner",
     location: "Maastricht Vrijthof",
+    coordinates: { lat: 50.8514, lon: 5.6900 },
     chargePoint: "NL-MST-061",
     token: "•••• 4821",
     energyKwh: 17.2,
@@ -323,6 +337,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "DK",
     partner: "NorthGrid",
     location: "Copenhagen Metro",
+    coordinates: { lat: 55.6761, lon: 12.5683 },
     chargePoint: "DK-CPH-207",
     token: "•••• 7714",
     energyKwh: 42.1,
@@ -337,6 +352,7 @@ export const roamingSessions = Object.freeze([
     countryCode: "AT",
     partner: "Alpine Charge",
     location: "Wien Westbahnhof",
+    coordinates: { lat: 48.2082, lon: 16.3738 },
     chargePoint: "AT-W-099",
     token: "•••• 1066",
     energyKwh: 29.5,

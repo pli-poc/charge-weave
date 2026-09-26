@@ -59,3 +59,37 @@ test("the console navigation and country filter work at desktop and mobile sizes
   await expect(page.locator(".table-wrap")).not.toContainText("Rotterdam");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("the geographic view connects owned sites and European Chargecard roaming", async ({ page }, testInfo) => {
+  const errors = [];
+  const externalRequests = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("request", (request) => {
+    if (!request.url().startsWith("http://127.0.0.1")) externalRequests.push(request.url());
+  });
+
+  await page.goto("app/#geography");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Geographic network");
+  await expect(page.locator(".map-marker-owned")).toHaveCount(8);
+  await expect(page.locator(".geo-location-row")).toHaveCount(8);
+  await page.locator('.geo-location-row[data-map-site="NL-RTM-01"]').click();
+  await expect(page.locator(".geo-details-pane")).toContainText("Maasboulevard");
+  await page.getByRole("button", { name: "BE Belgium", exact: true }).click();
+  await expect(page.locator(".map-marker-owned")).toHaveCount(4);
+  await expect(page.locator(".geo-location-list")).toContainText("Antwerpen");
+  await expect(page.locator(".geo-location-list")).not.toContainText("Rotterdam");
+
+  await page.locator('[data-map-scope="roaming"]').click();
+  await expect(page.locator(".map-marker-roaming")).toHaveCount(6);
+  await page.locator('.map-marker-roaming[data-map-roaming="RC-2026-091702"]').click();
+  await expect(page.locator(".geo-details-pane")).toContainText("Copenhagen Metro");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+  expect(externalRequests).toEqual([]);
+
+  if (testInfo.project.name === "desktop") {
+    const screenshot = testInfo.outputPath("geographic-network.png");
+    await page.screenshot({ path: screenshot, fullPage: true });
+    await testInfo.attach("geographic network view", { path: screenshot, contentType: "image/png" });
+  }
+});
