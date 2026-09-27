@@ -27,6 +27,8 @@
     "timeoutTarget": { "@id": "xflow:timeoutTarget", "@type": "@id" },
     "timeoutAction": { "@id": "xflow:timeoutAction", "@type": "@id" },
     "assigneeRole": { "@id": "xflow:assigneeRole", "@type": "@id" },
+    "taskFormProfileId": "xflow:taskFormProfileId",
+    "taskFormProfileVersion": "xflow:taskFormProfileVersion",
     "timeoutEvent": "xflow:timeoutEvent",
     "executionRecordClass": { "@id": "xflow:executionRecordClass", "@type": "@id" },
     "stepRecordClass": { "@id": "xflow:stepRecordClass", "@type": "@id" },
@@ -170,13 +172,15 @@
       "@id": "#awaitingApproval", "@type": "xflow:HumanTask", "stepKey": "awaitingApproval",
       "label": "Approve the billing correction", "description": "A responsible billing operator approves or rejects the credit; expiry escalates to manual review.",
       "assigneeRole": "urn:chargeweave:role:BillingApprover",
+      "taskFormProfileId": "chargeweave.correction-approval",
+      "taskFormProfileVersion": "1.0.0",
       "timeoutAfter": "urn:chargeweave:timer:approvalDeadline",
       "timeoutEvent": "timer.expired",
       "timeoutTarget": { "@id": "#manualReview" },
       "timeoutAction": ["urn:chargeweave:action:captureTimeout"],
       "onEvent": [
         { "eventType": "approval.granted", "targetStep": { "@id": "#issuingCredit" }, "actionRef": ["urn:chargeweave:action:captureApproval"] },
-        { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" } },
+        { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" }, "actionRef": ["urn:chargeweave:action:captureRejection"] },
         { "eventType": "timer.expired", "targetStep": { "@id": "#manualReview" } }
       ],
       "domainBinding": ["cw:ProcessExecution", "cw:RecordCorrection"]

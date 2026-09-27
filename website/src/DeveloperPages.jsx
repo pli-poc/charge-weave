@@ -595,7 +595,7 @@ const pageCopy = {
   },
   "human-tasks": {
     title: <>Human decisions.<br /><span>Scoped by the workflow.</span></>,
-    description: "A design proposal for generating task-specific forms from versioned workflow contracts, ontology terms and validation shapes—without exposing unrestricted record editing.",
+    description: "An interactive browser prototype compiles task-scoped forms from a versioned workflow contract, ontology terms and explicit validation shapes—without exposing unrestricted record editing.",
   },
   simulator: {
     title: <>One seeded run.<br /><span>Every boundary inspectable.</span></>,

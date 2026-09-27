@@ -7,7 +7,7 @@ const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
   { route: "developer/platform/", title: "Workflow runtime architecture", active: "Workflow runtime", marker: "One workflow contract, from design to evidence." },
-  { route: "developer/human-tasks/", title: "Human task design", active: "Human task forms", marker: "Task-scoped forms, generated from a validated contract." },
+  { route: "developer/human-tasks/", title: "Human task forms", active: "Human task forms", marker: "Task-scoped forms, compiled from a validated contract." },
   { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
   { route: "developer/flows/", title: "Workflow Studio", active: "Workflow Studio", marker: "Correct a charging bill without erasing its history." },
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
@@ -74,14 +74,39 @@ test("workflow runtime page explains the generic workflow boundary in a 2D diagr
   await expect(page.locator(".wpo-explanation")).toContainText("The host supplies clocks, adapters and persistence.");
 });
 
-test("human task design keeps ontology guidance separate from task authority", async ({ page }) => {
+test("human task form prototype keeps ontology guidance separate from task authority", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("developer/human-tasks/");
-  await expect(page.getByText("DESIGN PROPOSAL", { exact: true })).toBeVisible();
+  await expect(page.getByText("INTERACTIVE PROTOTYPE", { exact: true })).toBeVisible();
   await expect(page.locator(".htd-contract-grid")).toContainText("Workflow task contract");
   await expect(page.locator(".htd-contract-grid")).toContainText("Presentation profile");
   await expect(page.locator(".htd-example")).toContainText("Review evidence without rewriting history.");
   await expect(page.locator(".htd-safety-note")).toContainText("original debit");
+  await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
+  await expect(page.locator(".htd-masked-value")).toHaveText("•••• •••• •••• 4242");
+  await expect(page.getByLabel("Correction type")).toContainText("Credit");
+  await expect(page.getByLabel("Supporting evidence")).toContainText("Signed meter correction");
+  await expect(page.getByLabel("Proposed credit amount", { exact: true })).toHaveValue("0.19");
+
+  await page.getByLabel("Proposed credit amount", { exact: true }).fill("0.20");
+  await page.getByRole("button", { name: "Approve correction" }).click();
+  await expect(page.getByRole("alert")).toContainText("cannot exceed the calculated 0.19 EUR adjustment");
+  await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
+
+  await page.getByLabel("Proposed credit amount", { exact: true }).fill("0.19");
+  await page.getByRole("button", { name: "Approve correction" }).click();
+  await expect(page.getByText("Approval accepted by the task host.")).toBeVisible();
+  await expect(page.getByText("Workflow completed")).toBeVisible();
+
+  await page.getByRole("button", { name: "Start fresh run" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
+  await page.getByLabel("Decision reason").fill("The submitted source evidence does not verify the revised meter reading.");
+  await page.getByRole("button", { name: "Reject and quarantine" }).click();
+  await expect(page.getByText("Rejection recorded.")).toBeVisible();
+  await expect(page.getByText("Workflow rejected")).toBeVisible();
   await expect(page.getByRole("link", { name: /Open the current Workflow Studio/ })).toHaveAttribute("href", "/charge-weave/developer/flows/");
+  expect(pageErrors).toEqual([]);
 });
 
 test("browser simulator replays seeded scenarios and exposes protocol and store traces", async ({ page }) => {
