@@ -27,6 +27,10 @@ const pages = {
     "Platform system overview",
     "See how shared business meaning connects workflow design, validation, execution and evidence.",
   ],
+  "developer/human-tasks": [
+    "Human task design",
+    "Design proposal for task-scoped forms guided by workflow contracts, ontology terms and validation shapes.",
+  ],
   "developer/simulator": [
     "Simulation workbench",
     "Run seeded roaming-charge fixtures and inspect protocol traces, process events and simulated browser stores.",

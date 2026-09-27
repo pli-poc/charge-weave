@@ -18,6 +18,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import SimulationWorkbench from "./SimulationWorkbench.jsx";
+import HumanTaskDesign from "./HumanTaskDesign.jsx";
 import WorkflowStudio from "./WorkflowStudio.jsx";
 import WorkflowPlatformOverview from "./WorkflowPlatformOverview.jsx";
 import "./developer.css";
@@ -27,6 +28,7 @@ const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`
 const pages = [
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "platform", route: "developer/platform", label: "Platform overview" },
+  { id: "human-tasks", route: "developer/human-tasks", label: "Human task forms" },
   { id: "simulator", route: "developer/simulator", label: "Simulator" },
   { id: "flows", route: "developer/flows", label: "Workflow Studio" },
   { id: "protocols", route: "developer/protocols", label: "Protocols" },
@@ -127,6 +129,7 @@ function RuntimePage() {
   ];
   const links = [
     ["platform", "Platform overview", "See how domain meaning, validation, workflow design and execution connect."],
+    ["human-tasks", "Human task forms", "Design task-scoped, ontology-guided human intervention and data correction."],
     ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
     ["flows", "Workflow Studio", "Edit, inspect and run the visual J07/J08 bill-correction workflow."],
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
@@ -584,6 +587,10 @@ const pageCopy = {
     title: <>Shared meaning.<br /><span>Governed execution.</span></>,
     description: "A generic system overview of how a domain ontology, validation contracts, workflow definitions, XState execution and replaceable platform ports fit together.",
   },
+  "human-tasks": {
+    title: <>Human decisions.<br /><span>Scoped by the workflow.</span></>,
+    description: "A design proposal for generating task-specific forms from versioned workflow contracts, ontology terms and validation shapes—without exposing unrestricted record editing.",
+  },
   simulator: {
     title: <>One seeded run.<br /><span>Every boundary inspectable.</span></>,
     description: "Run deterministic roaming-charge scenarios in the browser and inspect protocol-shaped messages, process decisions and five distinct simulated stores.",
@@ -624,6 +631,7 @@ export default function DeveloperPages({ route }) {
   const content = {
     runtime: <RuntimePage />,
     platform: <WorkflowPlatformOverview />,
+    "human-tasks": <HumanTaskDesign />,
     simulator: <SimulationWorkbench />,
     flows: <WorkflowStudio />,
     protocols: <ProtocolsPage />,

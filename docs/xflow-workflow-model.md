@@ -187,6 +187,27 @@ A scenario run uses the virtual clock and deterministic adapters. Adding or remo
 
 The existing Finance and Data Explorer views remain linked destinations for financial records and canonical evidence. An exception/approval inbox can be added when the demo needs multiple concurrent human tasks; it does not require a new top-level page for every ontology class.
 
+## Human task forms and controlled changes
+
+**Status: design proposal; not implemented in the browser platform.** The current Studio demonstrates human-task and approval states with synthetic inputs. It does not generate forms from ontology shapes, provide a durable work queue, or support general editing of canonical business records.
+
+The platform should render a form from a task contract, not turn every ontology class into a CRUD screen. Keep four responsibilities distinct:
+
+1. **Business ontology:** defines the meaning and relationships of fields such as sessions, meter evidence, tariffs, CDRs, parties and correction records.
+2. **Validation contract:** XFlow SHACL shapes and deterministic domain rules define valid payload structure, values, references and cross-record constraints. OWL alone does not define required form fields.
+3. **HumanTask contract:** the pinned workflow version declares the assignee role, read-only context, editable input bindings, allowed outcomes and named commands, input/output shape references, deadline, escalation and completion events.
+4. **Presentation profile:** separately versioned UI metadata supplies labels, help text, grouping and widget hints. The UI renderer must not infer authorization or business validity from a widget choice.
+
+The renderer derives appropriate controls from declared datatypes and shape constraints: text and numeric inputs, temporal controls, controlled-value selectors, ontology-class reference pickers and evidence references. It only renders fields and outcomes selected by the current HumanTask. All other canonical values remain read-only. Arbitrary JavaScript, raw SPARQL and unrestricted RDF mutation are out of scope.
+
+Submitting a task is a guarded command that produces a correlated workflow event. The host must re-check the current task and pinned workflow/shape versions, principal, tenant and assigned role; validate the input shape, references, temporal context and deterministic business rules; and enforce expected-version and idempotency checks. Client-side validation is for feedback only. The host records the submitted values, selected outcome, reason, evidence references, rule/shape versions, actor identity and valid-time/recorded-time audit before sending the declared event to XState.
+
+A permitted data correction must not silently overwrite its source. It invokes a named domain operation that creates a linked correction or new assertion with provenance, reason and evidence. Financial effects such as crediting an original CDR remain explicit registered capabilities with their own idempotency and business rules.
+
+**Suggested first slice:** on the J07/J08 correction journey, show the original CDR, session, meter observations, tariff and evidence as read-only context. Let the assigned reviewer submit a declared disposition (approve, request evidence, quarantine/reject or escalate), a structured reason and selected evidence. If the specific task allows a correction value, collect it as a proposal and pass it through the domain service; do not edit the original meter event or debit CDR. Test wrong-role, stale-task, invalid-shape, duplicate-submit, timeout/escalation, missing-evidence and successful correction-lineage cases.
+
+The first implementation should be a renderer for versioned task contracts and this one reconciliation task, not a general drag-and-drop form builder. A form-authoring studio can follow after the contract, validation boundary, audit record and runtime event handling are proven. Running tasks keep the exact workflow and presentation versions with which they were created.
+
 AI may draft a workflow or suggest a missing branch, but publication is validated and a runtime transition is selected by the versioned machine, events and explicit guards. AI output cannot directly issue a credit, bypass an approval or mutate a published definition.
 
 ## Acceptance criteria
@@ -205,6 +226,8 @@ AI may draft a workflow or suggest a missing branch, but publication is validate
 ## Completion boundary
 
 The prototype implements the generic XFlow vocabulary and shapes, an executable JSON-LD profile, a constrained XState v5 compiler, and a browser Studio demo for the J07/J08 charge-correction journey. It proves selected paths for evidence validation, missing inputs, approval, timeout, credit lineage and snapshot restore. It does not implement a production backend host, durable timers, database-backed snapshots/event log/outbox, tenant authorization, full Studio editing/publishing, live adapters, or every CPO/CSMS business arrangement and jurisdiction-specific policy. The existing business-domain audit remains the independent coverage baseline; production acceptance still needs real adapter, persistence, authorization, recovery and financial golden-case tests.
+
+Ontology-generated task forms, a durable human-task inbox and general data-editing controls remain unimplemented design work. The current approval demo does not establish that the proposed host-side authorization, validation, audit and concurrency controls are already present.
 
 ## References
 
