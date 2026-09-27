@@ -7,6 +7,7 @@ const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
   { route: "developer/platform/", title: "Platform system overview", active: "Platform overview", marker: "One workflow contract, from design to evidence." },
+  { route: "developer/human-tasks/", title: "Human task design", active: "Human task forms", marker: "Task-scoped forms, generated from a validated contract." },
   { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
   { route: "developer/flows/", title: "Workflow Studio", active: "Workflow Studio", marker: "Correct a charging bill without erasing its history." },
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
@@ -67,6 +68,16 @@ test("platform overview explains the generic workflow boundary in a 2D diagram",
   await expect(page.locator(".wpo-diagram")).toContainText("ChargeWeave business ontology");
   await expect(page.locator(".wpo-diagram")).toContainText("XFlow SHACL shapes");
   await expect(page.locator(".wpo-explanation")).toContainText("The host supplies clocks, adapters and persistence.");
+});
+
+test("human task design keeps ontology guidance separate from task authority", async ({ page }) => {
+  await page.goto("developer/human-tasks/");
+  await expect(page.getByText("DESIGN PROPOSAL", { exact: true })).toBeVisible();
+  await expect(page.locator(".htd-contract-grid")).toContainText("Workflow task contract");
+  await expect(page.locator(".htd-contract-grid")).toContainText("Presentation profile");
+  await expect(page.locator(".htd-example")).toContainText("Review evidence without rewriting history.");
+  await expect(page.locator(".htd-safety-note")).toContainText("original debit");
+  await expect(page.getByRole("link", { name: /Open the current Workflow Studio/ })).toHaveAttribute("href", "/charge-weave/developer/flows/");
 });
 
 test("browser simulator replays seeded scenarios and exposes protocol and store traces", async ({ page }) => {
