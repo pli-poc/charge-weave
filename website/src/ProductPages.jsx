@@ -426,22 +426,22 @@ function ArchitecturePage() {
           <article>
             <span>01</span>
             <div>
-              <h3>Share semantic meaning; keep capability ownership bounded.</h3>
+              <h3>Share business meaning across bounded capabilities.</h3>
               <p>
-                Stable business identifiers and ontology terms connect services
-                and partner boundaries. Each capability still owns its
-                transactions, policies and operational decisions.
+                Use stable identifiers and domain terms across services and
+                partner exchanges. Each capability owns its policy,
+                transactions and operational decisions.
               </p>
             </div>
           </article>
           <article>
             <span>02</span>
             <div>
-              <h3>Validate each change at the boundary that owns it.</h3>
+              <h3>Validate changes at the boundary that owns them.</h3>
               <p>
-                Use SHACL for declared data constraints and deterministic rules
-                for business invariants against the relevant reference data.
-                Validation does not grant access or prove a real-world event.
+                Use SHACL for explicit data constraints and deterministic rules
+                for business invariants against affected records and required
+                reference data. Keep whole-tenant analysis off real-time paths.
               </p>
             </div>
           </article>
@@ -450,9 +450,9 @@ function ArchitecturePage() {
             <div>
               <h3>Let workflows orchestrate; let domain services own effects.</h3>
               <p>
-                Versioned XFlow definitions describe process steps and outcomes.
-                The XState runtime sequences them; registered domain operations
-                perform authoritative business changes.
+                Versioned workflow definitions describe process sequence and
+                outcomes. The runtime routes to registered capabilities; domain
+                services authorize and perform authoritative changes.
               </p>
             </div>
           </article>
@@ -461,53 +461,53 @@ function ArchitecturePage() {
             <div>
               <h3>Preserve evidence and explain the history.</h3>
               <p>
-                Keep source and received time, provenance and prior decisions.
-                Correcting a record creates a linked assertion or financial
-                adjustment with a reason.
+                Retain source identity, correlation, event time, recorded time
+                and provenance. Link corrections to prior assertions or
+                compensating records so decisions can be reconstructed.
               </p>
             </div>
           </article>
           <article>
             <span>05</span>
             <div>
-              <h3>Make writes authorized, transactional and replay-safe.</h3>
+              <h3>Make writes transactional and replay-safe.</h3>
               <p>
-                Enforce identity and tenant access at service boundaries. Commit
-                the business change with an outbox intent, and handle duplicate
-                delivery with idempotency and reconciliation.
+                Couple business changes with event intent where possible. Use
+                idempotency, expected revisions and reconciliation so retries
+                do not repeat business effects.
               </p>
             </div>
           </article>
           <article>
             <span>06</span>
             <div>
-              <h3>Match storage to the workload and expose freshness.</h3>
+              <h3>Enforce identity and tenant access at service boundaries.</h3>
               <p>
-                Use stores with the guarantees each workload needs. Semantic and
-                analytical projections carry source revisions and watermarks so
-                consumers can see what has arrived.
+                APIs and stores authorize each read and write. A tenant fact
+                records ownership; it does not grant permission. Keep secrets
+                outside the semantic graph.
               </p>
             </div>
           </article>
           <article>
             <span>07</span>
             <div>
-              <h3>Keep external protocols behind replaceable adapters.</h3>
+              <h3>Choose storage by workload and expose projection freshness.</h3>
               <p>
-                Version each protocol boundary and translate exchanges into
-                canonical business events while preserving source identity,
-                correlation and evidence.
+                Choose stores with the transaction, history or measurement
+                guarantees each workload needs. Projections expose revisions
+                and watermarks so consumers can see what has arrived.
               </p>
             </div>
           </article>
           <article>
             <span>08</span>
             <div>
-              <h3>Prove behavior with reproducible synthetic journeys.</h3>
+              <h3>Keep protocol and infrastructure edges replaceable.</h3>
               <p>
-                Exercise success, delay, duplication, correction and recovery
-                with seeded data before connecting live systems. Replace one
-                boundary at a time.
+                Version adapters and storage ports, map exchanges to canonical
+                events, and replace one boundary at a time. Prove behavior with
+                deterministic synthetic journeys before enabling live systems.
               </p>
             </div>
           </article>
@@ -515,45 +515,43 @@ function ArchitecturePage() {
       </section>
       <section className="temporal-architecture">
         <div className="container">
-          <p className="eyebrow">Temporal query design</p>
+          <p className="eyebrow">Evidence and time</p>
           <h2>
             “When did it apply?”
             <br />
-            <span>“When did we know?”</span>
+            <span>“What did we know then?”</span>
           </h2>
           <div className="temporal-architecture-grid">
             <article>
               <span>Business time</span>
-              <h3>Effective on</h3>
+              <h3>When a fact applies</h3>
               <p>
-                The date or interval when a fact applies in the business.
-                Validity windows are already present in contracts such as
-                TariffVersion.
+                Keep the effective date or interval distinct from when the
+                platform received or recorded the fact.
               </p>
-              <a href={explore("TariffVersion")}>
-                Inspect TariffVersion <ArrowUpRight size={15} />
+              <a href={`${base}developer/storage/`}>
+                Read storage contracts <ArrowUpRight size={15} />
               </a>
             </article>
             <article>
-              <span>System time · reference contract</span>
-              <h3>Known on</h3>
+              <span>Recorded time</span>
+              <h3>What the platform knew</h3>
               <p>
-                TemporalCommit records when an immutable scope became known.
-                TemporalSlice selects its effective interval; corrections preserve
-                prior answers.
+                Preserve source, provenance and correction history so an
+                earlier decision can be explained against the evidence then
+                available.
               </p>
-              <a href={`${base}ontology/`}>
-                Try the temporal inspector <ArrowRight size={15} />
+              <a href={`${repo}/blob/main/docs/temporal-contract.md`} target="_blank" rel="noreferrer">
+                Read the temporal contract <ArrowUpRight size={15} />
               </a>
             </article>
           </div>
           <div className="semantic-boundary">
             <ShieldCheck size={21} />
             <p>
-              <strong>GraphQL is the API language.</strong> Temporal behavior
-              comes from resolver contracts and the storage beneath them. OWL
-              defines meaning; SHACL checks data conformance. None of these
-              alone supplies the entire runtime.
+              <strong>Meaning, validation and authority stay separate.</strong>
+              The ontology connects business concepts; explicit constraints
+              check data; authorized domain services decide and commit changes.
             </p>
           </div>
         </div>

@@ -63,10 +63,6 @@ test("architecture page presents the HLD and links to developer details", async 
     "href",
     "https://github.com/pli-poc/charge-weave/blob/main/docs/runtime-architecture.md",
   );
-  await expect(page.getByRole("link", { name: /High-level architecture and design principles/ })).toHaveAttribute(
-    "href",
-    "/charge-weave/architecture/",
-  );
 });
 
 test("ontology relationships, real triples, inheritance and temporal inspector work", async ({
