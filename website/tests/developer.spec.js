@@ -142,3 +142,26 @@ test("workflow studio executes, inspects and restores a configurable correction 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(pageErrors).toEqual([]);
 });
+
+test("workflow graph edits change the routed path used by the next runtime run", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("developer/flows/");
+  await expect(page.locator(".wf-flow-canvas")).toBeVisible();
+  expect(await page.locator(".wf-edge-layer path").count()).toBeGreaterThan(20);
+
+  await page.getByRole("button", { name: "Edit flow" }).click();
+  await page.locator(".wf-flow-canvas").getByRole("button", { name: /Approval required\?/ }).click();
+  await expect(page.locator(".wf-inspector-transitions")).toContainText("otherwise");
+  await page.getByLabel("Destination for otherwise").selectOption("declined");
+  await expect(page.locator(".wf-graph-actions")).toContainText("Draft edited");
+  await expect(page.locator(".wf-inspector-transitions")).toContainText("Correction declined");
+
+  await page.getByLabel("Approval threshold in kWh").fill("0.75");
+  await page.getByRole("button", { name: "Start run" }).click();
+  await page.getByRole("button", { name: "Inject correction" }).click();
+  await page.getByRole("button", { name: "Validate" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Correction declined");
+  await expect(page.locator(".wf-flow-canvas")).toContainText("Correction declined");
+  expect(pageErrors).toEqual([]);
+});

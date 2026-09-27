@@ -55,7 +55,7 @@ The generic XFlow ontology describes workflow definitions:
 
 This is the target metamodel. The `0.1.0-demo` vocabulary implements the versioned definition and core step/transition/domain-binding terms used by the J07/J08 profile. A version is currently a property on its definition resource. Schedule triggers, bounded parallel/join, retry/compensation policies, and migration/publication metadata are not implemented in this first slice.
 
-A workflow definition is an RDF graph and the committed example is written as JSON-LD. SHACL validates the profile in CI; the browser compiler also checks graph structure and registry references before creating an actor. The current Studio demonstrates graph inspection and run configuration. Editing the full graph, draft review and immutable publishing remain future Studio capabilities. The compiler accepts only a defined subset of the vocabulary.
+A workflow definition is an RDF graph and the committed example is written as JSON-LD. SHACL validates the profile in CI; the browser compiler also checks graph structure and registry references before creating an actor. The Studio renders connected workflow nodes and transitions. Its constrained draft editor can rename steps, edit descriptions and change transition targets; the compiler validates the edited definition before the next run. These edits exist only in browser memory. Adding and removing arbitrary step types, reviewing persisted drafts and immutable publication remain future capabilities. The compiler accepts only a defined subset of the vocabulary.
 
 A definition names capabilities; it does not contain arbitrary JavaScript, SQL, SPARQL or executable expressions. For example, an operation reference such as meter.verifySignedEvidence resolves to a reviewed implementation registered by the application. This keeps authoring data portable and lets the adapter factory switch from deterministic simulation to a real integration.
 
@@ -71,7 +71,7 @@ The first compiler accepts a versioned graph with an initial step, JSON initial 
 | HumanTask | Wait for named task events and an optional named host deadline | Billing approval and exception review |
 | EndStep | Mark a terminal outcome | Completed, no-change, quarantined or declined |
 
-The engine validates JSON-only definitions and resolves all activity, guard, action and timer IDs through own, callable host-registry entries. It rejects embedded functions, inherited or unresolved capabilities, and targets outside the graph. The demo Studio adjusts approval threshold and timeout as run configuration, and allows inspection of the linked graph and outputs; it is not yet a general-purpose drag/drop graph editor or workflow publisher.
+The engine validates JSON-only definitions and resolves all activity, guard, action and timer IDs through own, callable host-registry entries. It rejects embedded functions, inherited or unresolved capabilities, and targets outside the graph. The Studio lets developers inspect the linked graph and outputs, change approval threshold and timeout, and test a locally edited graph definition through the same runtime. It does not yet persist drafts or publish immutable workflow versions.
 
 `createFlowRuntime(registry).compile(definition)` creates an XState v5 machine; `createActor(definition, { context, snapshot, clock })` creates an actor in a selected host. `resolveDelay(name, context)` resolves a named delay using that host's registered policy. The machine handles the declared timeout event; the host schedules the deadline and delivers the event. The browser Studio advances its virtual clock and sends the event from the workflow definition. A backend scheduler persists the UTC due time and sends that same event after restoring the pinned actor. This keeps durable scheduling outside the statechart and avoids treating a restarted in-process timer as the persisted deadline. The same JavaScript module is browser-safe and Node-compatible. The simulator's ordinary charging-session lifecycle is also compiled through this runtime, while the richer J07/J08 profile demonstrates service tasks, decision guards, human approval, a deadline, domain bindings and resumable waiting.
 
@@ -178,12 +178,12 @@ In XState, awaiting evidence and approval are explicit states that accept correl
 
 ## Studio and operator screens
 
-The planned Studio has two modes in the XFlow area:
+The browser prototype currently combines visual authoring and a single test run on one Studio page:
 
-- **Design:** graph canvas, versioned definition, step inspector, role and ontology bindings, adapter operation selector, rule references, and draft validation.
-- **Run:** selected execution, current business step, pending task or timer, evidence, rule results, event timeline and retry/compensation history.
+- **Design:** connected graph canvas, step inspector, local draft edits for labels, descriptions and route targets, plus validation before execution.
+- **Run:** current business step, pending task or timer, synthetic evidence and outputs, virtual event timeline, and snapshot save/restore.
 
-A scenario runner in Design mode uses the virtual clock and deterministic adapters. Publishing should require valid shapes, resolvable domain/rule references, all paths ending or waiting explicitly, and scenario evidence for success, failure, timeout and duplicate delivery. The current browser demo has no publication path.
+A scenario run uses the virtual clock and deterministic adapters. Adding or removing step types, persistent draft review and publication remain future Studio capabilities. Publishing should require valid shapes, resolvable domain/rule references, all paths ending or waiting explicitly, and scenario evidence for success, failure, timeout and duplicate delivery.
 
 The existing Finance and Data Explorer views remain linked destinations for financial records and canonical evidence. An exception/approval inbox can be added when the demo needs multiple concurrent human tasks; it does not require a new top-level page for every ontology class.
 

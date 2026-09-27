@@ -125,7 +125,7 @@ function RuntimePage() {
   ];
   const links = [
     ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
-    ["flows", "Workflow Studio", "Inspect and run the configurable J07/J08 bill-correction workflow."],
+    ["flows", "Workflow Studio", "Edit, inspect and run the visual J07/J08 bill-correction workflow."],
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
     ["switchboard", "Switchboard", "Change one source without changing every store."],
     ["storage", "Storage contracts", "Test distinct storage behavior without database products."],
