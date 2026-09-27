@@ -72,7 +72,7 @@ test("platform overview explains the generic workflow boundary in a 2D diagram",
 
 test("human task design keeps ontology guidance separate from task authority", async ({ page }) => {
   await page.goto("developer/human-tasks/");
-  await expect(page.getByText("DESIGN PROPOSAL")).toBeVisible();
+  await expect(page.getByText("DESIGN PROPOSAL", { exact: true })).toBeVisible();
   await expect(page.locator(".htd-contract-grid")).toContainText("Workflow task contract");
   await expect(page.locator(".htd-contract-grid")).toContainText("Presentation profile");
   await expect(page.locator(".htd-example")).toContainText("Review evidence without rewriting history.");
