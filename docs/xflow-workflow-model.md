@@ -1,6 +1,6 @@
 # XFlow workflow model and XState runtime
 
-**Status:** Architecture proposal for the ChargeWeave demo and first runtime  
+**Status:** Generic model and browser runtime implemented as a demonstrator; backend host remains future work
 **Scope:** User-configurable business workflows, browser simulation and a later backend host
 
 ## Decision
@@ -10,6 +10,8 @@ Use XState v5 as the statechart and actor runtime. Keep the editable workflow de
 XFlow is a cross-cutting process-definition layer. It is not part of the CPO/CSMS vocabulary. A ChargeWeave workflow profile binds generic steps to existing business concepts, roles and rules. The existing ChargeWeave process records remain the canonical business and audit record.
 
 The first browser demo and a later backend host use the same workflow definition, compiler, machine logic and typed ports. They select different adapters and persistence implementations.
+
+The implemented source is `xflow/ontology.ttl`, `xflow/shapes.ttl` and `xflow/charge-correction.profile.json`. The profile is JSON-LD and is normalized by `website/src/simulation/correction-workflow.js` to the generic compiler contract in `website/src/simulation/flow-engine.js`. The `/developer/flows/` Studio route runs that definition in the browser. The namespace under `example.org` is a development/demo IRI, not a production namespace registration.
 
 ~~~mermaid
 flowchart TB
@@ -51,9 +53,29 @@ The generic XFlow ontology describes workflow definitions:
 | RetryPolicy and CompensationPolicy | Retry limits and explicit domain recovery or correction behavior |
 | DomainBinding | References to business concepts, roles, obligations, evidence and validation rules |
 
-A workflow definition is an RDF graph and can be edited through a JSON-LD representation. Studio edits that graph, validates it, and publishes an immutable version. The compiler accepts only a defined subset of the vocabulary.
+This is the target metamodel. The `0.1.0-demo` vocabulary implements the versioned definition and core step/transition/domain-binding terms used by the J07/J08 profile. A version is currently a property on its definition resource. Schedule triggers, bounded parallel/join, retry/compensation policies, and migration/publication metadata are not implemented in this first slice.
+
+A workflow definition is an RDF graph and the committed example is written as JSON-LD. SHACL validates the profile in CI; the browser compiler also checks graph structure and registry references before creating an actor. The current Studio demonstrates graph inspection and run configuration. Editing the full graph, draft review and immutable publishing remain future Studio capabilities. The compiler accepts only a defined subset of the vocabulary.
 
 A definition names capabilities; it does not contain arbitrary JavaScript, SQL, SPARQL or executable expressions. For example, an operation reference such as meter.verifySignedEvidence resolves to a reviewed implementation registered by the application. This keeps authoring data portable and lets the adapter factory switch from deterministic simulation to a real integration.
+
+### Implemented compiler contract
+
+The first compiler accepts a versioned graph with an initial step, JSON initial context, domain/process-record bindings and typed steps. Step kinds map as follows:
+
+| XFlow step | Runtime behavior | Demo use |
+|---|---|---|
+| EventWait | Wait for a named external or user event | Corrected meter evidence, validation request and missing billing evidence |
+| ServiceTask | Invoke one registered asynchronous activity; route success or failure explicitly | Signature check, meter reconciliation, rating, credit and corrected CDR |
+| Decision | Evaluate ordered named guards, then a declared default branch | Readiness, material change and approval policy |
+| HumanTask | Wait for named task events and an optional named host deadline | Billing approval and exception review |
+| EndStep | Mark a terminal outcome | Completed, no-change, quarantined or declined |
+
+The engine validates JSON-only definitions and resolves all activity, guard, action and timer IDs through host registries. It rejects embedded functions, unresolved references and targets outside the graph. The demo Studio adjusts approval threshold and timeout as run configuration, and allows inspection of the linked graph and outputs; it is not yet a general-purpose drag/drop graph editor or workflow publisher.
+
+`createFlowRuntime(registry).compile(definition)` creates an XState v5 machine; `createActor(definition, { context, snapshot, clock })` creates an actor in a selected host. The same JavaScript module is browser-safe and Node-compatible. The simulator's ordinary charging-session lifecycle is also compiled through this runtime, while the richer J07/J08 profile demonstrates service tasks, decision guards, human approval, a deadline, domain bindings and resumable waiting.
+
+`python tools/test_xflow.py` validates the committed JSON-LD profile against the standalone SHACL shapes and checks required graph boundaries. `website/src/simulation/flow-engine.test.js` exercises compilation, capability allowlisting, checkpoint restore, virtual timer advancement, missing evidence, and linked correction outputs.
 
 The ChargeWeave profile imports or references both the generic XFlow vocabulary and ChargeWeave business vocabulary. The CPO/CSMS ontology does not import XState or depend on XFlow. A future namespace registration is a separate deliberate migration; the existing development IRIs remain unchanged.
 
@@ -84,7 +106,7 @@ A published definition contains these groups:
 7. **Bindings:** referenced ontology concepts, shape/rule IDs, evidence types and task roles.
 8. **Versioning:** author, review and publication evidence; published versions are immutable and every execution pins one version.
 
-The first profile needs service tasks, human tasks, event waits, timers, decisions, call-workflow, bounded parallel/join and terminal states. Mapping expressions are constrained path lookups and typed transforms; no user-supplied code is evaluated.
+The implemented profile supports service tasks, human tasks, event waits, named timers, decisions and terminal states. Call-workflow, bounded parallel/join, richer mapping expressions, and authoring/publishing controls are future extensions. No user-supplied code is evaluated.
 
 ## Runtime and durability
 
@@ -156,12 +178,12 @@ In XState, awaiting evidence and approval are explicit states that accept correl
 
 ## Studio and operator screens
 
-Studio has two modes in the XFlow area:
+The planned Studio has two modes in the XFlow area:
 
 - **Design:** graph canvas, versioned definition, step inspector, role and ontology bindings, adapter operation selector, rule references, and draft validation.
 - **Run:** selected execution, current business step, pending task or timer, evidence, rule results, event timeline and retry/compensation history.
 
-A scenario runner in Design mode uses the virtual clock and deterministic adapters. Publishing requires valid shapes, resolvable domain/rule references, all paths ending or waiting explicitly, and scenario evidence for success, failure, timeout and duplicate delivery.
+A scenario runner in Design mode uses the virtual clock and deterministic adapters. Publishing should require valid shapes, resolvable domain/rule references, all paths ending or waiting explicitly, and scenario evidence for success, failure, timeout and duplicate delivery. The current browser demo has no publication path.
 
 The existing Finance and Data Explorer views remain linked destinations for financial records and canonical evidence. An exception/approval inbox can be added when the demo needs multiple concurrent human tasks; it does not require a new top-level page for every ontology class.
 
@@ -182,7 +204,7 @@ AI may draft a workflow or suggest a missing branch, but publication is validate
 
 ## Completion boundary
 
-This design completes the proposed workflow-definition and XState-runtime architecture. It does not by itself prove that every CPO/CSMS business arrangement is modeled, that real integrations are production-ready, or that every jurisdiction-specific policy is covered. The existing business-domain audit remains the independent coverage baseline; production acceptance still needs real adapter, persistence, authorization, recovery and financial golden-case tests.
+The prototype implements the generic XFlow vocabulary and shapes, an executable JSON-LD profile, a constrained XState v5 compiler, and a browser Studio demo for the J07/J08 charge-correction journey. It proves selected paths for evidence validation, missing inputs, approval, timeout, credit lineage and snapshot restore. It does not implement a production backend host, durable timers, database-backed snapshots/event log/outbox, tenant authorization, full Studio editing/publishing, live adapters, or every CPO/CSMS business arrangement and jurisdiction-specific policy. The existing business-domain audit remains the independent coverage baseline; production acceptance still needs real adapter, persistence, authorization, recovery and financial golden-case tests.
 
 ## References
 

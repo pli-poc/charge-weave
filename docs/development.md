@@ -35,6 +35,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
+| `xflow/ontology.ttl`, `xflow/shapes.ttl`, `xflow/charge-correction.profile.json` | Generic workflow vocabulary, shapes and executable JSON-LD workflow profile |
 | `tools/build_queries.py` | Competency questions and CQ queries |
 | `tests/negative-cases.json`, `tools/test_*.py` | Validation reports |
 
@@ -63,6 +64,7 @@ outputs fail CI. The reference fixture selects controlled values deterministical
 | Temporal audit evidence | All-class time inventory stays current; controlled boundary checks pass and all five full-graph fault classes must be rejected by their intended checks |
 | Temporal writer and query acceptance | Corrections, retractions, immutable aggregates, historical joins, source checkpoints, replay, calendars and forecasts follow the reference contract |
 | Current source naming | Removed platform name does not recur in current paths/content |
+| XFlow vocabulary and workflow profile | The generic XFlow vocabulary and J07/J08 profile conform to the separate shapes, and invalid graph boundaries are rejected |
 | Verified ontology package | All gates passed and the current commit can be packaged with its evidence |
 
 Open [Actions](https://github.com/pli-poc/charge-weave/actions/workflows/ontology-ci.yml)

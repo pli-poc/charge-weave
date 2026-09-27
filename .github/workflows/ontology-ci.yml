@@ -64,6 +64,9 @@ jobs:
           - gate: Current source naming
             id: naming
             command: python tools/check_naming.py
+          - gate: XFlow vocabulary and workflow profile
+            id: xflow
+            command: python tools/test_xflow.py
           - gate: Journey closure
             id: journey-closure
             command: python tools/test_journey_snapshots.py --family closure

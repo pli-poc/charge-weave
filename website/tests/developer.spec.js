@@ -7,6 +7,7 @@ const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
   { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
+  { route: "developer/flows/", title: "Workflow Studio", active: "Workflow Studio", marker: "Correct a charging bill without erasing its history." },
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
   { route: "developer/switchboard/", title: "Runtime switchboard", active: "Switchboard", marker: "Observe" },
   { route: "developer/storage/", title: "Simulated storage", active: "Storage", marker: "Temporal event store" },
@@ -89,6 +90,53 @@ test("browser simulator replays seeded scenarios and exposes protocol and store 
   const previouslyKnownValue = await page.locator(".sim-temporal-query-output").innerText();
   expect(previouslyKnownValue).not.toBe(correctedValue);
   await expect(page.locator(".sim-standards-note")).toContainText("not exhaustive schemas");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(pageErrors).toEqual([]);
+});
+
+test("workflow studio executes, inspects and restores a configurable correction flow", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("developer/flows/");
+  await expect(page.getByRole("heading", { name: "Correct a charging bill without erasing its history." })).toBeVisible();
+  await expect(page.locator(".wf-graph")).toContainText("Verify signature and register epoch");
+
+  await page.getByRole("button", { name: "Start run" }).click();
+  await page.getByRole("button", { name: "Inject correction" }).click();
+  await page.getByRole("button", { name: "Validate" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Approve the billing correction");
+  await expect(page.locator(".wf-execution-panel")).toContainText("0.600 kWh");
+  await page.getByRole("button", { name: "Save checkpoint" }).click();
+  await page.getByRole("button", { name: "Advance time" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Review an exception");
+  await page.getByRole("button", { name: "Restore" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Approve the billing correction");
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Correction completed");
+  await expect(page.locator(".wf-execution-panel")).toContainText("CREDIT-CDR-DEMO-1042");
+  await expect(page.locator(".wf-execution-panel")).toContainText("CDR-CDR-DEMO-1042-R1");
+  await expect(page.locator(".wf-timeline-panel")).toContainText("Advanced virtual time by 60 seconds");
+
+  await page.getByRole("button", { name: "Reset" }).click();
+  await page.getByLabel("Billing evidence status").selectOption("missing");
+  await page.getByLabel("Approval threshold in kWh").fill("0.75");
+  await page.getByRole("button", { name: "Start run" }).click();
+  await page.getByRole("button", { name: "Inject correction" }).click();
+  await page.getByRole("button", { name: "Validate" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Wait for billing evidence");
+  await page.getByRole("button", { name: "Add billing evidence" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Correction completed");
+  await expect(page.locator(".wf-execution-panel")).toContainText("CREDIT-CDR-DEMO-1042");
+
+  await page.getByRole("button", { name: "Reset" }).click();
+  await page.getByLabel("Meter evidence test").selectOption("invalid-signature");
+  await page.getByRole("button", { name: "Start run" }).click();
+  await page.getByRole("button", { name: "Inject correction" }).click();
+  await page.getByRole("button", { name: "Validate" }).click();
+  await expect(page.locator(".wf-status")).toContainText("Evidence quarantined");
+  await expect(page.locator(".wf-error-note")).toContainText("signature is invalid");
+  await expect(page.locator(".wf-graph")).toContainText("Approve the billing correction");
+  await expect(page.locator(".wf-studio-wrap")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(pageErrors).toEqual([]);
 });

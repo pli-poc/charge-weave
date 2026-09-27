@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "test": "node --test src/simulation/runtime.test.js && playwright test",
+    "test": "node --test src/simulation/*.test.js && playwright test",
     "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
     "predev": "node scripts/build-model.mjs"
   },
@@ -16,7 +16,8 @@
     "lucide-react": "^0.577.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "xstate": "^5.33.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

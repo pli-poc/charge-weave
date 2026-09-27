@@ -19,6 +19,7 @@ tests:
 	$(PYTHON) tools/check_naming.py
 	$(PYTHON) tools/audit_temporal.py
 	$(PYTHON) tools/test_temporal.py
+	$(PYTHON) tools/test_xflow.py
 reason:
 	$(PYTHON) tools/check_owl.py
 release:
