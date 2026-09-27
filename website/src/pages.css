@@ -393,6 +393,47 @@
   color: var(--muted);
   margin-top: 15px;
 }
+.architecture-principles.hld-principles {
+  display: block;
+  padding-block: 78px;
+}
+.hld-principles > div:first-child {
+  max-width: 780px;
+  margin-bottom: 34px;
+}
+.hld-principles h2 {
+  max-width: 700px;
+}
+.hld-principles-intro {
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+  margin-top: 17px;
+}
+.hld-principles .principle-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.hld-principles .principle-list article {
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid #2c4248;
+  border-radius: 5px;
+  background: linear-gradient(145deg, #101c24, #0c161e 72%);
+}
+.hld-principles .principle-list article > span {
+  min-width: 28px;
+}
+.hld-principles .principle-list h3 {
+  font-size: 17px;
+  line-height: 1.5;
+}
+.hld-principles .principle-list p {
+  font-size: 14px;
+  line-height: 1.75;
+  margin-top: 11px;
+}
 .temporal-architecture {
   padding-block: 80px;
   background: #101e27;
@@ -456,6 +497,76 @@
 .semantic-boundary strong {
   color: #d0e1dd;
   font-weight: 600;
+}
+.architecture-detail-index {
+  padding-block: 78px;
+}
+.architecture-detail-index-heading {
+  max-width: 790px;
+}
+.architecture-detail-index-heading h2 {
+  font-size: clamp(30px, 3.5vw, 40px);
+  line-height: 1.25;
+  letter-spacing: -1.2px;
+  font-weight: 500;
+}
+.architecture-detail-index-heading > p:last-child {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.8;
+  margin-top: 15px;
+}
+.architecture-detail-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 30px;
+}
+.architecture-detail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 88px;
+  padding: 18px 20px;
+  border: 1px solid #2c4248;
+  border-radius: 5px;
+  background: #0d1922;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.architecture-detail-link:hover {
+  border-color: #6b9a83;
+  background: #112128;
+}
+.architecture-detail-link > span {
+  display: grid;
+  gap: 7px;
+}
+.architecture-detail-link strong {
+  color: #dce8e5;
+  font-size: 15px;
+  font-weight: 600;
+}
+.architecture-detail-link small {
+  color: #9fb1b6;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.architecture-detail-link > svg,
+.architecture-hld-source svg {
+  flex: 0 0 auto;
+  color: var(--mint);
+}
+.architecture-hld-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 22px;
+  color: var(--mint);
+  font-size: 14px;
+}
+.architecture-hld-source:hover {
+  color: #c3f5d9;
 }
 .detailed-roadmap section {
   display: grid;
@@ -584,6 +695,9 @@
   .architecture-principles {
     gap: 45px;
   }
+  .hld-principles .principle-list {
+    grid-template-columns: 1fr;
+  }
   .detailed-roadmap section {
     grid-template-columns: 45px 1.2fr 1fr;
     gap: 25px;
@@ -687,6 +801,9 @@
   .architecture-principles h2 {
     font-size: 31px;
   }
+  .architecture-principles.hld-principles {
+    padding-block: 54px;
+  }
   .temporal-architecture {
     padding-block: 55px;
   }
@@ -703,6 +820,17 @@
   }
   .semantic-boundary svg {
     display: none;
+  }
+  .architecture-detail-index {
+    padding-block: 54px;
+  }
+  .architecture-detail-links {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .architecture-detail-link {
+    min-height: 78px;
+    padding: 16px;
   }
   .detailed-roadmap section {
     grid-template-columns: 45px 1fr;

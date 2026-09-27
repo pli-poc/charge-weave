@@ -691,6 +691,13 @@ h2 {
   color: #8297a1;
   margin-top: 20px;
 }
+.architecture-note a {
+  color: var(--mint);
+  margin-left: 5px;
+}
+.architecture-note a:hover {
+  color: #d0f6df;
+}
 .roadmap-section {
   padding-block: 90px;
   background: #0d1820;

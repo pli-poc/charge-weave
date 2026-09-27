@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
-  { route: "developer/platform/", title: "Platform system overview", active: "Platform overview", marker: "One workflow contract, from design to evidence." },
+  { route: "developer/platform/", title: "Workflow runtime architecture", active: "Workflow runtime", marker: "One workflow contract, from design to evidence." },
   { route: "developer/human-tasks/", title: "Human task design", active: "Human task forms", marker: "Task-scoped forms, generated from a validated contract." },
   { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
   { route: "developer/flows/", title: "Workflow Studio", active: "Workflow Studio", marker: "Correct a charging bill without erasing its history." },
@@ -35,6 +35,10 @@ test("developer pages explain the proposed runtime and keep guide navigation in 
     await page.goto(route);
     await expect(page.locator(".dev-guide-hero h1")).toBeVisible();
     await expect(page.locator(".dev-guide-content")).toContainText(marker);
+    await expect(page.getByRole("link", { name: /High-level architecture and design principles/ })).toHaveAttribute(
+      "href",
+      "/charge-weave/architecture/",
+    );
     await expect(
       page.getByRole("navigation", { name: "Developer guide pages" })
         .getByRole("link", { name: active, exact: true }),
@@ -60,9 +64,9 @@ test("switchboard keeps protocol inputs and simulated stores independently confi
   await expect(page.locator(".dev-table-wrap")).toContainText("Always-on protocol gateway");
 });
 
-test("platform overview explains the generic workflow boundary in a 2D diagram", async ({ page }) => {
+test("workflow runtime page explains the generic workflow boundary in a 2D diagram", async ({ page }) => {
   await page.goto("developer/platform/");
-  const diagram = page.getByRole("img", { name: "ChargeWeave generic workflow platform system overview" });
+  const diagram = page.getByRole("img", { name: "ChargeWeave workflow runtime from design to evidence" });
   await expect(diagram).toBeVisible();
   await expect(page.locator(".wpo-diagram")).toContainText("XState v5 actors");
   await expect(page.locator(".wpo-diagram")).toContainText("ChargeWeave business ontology");

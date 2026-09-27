@@ -472,43 +472,45 @@ export default function Home() {
             <div className="architecture-layer">
               <span className="layer-label">APPLICATION ACCESS</span>
               <div>
-                <strong>GraphQL</strong>
-                <p>ASP.NET Core + GraphQL.NET · Planned application API</p>
+                <strong>Authorized API boundary</strong>
+                <p>Scoped queries and business commands · planned application layer</p>
               </div>
             </div>
             <div className="architecture-engines">
               <article>
                 <span>Business records</span>
-                <h3>MariaDB</h3>
+                <h3>Transactional store</h3>
                 <p>
-                  Transactional data with business-time and system-time history.
+                  Business records with appropriate transaction and history guarantees.
                 </p>
               </article>
               <article>
                 <span>Events & replay</span>
-                <h3>Apache Kafka</h3>
-                <p>Durable event ingestion and decoupled processing.</p>
+                <h3>Durable event stream</h3>
+                <p>Replayable ingestion and decoupled processing.</p>
               </article>
               <article>
                 <span>Telemetry & analytics</span>
-                <h3>ClickHouse</h3>
-                <p>Time-series measurements and analytical projections.</p>
+                <h3>Purpose-fit analytics store</h3>
+                <p>High-volume measurements and analytical projections.</p>
               </article>
             </div>
             <div className="architecture-layer semantic-layer">
               <span className="layer-label">SEMANTIC CONTRACT</span>
               <div>
-                <strong>OWL + SHACL</strong>
+                <strong>RDF · OWL · SHACL</strong>
                 <p>
-                  Apache Jena validation · Ontop for read-only SPARQL access to
-                  business records
+                  Shared business meaning · bounded constraints · governed
+                  semantic queries
                 </p>
               </div>
             </div>
           </div>
           <p className="architecture-note">
             Design direction, not a deployed runtime. Protocol support and
-            performance will be established as implementation progresses.
+            performance will be established as implementation progresses. Read
+            the <a href={`${import.meta.env.BASE_URL}architecture/`}>high-level
+            architecture and design principles</a>.
           </p>
         </section>
         <section className="roadmap-section" id="roadmap">

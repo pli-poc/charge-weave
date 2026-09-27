@@ -24,7 +24,7 @@ for (const [route, title] of [
             ? "Development roadmap"
             : route === "capabilities"
               ? "Platform capabilities"
-              : "Architecture",
+              : "Platform architecture",
       ),
     );
     await page.evaluate(() => document.fonts.ready);
@@ -51,6 +51,19 @@ for (const [route, title] of [
     expect(errors).toEqual([]);
   });
 }
+
+test("architecture page presents the HLD and links to developer details", async ({ page }) => {
+  await page.goto("architecture/");
+  await expect(page.getByText("High-level design · Platform architecture", { exact: true })).toBeVisible();
+  await expect(page.locator(".architecture-principles")).toContainText("High-level design principles");
+  await expect(page.locator(".architecture-principles")).toContainText("Keep protocol and infrastructure edges replaceable.");
+  await expect(page.locator(".architecture-detail-links")).toContainText("Workflow runtime");
+  await expect(page.locator(".architecture-detail-links")).toContainText("Human task forms");
+  await expect(page.getByRole("link", { name: /Read the complete HLD source/ })).toHaveAttribute(
+    "href",
+    "https://github.com/pli-poc/charge-weave/blob/main/docs/runtime-architecture.md",
+  );
+});
 
 test("ontology relationships, real triples, inheritance and temporal inspector work", async ({
   page,

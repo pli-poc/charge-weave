@@ -27,7 +27,7 @@ const base = import.meta.env.BASE_URL;
 const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`;
 const pages = [
   { id: "runtime", route: "developer", label: "Runtime" },
-  { id: "platform", route: "developer/platform", label: "Platform overview" },
+  { id: "platform", route: "developer/platform", label: "Workflow runtime" },
   { id: "human-tasks", route: "developer/human-tasks", label: "Human task forms" },
   { id: "simulator", route: "developer/simulator", label: "Simulator" },
   { id: "flows", route: "developer/flows", label: "Workflow Studio" },
@@ -75,6 +75,12 @@ function GuideLayout({ page, title, description, children }) {
             </a>
           ))}
         </nav>
+        <div className="dev-hld-reference">
+          <span>PLATFORM HLD</span>
+          <a href={`${base}architecture/`}>
+            High-level architecture and design principles <ArrowUpRight size={15} />
+          </a>
+        </div>
       </div>
       <div className="dev-guide-content">{children}</div>
     </main>
@@ -128,7 +134,7 @@ function RuntimePage() {
     },
   ];
   const links = [
-    ["platform", "Platform overview", "See how domain meaning, validation, workflow design and execution connect."],
+    ["platform", "Workflow runtime", "Explore the detailed XFlow, validation, XState and evidence boundaries."],
     ["human-tasks", "Human task forms", "Design task-scoped, ontology-guided human intervention and data correction."],
     ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
     ["flows", "Workflow Studio", "Edit, inspect and run the visual J07/J08 bill-correction workflow."],
@@ -584,8 +590,8 @@ const pageCopy = {
     description: "A browser-hosted synthetic runtime composes protocol actors, process logic and simulated stores so a charging journey can be exercised end to end.",
   },
   platform: {
-    title: <>Shared meaning.<br /><span>Governed execution.</span></>,
-    description: "A generic system overview of how a domain ontology, validation contracts, workflow definitions, XState execution and replaceable platform ports fit together.",
+    title: <>One workflow contract.<br /><span>Design through execution.</span></>,
+    description: "Developer detail for the generic XFlow definition, ontology bindings, validation, XState execution and replaceable runtime ports.",
   },
   "human-tasks": {
     title: <>Human decisions.<br /><span>Scoped by the workflow.</span></>,
