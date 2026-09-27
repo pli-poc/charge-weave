@@ -111,6 +111,17 @@ def main():
         "detail": None if rejected_action else str(action_details),
     })
 
+    incomplete_form_profile = Graph().parse(PROFILE, format="json-ld")
+    task = next(incomplete_form_profile.subjects(XFLOW.taskFormProfileId, None))
+    incomplete_form_profile.remove((task, XFLOW.taskFormProfileVersion, None))
+    form_profile_conforms, _, form_profile_details = check(incomplete_form_profile, shapes, ontology)
+    rejected_incomplete_profile = not form_profile_conforms and "declared together" in str(form_profile_details)
+    results.append({
+        "check": "task-form-profile-id-and-version-are-paired",
+        "passed": rejected_incomplete_profile,
+        "detail": None if rejected_incomplete_profile else str(form_profile_details),
+    })
+
     report = {
         "passed": sum(result["passed"] for result in results),
         "total": len(results),
