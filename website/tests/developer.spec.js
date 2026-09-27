@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const websiteDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const routeCases = [
   { route: "developer/", title: "Developer guide", active: "Runtime", marker: "Runtime factory" },
+  { route: "developer/platform/", title: "Platform system overview", active: "Platform overview", marker: "One workflow contract, from design to evidence." },
   { route: "developer/simulator/", title: "Simulation workbench", active: "Simulator", marker: "Run a journey. Inspect every boundary." },
   { route: "developer/flows/", title: "Workflow Studio", active: "Workflow Studio", marker: "Correct a charging bill without erasing its history." },
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
@@ -56,6 +57,16 @@ test("switchboard keeps protocol inputs and simulated stores independently confi
   await expect(config).toContainText('"temporal": "memory"');
   await expect(page.locator(".dev-table-wrap")).toContainText("OCPP source only");
   await expect(page.locator(".dev-table-wrap")).toContainText("Always-on protocol gateway");
+});
+
+test("platform overview explains the generic workflow boundary in a 2D diagram", async ({ page }) => {
+  await page.goto("developer/platform/");
+  const diagram = page.getByRole("img", { name: "ChargeWeave generic workflow platform system overview" });
+  await expect(diagram).toBeVisible();
+  await expect(page.locator(".wpo-diagram")).toContainText("XState v5 actors");
+  await expect(page.locator(".wpo-diagram")).toContainText("ChargeWeave business ontology");
+  await expect(page.locator(".wpo-diagram")).toContainText("XFlow SHACL shapes");
+  await expect(page.locator(".wpo-explanation")).toContainText("The host supplies clocks, adapters and persistence.");
 });
 
 test("browser simulator replays seeded scenarios and exposes protocol and store traces", async ({ page }) => {

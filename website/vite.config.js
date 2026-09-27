@@ -23,6 +23,10 @@ const pages = {
     "Developer guide",
     "Explore the browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
   ],
+  "developer/platform": [
+    "Platform system overview",
+    "See how shared business meaning connects workflow design, validation, execution and evidence.",
+  ],
   "developer/simulator": [
     "Simulation workbench",
     "Run seeded roaming-charge fixtures and inspect protocol traces, process events and simulated browser stores.",
