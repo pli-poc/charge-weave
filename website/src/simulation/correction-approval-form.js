@@ -10,6 +10,7 @@ export const correctionApprovalForm = {
   workflowVersion: correctionWorkflowDefinition.version,
   stepId: "awaitingApproval",
   role: "BillingApprover",
+  correlationPath: "sessionId",
   fields: [
     {
       id: "correctionKind",

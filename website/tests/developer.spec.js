@@ -84,7 +84,7 @@ test("human task form prototype keeps ontology guidance separate from task autho
   await expect(page.locator(".htd-example")).toContainText("Review evidence without rewriting history.");
   await expect(page.locator(".htd-safety-note")).toContainText("original debit");
   await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
-  await expect(page.locator(".htd-masked-value")).toHaveText("•••• •••• •••• 4242");
+  await expect(page.locator(".task-form-masked-value")).toHaveText("•••• 4242");
   await expect(page.getByLabel("Correction type")).toContainText("Credit");
   await expect(page.getByLabel("Supporting evidence")).toContainText("Signed meter correction");
   await expect(page.getByLabel("Proposed credit amount", { exact: true })).toHaveValue("0.19");

@@ -22,6 +22,17 @@ function pathValue(value, path) {
   return String(path ?? "").split(".").filter(Boolean).reduce((current, key) => current?.[key], value);
 }
 
+/** Mask at render time so a raw context value cannot leak through a masked widget. */
+export function maskSensitiveDisplayValue(value) {
+  if (value === undefined || value === null || value === "") return "••••";
+  const compact = String(value).replace(/\s/g, "");
+  const hasExistingMask = /[•*]/.test(compact);
+  const unmasked = compact.replace(/[•*]/g, "");
+  if (!hasExistingMask && unmasked.length <= 4) return "••••";
+  const suffix = unmasked.slice(-4);
+  return suffix ? `•••• ${suffix}` : "••••";
+}
+
 function inferControl(field) {
   if (field.type === "enum") return "select";
   if (field.type === "object") return field.range === "EvidenceDocument" ? "evidence" : "reference";
@@ -29,6 +40,7 @@ function inferControl(field) {
 }
 
 function compatibleControl(field, control, mode) {
+  if (control === "display") return mode === "display";
   if (control === "masked") return mode === "display" && field.type === "datatype" && field.range === "string";
   if (control === "textarea") return field.type === "datatype" && field.range === "string";
   if (control === "money") return field.type === "datatype" && field.range === "decimal";
@@ -42,8 +54,9 @@ function fieldIndex(className) {
   return new Map(fieldsFor(className).map((field) => [field.property, field]));
 }
 
-function resolveShapeError(field, profileField) {
+function resolveShapeError(field, profileField, mode) {
   const shape = profileField.shape ?? {};
+  const control = profileField.control ?? inferControl(field);
   const fieldValueOptions = list(profileField.options);
   if (shape.minLength !== undefined && (!Number.isInteger(shape.minLength) || shape.minLength < 0)) {
     return `${profileField.id} has an invalid minimum length.`;
@@ -57,10 +70,16 @@ function resolveShapeError(field, profileField) {
   if (shape.precision !== undefined && (!Number.isInteger(shape.precision) || shape.precision < 0 || shape.precision > 6)) {
     return `${profileField.id} has an invalid decimal precision.`;
   }
-  if (shape.maxFrom !== undefined && (typeof shape.maxFrom !== "string" || !shape.maxFrom.includes("."))) {
-    return `${profileField.id} has an invalid contextual maximum.`;
+  if (shape.maxFrom !== undefined && (control !== "money" || typeof shape.maxFrom !== "string" || !shape.maxFrom.trim())) {
+    return `${profileField.id} has an invalid contextual maximum; contextual maxima are supported on money controls.`;
   }
-  if (field.type === "object") {
+  if (control !== "money" && ["min", "max"].some((key) => shape[key] !== undefined && (typeof shape[key] !== "number" || !Number.isFinite(shape[key])))) {
+    return `${profileField.id} numeric minimum and maximum must be finite numbers.`;
+  }
+  if (control !== "money" && shape.min !== undefined && shape.max !== undefined && shape.min > shape.max) {
+    return `${profileField.id} has a minimum above its maximum.`;
+  }
+  if (mode === "input" && field.type === "object") {
     if (!fieldValueOptions.length) return `${profileField.id} must declare task-scoped reference options.`;
     if (fieldValueOptions.some((option) => option.class !== field.range || typeof option.id !== "string" || typeof option.label !== "string")) {
       return `${profileField.id} options must be references to ${field.range}.`;
@@ -75,7 +94,7 @@ function resolveShapeError(field, profileField) {
     return `${profileField.id} money control must declare allowed currencies.`;
   }
   if (profileField.control === "money" && profileField.currencies?.length) {
-    const precision = Math.min(...profileField.currencies.map((currency) => currency.minorUnitDigits), shape.precision ?? 6);
+    const precision = Math.min(Math.max(...profileField.currencies.map((currency) => currency.minorUnitDigits)), shape.precision ?? 6);
     if (shape.min !== undefined && parseMinorUnits(shape.min, precision) === null) return `${profileField.id} has an invalid minimum money amount.`;
     if (shape.max !== undefined && parseMinorUnits(shape.max, precision) === null) return `${profileField.id} has an invalid maximum money amount.`;
     if (shape.min !== undefined && shape.max !== undefined && parseMinorUnits(shape.min, precision) > parseMinorUnits(shape.max, precision)) {
@@ -91,6 +110,7 @@ export function compileTaskForm({ definition, profile, principal }) {
   if (typeof profile?.id !== "string" || !profile.id.trim()) errors.push("Form profile id is required.");
   if (typeof profile?.version !== "string" || !profile.version.trim()) errors.push("Form profile version is required.");
   if (typeof profile?.role !== "string" || !profile.role.trim()) errors.push("Form profile role is required.");
+  if (profile?.correlationPath !== undefined && (typeof profile.correlationPath !== "string" || !profile.correlationPath.trim())) errors.push("Form profile correlation path must be a non-empty context path.");
   if (!definition || definition.id !== profile?.workflowId || definition.version !== profile?.workflowVersion) {
     errors.push("Form profile must match the pinned workflow id and version.");
   }
@@ -121,12 +141,13 @@ export function compileTaskForm({ definition, profile, principal }) {
     const mode = entry.mode ?? "input";
     if (!["input", "display"].includes(mode)) errors.push(`${entry.id} mode must be input or display.`);
     if (mode === "display" && entry.shape) errors.push(`${entry.id} display fields cannot define input constraints.`);
-    const control = entry.control ?? inferControl(field);
+    const control = entry.control ?? (mode === "display" ? "display" : inferControl(field));
     if (typeof entry.label !== "string" || !entry.label.trim()) errors.push(`${entry.id} must have a display label.`);
     if (!compatibleControl(field, control, mode)) errors.push(`${entry.id} control '${control}' is incompatible with ontology range '${field.range}'.`);
-    if (mode === "display" && control !== "masked") errors.push(`${entry.id} display fields must use a safe masked display control in this prototype.`);
+    if (mode === "display" && !["display", "masked"].includes(control)) errors.push(`${entry.id} display fields must use a display or safe masked control.`);
+    if (mode === "display" && (typeof entry.valuePath !== "string" || !entry.valuePath.trim())) errors.push(`${entry.id} display fields must declare a workflow context value path.`);
     if (entry.sensitive && (mode !== "display" || control !== "masked")) errors.push(`${entry.id} sensitive fields must be read-only and masked.`);
-    const profileError = resolveShapeError(field, entry);
+    const profileError = resolveShapeError(field, entry, mode);
     if (profileError) errors.push(profileError);
     if (mode === "input" && entry.sensitive) errors.push(`${entry.id} sensitive fields cannot be submitted by this form engine.`);
     return {
@@ -144,6 +165,9 @@ export function compileTaskForm({ definition, profile, principal }) {
   for (const field of fields) {
     for (const eventType of [...field.activeOn, ...list(field.shape?.requiredOn)]) {
       if (!declaredOutcomes.has(eventType)) errors.push(`${field.id} references undeclared task outcome '${eventType}'.`);
+    }
+    for (const eventType of list(field.shape?.requiredOn)) {
+      if (field.activeOn.length && !field.activeOn.includes(eventType)) errors.push(`${field.id} is required on '${eventType}' but inactive for that outcome.`);
     }
   }
 
@@ -165,6 +189,7 @@ export function compileTaskForm({ definition, profile, principal }) {
     workflowVersion: profile.workflowVersion,
     stepId: profile.stepId,
     role: profile.role,
+    correlationPath: profile.correlationPath ?? null,
     fields,
     outcomes,
     principal: principal ?? null,
@@ -186,12 +211,16 @@ function taskRequired(field, eventType) {
   return shape.required === true || list(shape.requiredOn).includes(eventType);
 }
 
+function isEmptyValue(field, value) {
+  if (value === undefined || value === null || value === "") return true;
+  return field.control === "money" && typeof value === "object" && (value.amount === undefined || value.amount === null || String(value.amount).trim() === "");
+}
+
 function validateField(field, value, eventType, context) {
   const shape = field.shape ?? {};
-  const empty = value === undefined || value === null || value === "";
   if (field.mode !== "input") return [];
   if (field.activeOn.length && !field.activeOn.includes(eventType)) return [];
-  if (empty) return taskRequired(field, eventType) ? [`${field.label} is required for this outcome.`] : [];
+  if (isEmptyValue(field, value)) return taskRequired(field, eventType) ? [`${field.label} is required for this outcome.`] : [];
   if (field.control === "textarea" || field.control === "text") {
     const text = String(value);
     if (shape.minLength !== undefined && text.trim().length < shape.minLength) return [`${field.label} must contain at least ${shape.minLength} characters.`];
@@ -225,12 +254,29 @@ function validateField(field, value, eventType, context) {
   if (["decimal", "number"].includes(field.control)) {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return [`Enter a valid number for ${field.label.toLowerCase()}.`];
+    if (["integer", "positiveInteger", "nonNegativeInteger"].includes(field.binding.range) && !Number.isInteger(parsed)) {
+      return [`${field.label} must be a whole number.`];
+    }
+    if (field.binding.range === "positiveInteger" && parsed <= 0) return [`${field.label} must be greater than zero.`];
+    if (field.binding.range === "nonNegativeInteger" && parsed < 0) return [`${field.label} cannot be negative.`];
     if (shape.min !== undefined && parsed < Number(shape.min)) return [`${field.label} must be at least ${shape.min}.`];
     if (shape.max !== undefined && parsed > Number(shape.max)) return [`${field.label} must be no more than ${shape.max}.`];
     return [];
   }
   if (field.control === "checkbox" && typeof value !== "boolean") return [`${field.label} must be true or false.`];
-  if (["date", "datetime-local", "time"].includes(field.control) && Number.isNaN(Date.parse(String(value)))) return [`Enter a valid ${field.label.toLowerCase()}.`];
+  if (field.control === "date" && (!/^\d{4}-\d{2}-\d{2}$/.test(String(value)) || Number.isNaN(Date.parse(`${value}T00:00:00.000Z`)) || new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) !== String(value))) {
+    return [`Enter a valid ${field.label.toLowerCase()}.`];
+  }
+  if (field.control === "datetime-local" && (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(String(value)) || Number.isNaN(Date.parse(String(value))))) {
+    return [`Enter a valid ${field.label.toLowerCase()}.`];
+  }
+  if (field.control === "time") {
+    const match = String(value).match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match || Number(match[1]) > 23 || Number(match[2]) > 59 || Number(match[3] ?? 0) > 59) return [`Enter a valid ${field.label.toLowerCase()}.`];
+  }
+  if (field.control === "url") {
+    try { new URL(String(value)); } catch { return [`Enter a valid ${field.label.toLowerCase()}.`]; }
+  }
   return [];
 }
 
@@ -246,64 +292,24 @@ export function validateTaskSubmission({ form, eventType, values, context }) {
   return [...new Set(errors)];
 }
 
-function submissionPayload(form, eventType, values) {
+/** Create an editable value map with useful defaults for the shared renderer. */
+export function createInitialTaskValues(form) {
+  return Object.fromEntries(form.fields
+    .filter((field) => field.mode === "input")
+    .map((field) => [field.id, field.control === "checkbox"
+      ? false
+      : field.control === "money"
+        ? { amount: "", currency: field.currencies[0]?.code ?? "" }
+        : ""]));
+}
+
+/** Return only the editable values active for the selected workflow outcome. */
+export function valuesForTaskOutcome(form, eventType, values = {}) {
   const payload = {};
   for (const field of form.fields) {
-    if (field.mode !== "input" || values[field.id] === undefined || values[field.id] === "") continue;
+    if (field.mode !== "input" || isEmptyValue(field, values[field.id])) continue;
     if (field.activeOn.length && !field.activeOn.includes(eventType)) continue;
-    if (eventType === "approval.rejected" && field.id !== "correctionReason") continue;
     payload[field.id] = values[field.id];
   }
   return payload;
-}
-
-/** A browser-only host simulation; a service host must independently repeat every check. */
-export function createSimulatedTaskHost({ form, actor, getTaskRevision = () => 1, now = () => new Date().toISOString() }) {
-  const receipts = new Map();
-  return {
-    submit({ eventType, values, principal, expectedRevision, idempotencyKey }) {
-      if (typeof idempotencyKey !== "string" || !idempotencyKey.trim()) return { ok: false, code: "idempotency-required", errors: ["A submission key is required."] };
-      if (!principal || !Array.isArray(principal.roles) || !principal.roles.includes(form.role)) return { ok: false, code: "forbidden", errors: ["Your assigned role cannot complete this task."] };
-      const fingerprint = JSON.stringify(canonicalize({ eventType, values, expectedRevision, actorId: principal.id }));
-      if (receipts.has(idempotencyKey)) {
-        const prior = receipts.get(idempotencyKey);
-        return prior.fingerprint === fingerprint
-          ? { ...prior.receipt, duplicate: true }
-          : { ok: false, code: "idempotency-conflict", errors: ["This submission key was already used for different task inputs."] };
-      }
-      const snapshot = actor.getSnapshot();
-      if (snapshot.value !== form.stepId || snapshot.status !== "active") return { ok: false, code: "task-not-open", errors: ["This task is no longer open."] };
-      if (expectedRevision !== getTaskRevision()) return { ok: false, code: "stale-task", errors: ["This task changed. Refresh the task before submitting again."] };
-      const errors = validateTaskSubmission({ form, eventType, values, context: snapshot.context });
-      if (errors.length) return { ok: false, code: "invalid", errors };
-      const taskValues = submissionPayload(form, eventType, values ?? {});
-      const audit = {
-        taskId: form.id,
-        taskVersion: form.version,
-        workflowId: form.workflowId,
-        workflowVersion: form.workflowVersion,
-        stepId: form.stepId,
-        correlationId: snapshot.context.sessionId ?? snapshot.context.originalCdrId ?? null,
-        outcome: eventType,
-        actorId: principal.id,
-        expectedRevision,
-        idempotencyKey,
-        submittedAt: now(),
-        values: taskValues,
-      };
-      const event = eventType === "approval.granted"
-        ? { type: eventType, approval: audit }
-        : { type: eventType, rejection: audit };
-      actor.send(event);
-      const receipt = { ok: true, code: "accepted", eventType, audit, duplicate: false };
-      receipts.set(idempotencyKey, { fingerprint, receipt });
-      return receipt;
-    },
-  };
-}
-
-function canonicalize(value) {
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]));
 }

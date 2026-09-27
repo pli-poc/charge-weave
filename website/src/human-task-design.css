@@ -420,92 +420,6 @@
 .htd-rating-summary .htd-delta strong {
   color: #a0e8be;
 }
-.htd-field {
-  display: grid;
-  gap: 7px;
-  min-width: 0;
-}
-.htd-field + .htd-field {
-  margin-top: 16px;
-}
-.htd-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  color: #d7e2df;
-  font-size: 11px;
-  font-weight: 550;
-}
-.htd-required-mark {
-  color: #edb56f;
-}
-.htd-field input:not([type="checkbox"]),
-.htd-field select,
-.htd-field textarea,
-.htd-money-control input,
-.htd-money-control select {
-  width: 100%;
-  min-height: 42px;
-  border: 1px solid #34464e;
-  border-radius: 2px;
-  outline: none;
-  background: #101b22;
-  color: #e1ebe7;
-  font: inherit;
-  font-size: 12px;
-  padding: 10px 12px;
-}
-.htd-field textarea {
-  min-height: 88px;
-  line-height: 1.55;
-  resize: vertical;
-}
-.htd-field input:focus,
-.htd-field select:focus,
-.htd-field textarea:focus,
-.htd-money-control input:focus,
-.htd-money-control select:focus {
-  border-color: #83d6ac;
-  box-shadow: 0 0 0 2px rgba(131, 214, 172, .13);
-}
-.htd-field [aria-invalid="true"],
-.htd-money-control [aria-invalid="true"] {
-  border-color: #c97974 !important;
-}
-.htd-field small {
-  color: #87999f;
-  font-size: 9px;
-  line-height: 1.6;
-}
-.htd-field-error {
-  color: #ffb6ac;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.htd-money-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  gap: 8px;
-}
-.htd-money-control input {
-  font-variant-numeric: tabular-nums;
-}
-.htd-field-readonly {
-  padding-top: 12px;
-  border-top: 1px solid #233139;
-}
-.htd-readonly-tag {
-  color: #87999f;
-  font-size: 8px;
-  font-weight: 400;
-}
-.htd-masked-value {
-  display: block;
-  color: #d0ded9;
-  font-size: 12px;
-  letter-spacing: 1.3px;
-}
 .htd-readonly-note,
 .htd-host-boundary {
   color: #819499;
@@ -536,7 +450,6 @@
   font-size: 9px;
   text-align: right;
 }
-.htd-form-errors,
 .htd-submit-notice {
   padding: 12px 14px;
   margin-top: 16px;
@@ -546,13 +459,6 @@
   font-size: 10px;
   line-height: 1.7;
 }
-.htd-form-errors strong {
-  font-size: 10px;
-}
-.htd-form-errors ul {
-  padding-left: 16px;
-  margin: 6px 0 0;
-}
 .htd-submit-notice.success {
   border-color: #416f5d;
   background: #10211b;
@@ -560,12 +466,9 @@
 }
 .htd-outcome-actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 9px;
-  margin-top: 19px;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
-.htd-outcome-button,
 .htd-reset-button {
   display: inline-flex;
   justify-content: center;
@@ -581,23 +484,11 @@
   font-size: 10px;
   cursor: pointer;
 }
-.htd-outcome-button.danger {
-  border-color: #654340;
-  background: #2a1c1b;
-  color: #edc4bd;
-}
 .htd-reset-button {
   margin-left: auto;
   border-color: #34464e;
   background: transparent;
   color: #a9b7bb;
-}
-.htd-outcome-button:not(:disabled):hover {
-  filter: brightness(1.2);
-}
-.htd-outcome-button:disabled {
-  opacity: .48;
-  cursor: not-allowed;
 }
 .htd-host-boundary {
   margin-top: 15px;
@@ -624,17 +515,6 @@
   color: #aebfbb;
   font-size: 10px;
   line-height: 1.6;
-}
-.htd-page .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 @media (max-width: 900px) {
   .htd-flow,
