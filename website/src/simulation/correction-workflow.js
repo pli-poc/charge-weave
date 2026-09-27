@@ -84,6 +84,9 @@ export function normaliseWorkflowProfile(jsonLd) {
       }
     }
     if (source.assigneeRole !== undefined) common.assigneeRole = refName(source.assigneeRole);
+    if (source.taskFormProfileId !== undefined || source.taskFormProfileVersion !== undefined) {
+      common.taskFormProfile = { id: source.taskFormProfileId, version: source.taskFormProfileVersion };
+    }
     return common;
   });
 

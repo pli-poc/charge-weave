@@ -75,6 +75,10 @@ test("compiler rejects unknown ontology bindings, controls, task roles and undec
   wrongRole.role = "BillingOperator";
   assert.throws(() => compiled(wrongRole), /role must match/);
 
+  const wrongVersion = structuredClone(correctionApprovalForm);
+  wrongVersion.version = "2.0.0";
+  assert.throws(() => compiled(wrongVersion), /version must match the version pinned/);
+
   const undeclaredOutcome = structuredClone(correctionApprovalForm);
   undeclaredOutcome.outcomes.push({ eventType: "record.overwrite", label: "Overwrite" });
   assert.throws(() => compiled(undeclaredOutcome), /not declared on the bound HumanTask/);

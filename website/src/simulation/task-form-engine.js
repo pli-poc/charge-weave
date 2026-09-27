@@ -96,6 +96,9 @@ export function compileTaskForm({ definition, profile, principal }) {
   }
   const step = definition?.steps?.find((candidate) => candidate.id === profile?.stepId);
   if (!step || step.kind !== "humanTask") errors.push("Form profile must bind to a declared HumanTask step.");
+  if (!step?.taskFormProfile || step.taskFormProfile.id !== profile?.id || step.taskFormProfile.version !== profile?.version) {
+    errors.push("Form profile id and version must match the version pinned by the HumanTask.");
+  }
   if (step && step.assigneeRole !== profile.role) errors.push("Form profile role must match the HumanTask assignee role.");
   if (!Array.isArray(profile?.fields) || profile.fields.length === 0) errors.push("Form profile must declare task-scoped fields.");
   if (!Array.isArray(profile?.outcomes) || !profile.outcomes.length) errors.push("Form profile must declare at least one workflow outcome.");

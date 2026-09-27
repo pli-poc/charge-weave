@@ -61,6 +61,10 @@ xflow:timeoutAfter a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:ran
 xflow:timeoutAction a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing ;
     rdfs:comment "Allowlisted action references applied on the declared timeout event transition."@en .
 xflow:assigneeRole a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing .
+xflow:taskFormProfileId a owl:DatatypeProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xsd:string ;
+    rdfs:comment "Identifier of the separately versioned, declarative input and presentation profile rendered for this human task."@en .
+xflow:taskFormProfileVersion a owl:DatatypeProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xsd:string ;
+    rdfs:comment "Immutable profile version pinned to tasks created from this workflow version."@en .
 xflow:activityRef a owl:ObjectProperty ; rdfs:domain xflow:ServiceTask ; rdfs:range owl:Thing ; rdfs:comment "IRI resolved only by the host's reviewed activity registry."@en .
 xflow:guardRef a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range owl:Thing ; rdfs:comment "Pure decision function resolved only by the host's reviewed guard registry."@en .
 xflow:actionRef a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range owl:Thing ; rdfs:comment "State update resolved only by the host's reviewed action registry."@en .

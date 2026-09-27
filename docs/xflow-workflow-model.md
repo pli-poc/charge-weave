@@ -195,7 +195,7 @@ The platform should render a form from a task contract, not turn every ontology 
 
 1. **Business ontology:** defines the meaning and relationships of fields such as sessions, meter evidence, tariffs, CDRs, parties and correction records.
 2. **Validation contract:** XFlow SHACL shapes and deterministic domain rules define valid payload structure, values, references and cross-record constraints. OWL alone does not define required form fields.
-3. **HumanTask contract:** the pinned workflow version declares the assignee role, read-only context, editable input bindings, allowed outcomes and named commands, input/output shape references, deadline, escalation and completion events.
+3. **HumanTask contract:** the pinned workflow version declares the assignee role, form-profile id/version, read-only context, editable input bindings, allowed outcomes and named commands, input/output shape references, deadline, escalation and completion events.
 4. **Presentation profile:** separately versioned UI metadata supplies labels, help text, grouping and widget hints. The UI renderer must not infer authorization or business validity from a widget choice.
 
 The renderer derives appropriate controls from declared datatypes and shape constraints: text and numeric inputs, temporal controls, controlled-value selectors, ontology-class reference pickers, evidence references, exact-decimal money controls and masked display values. It only renders fields and outcomes selected by the current HumanTask. Required state comes from the task shape rather than OWL cardinality. All other canonical values remain read-only. Arbitrary JavaScript, raw SPARQL and unrestricted RDF mutation are out of scope.

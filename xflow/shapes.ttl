@@ -72,6 +72,8 @@ xflow:DecisionShape a sh:NodeShape ;
 xflow:HumanTaskShape a sh:NodeShape ;
     sh:targetClass xflow:HumanTask ;
     sh:property [ sh:path xflow:assigneeRole ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:taskFormProfileId ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path xflow:taskFormProfileVersion ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
     sh:property [ sh:path xflow:timeoutEvent ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
     sh:property [ sh:path xflow:timeoutAction ; sh:nodeKind sh:IRI ] ;
     sh:property [ sh:path xflow:onEvent ; sh:minCount 1 ; sh:class xflow:TransitionDefinition ] ;

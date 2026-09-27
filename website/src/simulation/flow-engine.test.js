@@ -138,6 +138,10 @@ test("the correction profile preserves its domain bindings and executes credit l
     execution: "ProcessExecution", step: "ProcessStep", transition: "StateTransition",
   });
   assert.ok(correctionWorkflowDefinition.ontologyBindings.includes("RecordCorrection"));
+  assert.deepEqual(
+    correctionWorkflowDefinition.steps.find((step) => step.id === "awaitingApproval").taskFormProfile,
+    { id: "chargeweave.correction-approval", version: "1.0.0" },
+  );
   assert.deepEqual(correctionWorkflowDefinition.steps.find((step) => step.id === "awaitingApproval").timeout, {
     after: "approvalDeadline", event: "timer.expired", target: "manualReview",
   });
