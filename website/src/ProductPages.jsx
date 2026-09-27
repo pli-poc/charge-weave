@@ -303,7 +303,7 @@ function ArchitecturePage() {
   return (
     <main id="main">
       <Intro
-        eyebrow="Proposed runtime architecture"
+        eyebrow="High-level design · Platform architecture"
         title={
           <>
             Meaning is shared.
@@ -311,14 +311,15 @@ function ArchitecturePage() {
             <span>Work has boundaries.</span>
           </>
         }
-        description="An explicit business contract across transactional services, durable events and analytical projections."
+        description="The shared business meaning, service boundaries and design principles that shape the ChargeWeave platform."
       >
         <div className="intro-aside">
           <Network size={28} />
-          <strong>Design direction</strong>
+          <strong>High-level design (HLD)</strong>
           <p>
-            The ontology and validation definitions exist in the repository. The
-            runtime components below are proposed.
+            This page is the platform-level design reference. The ontology,
+            shapes and rules are in the repository; operational services remain
+            a target design.
           </p>
           <a href={`${base}ontology/`}>
             Inspect the semantic foundation <ArrowRight size={17} />
@@ -330,9 +331,9 @@ function ArchitecturePage() {
         <div className="architecture-map">
           <div className="architecture-map-heading">
             <span>APPLICATION ACCESS</span>
-            <strong>ASP.NET Core + GraphQL.NET</strong>
+            <strong>Authorized application APIs</strong>
             <p>
-              Authorized application queries and commands with explicit temporal
+              Scoped queries and commands with explicit tenant and temporal
               context.
             </p>
           </div>
@@ -368,36 +369,36 @@ function ArchitecturePage() {
           <div className="architecture-storage-grid">
             <article>
               <span>System of record</span>
-              <h3>MariaDB</h3>
+              <h3>Transactional business store</h3>
               <p>
-                Transactional business data with proposed business-time and
-                system-time history.
+                Business records and financial writes with the transaction and
+                history guarantees each operation requires.
               </p>
             </article>
             <article>
               <span>Event transport</span>
-              <h3>Apache Kafka</h3>
+              <h3>Durable event transport</h3>
               <p>
-                Durable ingestion, replay and decoupled consumers. Event
-                delivery is not the same as business completion.
+                Ingestion, replay and decoupled consumers. Event delivery is
+                not the same as business completion.
               </p>
             </article>
             <article>
               <span>Analytical projection</span>
-              <h3>ClickHouse</h3>
+              <h3>Telemetry and analytics stores</h3>
               <p>
-                High-volume measurements and analytical views with a declared
-                processing watermark.
+                High-volume measurements and analytical views with declared
+                source revisions and processing watermarks.
               </p>
             </article>
           </div>
           <div className="architecture-contract">
             <Braces size={26} />
             <div>
-              <strong>OWL + SHACL · Apache Jena · Ontop</strong>
+              <strong>RDF · OWL · SHACL · SPARQL</strong>
               <p>
-                Shared meaning, bounded validation and planned read-only SPARQL
-                access over business records.
+                Shared business meaning, bounded graph validation and semantic
+                queries over governed projections.
               </p>
             </div>
           </div>
@@ -407,59 +408,106 @@ function ArchitecturePage() {
           synchronously calls every component.
         </p>
       </section>
-      <section className="container architecture-principles">
+      <section className="container architecture-principles hld-principles">
         <div>
-          <p className="eyebrow">From a fact to a decision</p>
+          <p className="eyebrow">High-level design principles</p>
           <h2>
-            Keep the contract close
+            One platform model.
             <br />
-            to the business action.
+            Clear owners for every decision.
           </h2>
+          <p className="hld-principles-intro">
+            These principles guide the service boundaries, data contracts and
+            operational choices. The Developer guide explains how each is
+            applied in the current prototype and proposed runtime.
+          </p>
         </div>
         <div className="principle-list">
           <article>
             <span>01</span>
             <div>
-              <h3>Validate a bounded business change</h3>
+              <h3>Share semantic meaning; keep capability ownership bounded.</h3>
               <p>
-                Check structural requirements and affected business rules
-                against the reference data needed for that decision. A passing
-                shape check is not authorization and does not guarantee
-                completeness.
+                Stable business identifiers and ontology terms connect services
+                and partner boundaries. Each capability still owns its
+                transactions, policies and operational decisions.
               </p>
             </div>
           </article>
           <article>
             <span>02</span>
             <div>
-              <h3>Commit business records transactionally</h3>
+              <h3>Validate each change at the boundary that owns it.</h3>
               <p>
-                The proposed transaction boundary includes the business change
-                and its outbox record. Consumers handle duplicate delivery
-                explicitly rather than assuming an event is delivered once.
+                Use SHACL for declared data constraints and deterministic rules
+                for business invariants against the relevant reference data.
+                Validation does not grant access or prove a real-world event.
               </p>
             </div>
           </article>
           <article>
             <span>03</span>
             <div>
-              <h3>Make projection freshness visible</h3>
+              <h3>Let workflows orchestrate; let domain services own effects.</h3>
               <p>
-                Analytics and semantic projections expose their source revisions
-                and processing watermark, so queries can distinguish a complete
-                snapshot from work still in flight.
+                Versioned XFlow definitions describe process steps and outcomes.
+                The XState runtime sequences them; registered domain operations
+                perform authoritative business changes.
               </p>
             </div>
           </article>
           <article>
             <span>04</span>
             <div>
-              <h3>Preserve the reason for a correction</h3>
+              <h3>Preserve evidence and explain the history.</h3>
               <p>
-                Keep source evidence and correction lineage. Financial
-                corrections require explicit reconciliation; a historical value
-                should not silently replace the evidence used for a previous
-                decision.
+                Keep source and received time, provenance and prior decisions.
+                Correcting a record creates a linked assertion or financial
+                adjustment with a reason.
+              </p>
+            </div>
+          </article>
+          <article>
+            <span>05</span>
+            <div>
+              <h3>Make writes authorized, transactional and replay-safe.</h3>
+              <p>
+                Enforce identity and tenant access at service boundaries. Commit
+                the business change with an outbox intent, and handle duplicate
+                delivery with idempotency and reconciliation.
+              </p>
+            </div>
+          </article>
+          <article>
+            <span>06</span>
+            <div>
+              <h3>Match storage to the workload and expose freshness.</h3>
+              <p>
+                Use stores with the guarantees each workload needs. Semantic and
+                analytical projections carry source revisions and watermarks so
+                consumers can see what has arrived.
+              </p>
+            </div>
+          </article>
+          <article>
+            <span>07</span>
+            <div>
+              <h3>Keep external protocols behind replaceable adapters.</h3>
+              <p>
+                Version each protocol boundary and translate exchanges into
+                canonical business events while preserving source identity,
+                correlation and evidence.
+              </p>
+            </div>
+          </article>
+          <article>
+            <span>08</span>
+            <div>
+              <h3>Prove behavior with reproducible synthetic journeys.</h3>
+              <p>
+                Exercise success, delay, duplication, correction and recovery
+                with seeded data before connecting live systems. Replace one
+                boundary at a time.
               </p>
             </div>
           </article>
@@ -509,6 +557,43 @@ function ArchitecturePage() {
             </p>
           </div>
         </div>
+      </section>
+      <section className="container architecture-detail-index">
+        <div className="architecture-detail-index-heading">
+          <p className="eyebrow">Developer detail</p>
+          <h2>Read how each boundary is applied.</h2>
+          <p>
+            The HLD sets the platform-wide rules. These guides cover specific
+            runtime contracts, prototypes and design proposals.
+          </p>
+        </div>
+        <div className="architecture-detail-links">
+          {[
+            ["Workflow runtime", `${base}developer/platform/`, "Generic XFlow definitions, validation, XState execution and evidence."],
+            ["Human task forms", `${base}developer/human-tasks/`, "Task-scoped fields, human authority and controlled corrections."],
+            ["Protocol adapters", `${base}developer/protocols/`, "Versioned OCPP, OCPI and vehicle-to-equipment boundaries."],
+            ["Simulator", `${base}developer/simulator/`, "Seeded journeys and fault conditions across runtime boundaries."],
+            ["Runtime switchboard", `${base}developer/switchboard/`, "Select virtual, observe, hybrid or future live adapters explicitly."],
+            ["Storage contracts", `${base}developer/storage/`, "Semantic, operational, temporal, telemetry and evidence stores."],
+            ["Deterministic replay", `${base}developer/replay/`, "Repeatable runs, virtual time and fault injection."],
+          ].map(([title, href, description]) => (
+            <a className="architecture-detail-link" href={href} key={title}>
+              <span>
+                <strong>{title}</strong>
+                <small>{description}</small>
+              </span>
+              <ArrowRight size={17} />
+            </a>
+          ))}
+        </div>
+        <a
+          className="architecture-hld-source"
+          href={`${repo}/blob/main/docs/runtime-architecture.md`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Read the complete HLD source <ArrowUpRight size={15} />
+        </a>
       </section>
       <NextPage
         title="Explore the contracts behind this architecture."

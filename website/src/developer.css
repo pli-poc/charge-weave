@@ -91,6 +91,31 @@
   border-color: #355052;
   background: #112128;
 }
+.dev-hld-reference {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 12px 0 0;
+  color: #8ea4a8;
+  font-size: 11px;
+}
+.dev-hld-reference > span {
+  color: var(--mint);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+.dev-hld-reference a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #c3d3d1;
+  font-size: 12px;
+}
+.dev-hld-reference a:hover {
+  color: var(--mint);
+}
 .dev-guide-content {
   padding-top: 62px;
 }

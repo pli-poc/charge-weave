@@ -16,7 +16,7 @@ export default function WorkflowPlatformOverview() {
   return (
     <section className="wpo-section" aria-labelledby="wpo-heading">
       <div className="wpo-heading">
-        <p className="eyebrow">Generic platform model</p>
+        <p className="eyebrow">Workflow runtime · Detailed architecture</p>
         <h2 id="wpo-heading">One workflow contract, from design to evidence.</h2>
         <p>
           XFlow describes the process. ChargeWeave supplies the business meaning.
@@ -30,7 +30,7 @@ export default function WorkflowPlatformOverview() {
           role="img"
           aria-labelledby="wpo-title wpo-description"
         >
-          <title id="wpo-title">ChargeWeave generic workflow platform system overview</title>
+          <title id="wpo-title">ChargeWeave workflow runtime from design to evidence</title>
           <desc id="wpo-description">
             External events enter a platform boundary and pass through generic XFlow authoring,
             SHACL validation against ChargeWeave business concepts, allowlisted compilation,

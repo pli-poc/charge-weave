@@ -1,6 +1,25 @@
-# From ontology to an executable CPMS
+# ChargeWeave platform design principles and high-level architecture
 
-Use the ontology as the shared meaning and validation contract across services. Do not require the real-time charger path to wait for global OWL classification or a whole-tenant SPARQL scan.
+**Architecture level:** High-level design (HLD)
+
+**Status:** Logical target architecture. The ontology, shapes, declared rules and browser demonstrations are available; production services, authorization, durable orchestration and live integrations remain proposed work.
+
+This is the canonical HLD for platform-wide responsibilities and design principles. The website's [Architecture page](https://pli-poc.github.io/charge-weave/architecture/) presents the business-level overview. The [Developer guide](https://pli-poc.github.io/charge-weave/developer/) expands individual runtime boundaries without changing the HLD.
+
+## Platform design principles
+
+1. **Share business meaning across bounded capabilities.** Use stable identifiers, domain terms and relationships to connect service-owned records and partner exchanges. Keep each capability responsible for its own policy, transactions and operational decisions.
+2. **Validate changes at the boundary that owns them.** Use SHACL for explicit graph and payload constraints, plus deterministic domain rules for business invariants. Validate against the affected records and required reference closure; keep full-tenant analysis off the real-time path.
+3. **Let workflows orchestrate; let domain services own effects.** Versioned XFlow definitions describe process sequence and outcomes. The XState host selects transitions and invokes registered capabilities; business services authorize and perform the authoritative change.
+4. **Preserve evidence and explain the history.** Retain source identity, correlation, event time, recorded time and provenance. Represent corrections as linked assertions or compensating records so prior decisions remain reconstructable.
+5. **Make writes transactional and replay-safe.** Couple a committed business change with its outbox intent where possible. Use idempotency, expected revisions and reconciliation so retries and duplicate events do not repeat business effects.
+6. **Enforce identity and tenant access at service boundaries.** API and data-store authorization controls each read or write. A tenant fact in RDF records ownership metadata; it does not grant permission. Keep credentials in a secret manager.
+7. **Choose storage by workload and expose projection freshness.** Use stores with suitable transaction, history, evidence or measurement guarantees. Semantic and analytical projections carry source revisions and watermarks so consumers can distinguish a complete view from an in-flight one.
+8. **Keep protocol and infrastructure edges replaceable.** Version external adapters and storage ports, map exchanges to canonical events, and switch one boundary at a time. Use deterministic synthetic journeys to prove behavior before enabling live systems.
+
+## Logical platform architecture
+
+Use the ontology as the shared semantic contract across services. Use explicit shapes and rules for validation. Do not require the real-time charger path to wait for global OWL classification or a whole-tenant SPARQL scan.
 
 ```mermaid
 flowchart TD
@@ -78,3 +97,11 @@ The EVRoaming Foundation identifies OCPI 2.3.0 as the current published version 
 For a missing stop event, retain the source gap, obtain subsequent meter or partner evidence, create reconciliation records, and finalize with an explicit basis and completeness classification. Do not invent device confirmation. Rating and settlement should reference the finalized evidence version, and later corrections should create a correction lineage with compensating financial records.
 
 For a payment timeout, query or reconcile provider state using the original idempotency key before retrying collection. For a remote-command timeout, distinguish unknown physical outcome from an explicit rejection. For a stale energy meter, apply a defined local/edge fallback; a cloud schedule cannot guarantee electrical safety during loss of communication.
+
+## Detailed design references
+
+- [XFlow workflow model and XState runtime](xflow-workflow-model.md)
+- [Semantic design and ontology boundaries](semantic-design.md)
+- [Validation guide and trust boundaries](validation-guide.md)
+- [Temporal data contract](temporal-contract.md)
+- [Business-domain audit and implementation boundary](business-domain-audit.md)

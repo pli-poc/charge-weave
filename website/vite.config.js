@@ -12,8 +12,8 @@ const pages = {
     "Explore the planned charging, energy and commercial capabilities and their model definitions.",
   ],
   architecture: [
-    "Architecture",
-    "Explore the proposed ChargeWeave architecture, semantic validation and temporal data design.",
+    "Platform architecture & design principles",
+    "Read the ChargeWeave high-level design: platform layers, semantic contracts, runtime boundaries, evidence and temporal principles.",
   ],
   roadmap: [
     "Development roadmap",
@@ -24,8 +24,8 @@ const pages = {
     "Explore the browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
   ],
   "developer/platform": [
-    "Platform system overview",
-    "See how shared business meaning connects workflow design, validation, execution and evidence.",
+    "Workflow runtime architecture",
+    "Developer detail on generic XFlow definitions, ontology bindings, validation, XState execution and replaceable runtime ports.",
   ],
   "developer/human-tasks": [
     "Human task design",

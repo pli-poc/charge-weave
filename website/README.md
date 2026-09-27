@@ -9,10 +9,10 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `/`                          | Original product overview and use-case presentation                                                 |
 | `capabilities/`              | Six capability areas, scenarios, boundaries and linked model definitions                            |
 | `ontology/`                  | Searchable classes, directed relationships, fields, OWL/SHACL triples, rules and temporal inspector |
-| `architecture/`              | Proposed runtime, service boundaries, validation and temporal query design                          |
+| `architecture/`              | Canonical high-level design: platform layers, design principles, service boundaries and temporal model |
 | `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
 | `developer/`                 | Browser-hosted synthetic runtime and the principles behind its replaceable boundaries                |
-| `developer/platform/`        | Generic 2D system overview connecting the domain ontology, workflow validation, XState and evidence |
+| `developer/platform/`        | Workflow runtime detail connecting XFlow, ontology bindings, validation, XState and evidence       |
 | `developer/human-tasks/`     | Design proposal for task-scoped human forms, validation and safe business-record corrections       |
 | `developer/simulator/`       | Run seeded journeys and inspect protocol fixtures, process state and simulated stores                |
 | `developer/flows/`           | Inspect and run the generic XFlow Studio using the J07/J08 billing correction journey                |
