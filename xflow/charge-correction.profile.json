@@ -177,7 +177,7 @@
       "onEvent": [
         { "eventType": "approval.granted", "targetStep": { "@id": "#issuingCredit" }, "actionRef": ["urn:chargeweave:action:captureApproval"] },
         { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" } },
-        { "eventType": "timer.expired", "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureTimeout"] }
+        { "eventType": "timer.expired", "targetStep": { "@id": "#manualReview" } }
       ],
       "domainBinding": ["cw:ProcessExecution", "cw:RecordCorrection"]
     },

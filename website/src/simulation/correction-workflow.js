@@ -67,9 +67,21 @@ export function normaliseWorkflowProfile(jsonLd) {
     if (source.timeoutAfter !== undefined) {
       common.timeout = {
         after: refName(source.timeoutAfter),
+        event: source.timeoutEvent,
         target: refName(source.timeoutTarget),
-        ...(source.timeoutAction === undefined ? {} : { actions: namedActions(source.timeoutAction) }),
       };
+      const timeoutActions = namedActions(source.timeoutAction);
+      const timeoutTransition = common.on?.[source.timeoutEvent];
+      if (timeoutActions !== undefined && timeoutTransition) {
+        const actions = [...new Set([
+          ...values(timeoutTransition.actions),
+          ...values(timeoutActions),
+        ])];
+        common.on[source.timeoutEvent] = {
+          ...timeoutTransition,
+          actions: actions.length === 1 ? actions[0] : actions,
+        };
+      }
     }
     if (source.assigneeRole !== undefined) common.assigneeRole = refName(source.assigneeRole);
     return common;

@@ -3,12 +3,13 @@ import json
 from pathlib import Path
 
 from pyshacl import validate
-from rdflib import Graph, Namespace, URIRef
+from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL, RDF
 
 ROOT = Path(__file__).resolve().parents[1]
 XFLOW = Namespace("https://example.org/chargeweave/xflow#")
 CD = Namespace("https://example.org/charge-domain#")
+SH = Namespace("http://www.w3.org/ns/shacl#")
 PROFILE = ROOT / "xflow/charge-correction.profile.json"
 
 
@@ -51,6 +52,16 @@ def main():
     conforms, _, details = check(data, shapes, ontology)
     results.append({"check": "profile-conforms", "passed": bool(conforms), "detail": None if conforms else str(details)})
 
+    timeout_action_constrained = (
+        (XFLOW.timeoutAction, RDF.type, OWL.ObjectProperty) in ontology
+        and any(shapes.triples((None, SH.path, XFLOW.timeoutAction)))
+    )
+    results.append({
+        "check": "timeout-action-is-declared-and-shaped",
+        "passed": timeout_action_constrained,
+        "detail": None if timeout_action_constrained else "xflow:timeoutAction is missing from the ontology or HumanTask SHACL shape.",
+    })
+
     invalid_start = Graph().parse(PROFILE, format="json-ld")
     workflow = next(invalid_start.subjects(RDF.type, XFLOW.WorkflowDefinition))
     invalid_start.remove((workflow, XFLOW.initialStep, None))
@@ -72,6 +83,32 @@ def main():
         "check": "unlisted-transition-target-rejected",
         "passed": rejected_target,
         "detail": None if rejected_target else str(target_details),
+    })
+
+    invalid_timeout = Graph().parse(PROFILE, format="json-ld")
+    timed_task = next(invalid_timeout.subjects(XFLOW.timeoutAfter, None))
+    workflow = next(invalid_timeout.subjects(RDF.type, XFLOW.WorkflowDefinition))
+    current_target = next(invalid_timeout.objects(timed_task, XFLOW.timeoutTarget))
+    replacement_target = next(target for target in invalid_timeout.objects(workflow, XFLOW.hasStep) if target != current_target)
+    invalid_timeout.remove((timed_task, XFLOW.timeoutTarget, None))
+    invalid_timeout.add((timed_task, XFLOW.timeoutTarget, replacement_target))
+    timeout_conforms, _, timeout_details = check(invalid_timeout, shapes, ontology)
+    rejected_timeout = not timeout_conforms and "declared event transition to that target" in str(timeout_details)
+    results.append({
+        "check": "timeout-must-match-an-event-transition",
+        "passed": rejected_timeout,
+        "detail": None if rejected_timeout else str(timeout_details),
+    })
+
+    invalid_timeout_action = Graph().parse(PROFILE, format="json-ld")
+    timed_task = next(invalid_timeout_action.subjects(XFLOW.timeoutAfter, None))
+    invalid_timeout_action.add((timed_task, XFLOW.timeoutAction, Literal("not-an-IRI")))
+    action_conforms, _, action_details = check(invalid_timeout_action, shapes, ontology)
+    rejected_action = not action_conforms and "timeoutAction" in str(action_details)
+    results.append({
+        "check": "timeout-action-must-be-an-IRI",
+        "passed": rejected_action,
+        "detail": None if rejected_action else str(action_details),
     })
 
     report = {

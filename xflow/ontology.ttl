@@ -34,7 +34,8 @@ xflow:workflowVersion a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinit
 xflow:journeyReference a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range xsd:string .
 xflow:stepKey a owl:DatatypeProperty ; rdfs:domain xflow:StepDefinition ; rdfs:range xsd:string .
 xflow:eventType a owl:DatatypeProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range xsd:string .
-xflow:timeoutEvent a owl:DatatypeProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xsd:string .
+xflow:timeoutEvent a owl:DatatypeProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xsd:string ;
+    rdfs:comment "Host-delivered event type that triggers the timeout transition."@en .
 xflow:initialContext a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range rdf:JSON .
 xflow:priority a owl:DatatypeProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range xsd:positiveInteger .
 
@@ -57,6 +58,8 @@ xflow:targetStep a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ;
 xflow:defaultTarget a owl:ObjectProperty ; rdfs:domain xflow:Decision ; rdfs:range xflow:StepDefinition .
 xflow:timeoutTarget a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xflow:StepDefinition .
 xflow:timeoutAfter a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xflow:TimerReference .
+xflow:timeoutAction a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing ;
+    rdfs:comment "Allowlisted action references applied on the declared timeout event transition."@en .
 xflow:assigneeRole a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing .
 xflow:activityRef a owl:ObjectProperty ; rdfs:domain xflow:ServiceTask ; rdfs:range owl:Thing ; rdfs:comment "IRI resolved only by the host's reviewed activity registry."@en .
 xflow:guardRef a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range owl:Thing ; rdfs:comment "Pure decision function resolved only by the host's reviewed guard registry."@en .

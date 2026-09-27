@@ -16,13 +16,17 @@ function refs(value, path, errors) {
 
 function checkRefs(value, path, registry, kind, errors) {
   for (const id of refs(value, path, errors)) {
-    if (typeof registry[kind][id] !== "function") errors.push(`${path} references unknown ${kind.slice(0, -1)} '${id}'.`);
+    if (!Object.hasOwn(registry[kind], id) || typeof registry[kind][id] !== "function") {
+      errors.push(`${path} references unknown ${kind.slice(0, -1)} '${id}'.`);
+    }
   }
 }
 
 function checkActions(value, path, registry, errors) {
   for (const id of refs(value, path, errors)) {
-    if (!Object.hasOwn(registry.actions, id)) errors.push(`${path} references unknown action '${id}'.`);
+    if (!Object.hasOwn(registry.actions, id) || typeof registry.actions[id] !== "function") {
+      errors.push(`${path} references unknown action '${id}'.`);
+    }
   }
 }
 
@@ -106,7 +110,7 @@ export function validateWorkflowDefinition(definition, registry = {}) {
       }
     }
     if (step.kind === "serviceTask") {
-      if (typeof step.activity !== "string" || typeof normalizedRegistry.activities[step.activity] !== "function") {
+      if (typeof step.activity !== "string" || !Object.hasOwn(normalizedRegistry.activities, step.activity) || typeof normalizedRegistry.activities[step.activity] !== "function") {
         errors.push(`${path}.activity must name a registered activity.`);
       }
       transition(step.onDone, `${path}.onDone`);
@@ -126,13 +130,23 @@ export function validateWorkflowDefinition(definition, registry = {}) {
       validateTarget(step.defaultTarget, `${path}.defaultTarget`, stepIds, errors);
     }
     if (step.timeout !== undefined) {
+      if (step.kind !== "humanTask") errors.push(`${path}.timeout is only supported on a humanTask.`);
       if (!isObject(step.timeout)) errors.push(`${path}.timeout must be an object.`);
       else {
-        if (typeof step.timeout.after !== "string" || typeof normalizedRegistry.delays[step.timeout.after] !== "function") {
+        if (typeof step.timeout.after !== "string" || !Object.hasOwn(normalizedRegistry.delays, step.timeout.after) || typeof normalizedRegistry.delays[step.timeout.after] !== "function") {
           errors.push(`${path}.timeout.after must name a registered delay.`);
         }
+        if (typeof step.timeout.event !== "string" || !step.timeout.event.trim()) {
+          errors.push(`${path}.timeout.event must name the event delivered by the host.`);
+        } else {
+          const timeoutTransition = step.on?.[step.timeout.event];
+          if (!isObject(timeoutTransition)) {
+            errors.push(`${path}.timeout.event must also be declared in step.on.`);
+          } else if (timeoutTransition.target !== step.timeout.target) {
+            errors.push(`${path}.timeout.target must match the target of its step.on event.`);
+          }
+        }
         validateTarget(step.timeout.target, `${path}.timeout.target`, stepIds, errors);
-        if (step.timeout.actions !== undefined) checkActions(step.timeout.actions, `${path}.timeout.actions`, normalizedRegistry, errors);
       }
     }
     if (step.domainBindings !== undefined && (!Array.isArray(step.domainBindings) || step.domainBindings.some((value) => typeof value !== "string"))) {
@@ -169,14 +183,6 @@ function createMachineConfig(definition) {
         })),
         { target: step.defaultTarget },
       ];
-    }
-    if (step.timeout) {
-      config.after = {
-        [step.timeout.after]: {
-          target: step.timeout.target,
-          ...(step.timeout.actions === undefined ? {} : { actions: step.timeout.actions }),
-        },
-      };
     }
     if (step.kind === "end") config.type = "final";
     states[step.id] = config;
@@ -226,6 +232,18 @@ export function createFlowRuntime(registry = {}) {
       if (snapshot !== undefined) options.snapshot = snapshot;
       if (clock !== undefined) options.clock = clock;
       return createActor(machine, options);
+    },
+    resolveDelay(id, context = {}) {
+      if (!Object.hasOwn(normalizedRegistry.delays, id)) {
+        throw new Error(`Unknown delay '${id}'.`);
+      }
+      const delay = normalizedRegistry.delays[id];
+      if (typeof delay !== "function") throw new Error(`Unknown delay '${id}'.`);
+      const milliseconds = Number(delay({ context: clone(context) }));
+      if (!Number.isFinite(milliseconds) || milliseconds < 0) {
+        throw new Error(`Delay '${id}' must resolve to a finite, non-negative number of milliseconds.`);
+      }
+      return milliseconds;
     },
     validate: (definition) => validateWorkflowDefinition(definition, normalizedRegistry),
   };

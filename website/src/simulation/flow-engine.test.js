@@ -101,12 +101,19 @@ test("a waiting actor snapshot restores and resumes from its pinned workflow def
   resumed.stop();
 });
 
-test("a configured human-task deadline escalates when the host clock advances", async () => {
+test("a configured human-task deadline is delivered as its declared host event", async () => {
   const definition = {
     id: "test.human-task-deadline", version: "1.0.0", initialStep: "approval",
     initialContext: { timeoutMs: 5000 },
     steps: [
-      { id: "approval", kind: "humanTask", on: { approved: { target: "done" } }, timeout: { after: "approvalDeadline", target: "escalated" } },
+      {
+        id: "approval", kind: "humanTask",
+        on: {
+          approved: { target: "done" },
+          "deadline.expired": { target: "escalated" },
+        },
+        timeout: { after: "approvalDeadline", event: "deadline.expired", target: "escalated" },
+      },
       { id: "done", kind: "end" },
       { id: "escalated", kind: "end" },
     ],
@@ -114,9 +121,12 @@ test("a configured human-task deadline escalates when the host clock advances", 
   const runtime = createFlowRuntime({ delays: { approvalDeadline: ({ context }) => context.timeoutMs } });
   const clock = makeClock();
   const actor = runtime.createActor(definition, { clock }).start();
-  clock.advanceBy(4999);
+  const delay = runtime.resolveDelay("approvalDeadline", actor.getSnapshot().context);
+  clock.advanceBy(delay - 1);
   assert.equal(actor.getSnapshot().value, "approval");
   clock.advanceBy(1);
+  assert.equal(actor.getSnapshot().value, "approval", "the host decides when to deliver a deadline event");
+  actor.send({ type: definition.steps[0].timeout.event });
   await waitFor(actor, (snapshot) => snapshot.matches("escalated"));
   actor.stop();
 });
@@ -128,6 +138,13 @@ test("the correction profile preserves its domain bindings and executes credit l
     execution: "ProcessExecution", step: "ProcessStep", transition: "StateTransition",
   });
   assert.ok(correctionWorkflowDefinition.ontologyBindings.includes("RecordCorrection"));
+  assert.deepEqual(correctionWorkflowDefinition.steps.find((step) => step.id === "awaitingApproval").timeout, {
+    after: "approvalDeadline", event: "timer.expired", target: "manualReview",
+  });
+  assert.equal(
+    correctionWorkflowDefinition.steps.find((step) => step.id === "awaitingApproval").on["timer.expired"].actions,
+    "captureTimeout",
+  );
 
   const actor = correctionWorkflowRuntime.createActor(correctionWorkflowDefinition).start();
   actor.send({
@@ -194,9 +211,10 @@ test("a restored named deadline fires through the selected host clock", async ()
 
   const restoredClock = makeClock();
   const restored = correctionWorkflowRuntime.createActor(correctionWorkflowDefinition, { snapshot: checkpoint, clock: restoredClock }).start();
-  restoredClock.advanceBy(60000);
+  const timeout = correctionWorkflowDefinition.steps.find((step) => step.id === restored.getSnapshot().value).timeout;
+  restoredClock.advanceBy(correctionWorkflowRuntime.resolveDelay(timeout.after, restored.getSnapshot().context));
   assert.equal(restored.getSnapshot().value, "awaitingApproval", "restored timer deadlines are re-delivered by the host");
-  restored.send({ type: "timer.expired" });
+  restored.send({ type: timeout.event });
   const escalated = await waitFor(restored, (snapshot) => snapshot.matches("manualReview"));
   assert.equal(escalated.context.approvalEscalated, true);
   restored.stop();
@@ -221,4 +239,55 @@ test("XFlow rejects raw executable definitions and unregistered capabilities", (
   assert.ok(validateWorkflowDefinition({ ...doubleValueDefinition, initialContext: { unsafe: () => true } }, {}).some((error) => /executable code/.test(error)));
   assert.ok(validateWorkflowDefinition({ ...doubleValueDefinition, steps: [{ id: "s", kind: "serviceTask", activity: "unregistered", onDone: { target: "s" }, onError: { target: "s" } }] }, {}).some((error) => /registered activity/.test(error)));
   assert.ok(validateWorkflowDefinition({ ...doubleValueDefinition, steps: [{ id: "s", kind: "eventWait", on: { "event.sent": { target: "missing" } } }] }, {}).some((error) => /unknown step/.test(error)));
+});
+
+test("XFlow capabilities must be own registered functions and deadlines must match an event transition", () => {
+  let inheritedDelayWasCalled = false;
+  const inherited = Object.create({
+    toString: () => true,
+    deadline() { inheritedDelayWasCalled = true; return 5; },
+  });
+  const definition = {
+    id: "test.inherited-capabilities", version: "1.0.0", initialStep: "approval",
+    steps: [
+      {
+        id: "approval", kind: "humanTask",
+        on: {
+          proceed: { target: "decision", actions: "toString" },
+          "deadline.expired": { target: "done" },
+        },
+        timeout: { after: "toString", event: "deadline.expired", target: "done" },
+      },
+      { id: "decision", kind: "decision", routes: [{ guard: "toString", target: "activity" }], defaultTarget: "activity" },
+      { id: "activity", kind: "serviceTask", activity: "toString", onDone: { target: "done" }, onError: { target: "done" } },
+      { id: "done", kind: "end" },
+    ],
+  };
+  const errors = validateWorkflowDefinition(definition, {
+    activities: inherited, guards: inherited, actions: inherited, delays: inherited,
+  }).join(" ");
+  assert.match(errors, /registered activity/);
+  assert.match(errors, /unknown guard/);
+  assert.match(errors, /unknown action/);
+  assert.match(errors, /registered delay/);
+  const runtimeWithInheritedDelay = createFlowRuntime({ delays: inherited });
+  assert.throws(() => runtimeWithInheritedDelay.resolveDelay("deadline"), /Unknown delay/);
+  assert.equal(inheritedDelayWasCalled, false);
+
+  const mismatchedTimeout = {
+    ...definition,
+    steps: definition.steps.map((step) => step.id === "approval"
+      ? { ...step, timeout: { ...step.timeout, target: "decision" } }
+      : step),
+  };
+  const mismatchErrors = validateWorkflowDefinition(mismatchedTimeout, {
+    delays: { toString: () => 10 },
+  }).join(" ");
+  assert.match(mismatchErrors, /must match the target/);
+
+  const nonCallableAction = validateWorkflowDefinition({
+    ...doubleValueDefinition,
+    steps: [{ id: "s", kind: "eventWait", on: { start: { target: "s", actions: "bad" } } }],
+  }, { actions: { bad: "not callable" } }).join(" ");
+  assert.match(nonCallableAction, /unknown action/);
 });

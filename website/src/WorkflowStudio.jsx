@@ -204,13 +204,14 @@ export default function WorkflowStudio() {
   };
 
   const advanceTime = () => {
-    const amount = Math.max(1, Number(approvalTimeout)) * 1000;
+    const waitingStep = definition.steps.find((step) => step.id === currentState(actorRef.current?.getSnapshot()));
+    const timeout = waitingStep?.timeout;
+    if (!timeout || !actorRef.current) return;
+    const amount = runtime.resolveDelay(timeout.after, actorRef.current.getSnapshot().context);
     addTimeline("clock", `Advanced virtual time by ${Math.round(amount / 1000)} seconds`);
     clockRef.current?.advanceBy(amount);
-    if (currentState(actorRef.current?.getSnapshot()) === "awaitingApproval") {
-      addTimeline("event", "Timer host delivered timer.expired for the waiting approval");
-      actorRef.current?.send({ type: "timer.expired" });
-    }
+    addTimeline("event", `Timer host delivered ${timeout.event} for ${waitingStep.label}`);
+    actorRef.current.send({ type: timeout.event });
   };
 
   const resetRun = () => {
