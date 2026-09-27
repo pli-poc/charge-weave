@@ -29,7 +29,7 @@ const pages = {
   ],
   "developer/flows": [
     "Workflow Studio",
-    "Inspect and run the generic XState-backed J07/J08 charge-correction workflow.",
+    "Edit, inspect and run the visual XState-backed J07/J08 charge-correction workflow.",
   ],
   "developer/protocols": [
     "Protocol simulation",
