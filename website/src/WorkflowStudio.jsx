@@ -163,6 +163,7 @@ export default function WorkflowStudio() {
 
   const state = currentState(snapshot);
   const context = snapshot?.context ?? {};
+  const terminal = definition.steps.find((step) => step.id === state)?.kind === "end";
   const selected = definition.steps.find((step) => step.id === selectedStep) ?? definition.steps[0];
   const waitingForApproval = state === "awaitingApproval";
   const waitingForEvidence = state === "awaitingEvidence";
