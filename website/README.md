@@ -13,7 +13,7 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
 | `developer/`                 | Browser-hosted synthetic runtime and the principles behind its replaceable boundaries                |
 | `developer/platform/`        | Workflow runtime detail connecting XFlow, ontology bindings, validation, XState and evidence       |
-| `developer/human-tasks/`     | Design proposal for task-scoped human forms, validation and safe business-record corrections       |
+| `developer/human-tasks/`     | Interactive task-scoped form prototype with ontology-informed controls, validation and guarded synthetic workflow submission |
 | `developer/simulator/`       | Run seeded journeys and inspect protocol fixtures, process state and simulated stores                |
 | `developer/flows/`           | Inspect and run the generic XFlow Studio using the J07/J08 billing correction journey                |
 | `developer/protocols/`       | Versioned protocol-shaped simulation for OCPP, OCPI and selected vehicle-to-equipment journeys        |

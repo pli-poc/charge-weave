@@ -1,4 +1,4 @@
-import model from "./generated/model.json";
+import model from "./generated/model.json" with { type: "json" };
 export { model };
 export const cardinality = { "!": "1", "?": "0..1", "+": "1..*", "*": "0..*" };
 export const words = (value) =>

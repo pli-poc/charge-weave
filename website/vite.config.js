@@ -28,8 +28,8 @@ const pages = {
     "Developer detail on generic XFlow definitions, ontology bindings, validation, XState execution and replaceable runtime ports.",
   ],
   "developer/human-tasks": [
-    "Human task design",
-    "Design proposal for task-scoped forms guided by workflow contracts, ontology terms and validation shapes.",
+    "Human task forms",
+    "Interactive prototype of task-scoped forms guided by a workflow contract, ontology terms and explicit validation shapes.",
   ],
   "developer/simulator": [
     "Simulation workbench",

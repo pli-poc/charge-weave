@@ -176,7 +176,7 @@
       "timeoutAction": ["urn:chargeweave:action:captureTimeout"],
       "onEvent": [
         { "eventType": "approval.granted", "targetStep": { "@id": "#issuingCredit" }, "actionRef": ["urn:chargeweave:action:captureApproval"] },
-        { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" } },
+        { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" }, "actionRef": ["urn:chargeweave:action:captureRejection"] },
         { "eventType": "timer.expired", "targetStep": { "@id": "#manualReview" } }
       ],
       "domainBinding": ["cw:ProcessExecution", "cw:RecordCorrection"]

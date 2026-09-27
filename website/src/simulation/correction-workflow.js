@@ -195,6 +195,7 @@ export function createCorrectionWorkflowRuntime() {
       captureAdditionalEvidence: assign(({ event }) => ({ additionalEvidence: event.evidence, billingInputsComplete: true })),
       captureRating: assign(({ event }) => ({ rating: event.output })),
       captureApproval: assign(({ event }) => ({ approval: event.approval ?? event })),
+      captureRejection: assign(({ event }) => ({ rejection: event.rejection ?? event })),
       captureCredit: assign(({ event }) => ({ credit: event.output })),
       captureCorrectedCdr: assign(({ event }) => ({ correctedCdr: event.output })),
       captureFailure: assign(({ event }) => ({ lastFailure: String(event.error?.message ?? event.error ?? "Workflow activity failed.") })),
