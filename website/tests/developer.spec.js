@@ -113,6 +113,7 @@ test("workflow studio executes, inspects and restores a configurable correction 
   await expect(page.locator(".wf-status")).toContainText("Approve the billing correction");
   await page.locator(".wf-run-controls").getByRole("button", { name: "Approve", exact: true }).click();
   await expect(page.locator(".wf-status")).toContainText("Correction completed");
+  await expect(page.locator(".wf-status")).toHaveAttribute("data-status", "done");
   await expect(page.locator(".wf-execution-panel")).toContainText("CREDIT-CDR-DEMO-1042");
   await expect(page.locator(".wf-execution-panel")).toContainText("CDR-CDR-DEMO-1042-R1");
   await expect(page.locator(".wf-timeline-panel")).toContainText("Advanced virtual time by 60 seconds");
@@ -134,6 +135,7 @@ test("workflow studio executes, inspects and restores a configurable correction 
   await page.getByRole("button", { name: "Inject correction" }).click();
   await page.getByRole("button", { name: "Validate" }).click();
   await expect(page.locator(".wf-status")).toContainText("Evidence quarantined");
+  await expect(page.locator(".wf-status")).toHaveAttribute("data-status", "quarantined");
   await expect(page.locator(".wf-error-note")).toContainText("signature is invalid");
   await expect(page.locator(".wf-graph")).toContainText("Approve the billing correction");
   await expect(page.locator(".wf-studio-wrap")).toBeVisible();

@@ -163,7 +163,7 @@ export default function WorkflowStudio() {
 
   const state = currentState(snapshot);
   const context = snapshot?.context ?? {};
-  const terminal = definition.steps.find((step) => step.id === state)?.kind === "end";
+  const successfulTerminal = state === "completed" || state === "completedNoChange";
   const selected = definition.steps.find((step) => step.id === selectedStep) ?? definition.steps[0];
   const waitingForApproval = state === "awaitingApproval";
   const waitingForEvidence = state === "awaitingEvidence";
@@ -288,7 +288,7 @@ export default function WorkflowStudio() {
           <button onClick={advanceTime} disabled={!started || !waitingForApproval}><Clock3 size={15} />Advance time</button>
           <button onClick={resetRun}><RotateCcw size={15} />Reset</button>
         </div>
-        <div className="wf-status" data-status={terminal ? "done" : state}>
+        <div className="wf-status" data-status={successfulTerminal ? "done" : state}>
           <span />
           <div><small>Current state</small><strong>{definition.steps.find((step) => step.id === state)?.label ?? state}</strong></div>
         </div>
