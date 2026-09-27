@@ -21,6 +21,27 @@ flowchart TD
     Q --> O
 ```
 
+## Generic workflow subsystem
+
+The workflow layer is generic orchestration infrastructure. XFlow defines versioned process definitions and step contracts; a ChargeWeave profile binds those steps to CPO/CSMS concepts, roles, obligations and rules. The business ontology remains independent of XFlow and XState.
+
+```mermaid
+flowchart LR
+    A[Author XFlow definition] --> B[Validate definition and profile]
+    D[ChargeWeave business ontology] --> B
+    B --> C[Compile supported graph]
+    C --> E[XState actor host]
+    R[Allowlisted capability registry] --> C
+    E --> F[Adapters and stores]
+    F --> G[Business outcomes and evidence]
+    E --> H[ProcessExecution, ProcessStep, StateTransition]
+    G --> H
+```
+
+Validation has separate responsibilities. XFlow SHACL shapes check the workflow vocabulary and profile structure; profile bindings must resolve to the business terms used by that journey. OWL supplies domain meaning and relationships, while explicit SHACL and deterministic runtime rules check required structure and business constraints. Passing validation does not prove that every failure, duplicate, timeout or recovery case is covered.
+
+Only supported, serializable workflow definitions compile. The definition names registered activities, guards, actions and delays; it does not contain executable JavaScript or infrastructure credentials. The host resolves those names through its allowlisted registry and supplies adapters, clocks, persistence, authorization and scheduling. The browser Studio is a deterministic simulation host; durable backend execution and scheduling remain future work.
+
 ## Service contracts
 
 | Service | Writes | Essential behavior |
