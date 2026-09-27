@@ -84,17 +84,17 @@ test("human task form prototype keeps ontology guidance separate from task autho
   await expect(page.locator(".htd-example")).toContainText("Review evidence without rewriting history.");
   await expect(page.locator(".htd-safety-note")).toContainText("original debit");
   await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
-  await expect(page.getByLabel("Payment reference")).toHaveText("•••• •••• •••• 4242");
+  await expect(page.locator(".htd-masked-value")).toHaveText("•••• •••• •••• 4242");
   await expect(page.getByLabel("Correction type")).toContainText("Credit");
   await expect(page.getByLabel("Supporting evidence")).toContainText("Signed meter correction");
-  await expect(page.getByLabel("Proposed credit amount")).toHaveValue("0.19");
+  await expect(page.getByLabel("Proposed credit amount", { exact: true })).toHaveValue("0.19");
 
-  await page.getByLabel("Proposed credit amount").fill("0.20");
+  await page.getByLabel("Proposed credit amount", { exact: true }).fill("0.20");
   await page.getByRole("button", { name: "Approve correction" }).click();
   await expect(page.getByRole("alert")).toContainText("cannot exceed the calculated 0.19 EUR adjustment");
   await expect(page.getByRole("status").filter({ hasText: "Approval task open" })).toBeVisible();
 
-  await page.getByLabel("Proposed credit amount").fill("0.19");
+  await page.getByLabel("Proposed credit amount", { exact: true }).fill("0.19");
   await page.getByRole("button", { name: "Approve correction" }).click();
   await expect(page.getByText("Approval accepted by the task host.")).toBeVisible();
   await expect(page.getByText("Workflow completed")).toBeVisible();

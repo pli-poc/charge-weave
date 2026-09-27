@@ -60,10 +60,9 @@ function TaskField({ field, value, onChange, error, context, outcome }) {
   } else if (field.control === "textarea") {
     control = <textarea {...common} rows={4} maxLength={field.shape?.maxLength} value={value} onChange={(event) => onChange(field.id, event.target.value)} />;
   } else if (field.control === "money") {
-    const money = value && typeof value === "object" ? value : { amount: "", currency: field.currencies[0]?.code ?? "" };
+      const money = value && typeof value === "object" ? value : { amount: "", currency: field.currencies[0]?.code ?? "" };
     control = (
       <div className="htd-money-control">
-        <label className="visually-hidden" htmlFor={`${id}-amount`}>{field.label}</label>
         <input
           {...common}
           id={`${id}-amount`}
