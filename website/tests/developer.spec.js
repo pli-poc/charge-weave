@@ -111,7 +111,7 @@ test("workflow studio executes, inspects and restores a configurable correction 
   await expect(page.locator(".wf-status")).toContainText("Review an exception");
   await page.getByRole("button", { name: "Restore" }).click();
   await expect(page.locator(".wf-status")).toContainText("Approve the billing correction");
-  await page.getByRole("button", { name: "Approve" }).click();
+  await page.locator(".wf-run-controls").getByRole("button", { name: "Approve", exact: true }).click();
   await expect(page.locator(".wf-status")).toContainText("Correction completed");
   await expect(page.locator(".wf-execution-panel")).toContainText("CREDIT-CDR-DEMO-1042");
   await expect(page.locator(".wf-execution-panel")).toContainText("CDR-CDR-DEMO-1042-R1");
