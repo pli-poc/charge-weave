@@ -51,9 +51,9 @@ function currentState(snapshot) {
 
 function outgoing(step) {
   if (step.kind === "eventWait" || step.kind === "humanTask") {
-    const edges = Object.entries(step.on ?? {}).map(([event, transition]) => ({ event, target: transition.target }));
-    if (step.timeout) edges.push({ event: "timeout", target: step.timeout.target });
-    return edges;
+    // A timeout is already represented by its event in `on`; keep one edge per
+    // executable transition and let the timeout metadata describe the timer.
+    return Object.entries(step.on ?? {}).map(([event, transition]) => ({ event, target: transition.target }));
   }
   if (step.kind === "serviceTask") return [
     { event: "success", target: step.onDone.target },
@@ -122,6 +122,16 @@ function edgeGeometry(source, target, index) {
   const ty = target.y;
   const sourceCenter = sy + nodeHeight / 2;
   const targetCenter = ty + nodeHeight / 2;
+  if (sx === tx && sy === ty) {
+    const startY = sourceCenter - 11;
+    const endY = sourceCenter + 13;
+    const loopX = sx + nodeWidth + 42;
+    return {
+      d: `M ${sx + nodeWidth} ${startY} C ${loopX} ${startY - 25}, ${loopX} ${endY + 25}, ${sx + nodeWidth} ${endY}`,
+      labelX: loopX + 4,
+      labelY: sourceCenter + ((index % 3) - 1) * 11,
+    };
+  }
   if (sx === tx) {
     if (Math.abs(sy - ty) <= nodeHeight + 40) {
       const downward = ty > sy;
@@ -200,13 +210,14 @@ export default function WorkflowStudio() {
       billingInputsComplete,
     },
   }), [draftSteps, approvalThreshold, approvalTimeout, billingInputsComplete, definitionChanged]);
+  const definitionKey = useMemo(() => JSON.stringify(definition), [definition]);
   const definitionErrors = useMemo(() => runtime.validate(definition), [runtime, definition]);
   const [snapshot, setSnapshot] = useState(null);
   const [started, setStarted] = useState(false);
   const [selectedStep, setSelectedStep] = useState(definition.initialStep);
   const [timeline, setTimeline] = useState([]);
   const [checkpoint, setCheckpoint] = useState(null);
-  const [restoredSnapshot, setRestoredSnapshot] = useState(null);
+  const [restoredCheckpoint, setRestoredCheckpoint] = useState(null);
   const [actorRevision, setActorRevision] = useState(0);
   const actorRef = useRef(null);
   const clockRef = useRef(null);
@@ -229,13 +240,6 @@ export default function WorkflowStudio() {
         const key = event === "success" ? "onDone" : "onError";
         return { ...step, [key]: { ...step[key], target } };
       }
-      if (event === "timeout" && step.timeout) {
-        return {
-          ...step,
-          timeout: { ...step.timeout, target },
-          on: { ...step.on, [step.timeout.event]: { ...step.on[step.timeout.event], target } },
-        };
-      }
       if (step.timeout?.event === event) {
         return {
           ...step,
@@ -252,12 +256,12 @@ export default function WorkflowStudio() {
     setSelectedStep(correctionWorkflowDefinition.initialStep);
   };
 
-  const addTimeline = (kind, text) => {
+  const addTimeline = (kind, text, stepId) => {
     const clock = clockRef.current;
     timelineCounter.current += 1;
     setTimeline((items) => [
       ...items,
-      { id: timelineCounter.current, elapsed: clock?.now ?? 0, kind, text },
+      { id: timelineCounter.current, elapsed: clock?.now ?? 0, kind, text, ...(stepId ? { stepId } : {}) },
     ].slice(-60));
   };
 
@@ -265,9 +269,12 @@ export default function WorkflowStudio() {
     const clock = makeVirtualClock();
     clockRef.current = clock;
     lastStateRef.current = null;
+    const snapshotToRestore = restoredCheckpoint?.definitionKey === definitionKey
+      ? restoredCheckpoint.snapshot
+      : null;
     const actor = runtime.createActor(definition, {
       clock,
-      ...(restoredSnapshot ? { snapshot: restoredSnapshot } : {}),
+      ...(snapshotToRestore ? { snapshot: snapshotToRestore } : {}),
     });
     actorRef.current = actor;
     setSnapshot(actor.getSnapshot());
@@ -283,13 +290,14 @@ export default function WorkflowStudio() {
           elapsed: clock.now,
           kind: "state",
           text: `Entered ${definition.steps.find((step) => step.id === state)?.label ?? state}`,
+          stepId: state,
         }].slice(-60));
       }
     });
-    if (restoredSnapshot) {
+    if (snapshotToRestore) {
       actor.start();
       setStarted(true);
-      addTimeline("checkpoint", "Restored actor snapshot with the same workflow version");
+      addTimeline("checkpoint", `Restored actor snapshot for workflow ${definition.version}`);
     } else {
       setStarted(false);
     }
@@ -298,7 +306,12 @@ export default function WorkflowStudio() {
       actor.stop();
       if (actorRef.current === actor) actorRef.current = null;
     };
-  }, [runtime, definition, actorRevision, restoredSnapshot]);
+  }, [runtime, definition, definitionKey, actorRevision, restoredCheckpoint]);
+
+  useEffect(() => {
+    setCheckpoint((saved) => saved?.definitionKey === definitionKey ? saved : null);
+    setRestoredCheckpoint((saved) => saved?.definitionKey === definitionKey ? saved : null);
+  }, [definitionKey]);
 
   const state = currentState(snapshot);
   const context = snapshot?.context ?? {};
@@ -309,10 +322,8 @@ export default function WorkflowStudio() {
   const waitingToValidate = state === "evidenceReceived";
   const waitingForBilling = state === "awaitingAdditionalEvidence";
   const waitingForReview = state === "manualReview";
-  const visited = new Set(timeline.filter((entry) => entry.kind === "state").map((entry) => {
-    const step = definition.steps.find((candidate) => `Entered ${candidate.label}` === entry.text);
-    return step?.id;
-  }).filter(Boolean));
+  const visited = new Set(timeline.filter((entry) => entry.kind === "state").map((entry) => entry.stepId).filter(Boolean));
+  const checkpointIsCurrent = checkpoint?.definitionKey === definitionKey;
   const records = asRecords(snapshot);
   const graphNodes = definition.steps.map((step, index) => ({ step, index, position: stepPosition(step, index) }));
   const graphNodeById = new Map(graphNodes.map((node) => [node.step.id, node]));
@@ -367,7 +378,7 @@ export default function WorkflowStudio() {
   };
 
   const resetRun = () => {
-    setRestoredSnapshot(null);
+    setRestoredCheckpoint(null);
     setCheckpoint(null);
     setTimeline([]);
     setStarted(false);
@@ -380,13 +391,13 @@ export default function WorkflowStudio() {
   const saveCheckpoint = () => {
     const persisted = actorRef.current?.getPersistedSnapshot();
     if (!persisted) return;
-    setCheckpoint(JSON.parse(JSON.stringify(persisted)));
+    setCheckpoint({ snapshot: JSON.parse(JSON.stringify(persisted)), definitionKey });
     addTimeline("checkpoint", "Saved a JSON-serializable XState actor checkpoint");
   };
 
   const restoreCheckpoint = () => {
-    if (!checkpoint) return;
-    setRestoredSnapshot(checkpoint);
+    if (!checkpointIsCurrent) return;
+    setRestoredCheckpoint(checkpoint);
     setActorRevision((value) => value + 1);
   };
 
@@ -473,20 +484,29 @@ export default function WorkflowStudio() {
                   <marker id="wf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
                   </marker>
+                  <marker id="wf-arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" />
+                  </marker>
                 </defs>
                 {graphEdges.map((edge) => (
                   <g className={`wf-edge ${state === edge.source.id ? "is-active" : ""}`} key={`${edge.source.id}:${edge.event}:${edge.target.id}`}>
-                    <path d={edge.geometry.d} markerEnd="url(#wf-arrow)" />
+                    <path d={edge.geometry.d} markerEnd={`url(#${state === edge.source.id ? "wf-arrow-active" : "wf-arrow"})`} />
                     <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{edge.event}</text>
                   </g>
                 ))}
               </svg>
+              <ol className="wf-sr-only" aria-label="Workflow transitions">
+                {graphEdges.map((edge, index) => <li key={`${edge.source.id}:${edge.event}:${edge.target.id}:accessible:${index}`}>
+                  {edge.source.label}: {edge.event} → {edge.target.label}
+                </li>)}
+              </ol>
               {graphNodes.map(({ step, index, position }) => {
               const active = state === step.id;
               const isVisited = visited.has(step.id);
               return (
                 <button
                   key={step.id}
+                  data-step-id={step.id}
                   className={`wf-node wf-node--${step.kind} ${active ? "is-active" : ""} ${isVisited ? "is-visited" : ""} ${selectedStep === step.id ? "is-selected" : ""} ${step.kind === "end" ? "is-end" : ""}`}
                   style={{ left: position.x, top: position.y, width: GRAPH.nodeWidth, height: GRAPH.nodeHeight }}
                   aria-pressed={selectedStep === step.id}
@@ -544,12 +564,12 @@ export default function WorkflowStudio() {
 
           <article className="wf-panel wf-checkpoint-panel">
             <header className="wf-panel-heading"><div><p className="eyebrow">Actor persistence</p><h3>Save and restore</h3></div><Save size={20} /></header>
-            <p>Checkpoint this actor snapshot and restore the same waiting process at its pinned definition version.</p>
+            <p>Checkpoint this actor snapshot and restore it only while the exact workflow definition still matches.</p>
             <div className="wf-checkpoint-actions">
               <button onClick={saveCheckpoint} disabled={!started}><Save size={14} />Save checkpoint</button>
-              <button onClick={restoreCheckpoint} disabled={!checkpoint}><RotateCcw size={14} />Restore</button>
+              <button onClick={restoreCheckpoint} disabled={!checkpointIsCurrent}><RotateCcw size={14} />Restore</button>
             </div>
-            <small>{checkpoint ? "Checkpoint saved in this Studio run." : "No checkpoint saved yet."}</small>
+            <small>{checkpointIsCurrent ? "Checkpoint saved for this exact workflow definition." : "No checkpoint saved for this workflow definition."}</small>
           </article>
         </aside>
       </section>

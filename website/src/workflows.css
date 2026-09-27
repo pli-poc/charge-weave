@@ -243,7 +243,8 @@
 .wf-flow-canvas { position: relative; flex: none; }
 .wf-edge-layer { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .wf-edge path { fill: none; stroke: #607a72; stroke-width: 2; opacity: .88; }
-.wf-edge marker path { fill: #90afa0; stroke: none; }
+#wf-arrow path { fill: #90afa0; stroke: none; }
+#wf-arrow-active path { fill: var(--mint); stroke: none; }
 .wf-edge text {
   fill: #a1b7b2;
   font: 9px ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -253,8 +254,18 @@
   stroke-linejoin: round;
 }
 .wf-edge.is-active path { stroke: var(--mint); stroke-width: 3; opacity: 1; }
-.wf-edge.is-active marker path { fill: var(--mint); }
 .wf-edge.is-active text { fill: #d2ffe7; }
+.wf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .wf-node-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(150px, .58fr);
