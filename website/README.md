@@ -13,6 +13,7 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `roadmap/`                   | Current foundation, product exploration and planned implementation stages                           |
 | `developer/`                 | Browser-hosted synthetic runtime and the principles behind its replaceable boundaries                |
 | `developer/simulator/`       | Run seeded journeys and inspect protocol fixtures, process state and simulated stores                |
+| `developer/flows/`           | Inspect and run the generic XFlow Studio using the J07/J08 billing correction journey                |
 | `developer/protocols/`       | Versioned protocol-shaped simulation for OCPP, OCPI and selected vehicle-to-equipment journeys        |
 | `developer/switchboard/`     | Independent virtual, observe, hybrid and live adapter modes                                           |
 | `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
@@ -64,6 +65,38 @@ The generated class catalog is loaded only by the explorer. Schema triples are f
 Checks cover existing landing interactions, direct page loads, responsive overflow, navigation, class search, edge inspection, inheritance, source RDF export, rule inspection, temporal examples and class deep links. Runtime tests also cover seeded replay, OCPP/OCPI fixture envelopes, authorization rejection, duplicate delivery, late readings, CDR credit lineage and independent adapter selection.
 
 The developer guide includes a frontend-only synthetic runtime. It runs seeded roaming-charge journeys and simulates OCPP 2.1 Edition 1 and OCPI 2.3.0 Core exchange subsets entirely in browser memory. It does not add protocol endpoints, connect to live charging equipment or claim protocol certification. Store and input adapters are replaceable through the runtime factory; no live adapters are registered.
+
+## Generic workflow engine
+
+The XFlow layer is separate from the CPO/CSMS business ontology. Its small OWL vocabulary, SHACL shapes and example JSON-LD profile live in `../xflow/`. XFlow models versioned workflow definitions, typed steps and transitions, named activities, guards, role tasks, timers, domain bindings and links to the business execution records. The `example.org` namespace is explicitly a demonstration IRI, not a production registration.
+
+`src/simulation/flow-engine.js` validates the serializable step graph, checks every named activity/action/guard/delay against an own callable entry in the host registry, and compiles the supported step types to XState v5. The definition carries no JavaScript. Registered activities perform side effects; registered guards decide branches; registered actions update actor context. The first compiler supports event waits, service tasks, ordered guarded decisions, human tasks with named deadlines, and terminal states. A deadline is host-managed: the browser's virtual clock or a durable backend scheduler delivers the timeout event declared by the workflow. Unsupported or unregistered capabilities fail validation before actor creation.
+
+At authoring/publication, validate the JSON-LD profile against XFlow SHACL. Before actor creation, the compiler checks the normalized graph and each allowlisted registry reference. A host resolves a pinned definition version, compiles it, creates one actor per process execution, delivers correlated events and persists snapshots/business events through its adapters. A small browser example uses the compiled profile directly:
+
+```js
+import {
+  correctionWorkflowDefinition,
+  correctionWorkflowRuntime,
+} from "./src/simulation/correction-workflow.js";
+
+const actor = correctionWorkflowRuntime
+  .createActor(correctionWorkflowDefinition, { context: { approvalThresholdKwh: 0.25 } })
+  .start();
+
+actor.send({ type: "meter.corrected", evidence });
+actor.send({ type: "evidence.validate" });
+
+const checkpoint = JSON.parse(JSON.stringify(actor.getPersistedSnapshot()));
+```
+
+In production, the definition version and business-event log must be stored with the checkpoint. The engine's JavaScript registry stays in the host; JSON-LD contains only capability names and data.
+
+`src/simulation/correction-workflow.js` reads the JSON-LD profile, converts it to the compiler contract, and binds J07/J08 to `ProcessExecution`, `ProcessStep`, `StateTransition`, `SignedMeterEvidence`, `MeterDelta`, `BillingReadinessAssessment`, `RatingCalculation`, `ChargeDetailRecord` and `RecordCorrection`. The simulator's session lifecycle also uses the same XState compiler. In the Studio, developers can change the approval threshold, approval deadline and evidence fixture; inspect graph branches, business bindings, actor context and the event/state timeline; and save/restore an actor snapshot.
+
+The browser Studio is a deterministic demo host. Its checkpoint demonstrates XState snapshot serialization; it is not a durable process store. A backend host can compile the same data definition, but still needs a persistent snapshot and event store, durable UTC timers, an idempotent effect/outbox boundary, authorization and pinned-version migration rules. It must not use browser memory as its recovery mechanism. Workflow instances should link to the existing ChargeWeave business execution records; XState implementation details remain in technical runtime storage.
+
+Run `node --test src/simulation/flow-engine.test.js` for compiler, recovery, timer and correction behavior. The ontology CI also validates the JSON-LD workflow profile against XFlow SHACL and checks selected invalid-profile cases with `python tools/test_xflow.py`.
 
 GitHub Pages must use **Settings → Pages → Source → GitHub Actions**. The deployment job requires `pages: write` and `id-token: write`; the build has read-only repository access.
 

@@ -11,6 +11,7 @@ import {
   virtualTime,
 } from "./core.js";
 import { createMemoryStore, STORE_TYPES } from "./stores.js";
+import { createFlowRuntime } from "./flow-engine.js";
 
 export const PROTOCOL_PROFILES = {
   ocpp: "OCPP 2.1 Edition 1 · transaction basics fixture subset",
@@ -362,6 +363,54 @@ function makeGridAdapter() {
   };
 }
 
+const sessionLifecycle = {
+  id: "chargeweave.session-lifecycle",
+  version: "1.0.0",
+  initialStep: "pending",
+  steps: [
+    { id: "pending", kind: "eventWait", on: { "transaction.started": { target: "active" } } },
+    { id: "active", kind: "eventWait", on: {
+      "transaction.updated": { target: "active" },
+      "transaction.ended": { target: "completed" },
+    } },
+    { id: "completed", kind: "end" },
+  ],
+};
+
+function makeXStateSessionAdapter() {
+  const runtime = createFlowRuntime();
+  return {
+    label: "XState v5 · session lifecycle",
+    createRun() {
+      const actors = new Map();
+      return {
+        label: "XState v5 · session lifecycle",
+        applyEvent({ store, event, sessionId }) {
+          let actor = actors.get(sessionId);
+          if (!actor) {
+            actor = runtime.createActor(sessionLifecycle).start();
+            actors.set(sessionId, actor);
+          }
+          actor.send({ type: event.kind });
+          const state = actor.getSnapshot().value;
+          const nextStatus = state === "completed" ? "COMPLETED" : state === "active" ? "ACTIVE" : "PENDING";
+          return {
+            nextStatus,
+            workflowState: state,
+            result: store.applyEvent({
+              eventId: event.id,
+              sessionId,
+              nextStatus,
+              occurredAt: event.at,
+              detail: event.kind,
+            }),
+          };
+        },
+      };
+    },
+  };
+}
+
 function defaultRegistries() {
   return {
     inputs: {
@@ -369,26 +418,7 @@ function defaultRegistries() {
       ocpi: new Map([["virtual", makeOcpiAdapter()]]),
       grid: new Map([["scenario", makeGridAdapter()]]),
     },
-    process: new Map([["synthetic", {
-      label: "Synthetic process rules",
-      applyEvent({ store, event, sessionId }) {
-        const nextStatus = event.kind === "transaction.started"
-          ? "ACTIVE"
-          : event.kind === "transaction.ended"
-            ? "COMPLETED"
-            : "ACTIVE";
-        return {
-          nextStatus,
-          result: store.applyEvent({
-            eventId: event.id,
-            sessionId,
-            nextStatus,
-            occurredAt: event.at,
-            detail: event.kind,
-          }),
-        };
-      },
-    }]]),
+    process: new Map([["synthetic", makeXStateSessionAdapter()]]),
     stores: Object.fromEntries(STORE_TYPES.map((type) => [type, new Map([
       ["memory", { label: STORE_LABELS[type], create: () => createMemoryStore(type) }],
     ])])),
@@ -830,7 +860,9 @@ export function createRuntimeFactory() {
       registry.set(id, adapter);
     },
     registerProcess(id, adapter) {
-      if (typeof adapter?.applyEvent !== "function") throw new Error(`Process adapter ${id} must provide applyEvent().`);
+      if (typeof adapter?.applyEvent !== "function" && typeof adapter?.createRun !== "function") {
+        throw new Error(`Process adapter ${id} must provide applyEvent() or createRun().`);
+      }
       if (registries.process.has(id)) throw new Error(`Adapter already registered: process=${id}`);
       registries.process.set(id, adapter);
     },
@@ -856,7 +888,12 @@ export function createRuntimeFactory() {
           ocpi: lookup(registries.inputs.ocpi, "inputs.ocpi", composition.inputs.ocpi),
           grid: lookup(registries.inputs.grid, "inputs.grid", composition.inputs.grid),
         },
-        process: lookup(registries.process, "process", composition.process),
+        process: (() => {
+          const adapter = lookup(registries.process, "process", composition.process);
+          return typeof adapter.createRun === "function"
+            ? adapter.createRun({ composition: clone(composition) })
+            : adapter;
+        })(),
       };
       const stores = {};
       for (const type of STORE_TYPES) {

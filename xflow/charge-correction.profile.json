@@ -1,0 +1,224 @@
+{
+  "@context": {
+    "xflow": "https://example.org/chargeweave/xflow#",
+    "cw": "https://example.org/charge-domain#",
+    "workflowId": "xflow:workflowId",
+    "workflowVersion": "xflow:workflowVersion",
+    "processKind": { "@id": "xflow:processKind", "@type": "@id" },
+    "journeyReference": "xflow:journeyReference",
+    "initialStep": { "@id": "xflow:initialStep", "@type": "@id" },
+    "hasStep": { "@id": "xflow:hasStep", "@type": "@id" },
+    "initialContext": { "@id": "xflow:initialContext", "@type": "@json" },
+    "domainBinding": { "@id": "xflow:domainBinding", "@type": "@id" },
+    "stepKey": "xflow:stepKey",
+    "label": "http://www.w3.org/2000/01/rdf-schema#label",
+    "description": "http://purl.org/dc/terms/description",
+    "onEvent": "xflow:onEvent",
+    "eventType": "xflow:eventType",
+    "targetStep": { "@id": "xflow:targetStep", "@type": "@id" },
+    "actionRef": { "@id": "xflow:actionRef", "@type": "@id" },
+    "activityRef": { "@id": "xflow:activityRef", "@type": "@id" },
+    "onSuccess": "xflow:onSuccess",
+    "onFailure": "xflow:onFailure",
+    "guardRef": { "@id": "xflow:guardRef", "@type": "@id" },
+    "route": "xflow:route",
+    "defaultTarget": { "@id": "xflow:defaultTarget", "@type": "@id" },
+    "timeoutAfter": { "@id": "xflow:timeoutAfter", "@type": "@id" },
+    "timeoutTarget": { "@id": "xflow:timeoutTarget", "@type": "@id" },
+    "timeoutAction": { "@id": "xflow:timeoutAction", "@type": "@id" },
+    "assigneeRole": { "@id": "xflow:assigneeRole", "@type": "@id" },
+    "timeoutEvent": "xflow:timeoutEvent",
+    "executionRecordClass": { "@id": "xflow:executionRecordClass", "@type": "@id" },
+    "stepRecordClass": { "@id": "xflow:stepRecordClass", "@type": "@id" },
+    "transitionRecordClass": { "@id": "xflow:transitionRecordClass", "@type": "@id" }
+  },
+  "@graph": [
+    {
+      "@id": "urn:chargeweave:workflow:charge-correction",
+      "@type": "xflow:WorkflowDefinition",
+      "workflowId": "chargeweave.j07-j08.charge-correction",
+      "workflowVersion": "1.0.0",
+      "processKind": "cw:processKind_Bill",
+      "journeyReference": ["J07", "J08"],
+      "initialStep": { "@id": "#awaitingEvidence" },
+      "executionRecordClass": "cw:ProcessExecution",
+      "stepRecordClass": "cw:ProcessStep",
+      "transitionRecordClass": "cw:StateTransition",
+      "domainBinding": [
+        "cw:SignedMeterEvidence",
+        "cw:MeterRegisterEpoch",
+        "cw:MeterDelta",
+        "cw:BillingReadinessAssessment",
+        "cw:RatingCalculation",
+        "cw:ChargeDetailRecord",
+        "cw:RecordCorrection"
+      ],
+      "initialContext": {
+        "@type": "@json",
+        "@value": {
+          "sessionId": "SESSION-DEMO-1042",
+          "originalCdrId": "CDR-DEMO-1042",
+          "originalEnergyKwh": 10.6,
+          "originalGrossEur": 3.39,
+          "unitPriceEur": 0.32,
+          "fixedFeeEur": 0,
+          "approvalThresholdKwh": 0.25,
+          "approvalTimeoutMs": 60000,
+          "billingInputsComplete": true
+        }
+      },
+      "hasStep": [
+        { "@id": "#awaitingEvidence" },
+        { "@id": "#evidenceReceived" },
+        { "@id": "#verifyingEvidence" },
+        { "@id": "#reconcilingUsage" },
+        { "@id": "#assessingReadiness" },
+        { "@id": "#readinessDecision" },
+        { "@id": "#awaitingAdditionalEvidence" },
+        { "@id": "#recalculatingRating" },
+        { "@id": "#ratingDecision" },
+        { "@id": "#approvalDecision" },
+        { "@id": "#awaitingApproval" },
+        { "@id": "#manualReview" },
+        { "@id": "#issuingCredit" },
+        { "@id": "#issuingCorrectedCdr" },
+        { "@id": "#propagatingCorrection" },
+        { "@id": "#completed" },
+        { "@id": "#completedNoChange" },
+        { "@id": "#quarantined" },
+        { "@id": "#declined" }
+      ]
+    },
+    {
+      "@id": "#awaitingEvidence", "@type": "xflow:EventWait", "stepKey": "awaitingEvidence",
+      "label": "Wait for corrected meter evidence", "description": "Wait for an authenticated correction correlated to the completed charging session.",
+      "onEvent": [{ "eventType": "meter.corrected", "targetStep": { "@id": "#evidenceReceived" }, "actionRef": ["urn:chargeweave:action:captureEvidence"] }],
+      "domainBinding": ["cw:SignedMeterEvidence"]
+    },
+    {
+      "@id": "#evidenceReceived", "@type": "xflow:EventWait", "stepKey": "evidenceReceived",
+      "label": "Review received evidence", "description": "Hold the evidence for an explicit validation request.",
+      "onEvent": [
+        { "eventType": "evidence.validate", "targetStep": { "@id": "#verifyingEvidence" } },
+        { "eventType": "case.cancelled", "targetStep": { "@id": "#declined" } }
+      ],
+      "domainBinding": ["cw:SignedMeterEvidence"]
+    },
+    {
+      "@id": "#verifyingEvidence", "@type": "xflow:ServiceTask", "stepKey": "verifyingEvidence",
+      "label": "Verify signature and register epoch", "description": "Check evidence authenticity and ensure both readings belong to the same meter-register epoch.",
+      "activityRef": "urn:chargeweave:activity:verifySignedEvidence",
+      "onSuccess": { "targetStep": { "@id": "#reconcilingUsage" }, "actionRef": ["urn:chargeweave:action:captureVerification"] },
+      "onFailure": { "targetStep": { "@id": "#quarantined" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:SignedMeterEvidence", "cw:MeterRegisterEpoch"]
+    },
+    {
+      "@id": "#reconcilingUsage", "@type": "xflow:ServiceTask", "stepKey": "reconcilingUsage",
+      "label": "Reconcile measured usage", "description": "Calculate corrected usage and preserve the difference as evidence.",
+      "activityRef": "urn:chargeweave:activity:reconcileMeterUsage",
+      "onSuccess": { "targetStep": { "@id": "#assessingReadiness" }, "actionRef": ["urn:chargeweave:action:captureReconciliation"] },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:MeterDelta"]
+    },
+    {
+      "@id": "#assessingReadiness", "@type": "xflow:ServiceTask", "stepKey": "assessingReadiness",
+      "label": "Assess billing readiness", "description": "Confirm usage, price, tax, authorization and commercial responsibility before rating.",
+      "activityRef": "urn:chargeweave:activity:assessBillingReadiness",
+      "onSuccess": { "targetStep": { "@id": "#readinessDecision" }, "actionRef": ["urn:chargeweave:action:captureReadiness"] },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:BillingReadinessAssessment"]
+    },
+    {
+      "@id": "#readinessDecision", "@type": "xflow:Decision", "stepKey": "readinessDecision",
+      "label": "Billing inputs ready?", "description": "Wait for missing financial evidence instead of creating a charge from incomplete inputs.",
+      "route": [{ "guardRef": "urn:chargeweave:guard:billingReady", "targetStep": { "@id": "#recalculatingRating" } }],
+      "defaultTarget": { "@id": "#awaitingAdditionalEvidence" },
+      "domainBinding": ["cw:BillingReadinessAssessment"]
+    },
+    {
+      "@id": "#awaitingAdditionalEvidence", "@type": "xflow:EventWait", "stepKey": "awaitingAdditionalEvidence",
+      "label": "Wait for billing evidence", "description": "Resume readiness assessment when tax or commercial responsibility evidence arrives.",
+      "onEvent": [
+        { "eventType": "evidence.supplemented", "targetStep": { "@id": "#assessingReadiness" }, "actionRef": ["urn:chargeweave:action:captureAdditionalEvidence"] },
+        { "eventType": "case.cancelled", "targetStep": { "@id": "#declined" } }
+      ],
+      "domainBinding": ["cw:BillingReadinessAssessment"]
+    },
+    {
+      "@id": "#recalculatingRating", "@type": "xflow:ServiceTask", "stepKey": "recalculatingRating",
+      "label": "Recalculate the charge", "description": "Rate corrected usage against the pinned demo tariff and compare it with the original record.",
+      "activityRef": "urn:chargeweave:activity:calculateCorrectedRating",
+      "onSuccess": { "targetStep": { "@id": "#ratingDecision" }, "actionRef": ["urn:chargeweave:action:captureRating"] },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:RatingCalculation", "cw:ChargeDetailRecord"]
+    },
+    {
+      "@id": "#ratingDecision", "@type": "xflow:Decision", "stepKey": "ratingDecision",
+      "label": "Material correction?", "description": "Close without a financial effect when the corrected amount does not change.",
+      "route": [{ "guardRef": "urn:chargeweave:guard:noMaterialChange", "targetStep": { "@id": "#completedNoChange" } }],
+      "defaultTarget": { "@id": "#approvalDecision" },
+      "domainBinding": ["cw:RatingCalculation"]
+    },
+    {
+      "@id": "#approvalDecision", "@type": "xflow:Decision", "stepKey": "approvalDecision",
+      "label": "Approval required?", "description": "Apply the configured approval threshold before issuing a credit.",
+      "route": [{ "guardRef": "urn:chargeweave:guard:approvalRequired", "targetStep": { "@id": "#awaitingApproval" } }],
+      "defaultTarget": { "@id": "#issuingCredit" },
+      "domainBinding": ["cw:RecordCorrection"]
+    },
+    {
+      "@id": "#awaitingApproval", "@type": "xflow:HumanTask", "stepKey": "awaitingApproval",
+      "label": "Approve the billing correction", "description": "A responsible billing operator approves or rejects the credit; expiry escalates to manual review.",
+      "assigneeRole": "urn:chargeweave:role:BillingApprover",
+      "timeoutAfter": "urn:chargeweave:timer:approvalDeadline",
+      "timeoutEvent": "timer.expired",
+      "timeoutTarget": { "@id": "#manualReview" },
+      "timeoutAction": ["urn:chargeweave:action:captureTimeout"],
+      "onEvent": [
+        { "eventType": "approval.granted", "targetStep": { "@id": "#issuingCredit" }, "actionRef": ["urn:chargeweave:action:captureApproval"] },
+        { "eventType": "approval.rejected", "targetStep": { "@id": "#declined" } },
+        { "eventType": "timer.expired", "targetStep": { "@id": "#manualReview" } }
+      ],
+      "domainBinding": ["cw:ProcessExecution", "cw:RecordCorrection"]
+    },
+    {
+      "@id": "#manualReview", "@type": "xflow:HumanTask", "stepKey": "manualReview",
+      "label": "Review an exception", "description": "Resolve an activity failure or expired approval explicitly.",
+      "assigneeRole": "urn:chargeweave:role:BillingOperator",
+      "onEvent": [
+        { "eventType": "review.approved", "targetStep": { "@id": "#issuingCredit" }, "actionRef": ["urn:chargeweave:action:captureApproval"] },
+        { "eventType": "review.retry", "targetStep": { "@id": "#reconcilingUsage" } },
+        { "eventType": "review.rejected", "targetStep": { "@id": "#declined" } }
+      ],
+      "domainBinding": ["cw:ProcessExecution", "cw:ProcessStep"]
+    },
+    {
+      "@id": "#issuingCredit", "@type": "xflow:ServiceTask", "stepKey": "issuingCredit",
+      "label": "Credit the original debit once", "description": "Create a compensating credit keyed to the immutable original CDR.",
+      "activityRef": "urn:chargeweave:activity:issueCreditOnce",
+      "onSuccess": { "targetStep": { "@id": "#issuingCorrectedCdr" }, "actionRef": ["urn:chargeweave:action:captureCredit"] },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:RecordCorrection", "cw:ChargeDetailRecord"]
+    },
+    {
+      "@id": "#issuingCorrectedCdr", "@type": "xflow:ServiceTask", "stepKey": "issuingCorrectedCdr",
+      "label": "Issue a linked corrected CDR", "description": "Append a new charge record linked to the credited original.",
+      "activityRef": "urn:chargeweave:activity:issueCorrectedCdr",
+      "onSuccess": { "targetStep": { "@id": "#propagatingCorrection" }, "actionRef": ["urn:chargeweave:action:captureCorrectedCdr"] },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:ChargeDetailRecord", "cw:RecordCorrection"]
+    },
+    {
+      "@id": "#propagatingCorrection", "@type": "xflow:ServiceTask", "stepKey": "propagatingCorrection",
+      "label": "Propagate correction", "description": "Queue the corrected record for invoice and roaming participants with stable delivery keys.",
+      "activityRef": "urn:chargeweave:activity:propagateCorrection",
+      "onSuccess": { "targetStep": { "@id": "#completed" } },
+      "onFailure": { "targetStep": { "@id": "#manualReview" }, "actionRef": ["urn:chargeweave:action:captureFailure"] },
+      "domainBinding": ["cw:RecordCorrection", "cw:ProcessStep"]
+    },
+    { "@id": "#completed", "@type": "xflow:EndStep", "stepKey": "completed", "label": "Correction completed", "description": "The original debit, credit and corrected CDR remain linked and inspectable." },
+    { "@id": "#completedNoChange", "@type": "xflow:EndStep", "stepKey": "completedNoChange", "label": "No financial change", "description": "Retain the corrected evidence and close without creating a credit." },
+    { "@id": "#quarantined", "@type": "xflow:EndStep", "stepKey": "quarantined", "label": "Evidence quarantined", "description": "Invalid signatures or cross-epoch meter readings cannot create a correction." },
+    { "@id": "#declined", "@type": "xflow:EndStep", "stepKey": "declined", "label": "Correction declined", "description": "The explicit cancellation or rejection is retained in the execution trace." }
+  ]
+}

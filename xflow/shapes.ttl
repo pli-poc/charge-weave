@@ -1,0 +1,116 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xflow: <https://example.org/chargeweave/xflow#> .
+
+xflow:WorkflowDefinitionShape a sh:NodeShape ;
+    sh:targetClass xflow:WorkflowDefinition ;
+    sh:property [ sh:path xflow:workflowId ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path xflow:workflowVersion ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path xflow:processKind ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:initialStep ; sh:minCount 1 ; sh:maxCount 1 ; sh:class xflow:StepDefinition ] ;
+    sh:property [ sh:path xflow:hasStep ; sh:minCount 1 ; sh:class xflow:StepDefinition ] ;
+    sh:property [ sh:path xflow:initialContext ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype rdf:JSON ] ;
+    sh:property [ sh:path xflow:executionRecordClass ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:stepRecordClass ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:transitionRecordClass ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:sparql [
+        sh:message "The initial step must also appear in the workflow's step list."@en ;
+        sh:select """
+            SELECT $this WHERE {
+              $this <https://example.org/chargeweave/xflow#initialStep> ?initial .
+              FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#hasStep> ?initial }
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:message "Every transition target must be declared in the same workflow."@en ;
+        sh:select """
+            SELECT $this ?target WHERE {
+              $this <https://example.org/chargeweave/xflow#hasStep> ?source .
+              {
+                { ?source <https://example.org/chargeweave/xflow#onEvent> ?transition .
+                  ?transition <https://example.org/chargeweave/xflow#targetStep> ?target . }
+                UNION
+                { ?source <https://example.org/chargeweave/xflow#onSuccess> ?transition .
+                  ?transition <https://example.org/chargeweave/xflow#targetStep> ?target . }
+                UNION
+                { ?source <https://example.org/chargeweave/xflow#onFailure> ?transition .
+                  ?transition <https://example.org/chargeweave/xflow#targetStep> ?target . }
+                UNION
+                { ?source <https://example.org/chargeweave/xflow#route> ?transition .
+                  ?transition <https://example.org/chargeweave/xflow#targetStep> ?target . }
+                UNION
+                { ?source <https://example.org/chargeweave/xflow#defaultTarget> ?target . }
+                UNION
+                { ?source <https://example.org/chargeweave/xflow#timeoutTarget> ?target . }
+              }
+              FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#hasStep> ?target }
+            }
+        """
+    ] .
+
+xflow:StepShape a sh:NodeShape ;
+    sh:targetClass xflow:StepDefinition ;
+    sh:property [ sh:path xflow:stepKey ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <http://www.w3.org/2000/01/rdf-schema#label> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+xflow:EventWaitShape a sh:NodeShape ;
+    sh:targetClass xflow:EventWait ;
+    sh:property [ sh:path xflow:onEvent ; sh:minCount 1 ; sh:class xflow:TransitionDefinition ] .
+
+xflow:ServiceTaskShape a sh:NodeShape ;
+    sh:targetClass xflow:ServiceTask ;
+    sh:property [ sh:path xflow:activityRef ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:onSuccess ; sh:minCount 1 ; sh:maxCount 1 ; sh:class xflow:TransitionDefinition ] ;
+    sh:property [ sh:path xflow:onFailure ; sh:minCount 1 ; sh:maxCount 1 ; sh:class xflow:TransitionDefinition ] .
+
+xflow:DecisionShape a sh:NodeShape ;
+    sh:targetClass xflow:Decision ;
+    sh:property [ sh:path xflow:route ; sh:minCount 1 ; sh:class xflow:TransitionDefinition ] ;
+    sh:property [ sh:path xflow:defaultTarget ; sh:minCount 1 ; sh:maxCount 1 ; sh:class xflow:StepDefinition ] .
+
+xflow:HumanTaskShape a sh:NodeShape ;
+    sh:targetClass xflow:HumanTask ;
+    sh:property [ sh:path xflow:assigneeRole ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:timeoutEvent ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path xflow:timeoutAction ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:onEvent ; sh:minCount 1 ; sh:class xflow:TransitionDefinition ] ;
+    sh:sparql [
+        sh:message "A timeout requires a named timer and target, plus a declared event transition to that target."@en ;
+        sh:select """
+            SELECT $this WHERE {
+              { $this <https://example.org/chargeweave/xflow#timeoutAfter> ?timer .
+                FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#timeoutTarget> ?target } }
+              UNION
+              { $this <https://example.org/chargeweave/xflow#timeoutTarget> ?target .
+                FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#timeoutAfter> ?timer } }
+              UNION
+              { $this <https://example.org/chargeweave/xflow#timeoutAfter> ?timer .
+                FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#timeoutEvent> ?event } }
+              UNION
+              { $this <https://example.org/chargeweave/xflow#timeoutEvent> ?event .
+                FILTER NOT EXISTS { $this <https://example.org/chargeweave/xflow#timeoutAfter> ?timer } }
+              UNION
+              { $this <https://example.org/chargeweave/xflow#timeoutAfter> ?timer .
+                $this <https://example.org/chargeweave/xflow#timeoutTarget> ?target .
+                $this <https://example.org/chargeweave/xflow#timeoutEvent> ?event .
+                FILTER NOT EXISTS {
+                  $this <https://example.org/chargeweave/xflow#onEvent> ?transition .
+                  ?transition <https://example.org/chargeweave/xflow#eventType> ?event ;
+                    <https://example.org/chargeweave/xflow#targetStep> ?target .
+                } }
+            }
+        """
+    ] .
+
+xflow:TransitionShape a sh:NodeShape ;
+    sh:targetClass xflow:TransitionDefinition ;
+    sh:property [ sh:path xflow:targetStep ; sh:minCount 1 ; sh:maxCount 1 ; sh:class xflow:StepDefinition ] ;
+    sh:property [ sh:path xflow:eventType ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path xflow:guardRef ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:actionRef ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path xflow:priority ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#positiveInteger> ] .
+
+xflow:TimerReferenceShape a sh:NodeShape ;
+    sh:targetClass xflow:TimerReference ;
+    sh:nodeKind sh:IRI .

@@ -11,6 +11,7 @@ on:
         "ontology/**",
         "validation/**",
         "queries/**",
+        "xflow/**",
         ".github/workflows/website-pages.yml",
       ]
   pull_request:
@@ -22,6 +23,7 @@ on:
         "ontology/**",
         "validation/**",
         "queries/**",
+        "xflow/**",
         ".github/workflows/website-pages.yml",
       ]
   workflow_dispatch:

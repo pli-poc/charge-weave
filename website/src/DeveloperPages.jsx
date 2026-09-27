@@ -18,6 +18,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import SimulationWorkbench from "./SimulationWorkbench.jsx";
+import WorkflowStudio from "./WorkflowStudio.jsx";
 import "./developer.css";
 
 const base = import.meta.env.BASE_URL;
@@ -25,6 +26,7 @@ const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`
 const pages = [
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "simulator", route: "developer/simulator", label: "Simulator" },
+  { id: "flows", route: "developer/flows", label: "Workflow Studio" },
   { id: "protocols", route: "developer/protocols", label: "Protocols" },
   { id: "switchboard", route: "developer/switchboard", label: "Switchboard" },
   { id: "storage", route: "developer/storage", label: "Storage" },
@@ -123,6 +125,7 @@ function RuntimePage() {
   ];
   const links = [
     ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
+    ["flows", "Workflow Studio", "Inspect and run the configurable J07/J08 bill-correction workflow."],
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
     ["switchboard", "Switchboard", "Change one source without changing every store."],
     ["storage", "Storage contracts", "Test distinct storage behavior without database products."],
@@ -578,6 +581,10 @@ const pageCopy = {
     title: <>One seeded run.<br /><span>Every boundary inspectable.</span></>,
     description: "Run deterministic roaming-charge scenarios in the browser and inspect protocol-shaped messages, process decisions and five distinct simulated stores.",
   },
+  flows: {
+    title: <>Configure the flow.<br /><span>Inspect every transition.</span></>,
+    description: "A generic XFlow definition compiles to XState v5 and runs in the browser host. Explore run configuration, checkpointed waiting, business bindings and execution evidence.",
+  },
   protocols: {
     title: <>Protocol-shaped inputs.<br /><span>Shared business events.</span></>,
     description: "Model standards at explicit boundaries, then map the exchanges into the same process contracts used by virtual and later live adapters.",
@@ -610,6 +617,7 @@ export default function DeveloperPages({ route }) {
   const content = {
     runtime: <RuntimePage />,
     simulator: <SimulationWorkbench />,
+    flows: <WorkflowStudio />,
     protocols: <ProtocolsPage />,
     switchboard: <SwitchboardPage />,
     storage: <StoragePage />,

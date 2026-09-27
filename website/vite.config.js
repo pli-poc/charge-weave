@@ -27,6 +27,10 @@ const pages = {
     "Simulation workbench",
     "Run seeded roaming-charge fixtures and inspect protocol traces, process events and simulated browser stores.",
   ],
+  "developer/flows": [
+    "Workflow Studio",
+    "Inspect and run the generic XState-backed J07/J08 charge-correction workflow.",
+  ],
   "developer/protocols": [
     "Protocol simulation",
     "Learn how versioned OCPP, OCPI and optional ISO 15118 adapters connect to ChargeWeave process events.",

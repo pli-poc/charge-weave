@@ -1,0 +1,73 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xflow: <https://example.org/chargeweave/xflow#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/chargeweave/xflow> a owl:Ontology ;
+    dct:title "XFlow — generic workflow definition vocabulary"@en ;
+    dct:description "Demonstration namespace for generic workflow definitions; not a registered production namespace."@en ;
+    owl:versionInfo "0.1.0-demo" .
+
+xflow:WorkflowDefinition a owl:Class ;
+    rdfs:label "Workflow definition"@en ;
+    rdfs:comment "A versioned, declarative process graph compiled by an allowlisted runtime."@en .
+
+xflow:StepDefinition a owl:Class ;
+    rdfs:label "Step definition"@en ;
+    rdfs:comment "A state in a workflow graph with explicit behavior and outgoing transitions."@en .
+
+xflow:EventWait a owl:Class ; rdfs:subClassOf xflow:StepDefinition ; rdfs:label "Event wait"@en .
+xflow:ServiceTask a owl:Class ; rdfs:subClassOf xflow:StepDefinition ; rdfs:label "Service task"@en .
+xflow:Decision a owl:Class ; rdfs:subClassOf xflow:StepDefinition ; rdfs:label "Decision"@en .
+xflow:HumanTask a owl:Class ; rdfs:subClassOf xflow:StepDefinition ; rdfs:label "Human task"@en .
+xflow:EndStep a owl:Class ; rdfs:subClassOf xflow:StepDefinition ; rdfs:label "End step"@en .
+
+xflow:TransitionDefinition a owl:Class ;
+    rdfs:label "Transition definition"@en ;
+    rdfs:comment "A named event, service result, timeout or guarded route from one step to another."@en .
+
+xflow:workflowId a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range xsd:string .
+xflow:workflowVersion a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range xsd:string .
+xflow:journeyReference a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range xsd:string .
+xflow:stepKey a owl:DatatypeProperty ; rdfs:domain xflow:StepDefinition ; rdfs:range xsd:string .
+xflow:eventType a owl:DatatypeProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range xsd:string .
+xflow:timeoutEvent a owl:DatatypeProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xsd:string ;
+    rdfs:comment "Host-delivered event type that triggers the timeout transition."@en .
+xflow:initialContext a owl:DatatypeProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range rdf:JSON .
+xflow:priority a owl:DatatypeProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range xsd:positiveInteger .
+
+xflow:initialStep a owl:ObjectProperty ;
+    rdfs:domain xflow:WorkflowDefinition ; rdfs:range xflow:StepDefinition .
+xflow:hasStep a owl:ObjectProperty ;
+    rdfs:domain xflow:WorkflowDefinition ; rdfs:range xflow:StepDefinition .
+xflow:processKind a owl:ObjectProperty ;
+    rdfs:domain xflow:WorkflowDefinition ; rdfs:range cd:ProcessKindCode ;
+    rdfs:comment "Optional link to the business process-kind code defined by the domain ontology."@en .
+xflow:domainBinding a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (xflow:WorkflowDefinition xflow:StepDefinition) ] ;
+    rdfs:range owl:Class ;
+    rdfs:comment "Connects generic process steps to business concepts without importing workflow technology into the business ontology."@en .
+xflow:onEvent a owl:ObjectProperty ; rdfs:domain xflow:StepDefinition ; rdfs:range xflow:TransitionDefinition .
+xflow:onSuccess a owl:ObjectProperty ; rdfs:domain xflow:ServiceTask ; rdfs:range xflow:TransitionDefinition .
+xflow:onFailure a owl:ObjectProperty ; rdfs:domain xflow:ServiceTask ; rdfs:range xflow:TransitionDefinition .
+xflow:route a owl:ObjectProperty ; rdfs:domain xflow:Decision ; rdfs:range xflow:TransitionDefinition .
+xflow:targetStep a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range xflow:StepDefinition .
+xflow:defaultTarget a owl:ObjectProperty ; rdfs:domain xflow:Decision ; rdfs:range xflow:StepDefinition .
+xflow:timeoutTarget a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xflow:StepDefinition .
+xflow:timeoutAfter a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range xflow:TimerReference .
+xflow:timeoutAction a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing ;
+    rdfs:comment "Allowlisted action references applied on the declared timeout event transition."@en .
+xflow:assigneeRole a owl:ObjectProperty ; rdfs:domain xflow:HumanTask ; rdfs:range owl:Thing .
+xflow:activityRef a owl:ObjectProperty ; rdfs:domain xflow:ServiceTask ; rdfs:range owl:Thing ; rdfs:comment "IRI resolved only by the host's reviewed activity registry."@en .
+xflow:guardRef a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range owl:Thing ; rdfs:comment "Pure decision function resolved only by the host's reviewed guard registry."@en .
+xflow:actionRef a owl:ObjectProperty ; rdfs:domain xflow:TransitionDefinition ; rdfs:range owl:Thing ; rdfs:comment "State update resolved only by the host's reviewed action registry."@en .
+xflow:executionRecordClass a owl:ObjectProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range owl:Class .
+xflow:stepRecordClass a owl:ObjectProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range owl:Class .
+xflow:transitionRecordClass a owl:ObjectProperty ; rdfs:domain xflow:WorkflowDefinition ; rdfs:range owl:Class .
+
+xflow:TimerReference a owl:Class ;
+    rdfs:label "Timer reference"@en ;
+    rdfs:comment "A named host delay; a durable scheduler wakes a backend actor and sends the timeout transition."@en .
