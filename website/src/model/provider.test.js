@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { createModelProvider } from "./provider.js";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
+const sourceHash = "a".repeat(64);
 const response = (body) => ({
   ok: true,
   status: 200,
@@ -15,7 +16,7 @@ function fixtureProvider({ modelOverrides = {}, manifestOverrides = {}, tamperPa
   const model = {
     packageId: "chargeweave",
     version: "1.0",
-    sourceHash: "source-hash",
+    sourceHash,
     triplesHash: hash(graph),
     triplesFile: "model-packages/pkg/triples.json",
     ...modelOverrides,
@@ -27,7 +28,7 @@ function fixtureProvider({ modelOverrides = {}, manifestOverrides = {}, tamperPa
     packagePath: "model-packages/pkg/model.json",
     packageHash: hash(modelJson),
     modelVersion: "1.0",
-    sourceHash: "source-hash",
+    sourceHash,
     triplesHash: hash(graph),
     ...manifestOverrides,
   };
@@ -63,9 +64,21 @@ test("static model provider loads and caches one immutable package and graph", a
 });
 
 test("static model provider rejects manifest drift and retries after a failed load", async () => {
-  const { provider } = fixtureProvider({ manifestOverrides: { sourceHash: "old-hash" } });
+  const { provider } = fixtureProvider({
+    manifestOverrides: { sourceHash: "b".repeat(64) },
+  });
   await assert.rejects(provider.loadModelPackage(), /does not match its manifest/);
   await assert.rejects(provider.loadModelPackage(), /does not match its manifest/);
+});
+
+test("static model provider requires every revision and integrity field", async () => {
+  const { provider } = fixtureProvider({
+    manifestOverrides: { triplesHash: undefined },
+  });
+  await assert.rejects(
+    provider.loadModelPackage(),
+    /Unsupported or incomplete model package manifest/,
+  );
 });
 
 test("static model provider verifies package bytes and rejects unknown modes", async () => {

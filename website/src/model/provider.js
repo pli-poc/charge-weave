@@ -1,4 +1,6 @@
 const CONTRACT_VERSION = 1;
+const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+const isNonEmptyString = (value) => typeof value === "string" && value.length > 0;
 
 const digest = async (bytes) => {
   if (!globalThis.crypto?.subtle) {
@@ -49,8 +51,11 @@ export function createModelProvider({
         if (
           manifest.contractVersion !== CONTRACT_VERSION ||
           manifest.packageId !== "chargeweave" ||
-          !manifest.packagePath ||
-          !manifest.packageHash
+          !isNonEmptyString(manifest.packagePath) ||
+          !isSha256(manifest.packageHash) ||
+          !isNonEmptyString(manifest.modelVersion) ||
+          !isSha256(manifest.sourceHash) ||
+          !isSha256(manifest.triplesHash)
         ) {
           throw new Error("Unsupported or incomplete model package manifest.");
         }
@@ -61,10 +66,13 @@ export function createModelProvider({
         );
         if (
           model.packageId !== manifest.packageId ||
+          !isNonEmptyString(model.version) ||
+          !isSha256(model.sourceHash) ||
+          !isSha256(model.triplesHash) ||
+          !isNonEmptyString(model.triplesFile) ||
           model.version !== manifest.modelVersion ||
           model.sourceHash !== manifest.sourceHash ||
-          model.triplesHash !== manifest.triplesHash ||
-          !model.triplesFile
+          model.triplesHash !== manifest.triplesHash
         ) {
           throw new Error("Model package does not match its manifest.");
         }
