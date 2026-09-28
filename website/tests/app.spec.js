@@ -63,9 +63,9 @@ test("the console navigation and country filter work at desktop and mobile sizes
 });
 
 test("the app presents a model-driven billing work item with business progress and submits a generated form", async ({ page }, testInfo) => {
-  await page.goto("app/#work");
+  await page.goto("app/");
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Open navigation" }).click();
-  await page.getByRole("button", { name: "My work", exact: true }).click();
+  await page.getByRole("button", { name: /My work/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("My work");
   await expect(page.getByRole("button", { name: /Review corrected meter reading/ })).toBeVisible();
   await page.getByRole("button", { name: /Review corrected meter reading/ }).click();
