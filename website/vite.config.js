@@ -133,6 +133,10 @@ const pages = {
     "Simulated storage",
     "Review the semantic, operational, temporal, telemetry and evidence store contracts used by the browser simulator.",
   ],
+  "developer/models": [
+    "Model package provider",
+    "Learn how the app loads versioned ontology and constraint packages through a replaceable provider contract.",
+  ],
   "developer/replay": [
     "Deterministic replay",
     "Learn how a seeded scenario, virtual clock and versioned fault plan make ChargeWeave process tests reproducible.",

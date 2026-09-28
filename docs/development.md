@@ -35,6 +35,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
+| `ontology/`, `validation/`, `model/`, `website/scripts/build-model.mjs` | Versioned browser model package, manifest, RDF graph asset and generated compatibility snapshot |
 | `xflow/ontology.ttl`, `xflow/shapes.ttl`, `xflow/charge-correction.profile.json` | Generic workflow vocabulary, shapes and executable JSON-LD workflow profile |
 | `console-app/src/work-model.js`, `console-app/src/task-form-renderer.js` | Synthetic work-item fixture and generic operator task-form renderer; app styles and tests |
 | `tools/build_queries.py` | Competency questions and CQ queries |
@@ -84,6 +85,12 @@ The workflow host owns task creation, assignment, deadlines, business progress p
 The current `console-app/` example uses an in-memory work-item fixture and demonstrates the task view for a corrected meter reading. `console-app/src/task-form-renderer.js` is shared across task descriptors; `work-model.js` defines the sample workflow milestones and task-specific form metadata. `website/src/HumanTaskDesign.jsx` remains a technical developer prototype for compiling and submitting a task to the simulated XState host. The operator app is a separate product-facing experience. Neither browser host is durable, production-authorized, or connected to live billing services.
 
 See [Generic task forms and operator workspace](task-form-engine.md) for the field contract, control mapping, security boundary and backend seam. The site walkthrough is available at `/developer/human-tasks/`, and the synthetic operator inbox at `/app/#work`.
+
+## Model package provider
+
+The browser loads ontology definitions and constraints through the `static-web` model provider. The build publishes a manifest and immutable metadata/graph artifacts; the provider checks package hashes and matching revisions before exposing them to model consumers. Node-based developer tooling uses the generated snapshot without a network request. A later model service or database registry should implement the same package interface while keeping authorization and tenant business data in their own services.
+
+See [Model package provider](model-provider.md) for the package contract, provider matrix, revision pinning and future service requirements. The site walkthrough is available at `/developer/models/`.
 
 ## Report handling
 

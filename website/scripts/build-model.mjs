@@ -101,16 +101,8 @@ for (const rule of rules)
   if (!fs.existsSync(path.join(root, "queries", rule.id + ".rq")))
     throw new Error("Missing source rule: " + rule.id);
 const triplesJson = JSON.stringify(subjects);
-const triplesFile =
-  "model-triples-" +
-  createHash("sha256").update(triplesJson).digest("hex").slice(0, 12) +
-  ".json";
-for (const file of fs.readdirSync(path.join(root, "website/public"))) {
-  if (/^model-triples(?:-[a-f0-9]{12})?\.json$/.test(file))
-    fs.unlinkSync(path.join(root, "website/public", file));
-}
+const triplesHash = createHash("sha256").update(triplesJson).digest("hex");
 const data = {
-  triplesFile,
   version,
   namespace,
   sourceHash,
@@ -122,11 +114,47 @@ const data = {
   temporalPolicy: JSON.parse(read("model/temporal-policy.json")),
   temporalExample: JSON.parse(read("model/temporal-example.json")),
 };
+data.packageId = "chargeweave";
+data.triplesHash = triplesHash;
+const packageFingerprint = createHash("sha256")
+  .update(JSON.stringify(data))
+  .digest("hex");
+const resolvedPackageDirectory = `model-packages/${packageFingerprint}`;
+data.triplesFile = `${resolvedPackageDirectory}/triples.json`;
+const publishedPackageJson = JSON.stringify(data);
+const packageContentHash = createHash("sha256")
+  .update(publishedPackageJson)
+  .digest("hex");
+const publicRoot = path.join(root, "website/public");
+const packageCollection = path.join(publicRoot, "model-packages");
+if (fs.existsSync(packageCollection))
+  for (const entry of fs.readdirSync(packageCollection, { withFileTypes: true }))
+    if (entry.isDirectory())
+      fs.rmSync(path.join(packageCollection, entry.name), {
+        recursive: true,
+        force: true,
+      });
+const packageRoot = path.join(publicRoot, resolvedPackageDirectory);
+fs.mkdirSync(packageRoot, { recursive: true });
+fs.writeFileSync(path.join(packageRoot, "model.json"), publishedPackageJson);
+fs.writeFileSync(path.join(packageRoot, "triples.json"), triplesJson);
+fs.mkdirSync(packageCollection, { recursive: true });
+fs.writeFileSync(
+  path.join(publicRoot, "model-packages/manifest.json"),
+  JSON.stringify({
+    contractVersion: 1,
+    packageId: "chargeweave",
+    packagePath: `${resolvedPackageDirectory}/model.json`,
+    packageHash: packageContentHash,
+    modelVersion: version,
+    sourceHash,
+    triplesHash,
+  }),
+);
 fs.mkdirSync(path.join(root, "website/src/generated"), { recursive: true });
-fs.writeFileSync(path.join(root, "website/public", triplesFile), triplesJson);
 fs.writeFileSync(
   path.join(root, "website/src/generated/model.json"),
-  JSON.stringify(data),
+  publishedPackageJson,
 );
 fs.writeFileSync(
   path.join(root, "website/src/generated/summary.json"),
