@@ -73,7 +73,7 @@ test("the app presents a model-driven billing work item with business progress a
   await expect(page.getByRole("list", { name: "Case progress" })).toContainText("Operator review");
   await expect(page.getByText("XState", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /correction workflow/i })).toHaveCount(0);
-  await expect(page.getByLabel("Corrected meter end reading")).toHaveValue("12882.7");
+  await expect(page.getByLabel("Corrected meter end reading")).toHaveValue("12882.700");
   await expect(page.getByLabel("Evidence reference")).toHaveAttribute("data-mask", "EV-####-####");
   await page.getByLabel("Decision note").fill("Signed partner evidence confirms the corrected register.");
   await page.getByRole("button", { name: /Record decision/ }).click();
