@@ -12,6 +12,12 @@ Write posts as Markdown in `articles/`. The site builds one public page for each
 
 The renderer builds safe React elements from supported Markdown instead of inserting raw article HTML. PNG, JPG, WebP, GIF and SVG images are copied to stable public URLs under `/blog/assets/`. The LinkedIn copy button rewrites local image paths to those public URLs. LinkedIn may still require image files to be uploaded separately in its composer.
 
+## Publishing checks
+
+Changes limited to `content/blog/` use the article publishing path in GitHub Actions. It validates published article metadata and image links, builds the website and operations console, and checks that each published article route and linked asset made it into the site output. It skips the full browser suite and ontology verification matrix because those sources did not change.
+
+If a change also touches application code, workflow definitions, the model or ontology, the full relevant checks run. The published Pages artifact always contains both the website and the operations console.
+
 ## Categories
 
 - Charging operations

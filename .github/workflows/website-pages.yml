@@ -38,8 +38,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    name: Classify changed files
+    runs-on: ubuntu-24.04
+    outputs:
+      article_only: ${{ steps.scope.outputs.article_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - id: scope
+        name: Identify article-only changes
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          article_only=false
+          if [[ "$EVENT_NAME" != "workflow_dispatch" && -n "$BASE_SHA" && "$BASE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            changed_files=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+            if [[ -n "$changed_files" ]] && ! printf '%s\n' "$changed_files" | grep -qv '^content/blog/'; then
+              article_only=true
+            fi
+          fi
+          echo "article_only=$article_only" >> "$GITHUB_OUTPUT"
+          echo "Article-only path: $article_only"
+
   build:
     name: Build and browser checks
+    needs: scope
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -47,6 +76,8 @@ jobs:
         working-directory: website
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -56,12 +87,22 @@ jobs:
             console-app/package-lock.json
       - run: npm ci --prefix ../console-app
       - run: npm ci
-      - run: npm run test --prefix ../console-app
+      - name: Validate published articles and image references
+        run: npm run check:blog
+      - name: Test the console application
+        if: needs.scope.outputs.article_only != 'true'
+        run: npm run test --prefix ../console-app
       - run: npm run build --prefix ../console-app
       - run: npm run build
       - run: mkdir -p dist/app && cp -R ../console-app/dist/. dist/app/
-      - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - name: Verify generated article pages and images
+        run: node scripts/check-blog-content.mjs --built
+      - name: Install browser for full application checks
+        if: needs.scope.outputs.article_only != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Run application and browser checks
+        if: needs.scope.outputs.article_only != 'true'
+        run: npm test
       - name: Save browser report and screenshots
         if: always()
         uses: actions/upload-artifact@v4
