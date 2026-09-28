@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowUpRight, Check, Copy, FileText } from "lucide-react";
-import { marked } from "marked";
-import DOMPurify from "dompurify";
 import { articleMarkdown, articles, categories, markdownForLinkedIn } from "./blog-content.js";
+import MarkdownBody from "./MarkdownBody.jsx";
 import "./blog.css";
 
 const base = import.meta.env.BASE_URL;
@@ -63,7 +62,7 @@ function NotFound() {
 
 function ArticlePage({ article }) {
   const [copied, setCopied] = useState(false);
-  const bodyHtml = useMemo(() => DOMPurify.sanitize(marked.parse(articleMarkdown(article))), [article]);
+  const body = useMemo(() => articleMarkdown(article), [article]);
   useEffect(() => {
     document.title = `${article.title} — ChargeWeave Insights`;
     return () => { document.title = "ChargeWeave — Connected charging operations"; };
@@ -93,7 +92,7 @@ function ArticlePage({ article }) {
             <button type="button" onClick={copyForLinkedIn} aria-live="polite">{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Copied" : "Copy Markdown"}</button>
           </div>
           <p className="insight-image-note">Image links are included in the copied text. LinkedIn may ask you to upload each image separately.</p>
-          <div className="insight-prose" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+          <MarkdownBody markdown={body} />
         </article>
       </div>
     </main>
