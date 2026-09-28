@@ -1,5 +1,7 @@
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
+import { meterCorrectionModel, makeMeterCorrectionRun, rateCorrectedReading } from "./work-model.js";
+import { renderGeneratedTaskForm } from "./task-form-renderer.js";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -13,9 +15,10 @@ const recentActivity = provider.getActivity();
 const roamingSessions = provider.getRoamingSessions();
 
 const root = document.querySelector("#app");
-const views = ["overview", "journey", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
+const views = ["overview", "work", "journey", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
 const nav = [
   { id: "overview", label: "Overview", icon: "overview", group: "Workspace" },
+  { id: "work", label: "My work", icon: "work", group: "Workspace" },
   { id: "journey", label: "Site to revenue", icon: "journey", group: "Workspace" },
   { id: "operations", label: "Live operations", icon: "pulse", group: "Workspace" },
   { id: "sites", label: "Sites & parking", icon: "pin", group: "Assets" },
@@ -28,6 +31,7 @@ const nav = [
 ];
 const iconPaths = {
   overview: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  work: '<path d="M8 4h8m-9 4h10m-10 4h7m-9 8h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="m15 16 2 2 4-4"/>',
   journey: '<path d="M4 6h6v5H4zM14 13h6v5h-6zM10 8.5h4a2 2 0 0 1 2 2v2.5"/><path d="m14 11 2 2 2-2"/>',
   pulse: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -67,6 +71,8 @@ let networkMapFocus = null;
 let selectedEntity = "Session";
 let dataTab = "Graph";
 let sidebarOpen = false;
+let selectedWorkItem = false;
+let workRun = makeMeterCorrectionRun();
 const cpoDemo = {
   screen: 0,
   site: { name: "Arena parking P2", host: "Arena Parking Services", address: "Burgemeester Stramanweg 130", city: "Amsterdam", country: "NL", spaces: 480, capacityKw: 900, agreement: "SA-ARENA-2026-014" },
@@ -113,7 +119,7 @@ function navHtml() {
   return nav.map((item) => {
     const heading = item.group !== group ? `<p class="nav-heading">${item.group}</p>` : "";
     group = item.group;
-    return `${heading}<button class="nav-item${currentView === item.id ? " is-active" : ""}" type="button" data-view="${item.id}"${currentView === item.id ? ' aria-current="page"' : ""}>${icon(item.icon)}<span>${item.label}</span>${item.id === "operations" ? '<span class="nav-count">10</span>' : ""}</button>`;
+    return `${heading}<button class="nav-item${currentView === item.id ? " is-active" : ""}" type="button" data-view="${item.id}"${currentView === item.id ? ' aria-current="page"' : ""}>${icon(item.icon)}<span>${item.label}</span>${item.id === "operations" ? '<span class="nav-count">10</span>' : item.id === "work" && workRun.status !== "completed" ? '<span class="nav-count">1</span>' : ""}</button>`;
   }).join("");
 }
 function shell() {
@@ -196,12 +202,76 @@ function journeyPage() {
     `<form class="cpo-product-form" data-cpo-submit="installation"><div class="form-section-heading"><span class="eyebrow">CPO ASSET TEAM · PARTNER WORK ORDER</span><h2>Assign installation and handover</h2><p>Create a scoped installation order tied to the agreed site and contracted capacity.</p></div><div class="form-context-card"><span>${icon("pin")}</span><div><strong>${esc(site.name)}</strong><small>${esc(site.address)}, ${esc(site.city)} · ${formatNumber(Number(site.capacityKw))} kW · Agreement ${esc(site.agreement)}</small></div><span class="state-badge">Agreement recorded</span></div><div class="form-field-grid"><label>Installation partner<input name="partner" required value="${esc(install.partner)}" /></label><label>Work order reference<input name="workOrder" required value="${esc(install.workOrder)}" /></label><label>Number of charge points<input name="pointCount" type="number" min="1" max="100" required value="${esc(install.pointCount)}" /></label><label>Charger model<input name="hardware" required value="${esc(install.hardware)}" /></label><label>Meter identity<input name="meterId" required value="${esc(install.meterId)}" /></label><label>Handover due<input name="dueDate" type="date" value="2026-10-15" /></label></div><div class="form-submit-row"><span class="form-data-note">Partner handover remains attached to this work order.</span><button class="primary-button" type="submit">Issue installation order ${icon("arrow")}</button></div></form>`,
     `<form class="cpo-product-form" data-cpo-submit="commissioning"><div class="form-section-heading"><span class="eyebrow">CPO OPERATIONS · ASSET ACCEPTANCE</span><h2>Review the commissioning evidence</h2><p>Accept the installation only after the required safety, connectivity and meter checks are complete.</p></div><div class="form-context-card"><span>${icon("plug")}</span><div><strong>${esc(install.workOrder)} · ${esc(install.partner)}</strong><small>${esc(install.pointCount)} ${Number(install.pointCount) === 1 ? "charge point" : "charge points"} · ${esc(install.hardware)} · Meter ${esc(install.meterId)}</small></div><span class="state-badge">Handover received</span></div><fieldset class="commissioning-checks"><legend>Acceptance checks</legend><label><input name="safe" type="checkbox" required /><span><strong>Electrical and site safety evidence reviewed</strong><small>Partner test result is recorded against the work order.</small></span></label><label><input name="connected" type="checkbox" required /><span><strong>Charge point communications verified</strong><small>Device identity and connector inventory match the handover.</small></span></label><label><input name="meter" type="checkbox" required /><span><strong>Meter identity and register baseline captured</strong><small>Meter ${esc(install.meterId)} is linked to the asset.</small></span></label><label><input name="hostAccess" type="checkbox" required /><span><strong>Site host access conditions confirmed</strong><small>${esc(site.host)} confirms operating access for the CPO.</small></span></label></fieldset><div class="form-submit-row"><span class="form-data-note">Acceptance opens the site for simulated operation.</span><button class="primary-button" type="submit">Accept commissioning ${icon("arrow")}</button></div></form>`,
     `<form class="cpo-product-form" data-cpo-submit="session"><div class="form-section-heading"><span class="eyebrow">CPO OPERATIONS · SESSION CLOSE</span><h2>Record completed charging and meter evidence</h2><p>Enter the measured register values. The billable energy is derived from the difference, not typed independently.</p></div><div class="form-context-card"><span>${icon("pulse")}</span><div><strong>${esc(site.name)} · ${esc(install.workOrder)}</strong><small>${esc(install.pointCount)} commissioned points · ${esc(install.meterId)}</small></div><span class="status-pill is-live"><i></i>Site operating</span></div><div class="form-field-grid"><label>Session reference<input name="sessionId" required value="CW-AMS-2048" /></label><label>Charge point<input name="chargePoint" required value="AMS-P2-07" /></label><label>Access method<select name="access"><option>Chargecard</option><option>Ad hoc payment</option><option>Fleet agreement</option></select></label><label>Meter start reading<input name="meterStart" type="number" min="0" step="0.001" required value="12840.500" /><small>kWh</small></label><label>Meter end reading<input name="meterEnd" type="number" min="0.001" step="0.001" required value="12883.100" /><small>kWh · must exceed start</small></label><label>Applied tariff<input name="tariff" type="number" min="0.01" step="0.01" required value="0.55" /><small>EUR / kWh · synthetic tariff</small></label></div><div class="form-submit-row"><span class="form-data-note">Meter difference and provisional session value will be calculated.</span><button class="primary-button" type="submit">Close session & rate ${icon("arrow")}</button></div></form>`,
-    `<div class="cpo-product-form"><div class="form-section-heading"><span class="eyebrow">CPO FINANCE · BILLING</span><h2>${cpoDemo.invoiceCreated ? "Invoice issued" : "Review the rated charge and issue an invoice"}</h2><p>Trace the amount from the accepted meter evidence and tariff into the customer billing record.</p></div>${cpoDemo.session ? `<div class="billing-source-card"><div><span class="eyebrow">SOURCE SESSION</span><strong>${esc(cpoDemo.session.sessionId)} · ${esc(site.name)}</strong><small>${esc(cpoDemo.session.chargePoint)} · ${esc(cpoDemo.session.access)} · Meter ${esc(install.meterId)}</small></div><span class="state-badge">Meter evidence accepted</span></div><div class="billing-calculation"><div><span>Meter start</span><strong>${formatNumber(Number(cpoDemo.session.meterStart))} kWh</strong></div><span class="calculation-operator">→</span><div><span>Meter end</span><strong>${formatNumber(Number(cpoDemo.session.meterEnd))} kWh</strong></div><span class="calculation-operator">×</span><div><span>Usage</span><strong>${formatNumber(meterDelta)} kWh</strong></div><span class="calculation-operator">×</span><div><span>Tariff</span><strong>${formatEuro(Number(cpoDemo.session.tariff))} / kWh</strong></div><div class="calculation-total"><span>Charge amount</span><strong>${formatEuro(billedAmount)}</strong></div></div><div class="billing-invoice-row"><div><span class="eyebrow">CUSTOMER BILLING</span><strong>${cpoDemo.invoiceCreated ? "Invoice INV-2026-10482 · Issued" : "Invoice draft · Ready for review"}</strong><small>${cpoDemo.invoiceCreated ? "Billing event recorded in this demo session." : "Invoice line is linked to the rated session and source meter evidence."}</small></div>${cpoDemo.invoiceCreated ? '<span class="status-pill is-live"><i></i>Issued</span>' : '<button class="primary-button" type="button" data-action="issue-demo-invoice">Issue demo invoice ' + icon("arrow") + '</button>'}</div>` : `<div class="empty-billing-state"><span class="dialog-icon">${icon("finance")}</span><h3>Billing is waiting for a completed session</h3><p>Complete the operations screen first. The invoice amount will then be calculated from the meter readings and applied tariff.</p><button class="secondary-button" type="button" data-cpo-screen="3">Return to operations ${icon("arrow")}</button></div>`}<div class="billing-demo-link"><div><span class="eyebrow">J07 / J08 · METERING & CORRECTION</span><strong>Need to handle a late or corrected reading?</strong><small>Open the interactive workflow to review evidence, make a human decision and issue a traceable correction.</small></div><a class="secondary-button" href="../developer/flows/" target="_blank" rel="noopener noreferrer">Open correction workflow ${icon("arrow")}</a></div></div>`,
+    `<div class="cpo-product-form"><div class="form-section-heading"><span class="eyebrow">CPO FINANCE · BILLING</span><h2>${cpoDemo.invoiceCreated ? "Invoice issued" : "Review the rated charge and issue an invoice"}</h2><p>Trace the amount from the accepted meter evidence and tariff into the customer billing record.</p></div>${cpoDemo.session ? `<div class="billing-source-card"><div><span class="eyebrow">SOURCE SESSION</span><strong>${esc(cpoDemo.session.sessionId)} · ${esc(site.name)}</strong><small>${esc(cpoDemo.session.chargePoint)} · ${esc(cpoDemo.session.access)} · Meter ${esc(install.meterId)}</small></div><span class="state-badge">Meter evidence accepted</span></div><div class="billing-calculation"><div><span>Meter start</span><strong>${formatNumber(Number(cpoDemo.session.meterStart))} kWh</strong></div><span class="calculation-operator">→</span><div><span>Meter end</span><strong>${formatNumber(Number(cpoDemo.session.meterEnd))} kWh</strong></div><span class="calculation-operator">×</span><div><span>Usage</span><strong>${formatNumber(meterDelta)} kWh</strong></div><span class="calculation-operator">×</span><div><span>Tariff</span><strong>${formatEuro(Number(cpoDemo.session.tariff))} / kWh</strong></div><div class="calculation-total"><span>Charge amount</span><strong>${formatEuro(billedAmount)}</strong></div></div><div class="billing-invoice-row"><div><span class="eyebrow">CUSTOMER BILLING</span><strong>${cpoDemo.invoiceCreated ? "Invoice INV-2026-10482 · Issued" : "Invoice draft · Ready for review"}</strong><small>${cpoDemo.invoiceCreated ? "Billing event recorded in this demo session." : "Invoice line is linked to the rated session and source meter evidence."}</small></div>${cpoDemo.invoiceCreated ? '<span class="status-pill is-live"><i></i>Issued</span>' : '<button class="primary-button" type="button" data-action="issue-demo-invoice">Issue demo invoice ' + icon("arrow") + '</button>'}</div>` : `<div class="empty-billing-state"><span class="dialog-icon">${icon("finance")}</span><h3>Billing is waiting for a completed session</h3><p>Complete the operations screen first. The invoice amount will then be calculated from the meter readings and applied tariff.</p><button class="secondary-button" type="button" data-cpo-screen="3">Return to operations ${icon("arrow")}</button></div>`}<div class="billing-demo-link"><div><span class="eyebrow">BILLING EXCEPTION · HUMAN REVIEW</span><strong>Need to handle a late or corrected reading?</strong><small>Open the work item to inspect evidence, update the reading and record a traceable decision.</small></div><button class="secondary-button" type="button" data-action="open-work-item">Review in My work ${icon("arrow")}</button></div></div>`,
   ];
   const titles = ["Site & agreement", "Installation order", "Commissioning", "Operations", "Billing"];
   const description = ["Create a site record and agree the host conditions.", "Assign the installation partner and capture asset handover details.", "Verify required evidence and accept the installed charge points.", "Record a completed session and its meter readings.", "Rate the session, issue the invoice and follow exceptions." ];
-  return `${heading("CPO site launch", "Use the application to onboard a parking site, commission its chargers, record a real usage path and produce the billing result.", '<button class="secondary-button" type="button" data-action="reset-cpo-demo">Reset demo data</button>')}<div class="cpo-product-shell"><nav class="cpo-product-steps" aria-label="Site launch screens">${progress}</nav><section class="cpo-product-main"><div class="cpo-product-title"><div><span class="eyebrow">SITE LAUNCH CASE · ${esc(site.city.toUpperCase())}</span><h1>${esc(titles[screen])}</h1><p>${esc(description[screen])}</p></div><span class="case-status ${cpoDemo.screen >= 3 ? "is-active" : ""}"><i></i>${cpoDemo.screen >= 3 ? "Site operating" : "Setup in progress"}</span></div>${screenMarkup[screen]}<div class="product-simulation-note">${icon("check")} This is the browser-based synthetic application. Form submissions update a simulated operational record; there is no connected backend or live charger.</div></section><aside class="cpo-case-summary"><span class="eyebrow">CASE CONTEXT</span><h2>${esc(site.name)}</h2><p>${esc(site.city)} · ${esc(site.country)} · ${esc(site.host)}</p><dl><div><dt>Site agreement</dt><dd>${cpoDemo.screen > 0 ? esc(site.agreement) : "Draft"}</dd></div><div><dt>Installer work order</dt><dd>${cpoDemo.screen > 1 ? esc(install.workOrder) : "Not issued"}</dd></div><div><dt>Assets</dt><dd>${cpoDemo.screen > 2 ? `${esc(install.pointCount)} commissioned` : `${esc(install.pointCount)} planned`}</dd></div><div><dt>Latest session</dt><dd>${cpoDemo.session ? esc(cpoDemo.session.sessionId) : "None"}</dd></div><div><dt>Invoice</dt><dd>${cpoDemo.invoiceCreated ? "INV-2026-10482" : "Not issued"}</dd></div></dl><div class="case-owner"><span class="profile-avatar">CW</span><span><strong>ChargeWeave Network BV</strong><small>Charge point operator</small></span></div></aside></div>`;
 }
+
+function workInboxPage() {
+  const caseData = meterCorrectionModel.case;
+  const completed = workRun.status === "completed";
+  const status = completed ? "Completed" : caseData.status === "open" ? "Needs review" : caseData.status;
+  const amount = completed
+    ? rateCorrectedReading(workRun.values.meterEnd).amountEur
+    : rateCorrectedReading(caseData.proposedMeterEnd).amountEur;
+  return `${heading("My work", "Review the decisions and data updates that need a person in the process.", '<span class="work-fixture-tag"><i></i> 1 task to review</span>')}
+    <div class="work-summary-grid" aria-label="Work summary">
+      <article><span>Needs your attention</span><strong>${completed ? "0" : "1"}</strong><small>Human task waiting on your decision</small></article>
+      <article><span>Completed today</span><strong>${completed ? "1" : "0"}</strong><small>Decisions recorded in this session</small></article>
+      <article><span>Team queue</span><strong>Billing operations</strong><small>CPO · Netherlands and Belgium</small></article>
+    </div>
+    <div class="work-inbox-toolbar"><div><span class="eyebrow">TASK INBOX</span><h2>Open work</h2><p>Tasks appear here when a process needs an authorized person to review evidence or update business data.</p></div><span class="subtle-tag">${completed ? "1 completed" : "1 task"}</span></div>
+    <section class="work-item-list" aria-label="Work items">
+      <button class="work-item-row${completed ? " is-complete" : ""}" type="button" data-action="open-work-item">
+        <span class="work-item-icon">${icon(completed ? "check" : "alert")}</span>
+        <span class="work-item-copy"><span class="work-item-kicker">${esc(caseData.category)} · ${esc(caseData.id)}</span><strong>${esc(caseData.title)}</strong><small>${esc(caseData.site)} · ${esc(caseData.sessionId)}</small></span>
+        <span class="work-item-value"><strong>${formatEuro(amount)}</strong><small>${completed ? "Re-rated amount" : "Proposed amount"}</small></span>
+        <span class="work-item-meta"><span class="work-state ${completed ? "is-complete" : ""}"><i></i>${status}</span><small>${completed ? "Completed just now" : esc(caseData.dueLabel)}</small></span>
+        ${icon("arrow", "work-item-arrow")}
+      </button>
+    </section>
+    <div class="work-inbox-footnote">The task list and status are generated from a synthetic work-item contract. Process engine state and technical transition names are kept out of the operator workspace.</div>`;
+}
+
+function workProgress() {
+  const stages = meterCorrectionModel.process.stages;
+  const completedThrough = workRun.status === "completed" ? stages.length - 1 : stages.findIndex((stage) => stage.id === workRun.currentStage);
+  return `<ol class="work-progress" aria-label="Case progress">${stages.map((stage, index) => {
+    const done = index < completedThrough || (workRun.status === "completed" && index <= completedThrough);
+    const current = workRun.status !== "completed" && index === completedThrough;
+    return `<li class="${done ? "is-done" : current ? "is-current" : ""}" aria-current="${current ? "step" : "false"}"><span>${done ? icon("check") : String(index + 1).padStart(2, "0")}</span><strong>${esc(stage.label)}</strong></li>`;
+  }).join("")}</ol>`;
+}
+
+function workCasePage() {
+  const caseData = meterCorrectionModel.case;
+  const completed = workRun.status === "completed";
+  const currentEnd = completed ? Number(workRun.values.meterEnd) : Number(caseData.proposedMeterEnd);
+  const currentRating = rateCorrectedReading(currentEnd, caseData);
+  const originalRating = rateCorrectedReading(caseData.originalMeterEnd, caseData);
+  const form = meterCorrectionModel.task.form;
+  const task = meterCorrectionModel.task;
+  const taskPanel = completed
+    ? `<section class="work-decision-complete" role="status"><span class="complete-mark">${icon("check")}</span><div><span class="eyebrow">DECISION RECORDED</span><h2>Billing adjustment prepared</h2><p>${esc(workRun.values.operatorNote)}</p><dl><div><dt>New usage</dt><dd>${formatNumber(currentRating.energyKwh)} kWh</dd></div><div><dt>Re-rated amount</dt><dd>${formatEuro(currentRating.amountEur)}</dd></div><div><dt>Correction record</dt><dd>ADJ-2026-00471</dd></div><div><dt>Evidence</dt><dd>${esc(workRun.values.evidenceReference)}</dd></div></dl></div></section>`
+    : `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">${esc(caseData.assignedRole)} · HUMAN REVIEW</span><h2>${esc(task.title)}</h2><p>${esc(task.instructions)}</p></div><span class="work-task-open"><i></i> Action required</span></div>
+      <form class="work-task-form" data-work-task="${esc(task.id)}"><div class="work-task-fields">${renderGeneratedTaskForm(form, workRun.values)}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Submitting records the decision and recalculates the billing amount.</span><button class="primary-button" type="submit">${esc(task.submitLabel)} ${icon("arrow")}</button></div></form>
+      <p class="work-form-boundary">Allowed fields come from this task's versioned presentation profile. The task host applies identity, permission, revision and business validation before the workflow resumes.</p></section>`;
+
+  return `${heading("Work item", "Review the evidence, record your decision, and keep the correction linked to its original charge.", `<button type="button" class="secondary-button" data-action="back-to-work">${icon("arrow")} Back to work</button>`)}
+    <div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : "Needs your review"}</span></div>
+    <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : "Waiting for CPO review"}</strong></div><span>${completed ? "4 of 4 stages" : "2 of 4 stages complete"}</span></div>${workProgress()}</section>
+    <div class="work-case-layout"><div class="work-case-main">${taskPanel}<section class="work-financial-impact"><div><span class="eyebrow">CALCULATED FROM METER EVIDENCE</span><h2>Billing impact</h2><p>Rate is € ${formatNumber(caseData.tariffEurPerKwh)} per kWh. The amount is recalculated from the register difference.</p></div><div class="work-impact-values"><div><span>Original</span><strong>${formatNumber(originalRating.energyKwh)} kWh · ${formatEuro(originalRating.amountEur)}</strong></div><div><span>${completed ? "Corrected" : "Proposed"}</span><strong>${formatNumber(currentRating.energyKwh)} kWh · ${formatEuro(currentRating.amountEur)}</strong></div><div class="work-impact-delta"><span>Adjustment</span><strong>${formatEuro(currentRating.amountEur - originalRating.amountEur)}</strong></div></div></section></div>
+      <aside class="work-case-aside"><section class="work-context-card"><div class="work-aside-title">${icon("plug")}<h3>Charging record</h3></div><dl><div><dt>Session</dt><dd>${esc(caseData.sessionId)}</dd></div><div><dt>Original CDR</dt><dd>${esc(caseData.cdrId)}</dd></div><div><dt>Site</dt><dd>${esc(caseData.site)}</dd></div><div><dt>Meter</dt><dd>${esc(caseData.meterId)}</dd></div><div><dt>Start reading</dt><dd>${formatNumber(caseData.meterStart)} kWh</dd></div><div><dt>Original end</dt><dd>${formatNumber(caseData.originalMeterEnd)} kWh</dd></div><div><dt>Partner proposal</dt><dd>${formatNumber(caseData.proposedMeterEnd)} kWh</dd></div><div><dt>Evidence ref</dt><dd>${esc(caseData.evidenceReference)}</dd></div></dl></section>
+      <section class="work-people-card"><div class="work-aside-title">${icon("overview")}<h3>People and responsibilities</h3></div><div class="work-person"><span class="profile-avatar">BO</span><span><strong>${esc(caseData.assignedRole)}</strong><small>${completed ? "Decision recorded by you" : "Responsible for reviewing the evidence"}</small></span></div><div class="work-person"><span class="profile-avatar partner-avatar">NP</span><span><strong>${esc(caseData.partner)}</strong><small>Submitted the revised meter evidence</small></span></div><div class="work-person"><span class="profile-avatar system-avatar">CW</span><span><strong>Billing service</strong><small>Re-rates after an accepted correction</small></span></div></section>
+      <section class="work-history-card"><div class="work-aside-title">${icon("clock")}<h3>Recent activity</h3></div><ol><li><i class="is-done"></i><span><strong>Mismatch detected</strong><small>${esc(caseData.openedAt)} · Reconciliation</small></span></li><li><i class="is-done"></i><span><strong>Partner evidence received</strong><small>Signed meter reading · ${esc(caseData.evidenceReference)}</small></span></li><li><i class="${completed ? "is-done" : "is-current"}"></i><span><strong>${completed ? "Decision recorded" : "Awaiting your review"}</strong><small>${completed ? "Correction linked to the original record" : esc(caseData.dueLabel)}</small></span></li></ol></section></aside></div>
+    <div class="workspace-footnote">Synthetic task and records. This interaction updates browser demo state only; it does not issue a real credit, invoice change, or payment.</div>`;
+}
+
+function workPage() {
+  return selectedWorkItem ? workCasePage() : workInboxPage();
+}
+
 function inspector(session) {
   if (!session) return '<aside class="inspector empty-inspector"><h2>Select a session</h2><p>Session context and process evidence will appear here.</p></aside>';
   const site = findSite(session.siteId);
@@ -386,6 +456,7 @@ function dataPage() {
 }
 function page() {
   switch (currentView) {
+    case "work": return workPage();
     case "journey": return journeyPage();
     case "operations": return operationsPage();
     case "sites": return sitesPage();
@@ -481,6 +552,7 @@ root.addEventListener("click", (event) => {
   const view = event.target.closest("[data-view]");
   if (view) {
     currentView = view.dataset.view;
+    if (currentView === "work") selectedWorkItem = false;
     country = "all";
     search = "";
     location.hash = currentView;
@@ -524,6 +596,9 @@ root.addEventListener("click", (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
   switch (action.dataset.action) {
+    case "open-work-item": selectedWorkItem = true; currentView = "work"; location.hash = "work"; render(); break;
+    case "back-to-work": selectedWorkItem = false; render(); break;
+    case "reset-work-demo": workRun = makeMeterCorrectionRun(); selectedWorkItem = false; currentView = "work"; render(); break;
     case "theme": theme = theme === "dark" ? "light" : "dark"; save("chargeweave-console-theme", theme); render(); break;
     case "arrange": arrange = !arrange; save("chargeweave-console-arrange", String(arrange)); render(); break;
     case "move-panel": movePanel(action.dataset.panel, action.dataset.direction); break;
@@ -547,6 +622,29 @@ root.addEventListener("click", (event) => {
   }
 });
 root.addEventListener("submit", (event) => {
+  const taskForm = event.target.closest("[data-work-task]");
+  if (taskForm) {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(taskForm).entries());
+    const meterEnd = Number(values.meterEnd);
+    const error = root.querySelector("#work-form-error");
+    const reading = taskForm.elements.namedItem("meterEnd");
+    if (meterEnd <= meterCorrectionModel.case.meterStart) {
+      reading.setCustomValidity("The corrected meter end must be greater than the start reading.");
+      reading.reportValidity();
+      reading.addEventListener("input", () => reading.setCustomValidity(""), { once: true });
+      if (error) { error.hidden = false; error.textContent = "The corrected reading must exceed the accepted start reading."; }
+      return;
+    }
+    if (error) error.hidden = true;
+    workRun.values = values;
+    workRun.status = "completed";
+    workRun.currentStage = "adjustment";
+    workRun.outcome = { type: "correction.accepted", amount: rateCorrectedReading(meterEnd).amountEur };
+    selectedWorkItem = true;
+    render();
+    return;
+  }
   const form = event.target.closest("[data-cpo-submit]");
   if (!form) return;
   event.preventDefault();

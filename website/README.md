@@ -20,7 +20,7 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `developer/switchboard/`     | Independent virtual, observe, hybrid and live adapter modes                                           |
 | `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
 | `developer/replay/`          | Seeded data generation, virtual time, fault injection and reproducible run records                     |
-| `app/`                       | Isolated operations console concept for owned NL/BE sites, European Chargecard roaming, energy, finance and data views |
+| `app/`                       | Isolated operations console concept for owned NL/BE sites, European Chargecard roaming, energy, finance, data, onboarding and a model-driven Work inbox |
 
 Each page has a real static `index.html` entry and page-specific metadata, so direct links and refreshes work on GitHub Pages. Class selection is shareable, for example `ontology/?class=TariffVersion`. The concept image is available from a disclosure at the bottom of the explorer; it is a visual study, not the source of model facts.
 
@@ -45,7 +45,7 @@ npm test
 npm run build
 ```
 
-The deployment workflow builds `console-app/` independently, then copies its static output into `website/dist/app/`. The console uses only browser-side synthetic fixtures. The guided Site to revenue screens demonstrate site-host agreement, installer work order, commissioning acceptance, metered session capture and a rated billing record before linking to the J07/J08 correction workflow in the developer guide. Its geographic view uses Leaflet with interactive OpenStreetMap tiles, so that view requires internet access and shows OpenStreetMap attribution. Its demo source module is a replaceable data-provider boundary; it does not call OCPP, OCPI, payments, roaming hubs, or production storage.
+The deployment workflow builds `console-app/` independently, then copies its static output into `website/dist/app/`. The console uses only browser-side synthetic fixtures. The guided Site to revenue screens demonstrate site-host agreement, installer work order, commissioning acceptance, metered session capture and a rated billing record. Its **My work** inbox demonstrates a separate operator UX for case progress, human evidence review and a task form rendered from a generic versioned descriptor; the correction example opens from the app's billing screen and finishes inside the app. The form renderer uses domain concepts, task constraints and explicit presentation hints; XState internals stay in developer documentation. Its geographic view uses Leaflet with interactive OpenStreetMap tiles, so that view requires internet access and shows OpenStreetMap attribution. Its demo source module is a replaceable data-provider boundary; it does not call OCPP, OCPI, payments, roaming hubs, or production storage.
 
 The prebuild/predev task runs `scripts/build-model.mjs`. It reads the existing `model/catalog.json`, `model/rules.json`, `model/domain.schema`, the complete ontology Turtle, and the structural/vocabulary SHACL. It does not modify ontology sources or their generated artifacts. N3 parses the actual RDF; no graph edges are fabricated from an image. Source model updates are handled by the repository's existing generators before the website build.
 
