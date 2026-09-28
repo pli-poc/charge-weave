@@ -29,6 +29,7 @@ const pages = [
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "platform", route: "developer/platform", label: "Workflow runtime" },
   { id: "human-tasks", route: "developer/human-tasks", label: "Human task forms" },
+  { id: "modeler", route: "developer/modeler", label: "Semantic Modeler" },
   { id: "simulator", route: "developer/simulator", label: "Simulator" },
   { id: "flows", route: "developer/flows", label: "Workflow Studio" },
   { id: "protocols", route: "developer/protocols", label: "Protocols" },
@@ -136,6 +137,7 @@ function RuntimePage() {
   const links = [
     ["platform", "Workflow runtime", "Explore the detailed XFlow, validation, XState and evidence boundaries."],
     ["human-tasks", "Human task forms", "Design task-scoped, ontology-guided human intervention and data correction."],
+    ["modeler", "Semantic Modeler", "Project ontology truth into generated business, process, application and information views."],
     ["simulator", "Simulator", "Run a seeded charge and inspect protocol and store output."],
     ["flows", "Workflow Studio", "Edit, inspect and run the visual J07/J08 bill-correction workflow."],
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
@@ -207,6 +209,75 @@ function RuntimePage() {
               <PageLink to={to}>Open {title.toLowerCase()}</PageLink>
             </article>
           ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function SemanticModelerPage() {
+  const phases = [
+    ["01", "Projection contract", "Define viewpoint manifests, ontology-to-notation mappings, relationship rules, filters and stable view identifiers."],
+    ["02", "Browser renderer", "Introduce React Flow for interaction, ELK.js for deterministic auto-layout and ChargeWeave-owned SVG shapes for ArchiMate-compatible concepts."],
+    ["03", "Explore mode", "Generate read-only business, process, application, information and stakeholder views from ontology queries with drill-down and provenance."],
+    ["04", "Design mode", "Persist positions, groups, annotations, hidden elements and layout preferences as view definitions without changing semantic truth."],
+    ["05", "Governed semantic edits", "Add explicit semantic editing only through validated commands, SHACL checks, previewed graph deltas and auditable changes."],
+    ["06", "Interchange and scale", "Add ArchiMate exchange where useful, saved viewpoints, large-graph virtualization, export and cross-view navigation."]
+  ];
+  const views = [
+    ["Business", "Actors, roles, services, capabilities and business processes."],
+    ["Process", "Events, workflow stages, decisions, human tasks and outcomes."],
+    ["Application", "Application components, services, interfaces and responsibilities."],
+    ["Information", "Business objects, data objects, provenance and semantic relationships."],
+    ["Stakeholder", "Who participates, owns, decides, receives or is affected."],
+    ["Journey", "A process-oriented projection aligned with XFlow and the Me View."]
+  ];
+  return (
+    <>
+      <section className="container dev-runtime-section">
+        <SectionTitle eyebrow="Planned build phase" title="Model once. Project many views.">
+          The Semantic Modeler will be a client-only projection layer over the ChargeWeave semantic model. Diagrams are generated views of ontology truth, not a second architecture repository that can drift away from the platform.
+        </SectionTitle>
+        <div className="dev-callout">
+          <Network size={23} />
+          <div>
+            <strong>Ontology owns meaning; the view owns presentation</strong>
+            <p>OWL, SHACL, temporal semantics and workflow bindings remain authoritative. A saved diagram stores presentation choices such as layout, grouping and annotations unless an explicit validated semantic edit is requested.</p>
+          </div>
+        </div>
+        <div className="dev-modeler-pipeline" aria-label="Semantic modeler architecture">
+          {["OWL + SHACL + temporal model", "SPARQL / projection query", "View graph + mapping profile", "ELK automatic layout", "React Flow + SVG notation", "Explore / Design view"].map((item, index) => (
+            <div key={item}><span>0{index + 1}</span><strong>{item}</strong></div>
+          ))}
+        </div>
+      </section>
+      <section className="dev-scenario-band">
+        <div className="container">
+          <SectionTitle eyebrow="Generated viewpoints" title="One graph, purpose-specific architecture views.">
+            A viewpoint selects concepts and relationships relevant to a question. Switching viewpoint changes the projection, not the underlying ChargeWeave facts.
+          </SectionTitle>
+          <div className="dev-modeler-view-grid">
+            {views.map(([name, text]) => <article key={name}><h3>{name}</h3><p>{text}</p></article>)}
+          </div>
+          <p className="dev-inline-note">Notation will use ChargeWeave-owned SVG rendering for standardized ArchiMate-style concepts. No Bizzdesign dependency, artwork, CSS or proprietary model assets are required.</p>
+        </div>
+      </section>
+      <section className="container dev-modeler-modes">
+        <SectionTitle eyebrow="Interaction contract" title="Explore freely. Edit deliberately." />
+        <div className="dev-mode-grid">
+          <article className="is-default"><span>01</span><h3>Explore mode</h3><p>Generated ontology projection; pan, zoom, filter, trace relationships, inspect provenance, change viewpoint and drill into related journeys without mutating semantic facts.</p></article>
+          <article><span>02</span><h3>Design mode</h3><p>Move nodes, group concepts, hide detail, annotate and save a reusable view definition. These are presentation changes and do not silently alter ontology meaning.</p></article>
+          <article><span>03</span><h3>Semantic edit</h3><p>A later governed mode converts deliberate model changes into semantic commands, previews the graph delta and accepts them only after ontology and SHACL validation.</p></article>
+        </div>
+      </section>
+      <section className="container dev-modeler-roadmap">
+        <SectionTitle eyebrow="Implementation roadmap" title="Build the projection boundary before the editor." />
+        <div className="dev-modeler-roadmap-list">
+          {phases.map(([number, title, text]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}
+        </div>
+        <div className="dev-callout">
+          <ShieldCheck size={23} />
+          <div><strong>Definition of done for the first usable release</strong><p>A reconciliation viewpoint can be generated deterministically from ontology-backed data, laid out entirely in the browser, switched between at least Business, Process and Information views, inspected back to semantic source identifiers, and saved as a presentation-only view without changing ontology facts.</p></div>
         </div>
       </section>
     </>
@@ -597,6 +668,10 @@ const pageCopy = {
     title: <>Human decisions.<br /><span>Scoped by the workflow.</span></>,
     description: "An interactive browser prototype compiles task-scoped forms from a versioned workflow contract, ontology terms and explicit validation shapes—without exposing unrestricted record editing.",
   },
+  modeler: {
+    title: <>Semantic architecture.<br /><span>Projected, not redrawn.</span></>,
+    description: "Roadmap and architecture for a fully client-side ChargeWeave modeler that projects ontology truth into ArchiMate-compatible business and architecture views.",
+  },
   simulator: {
     title: <>One seeded run.<br /><span>Every boundary inspectable.</span></>,
     description: "Run deterministic roaming-charge scenarios in the browser and inspect protocol-shaped messages, process decisions and five distinct simulated stores.",
@@ -638,6 +713,7 @@ export default function DeveloperPages({ route }) {
     runtime: <RuntimePage />,
     platform: <WorkflowPlatformOverview />,
     "human-tasks": <HumanTaskDesign />,
+    modeler: <SemanticModelerPage />,
     simulator: <SimulationWorkbench />,
     flows: <WorkflowStudio />,
     protocols: <ProtocolsPage />,
