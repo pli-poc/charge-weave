@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="500" viewBox="0 0 1440 500" fill="none">
+  <rect width="1440" height="500" rx="8" fill="#0D1920"/>
+  <path d="M0 104H1440" stroke="#294047"/>
+  <text x="72" y="66" fill="#66D8BA" font-family="Manrope,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="2">A CONNECTED OPERATING JOURNEY</text>
+  <text x="72" y="158" fill="#EDF5F3" font-family="Manrope,Arial,sans-serif" font-size="29" font-weight="600">Keep the evidence linked from site to settlement</text>
+  <g font-family="Manrope,Arial,sans-serif">
+    <rect x="72" y="218" width="360" height="188" rx="6" fill="#12232C" stroke="#365159"/>
+    <circle cx="112" cy="266" r="20" fill="#203B40"/>
+    <text x="112" y="272" fill="#66D8BA" font-size="15" font-weight="700" text-anchor="middle">01</text>
+    <text x="145" y="273" fill="#EDF5F3" font-size="22" font-weight="600">Physical service</text>
+    <text x="100" y="324" fill="#ABC0C2" font-size="16">Site · parking agreement</text>
+    <text x="100" y="352" fill="#ABC0C2" font-size="16">Charger · installation · repair</text>
+    <rect x="540" y="218" width="360" height="188" rx="6" fill="#12232C" stroke="#365159"/>
+    <circle cx="580" cy="266" r="20" fill="#203B40"/>
+    <text x="580" y="272" fill="#66D8BA" font-size="15" font-weight="700" text-anchor="middle">02</text>
+    <text x="613" y="273" fill="#EDF5F3" font-size="22" font-weight="600">Operational evidence</text>
+    <text x="568" y="324" fill="#ABC0C2" font-size="16">Session · meter reading</text>
+    <text x="568" y="352" fill="#ABC0C2" font-size="16">Source · timing · correction history</text>
+    <rect x="1008" y="218" width="360" height="188" rx="6" fill="#12232C" stroke="#365159"/>
+    <circle cx="1048" cy="266" r="20" fill="#203B40"/>
+    <text x="1048" y="272" fill="#66D8BA" font-size="15" font-weight="700" text-anchor="middle">03</text>
+    <text x="1081" y="273" fill="#EDF5F3" font-size="22" font-weight="600">Commercial outcome</text>
+    <text x="1036" y="324" fill="#ABC0C2" font-size="16">Tariff · rating · invoice line</text>
+    <text x="1036" y="352" fill="#ABC0C2" font-size="16">Partner responsibility · settlement</text>
+  </g>
+  <path d="M448 311H522M916 311H990" stroke="#66D8BA" stroke-width="2" stroke-linecap="round"/>
+  <path d="m512 301 10 10-10 10m468-20 10 10-10 10" stroke="#66D8BA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="72" y="458" fill="#90A8AC" font-family="Manrope,Arial,sans-serif" font-size="14">Each stage has its own owner; shared references make the full journey explainable.</text>
+</svg>

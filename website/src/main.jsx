@@ -8,6 +8,7 @@ const Home = lazy(() => import("./Home.jsx"));
 const ProductPages = lazy(() => import("./ProductPages.jsx"));
 const Ontology = lazy(() => import("./Ontology.jsx"));
 const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
+const Blog = lazy(() => import("./Blog.jsx"));
 export const base = import.meta.env.BASE_URL;
 export const repository = "https://github.com/pli-poc/charge-weave";
 export function Mark() {
@@ -41,6 +42,7 @@ function App() {
     ["architecture", "Architecture"],
     ["roadmap", "Roadmap"],
     ["app", "Operations console"],
+    ["blog", "Insights"],
     ["developer", "Developer guide"],
   ];
   return (
@@ -77,7 +79,11 @@ function App() {
                     ? route === "developer" || route.startsWith("developer/")
                       ? "page"
                       : undefined
-                    : route === path
+                    : path === "blog"
+                      ? route === "blog" || route.startsWith("blog/")
+                        ? "page"
+                        : undefined
+                      : route === path
                       ? "page"
                       : undefined
                 }
@@ -106,6 +112,8 @@ function App() {
       >
         {route === "ontology" ? (
           <Ontology />
+        ) : route === "blog" || route.startsWith("blog/") ? (
+          <Blog route={route} />
         ) : route === "developer" || route.startsWith("developer/") ? (
           <DeveloperPages route={route} />
         ) : route ? (

@@ -36,6 +36,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
 | `xflow/ontology.ttl`, `xflow/shapes.ttl`, `xflow/charge-correction.profile.json` | Generic workflow vocabulary, shapes and executable JSON-LD workflow profile |
+| `console-app/src/work-model.js`, `console-app/src/task-form-renderer.js` | Synthetic work-item fixture and generic operator task-form renderer; app styles and tests |
 | `tools/build_queries.py` | Competency questions and CQ queries |
 | `tests/negative-cases.json`, `tools/test_*.py` | Validation reports |
 
@@ -73,6 +74,16 @@ and select the run for the commit under review. Each verification gate uploads a
 The final artifact includes a ZIP, SHA-256 checksum, source and schemas, test reports,
 and `reports/build-provenance.json` with the commit, dependency versions and file hashes.
 Pull-request runs verify GitHub's merge commit; provenance records that exact commit.
+
+## Model-driven operator tasks
+
+The product workspace consumes business-facing tasks and renders task forms from descriptors. The ontology and shapes define field meaning and data constraints; the workflow `HumanTask` selects the allowed fields, context and outcomes; a versioned presentation profile supplies labels, grouping, help text and control hints. The reusable renderer maps approved descriptors to accessible controls inside the app's Work inbox and case view.
+
+The workflow host owns task creation, assignment, deadlines, business progress projection and event correlation. It does not send XState internals to the app. Task submission returns a versioned outcome and values to the trusted host, which rechecks identity, authorization, task revision, references, shapes and business rules before invoking the domain capability. The browser renderer's validation is for immediate feedback and is never an authorization or commit boundary.
+
+The current `console-app/` example uses an in-memory work-item fixture and demonstrates the task view for a corrected meter reading. `console-app/src/task-form-renderer.js` is shared across task descriptors; `work-model.js` defines the sample workflow milestones and task-specific form metadata. `website/src/HumanTaskDesign.jsx` remains a technical developer prototype for compiling and submitting a task to the simulated XState host. The operator app is a separate product-facing experience. Neither browser host is durable, production-authorized, or connected to live billing services.
+
+See [Generic task forms and operator workspace](task-form-engine.md) for the field contract, control mapping, security boundary and backend seam. The site walkthrough is available at `/developer/human-tasks/`, and the synthetic operator inbox at `/app/#work`.
 
 ## Report handling
 

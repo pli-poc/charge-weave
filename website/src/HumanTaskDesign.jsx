@@ -215,6 +215,25 @@ export default function HumanTaskDesign() {
 
       <TaskFormPrototype />
 
+      <section className="htd-section htd-workspace-overview" aria-labelledby="htd-workspace-title">
+        <div className="htd-section-heading">
+          <p className="eyebrow">From runtime task to operator workspace</p>
+          <h2 id="htd-workspace-title">People work from the app's inbox and case view.</h2>
+          <p>
+            The workflow host publishes a business-facing work item. The app presents its owner, due time, evidence and business milestones, then generates the current task form from its versioned presentation profile. Operators work in product language; runtime state and transition names remain in developer diagnostics.
+          </p>
+        </div>
+        <div className="htd-workspace-map">
+          <article><span>01</span><strong>Work inbox</strong><p>Assigned tasks with priority, due time and subject.</p></article>
+          <article><span>02</span><strong>Case progress</strong><p>Business milestones, evidence and participating roles.</p></article>
+          <article><span>03</span><strong>Generated task form</strong><p>Only the authorized fields and outcomes for this intervention.</p></article>
+          <article><span>04</span><strong>Trusted task host</strong><p>Rechecks identity, permissions, revision and domain rules on submission.</p></article>
+        </div>
+        <a className="htd-workspace-link" href={`${import.meta.env.BASE_URL}app/#work`}>
+          Open the synthetic Work inbox in the Operations app <ArrowRight size={16} />
+        </a>
+      </section>
+
       <section className="htd-flow" aria-label="Human task submission path">
         {stages.map(([number, title, description], index) => (
           <article key={number}>
