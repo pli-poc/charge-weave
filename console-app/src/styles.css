@@ -301,6 +301,83 @@ tr[hidden] { display: none; }
 .workspace-footnote { display: flex; align-items: center; gap: 7px; margin-top: 14px; color: var(--muted); font-size: 10px; }
 .workspace-footnote .icon { width: 12px; height: 12px; color: var(--green); }
 
+/* CPO site launch: working, simulated product screens rather than a static journey graphic. */
+.cpo-product-shell { display: grid; grid-template-columns: 190px minmax(0, 1fr) 225px; gap: 14px; align-items: start; }
+.cpo-product-steps, .cpo-product-main, .cpo-case-summary { border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }
+.cpo-product-steps { padding: 8px; }
+.cpo-screen-tab { width: 100%; display: flex; align-items: center; gap: 9px; min-height: 43px; padding: 7px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); text-align: left; }
+.cpo-screen-tab:not(:disabled) { cursor: pointer; }
+.cpo-screen-tab:disabled { opacity: .48; }
+.cpo-screen-tab.is-current { background: var(--accent-wash); color: var(--text); }
+.cpo-screen-tab.is-complete { color: var(--green); }
+.cpo-screen-tab > span { width: 23px; height: 23px; display: grid; place-items: center; flex: 0 0 23px; border: 1px solid var(--line); border-radius: 50%; font-size: 9px; font-weight: 750; }
+.cpo-screen-tab.is-current > span { border-color: var(--accent); color: var(--accent); }
+.cpo-screen-tab.is-complete > span { border-color: color-mix(in srgb, var(--green) 55%, var(--line)); }
+.cpo-screen-tab > span .icon { width: 12px; height: 12px; }
+.cpo-screen-tab strong { font-size: 10px; font-weight: 680; }
+.cpo-product-main { min-width: 0; padding: 22px; }
+.cpo-product-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 22px; padding-bottom: 15px; border-bottom: 1px solid var(--line-soft); }
+.cpo-product-title h1 { margin: 5px 0 5px; font-size: 19px; letter-spacing: -.45px; }
+.cpo-product-title p, .form-section-heading p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.case-status { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 5px 8px; border: 1px solid var(--line); border-radius: 20px; color: var(--muted); font-size: 9px; white-space: nowrap; }
+.case-status i, .status-pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+.case-status.is-active i { background: var(--green); }
+.form-section-heading { margin-bottom: 16px; }
+.form-section-heading h2 { margin: 5px 0 5px; font-size: 15px; letter-spacing: -.2px; }
+.form-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px 12px; }
+.form-field-grid label { display: flex; flex-direction: column; gap: 5px; color: var(--text-soft); font-size: 10px; font-weight: 650; }
+.form-field-grid input, .form-field-grid select { width: 100%; min-height: 35px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 5px; outline: none; background: var(--canvas-raised); color: var(--text); font: inherit; font-size: 10px; }
+.form-field-grid input:focus, .form-field-grid select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent); }
+.form-field-grid label small { color: var(--muted); font-size: 9px; font-weight: 450; }
+.form-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 21px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.form-data-note { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.form-context-card, .billing-source-card { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 11px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--canvas-raised); }
+.form-context-card > span:first-child { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: var(--accent-wash); color: var(--accent); }
+.form-context-card > span:first-child .icon { width: 15px; height: 15px; }
+.form-context-card > div, .billing-source-card > div { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.form-context-card strong, .billing-source-card strong { color: var(--text); font-size: 10px; }
+.form-context-card small, .billing-source-card small { color: var(--muted); font-size: 9px; }
+.commissioning-checks { display: grid; gap: 0; margin: 0; padding: 0; border: 1px solid var(--line-soft); border-radius: 6px; }
+.commissioning-checks legend { margin-left: 10px; padding: 0 5px; color: var(--muted); font-size: 9px; font-weight: 700; }
+.commissioning-checks label { display: flex; align-items: flex-start; gap: 9px; padding: 11px; border-bottom: 1px solid var(--line-soft); cursor: pointer; }
+.commissioning-checks label:last-child { border-bottom: 0; }
+.commissioning-checks input { accent-color: var(--accent-strong); margin-top: 2px; }
+.commissioning-checks label span { display: flex; flex-direction: column; gap: 3px; }
+.commissioning-checks strong { color: var(--text-soft); font-size: 9px; }
+.commissioning-checks small { color: var(--muted); font-size: 9px; line-height: 1.4; }
+.billing-source-card { justify-content: space-between; }
+.billing-calculation { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 13px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--canvas-raised); }
+.billing-calculation > div:not(.calculation-total) { display: flex; flex-direction: column; gap: 5px; }
+.billing-calculation span { color: var(--muted); font-size: 9px; }
+.billing-calculation strong { color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums; }
+.calculation-operator { color: var(--faint) !important; }
+.billing-calculation .calculation-total { display: flex; flex-direction: column; gap: 4px; margin-left: auto; padding-left: 16px; border-left: 1px solid var(--line); }
+.billing-calculation .calculation-total strong { color: var(--accent); font-size: 20px; }
+.billing-invoice-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; padding: 13px; border: 1px solid var(--line-soft); border-radius: 6px; }
+.billing-invoice-row > div, .billing-demo-link > div { display: flex; flex-direction: column; gap: 4px; }
+.billing-invoice-row strong, .billing-demo-link strong { color: var(--text); font-size: 10px; }
+.billing-invoice-row small, .billing-demo-link small { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.billing-demo-link { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 17px; padding: 13px; border: 1px solid color-mix(in srgb, var(--violet) 28%, var(--line)); border-radius: 6px; background: var(--violet-wash); }
+.billing-demo-link .eyebrow { color: var(--violet); }
+.empty-billing-state { display: grid; justify-items: start; gap: 8px; padding: 20px 12px; border: 1px dashed var(--line); border-radius: 6px; }
+.empty-billing-state h3, .empty-billing-state p { margin: 0; }
+.empty-billing-state h3 { font-size: 12px; }
+.empty-billing-state p { max-width: 430px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.cpo-case-summary { position: sticky; top: 76px; padding: 15px; }
+.cpo-case-summary h2 { margin: 6px 0 4px; font-size: 13px; }
+.cpo-case-summary > p { margin: 0; color: var(--muted); font-size: 9px; }
+.cpo-case-summary dl { margin: 15px 0; padding: 4px 0; border-top: 1px solid var(--line-soft); }
+.cpo-case-summary dl > div { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.cpo-case-summary dt, .cpo-case-summary dd { font-size: 9px; }
+.cpo-case-summary dt { color: var(--muted); }
+.cpo-case-summary dd { max-width: 105px; margin: 0; color: var(--text-soft); text-align: right; font-weight: 650; }
+.case-owner { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.case-owner > span:last-child { display: flex; flex-direction: column; gap: 3px; }
+.case-owner strong { font-size: 9px; }
+.case-owner small { color: var(--muted); font-size: 9px; }
+.product-simulation-note { display: flex; align-items: flex-start; gap: 7px; margin-top: 16px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.product-simulation-note .icon { width: 12px; height: 12px; flex: 0 0 12px; color: var(--green); }
+
 .workbench-grid { display: grid; grid-template-columns: minmax(0,1fr) 305px; gap: 13px; align-items: start; }
 .operations-table { overflow: hidden; }
 .operations-table .table-wrap { border: 0; border-radius: 0; }
@@ -755,6 +832,25 @@ tr[hidden] { display: none; }
   .mobile-menu { width: 31px; height: 31px; padding: 5px; }
   .global-search { width: 31px; flex-basis: 31px; }
   .arrange-button, .theme-toggle { width: 30px; height: 30px; }
+}
+@media (max-width: 1120px) {
+  .cpo-product-shell { grid-template-columns: 170px minmax(0, 1fr); }
+  .cpo-case-summary { position: static; grid-column: 2; }
+}
+@media (max-width: 720px) {
+  .cpo-product-shell { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .cpo-product-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; padding: 5px; }
+  .cpo-screen-tab { justify-content: center; min-height: 38px; padding: 3px; }
+  .cpo-screen-tab > span { width: 21px; height: 21px; flex-basis: 21px; }
+  .cpo-screen-tab strong { display: none; }
+  .cpo-product-main { padding: 15px; }
+  .cpo-case-summary { grid-column: 1; }
+  .cpo-product-title { align-items: flex-start; flex-direction: column; }
+  .form-field-grid { grid-template-columns: minmax(0, 1fr); }
+  .form-submit-row, .billing-demo-link, .billing-invoice-row { align-items: stretch; flex-direction: column; }
+  .form-submit-row .primary-button, .billing-demo-link .secondary-button, .billing-invoice-row .primary-button { width: 100%; }
+  .billing-calculation { align-items: flex-start; }
+  .billing-calculation .calculation-total { width: 100%; margin: 4px 0 0; padding: 10px 0 0; border-top: 1px solid var(--line); border-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; }

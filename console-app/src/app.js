@@ -13,9 +13,10 @@ const recentActivity = provider.getActivity();
 const roamingSessions = provider.getRoamingSessions();
 
 const root = document.querySelector("#app");
-const views = ["overview", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
+const views = ["overview", "journey", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
 const nav = [
   { id: "overview", label: "Overview", icon: "overview", group: "Workspace" },
+  { id: "journey", label: "Site to revenue", icon: "journey", group: "Workspace" },
   { id: "operations", label: "Live operations", icon: "pulse", group: "Workspace" },
   { id: "sites", label: "Sites & parking", icon: "pin", group: "Assets" },
   { id: "geography", label: "Network map", icon: "map", group: "Assets" },
@@ -27,6 +28,7 @@ const nav = [
 ];
 const iconPaths = {
   overview: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  journey: '<path d="M4 6h6v5H4zM14 13h6v5h-6zM10 8.5h4a2 2 0 0 1 2 2v2.5"/><path d="m14 11 2 2 2-2"/>',
   pulse: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
   plug: '<path d="M9 7V3m6 4V3M7 7h10v4a5 5 0 0 1-5 5v5m-5-14v4a5 5 0 0 0 5 5"/>',
@@ -65,6 +67,14 @@ let networkMapFocus = null;
 let selectedEntity = "Session";
 let dataTab = "Graph";
 let sidebarOpen = false;
+const cpoDemo = {
+  screen: 0,
+  site: { name: "Arena parking P2", host: "Arena Parking Services", address: "Burgemeester Stramanweg 130", city: "Amsterdam", country: "NL", spaces: 480, capacityKw: 900, agreement: "SA-ARENA-2026-014" },
+  installation: { partner: "Northline Charge Installations", workOrder: "WO-AMS-2048", pointCount: 12, hardware: "Alfen Twin 5 Plus", meterId: "NL-MTR-AMS-4481" },
+  commissioning: false,
+  session: null,
+  invoiceCreated: false,
+};
 if (!Array.isArray(panelOrder) || panelOrder.length !== 4) panelOrder = ["sites", "roaming", "activity", "energy"];
 
 function stored(key) {
@@ -172,6 +182,25 @@ function overviewPage() {
     <section class="kpi-grid" aria-label="Network performance">${kpi("Live sessions", "10", '<span class="delta-positive">4 Chargecard</span> · 2 fleet agreements', "plug")}${kpi("Charge points online", `${metrics.online}<small> / ${metrics.chargePoints}</small>`, '<span class="delta-positive">97,8%</span> network availability', "check")}${kpi("Energy delivered today", "18,6 <small>MWh</small>", '<span class="delta-positive">+8,4%</span> against previous day', "energy", "blue")}${kpi("Session value today", formatEuro(2463.04), 'Gross session value <span class="tax-note">incl. VAT</span>', "finance", "violet")}</section>
     <div class="dashboard-grid${arrange ? " is-arranging" : ""}" id="dashboard-grid">${panelOrder.map((key) => panels[key]).join("")}</div>
     <div class="workspace-footnote">${icon("check")} Demo workspace · deterministic synthetic data · no live charge points or payment services are connected.</div>`;
+}
+function journeyPage() {
+  const steps = ["Site & agreement", "Installation order", "Commissioning", "Operations", "Billing"];
+  const screen = Math.min(cpoDemo.screen, steps.length - 1);
+  const progress = steps.map((label, index) => `<button class="cpo-screen-tab${screen === index ? " is-current" : ""}${screen > index ? " is-complete" : ""}" type="button" data-cpo-screen="${index}" ${index > screen ? "disabled" : ""}><span>${index < screen ? icon("check") : `0${index + 1}`}</span><strong>${label}</strong></button>`).join("");
+  const site = cpoDemo.site;
+  const install = cpoDemo.installation;
+  const meterDelta = cpoDemo.session ? Math.max(0, Number(cpoDemo.session.meterEnd) - Number(cpoDemo.session.meterStart)) : 0;
+  const billedAmount = cpoDemo.session ? meterDelta * Number(cpoDemo.session.tariff) : 0;
+  const screenMarkup = [
+    `<form class="cpo-product-form" data-cpo-submit="site"><div class="form-section-heading"><span class="eyebrow">SITE HOST · COMMERCIAL ONBOARDING</span><h2>Register the parking location</h2><p>Capture who provides the site and the conditions the CPO must operate under.</p></div><div class="form-field-grid"><label>Site name<input name="name" required value="${esc(site.name)}" /></label><label>Site host / legal party<input name="host" required value="${esc(site.host)}" /></label><label>Street address<input name="address" required value="${esc(site.address)}" /></label><label>City<input name="city" required value="${esc(site.city)}" /></label><label>Country<select name="country"><option value="NL" ${site.country === "NL" ? "selected" : ""}>Netherlands</option><option value="BE" ${site.country === "BE" ? "selected" : ""}>Belgium</option></select></label><label>Parking spaces<input name="spaces" type="number" min="1" required value="${esc(site.spaces)}" /></label><label>Agreed site capacity<input name="capacityKw" type="number" min="1" step="1" required value="${esc(site.capacityKw)}" /><small>kW · subject to the connection agreement</small></label><label>Agreement reference<input name="agreement" required value="${esc(site.agreement)}" /></label></div><div class="form-submit-row"><span class="form-data-note">Creates a draft site and records the site agreement reference.</span><button class="primary-button" type="submit">Save site & continue ${icon("arrow")}</button></div></form>`,
+    `<form class="cpo-product-form" data-cpo-submit="installation"><div class="form-section-heading"><span class="eyebrow">CPO ASSET TEAM · PARTNER WORK ORDER</span><h2>Assign installation and handover</h2><p>Create a scoped installation order tied to the agreed site and contracted capacity.</p></div><div class="form-context-card"><span>${icon("pin")}</span><div><strong>${esc(site.name)}</strong><small>${esc(site.address)}, ${esc(site.city)} · ${formatNumber(Number(site.capacityKw))} kW · Agreement ${esc(site.agreement)}</small></div><span class="state-badge">Agreement recorded</span></div><div class="form-field-grid"><label>Installation partner<input name="partner" required value="${esc(install.partner)}" /></label><label>Work order reference<input name="workOrder" required value="${esc(install.workOrder)}" /></label><label>Number of charge points<input name="pointCount" type="number" min="1" max="100" required value="${esc(install.pointCount)}" /></label><label>Charger model<input name="hardware" required value="${esc(install.hardware)}" /></label><label>Meter identity<input name="meterId" required value="${esc(install.meterId)}" /></label><label>Handover due<input name="dueDate" type="date" value="2026-10-15" /></label></div><div class="form-submit-row"><span class="form-data-note">Partner handover remains attached to this work order.</span><button class="primary-button" type="submit">Issue installation order ${icon("arrow")}</button></div></form>`,
+    `<form class="cpo-product-form" data-cpo-submit="commissioning"><div class="form-section-heading"><span class="eyebrow">CPO OPERATIONS · ASSET ACCEPTANCE</span><h2>Review the commissioning evidence</h2><p>Accept the installation only after the required safety, connectivity and meter checks are complete.</p></div><div class="form-context-card"><span>${icon("plug")}</span><div><strong>${esc(install.workOrder)} · ${esc(install.partner)}</strong><small>${esc(install.pointCount)} ${Number(install.pointCount) === 1 ? "charge point" : "charge points"} · ${esc(install.hardware)} · Meter ${esc(install.meterId)}</small></div><span class="state-badge">Handover received</span></div><fieldset class="commissioning-checks"><legend>Acceptance checks</legend><label><input name="safe" type="checkbox" required /><span><strong>Electrical and site safety evidence reviewed</strong><small>Partner test result is recorded against the work order.</small></span></label><label><input name="connected" type="checkbox" required /><span><strong>Charge point communications verified</strong><small>Device identity and connector inventory match the handover.</small></span></label><label><input name="meter" type="checkbox" required /><span><strong>Meter identity and register baseline captured</strong><small>Meter ${esc(install.meterId)} is linked to the asset.</small></span></label><label><input name="hostAccess" type="checkbox" required /><span><strong>Site host access conditions confirmed</strong><small>${esc(site.host)} confirms operating access for the CPO.</small></span></label></fieldset><div class="form-submit-row"><span class="form-data-note">Acceptance opens the site for simulated operation.</span><button class="primary-button" type="submit">Accept commissioning ${icon("arrow")}</button></div></form>`,
+    `<form class="cpo-product-form" data-cpo-submit="session"><div class="form-section-heading"><span class="eyebrow">CPO OPERATIONS · SESSION CLOSE</span><h2>Record completed charging and meter evidence</h2><p>Enter the measured register values. The billable energy is derived from the difference, not typed independently.</p></div><div class="form-context-card"><span>${icon("pulse")}</span><div><strong>${esc(site.name)} · ${esc(install.workOrder)}</strong><small>${esc(install.pointCount)} commissioned points · ${esc(install.meterId)}</small></div><span class="status-pill is-live"><i></i>Site operating</span></div><div class="form-field-grid"><label>Session reference<input name="sessionId" required value="CW-AMS-2048" /></label><label>Charge point<input name="chargePoint" required value="AMS-P2-07" /></label><label>Access method<select name="access"><option>Chargecard</option><option>Ad hoc payment</option><option>Fleet agreement</option></select></label><label>Meter start reading<input name="meterStart" type="number" min="0" step="0.001" required value="12840.500" /><small>kWh</small></label><label>Meter end reading<input name="meterEnd" type="number" min="0.001" step="0.001" required value="12883.100" /><small>kWh · must exceed start</small></label><label>Applied tariff<input name="tariff" type="number" min="0.01" step="0.01" required value="0.55" /><small>EUR / kWh · synthetic tariff</small></label></div><div class="form-submit-row"><span class="form-data-note">Meter difference and provisional session value will be calculated.</span><button class="primary-button" type="submit">Close session & rate ${icon("arrow")}</button></div></form>`,
+    `<div class="cpo-product-form"><div class="form-section-heading"><span class="eyebrow">CPO FINANCE · BILLING</span><h2>${cpoDemo.invoiceCreated ? "Invoice issued" : "Review the rated charge and issue an invoice"}</h2><p>Trace the amount from the accepted meter evidence and tariff into the customer billing record.</p></div>${cpoDemo.session ? `<div class="billing-source-card"><div><span class="eyebrow">SOURCE SESSION</span><strong>${esc(cpoDemo.session.sessionId)} · ${esc(site.name)}</strong><small>${esc(cpoDemo.session.chargePoint)} · ${esc(cpoDemo.session.access)} · Meter ${esc(install.meterId)}</small></div><span class="state-badge">Meter evidence accepted</span></div><div class="billing-calculation"><div><span>Meter start</span><strong>${formatNumber(Number(cpoDemo.session.meterStart))} kWh</strong></div><span class="calculation-operator">→</span><div><span>Meter end</span><strong>${formatNumber(Number(cpoDemo.session.meterEnd))} kWh</strong></div><span class="calculation-operator">×</span><div><span>Usage</span><strong>${formatNumber(meterDelta)} kWh</strong></div><span class="calculation-operator">×</span><div><span>Tariff</span><strong>${formatEuro(Number(cpoDemo.session.tariff))} / kWh</strong></div><div class="calculation-total"><span>Charge amount</span><strong>${formatEuro(billedAmount)}</strong></div></div><div class="billing-invoice-row"><div><span class="eyebrow">CUSTOMER BILLING</span><strong>${cpoDemo.invoiceCreated ? "Invoice INV-2026-10482 · Issued" : "Invoice draft · Ready for review"}</strong><small>${cpoDemo.invoiceCreated ? "Billing event recorded in this demo session." : "Invoice line is linked to the rated session and source meter evidence."}</small></div>${cpoDemo.invoiceCreated ? '<span class="status-pill is-live"><i></i>Issued</span>' : '<button class="primary-button" type="button" data-action="issue-demo-invoice">Issue demo invoice ' + icon("arrow") + '</button>'}</div>` : `<div class="empty-billing-state"><span class="dialog-icon">${icon("finance")}</span><h3>Billing is waiting for a completed session</h3><p>Complete the operations screen first. The invoice amount will then be calculated from the meter readings and applied tariff.</p><button class="secondary-button" type="button" data-cpo-screen="3">Return to operations ${icon("arrow")}</button></div>`}<div class="billing-demo-link"><div><span class="eyebrow">J07 / J08 · METERING & CORRECTION</span><strong>Need to handle a late or corrected reading?</strong><small>Open the interactive workflow to review evidence, make a human decision and issue a traceable correction.</small></div><a class="secondary-button" href="../developer/flows/" target="_blank" rel="noopener noreferrer">Open correction workflow ${icon("arrow")}</a></div></div>`,
+  ];
+  const titles = ["Site & agreement", "Installation order", "Commissioning", "Operations", "Billing"];
+  const description = ["Create a site record and agree the host conditions.", "Assign the installation partner and capture asset handover details.", "Verify required evidence and accept the installed charge points.", "Record a completed session and its meter readings.", "Rate the session, issue the invoice and follow exceptions." ];
+  return `${heading("CPO site launch", "Use the application to onboard a parking site, commission its chargers, record a real usage path and produce the billing result.", '<button class="secondary-button" type="button" data-action="reset-cpo-demo">Reset demo data</button>')}<div class="cpo-product-shell"><nav class="cpo-product-steps" aria-label="Site launch screens">${progress}</nav><section class="cpo-product-main"><div class="cpo-product-title"><div><span class="eyebrow">SITE LAUNCH CASE · ${esc(site.city.toUpperCase())}</span><h1>${esc(titles[screen])}</h1><p>${esc(description[screen])}</p></div><span class="case-status ${cpoDemo.screen >= 3 ? "is-active" : ""}"><i></i>${cpoDemo.screen >= 3 ? "Site operating" : "Setup in progress"}</span></div>${screenMarkup[screen]}<div class="product-simulation-note">${icon("check")} This is the browser-based synthetic application. Form submissions update a simulated operational record; there is no connected backend or live charger.</div></section><aside class="cpo-case-summary"><span class="eyebrow">CASE CONTEXT</span><h2>${esc(site.name)}</h2><p>${esc(site.city)} · ${esc(site.country)} · ${esc(site.host)}</p><dl><div><dt>Site agreement</dt><dd>${cpoDemo.screen > 0 ? esc(site.agreement) : "Draft"}</dd></div><div><dt>Installer work order</dt><dd>${cpoDemo.screen > 1 ? esc(install.workOrder) : "Not issued"}</dd></div><div><dt>Assets</dt><dd>${cpoDemo.screen > 2 ? `${esc(install.pointCount)} commissioned` : `${esc(install.pointCount)} planned`}</dd></div><div><dt>Latest session</dt><dd>${cpoDemo.session ? esc(cpoDemo.session.sessionId) : "None"}</dd></div><div><dt>Invoice</dt><dd>${cpoDemo.invoiceCreated ? "INV-2026-10482" : "Not issued"}</dd></div></dl><div class="case-owner"><span class="profile-avatar">CW</span><span><strong>ChargeWeave Network BV</strong><small>Charge point operator</small></span></div></aside></div>`;
 }
 function inspector(session) {
   if (!session) return '<aside class="inspector empty-inspector"><h2>Select a session</h2><p>Session context and process evidence will appear here.</p></aside>';
@@ -357,6 +386,7 @@ function dataPage() {
 }
 function page() {
   switch (currentView) {
+    case "journey": return journeyPage();
     case "operations": return operationsPage();
     case "sites": return sitesPage();
     case "geography": return geographyPage();
@@ -439,6 +469,15 @@ function bindDragging() {
 }
 
 root.addEventListener("click", (event) => {
+  const cpoScreen = event.target.closest("[data-cpo-screen]");
+  if (cpoScreen) {
+    const targetScreen = Number(cpoScreen.dataset.cpoScreen);
+    if (Number.isInteger(targetScreen) && targetScreen <= cpoDemo.screen) {
+      cpoDemo.screen = targetScreen;
+      render();
+    }
+    return;
+  }
   const view = event.target.closest("[data-view]");
   if (view) {
     currentView = view.dataset.view;
@@ -496,10 +535,52 @@ root.addEventListener("click", (event) => {
     case "export-data": exportCsv("data"); break;
     case "export-roaming": exportCsv("roaming"); break;
     case "export-sites": exportCsv("sites"); break;
-    case "new-site": case "session-note": case "panel-menu": showSourceDialog(); break;
+    case "new-site": cpoDemo.screen = 0; currentView = "journey"; location.hash = "journey"; render(); break;
+    case "session-note": case "panel-menu": showSourceDialog(); break;
+    case "reset-cpo-demo":
+      Object.assign(cpoDemo, { screen: 0, site: { name: "Arena parking P2", host: "Arena Parking Services", address: "Burgemeester Stramanweg 130", city: "Amsterdam", country: "NL", spaces: 480, capacityKw: 900, agreement: "SA-ARENA-2026-014" }, installation: { partner: "Northline Charge Installations", workOrder: "WO-AMS-2048", pointCount: 12, hardware: "Alfen Twin 5 Plus", meterId: "NL-MTR-AMS-4481" }, commissioning: false, session: null, invoiceCreated: false });
+      render();
+      break;
+    case "issue-demo-invoice": cpoDemo.invoiceCreated = true; render(); break;
     case "run-query": dataTab = "Table"; render(); break;
     default: break;
   }
+});
+root.addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-cpo-submit]");
+  if (!form) return;
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(form).entries());
+  if (form.dataset.cpoSubmit === "site") {
+    cpoDemo.site = { ...cpoDemo.site, ...values };
+    cpoDemo.commissioning = false;
+    cpoDemo.session = null;
+    cpoDemo.invoiceCreated = false;
+    cpoDemo.screen = 1;
+  } else if (form.dataset.cpoSubmit === "installation") {
+    cpoDemo.installation = { ...cpoDemo.installation, ...values };
+    cpoDemo.commissioning = false;
+    cpoDemo.session = null;
+    cpoDemo.invoiceCreated = false;
+    cpoDemo.screen = 2;
+  } else if (form.dataset.cpoSubmit === "commissioning") {
+    cpoDemo.commissioning = true;
+    cpoDemo.session = null;
+    cpoDemo.invoiceCreated = false;
+    cpoDemo.screen = 3;
+  } else if (form.dataset.cpoSubmit === "session") {
+    if (Number(values.meterEnd) <= Number(values.meterStart)) {
+      const end = form.elements.namedItem("meterEnd");
+      end.setCustomValidity("The final meter reading must be greater than the start reading.");
+      end.reportValidity();
+      end.addEventListener("input", () => end.setCustomValidity(""), { once: true });
+      return;
+    }
+    cpoDemo.session = values;
+    cpoDemo.invoiceCreated = false;
+    cpoDemo.screen = 4;
+  }
+  render();
 });
 root.addEventListener("input", (event) => {
   if (event.target.id === "global-search") { search = event.target.value; filterRows(search); }
