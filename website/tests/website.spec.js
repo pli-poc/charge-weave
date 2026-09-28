@@ -97,3 +97,35 @@ test("the corporate navigation opens the co-hosted operations console", async ({
   await expect(page).toHaveURL(/\/charge-weave\/app\/$/);
   await expect(page.getByRole("heading", { name: "Network overview" })).toBeVisible();
 });
+
+test("the Insights blog filters Markdown articles and copies a LinkedIn draft", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text) => { window.__copiedMarkdown = text; } },
+    });
+  });
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("./blog/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ideas for a more connected charging business.");
+  await expect(page.getByRole("link", { name: /A charging network is an operating business/ })).toBeVisible();
+  await page.getByRole("button", { name: "Platform architecture" }).click();
+  await expect(page.getByText("No articles in this topic yet.")).toBeVisible();
+  await page.getByRole("button", { name: "Charging operations" }).click();
+  await page.getByRole("link", { name: /A charging network is an operating business/ }).click();
+  await expect(page).toHaveURL(/\/blog\/operating-the-whole-charging-journey\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A charging network is an operating business, not a map of sockets");
+  await expect(page.locator(".insight-prose h2").first()).toHaveText("Connect the physical and commercial views");
+  await expect(page.locator(".insight-prose img").first()).toHaveJSProperty("naturalWidth", 1440);
+  await page.getByRole("button", { name: "Copy Markdown" }).click();
+  await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+  const copied = await page.evaluate(() => window.__copiedMarkdown);
+  expect(copied).toContain("# A charging network is an operating business, not a map of sockets");
+  expect(copied).toContain("## Preserve evidence as the work moves");
+  expect(copied).toContain("https://pli-poc.github.io/charge-weave/blog/assets/operating-the-whole-charging-journey/operating-journey.png");
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A charging network is an operating business, not a map of sockets");
+  expect(errors).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
