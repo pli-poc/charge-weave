@@ -1,10 +1,10 @@
 # ChargeWeave blog content
 
-Write posts as Markdown in `articles/`. The site builds one public page for each article marked `published: true`; drafts stay in the repository and are not rendered.
+Write posts as Markdown in `articles/`. The site builds one public page for each article marked `published: true`. Only published article text and referenced images are included in the site build; draft articles and unused image files stay in the repository.
 
 ## Add an article
 
-1. Copy `articles/_template.md` and name the copy with a URL-friendly slug, such as `why-operational-context-matters.md`.
+1. Copy `article-template.md` into `articles/` and give it a URL-friendly name, such as `why-operational-context-matters.md`.
 2. Fill in the front matter. Use an ISO date (`YYYY-MM-DD`) and one of the categories shown below.
 3. Write the article body in Markdown. Standard headings, links, lists, blockquotes, fenced code and images are supported.
 4. Put image files in `assets/<article-slug>/` and link them relative to the article. For example, from `articles/why-operational-context-matters.md`, use `![A connected operating view](../assets/why-operational-context-matters/network-view.png)`.

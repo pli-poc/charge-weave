@@ -124,6 +124,8 @@ test("the Insights blog filters Markdown articles and copies a LinkedIn draft", 
   expect(copied).toContain("# A charging network is an operating business, not a map of sockets");
   expect(copied).toContain("## Preserve evidence as the work moves");
   expect(copied).toContain("https://pli-poc.github.io/charge-weave/blog/assets/operating-the-whole-charging-journey/operating-journey.png");
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A charging network is an operating business, not a map of sockets");
   expect(errors).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
