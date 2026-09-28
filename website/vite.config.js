@@ -61,7 +61,7 @@ export default defineConfig({
     react(),
     {
       name: "static-page-entries",
-      closeBundle() {
+      writeBundle() {
         const html = fs.readFileSync("dist/index.html", "utf8");
         for (const [slug, [title, description]] of Object.entries(pages)) {
           const dir = path.join("dist", slug);

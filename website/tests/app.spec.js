@@ -62,6 +62,27 @@ test("the console navigation and country filter work at desktop and mobile sizes
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test("the app presents a model-driven billing work item with business progress and submits a generated form", async ({ page }, testInfo) => {
+  await page.goto("app/#work");
+  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "My work", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("My work");
+  await expect(page.getByRole("button", { name: /Review corrected meter reading/ })).toBeVisible();
+  await page.getByRole("button", { name: /Review corrected meter reading/ }).click();
+  await expect(page.getByRole("heading", { name: "Review partner correction" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Case progress" })).toContainText("Operator review");
+  await expect(page.getByText("XState", { exact: false })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /correction workflow/i })).toHaveCount(0);
+  await expect(page.getByLabel("Corrected meter end reading")).toHaveValue("12882.7");
+  await expect(page.getByLabel("Evidence reference")).toHaveAttribute("data-mask", "EV-####-####");
+  await page.getByLabel("Decision note").fill("Signed partner evidence confirms the corrected register.");
+  await page.getByRole("button", { name: /Record decision/ }).click();
+  await expect(page.getByRole("heading", { name: "Billing adjustment prepared" })).toBeVisible();
+  await expect(page.getByText("ADJ-2026-00471")).toBeVisible();
+  await expect(page.locator(".work-state.large")).toContainText("Completed");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test("the geographic view connects owned sites and European Chargecard roaming", async ({ page }, testInfo) => {
   const errors = [];
   const externalRequests = [];

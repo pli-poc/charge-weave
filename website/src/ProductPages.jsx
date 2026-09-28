@@ -511,6 +511,19 @@ function ArchitecturePage() {
               </p>
             </div>
           </article>
+          <article>
+            <span>09</span>
+            <div>
+              <h3>Generate human task experiences from explicit contracts.</h3>
+              <p>
+                Ontology concepts give task fields meaning and constraints. A
+                versioned task profile selects the authorized inputs and
+                outcomes; a shared renderer turns them into accessible forms
+                and business-level progress. The trusted host validates every
+                submission before a domain capability commits a change.
+              </p>
+            </div>
+          </article>
         </div>
       </section>
       <section className="temporal-architecture">
@@ -568,7 +581,7 @@ function ArchitecturePage() {
         <div className="architecture-detail-links">
           {[
             ["Workflow runtime", `${base}developer/platform/`, "Generic XFlow definitions, validation, XState execution and evidence."],
-            ["Human task forms", `${base}developer/human-tasks/`, "Task-scoped fields, human authority and controlled corrections."],
+            ["Human task forms", `${base}developer/human-tasks/`, "Model-driven operator work items, task-scoped forms and guarded corrections."],
             ["Protocol adapters", `${base}developer/protocols/`, "Versioned OCPP, OCPI and vehicle-to-equipment boundaries."],
             ["Simulator", `${base}developer/simulator/`, "Seeded journeys and fault conditions across runtime boundaries."],
             ["Runtime switchboard", `${base}developer/switchboard/`, "Select virtual, observe, hybrid or future live adapters explicitly."],
