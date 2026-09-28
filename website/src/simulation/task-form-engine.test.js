@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { correctionApprovalForm } from "./correction-approval-form.js";
 import { correctionWorkflowDefinition, correctionWorkflowRuntime } from "./correction-workflow.js";
-import { compileTaskForm, createSimulatedTaskHost, validateTaskSubmission } from "./task-form-engine.js";
+import { compileTaskForm, createInitialTaskValues, maskSensitiveDisplayValue, validateTaskSubmission, valuesForTaskOutcome } from "../task-forms/engine.js";
+import { createSimulatedTaskHost } from "./simulated-task-host.js";
 
 const approver = { id: "operator-17", roles: ["BillingApprover"] };
 
@@ -56,6 +57,30 @@ test("task form compiler infers ontology controls and only compiles the declared
   assert.deepEqual(form.fields.find((field) => field.id === "correctionKind").allowedValues, ["Credit", "Replace", "Reverse", "Adjust"]);
   assert.equal(form.fields.find((field) => field.id === "paymentReference").binding.range, "string");
   assert.equal(form.fields.find((field) => field.id === "paymentReference").sensitive, true);
+});
+
+test("shared renderer defaults and masked display values are safe for generic profiles", () => {
+  const form = compiled();
+  const defaults = createInitialTaskValues(form);
+  assert.equal(defaults.proposedCreditAmount.amount, "");
+  assert.equal(defaults.proposedCreditAmount.currency, "EUR");
+  assert.equal(defaults.correctionKind, "");
+  assert.equal(maskSensitiveDisplayValue("5555 4444 3333 4242"), "•••• 4242");
+  assert.equal(maskSensitiveDisplayValue("12"), "••••");
+  const displayProfile = structuredClone(correctionApprovalForm);
+  displayProfile.fields.push({
+    id: "priorReason",
+    mode: "display",
+    binding: { class: "RecordCorrection", property: "correctionReason" },
+    label: "Existing reason",
+    valuePath: "case.existingReason",
+  });
+  assert.equal(compiled(displayProfile).fields.find((field) => field.id === "priorReason").control, "display");
+  assert.deepEqual(valuesForTaskOutcome(form, "approval.rejected", {
+    correctionReason: "Reason for rejecting this task outcome.",
+    correctionEvidence: "EVIDENCE-METER-7781",
+    proposedCreditAmount: { amount: "0.19", currency: "EUR" },
+  }), { correctionReason: "Reason for rejecting this task outcome." });
 });
 
 test("compiler rejects unknown ontology bindings, controls, task roles and undeclared outcomes", () => {
@@ -136,6 +161,24 @@ test("submission validation applies event-specific requirements and exact bounde
   }).join(" "), /outside this task's editable scope/);
 });
 
+test("scalar number validation respects the ontology integer range", () => {
+  const form = {
+    outcomes: [{ eventType: "review.completed" }],
+    fields: [{
+      id: "seatCount",
+      mode: "input",
+      activeOn: [],
+      control: "number",
+      binding: { range: "positiveInteger" },
+      label: "Seat count",
+      shape: { required: true },
+    }],
+  };
+  assert.match(validateTaskSubmission({ form, eventType: "review.completed", values: { seatCount: "1.5" } }).join(" "), /whole number/);
+  assert.match(validateTaskSubmission({ form, eventType: "review.completed", values: { seatCount: "0" } }).join(" "), /greater than zero/);
+  assert.deepEqual(validateTaskSubmission({ form, eventType: "review.completed", values: { seatCount: "2" } }), []);
+});
+
 test("simulated host enforces role, task revision and open state before resuming XState", async () => {
   const actor = await openApprovalTask();
   const form = compiled();
@@ -174,4 +217,50 @@ test("rejection is a declared workflow event that keeps its decision reason", as
   assert.equal(actor.getSnapshot().value, "declined");
   assert.equal(actor.getSnapshot().context.rejection.values.correctionReason, "Evidence does not establish the reported meter change.");
   actor.stop();
+});
+
+test("the submission adapter sends a neutral task envelope for a different workflow and outcome", () => {
+  const profile = {
+    id: "sample.case-review",
+    version: "1.0.0",
+    workflowId: "sample-case-review",
+    workflowVersion: "2.0.0",
+    stepId: "awaitingApproval",
+    role: "BillingApprover",
+    correlationPath: "case.id",
+    fields: [{
+      id: "reviewNote",
+      binding: { class: "RecordCorrection", property: "correctionReason" },
+      label: "Review note",
+      shape: { required: true, minLength: 12 },
+    }],
+    outcomes: [{ eventType: "review.completed", label: "Complete review" }],
+  };
+  const definition = structuredClone(correctionWorkflowDefinition);
+  definition.id = profile.workflowId;
+  definition.version = profile.workflowVersion;
+  const step = definition.steps.find((candidate) => candidate.id === profile.stepId);
+  step.taskFormProfile = { id: profile.id, version: profile.version };
+  step.on = { "review.completed": {} };
+  const form = compileTaskForm({ definition, profile });
+  let deliveredEvent;
+  const actor = {
+    getSnapshot: () => ({
+      value: profile.stepId,
+      status: "active",
+      context: { case: { id: "CASE-2042" } },
+    }),
+    send: (event) => { deliveredEvent = event; },
+  };
+  const host = createSimulatedTaskHost({ form, actor });
+  const receipt = host.submit({
+    eventType: "review.completed",
+    values: { reviewNote: "Supporting documents match the submitted correction." },
+    principal: approver,
+    expectedRevision: 1,
+    idempotencyKey: "review-1",
+  });
+  assert.equal(receipt.ok, true);
+  assert.equal(receipt.audit.correlationId, "CASE-2042");
+  assert.deepEqual(deliveredEvent, { type: "review.completed", taskSubmission: receipt.audit });
 });

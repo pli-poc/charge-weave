@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, FileCheck2, LockKeyhole, RotateCcw, ShieldCheck } from "lucide-react";
+import TaskFormRenderer from "./components/task-forms/TaskFormRenderer.jsx";
 import { correctionApprovalForm } from "./simulation/correction-approval-form.js";
 import { createCorrectionWorkflowRuntime, correctionWorkflowDefinition } from "./simulation/correction-workflow.js";
-import { compileTaskForm, createSimulatedTaskHost } from "./simulation/task-form-engine.js";
+import { compileTaskForm, createInitialTaskValues } from "./task-forms/engine.js";
+import { createSimulatedTaskHost } from "./simulation/simulated-task-host.js";
 import "./human-task-design.css";
 
 const stages = [
@@ -14,95 +16,6 @@ const stages = [
 
 const principal = { id: "operator-demo-17", label: "Jordan Lee", roles: ["BillingApprover"] };
 const taskRevision = 4;
-
-function getValue(source, path) {
-  return String(path ?? "").split(".").filter(Boolean).reduce((current, key) => current?.[key], source);
-}
-
-function emptyValues(form) {
-  return Object.fromEntries(form.fields.filter((field) => field.mode === "input").map((field) => [field.id, ""]));
-}
-
-function TaskField({ field, value, onChange, error, context, outcome }) {
-  const id = `task-${field.id}`;
-  const descriptionId = `${id}-description`;
-  const errorId = `${id}-error`;
-  const required = field.shape?.required === true || (outcome && (field.shape?.requiredOn ?? []).includes(outcome));
-  const common = {
-    id,
-    name: field.id,
-    "aria-describedby": [field.help ? descriptionId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined,
-    "aria-invalid": Boolean(error),
-    required,
-  };
-
-  if (field.mode === "display" && field.control === "masked") {
-    return (
-      <div className="htd-field htd-field-readonly">
-        <span className="htd-label">{field.label}<span className="htd-readonly-tag">Masked · read only</span></span>
-        <output className="htd-masked-value" aria-label={field.label}>{getValue(context, field.valuePath) ?? "•••• 4242"}</output>
-        {field.help && <small id={descriptionId}>{field.help}</small>}
-      </div>
-    );
-  }
-
-  let control;
-  if (field.control === "select" || field.control === "evidence" || field.control === "reference") {
-    const options = field.control === "select"
-      ? field.allowedValues.map((option) => ({ id: option, label: option }))
-      : field.options;
-    control = (
-      <select {...common} value={value} onChange={(event) => onChange(field.id, event.target.value)}>
-        <option value="">Choose {field.label.toLowerCase()}</option>
-        {options.map((option) => <option key={option.id} value={field.control === "select" ? option.id : option.id}>{option.label ?? option.id}</option>)}
-      </select>
-    );
-  } else if (field.control === "textarea") {
-    control = <textarea {...common} rows={4} maxLength={field.shape?.maxLength} value={value} onChange={(event) => onChange(field.id, event.target.value)} />;
-  } else if (field.control === "money") {
-      const money = value && typeof value === "object" ? value : { amount: "", currency: field.currencies[0]?.code ?? "" };
-    control = (
-      <div className="htd-money-control">
-        <input
-          {...common}
-          id={`${id}-amount`}
-          type="text"
-          inputMode="decimal"
-          autoComplete="off"
-          aria-label={field.label}
-          aria-describedby={common["aria-describedby"]}
-          aria-invalid={Boolean(error)}
-          value={money.amount}
-          placeholder="0.00"
-          onChange={(event) => onChange(field.id, { ...money, amount: event.target.value })}
-        />
-        <label className="visually-hidden" htmlFor={`${id}-currency`}>{field.label} currency</label>
-        <select
-          id={`${id}-currency`}
-          aria-label={`${field.label} currency`}
-          value={money.currency}
-          onChange={(event) => onChange(field.id, { ...money, currency: event.target.value })}
-        >
-          {field.currencies.map((currency) => <option key={currency.code} value={currency.code}>{currency.code}</option>)}
-        </select>
-      </div>
-    );
-  } else {
-    const inputType = ({ decimal: "text", number: "number", date: "date", "datetime-local": "datetime-local", time: "time", url: "url", checkbox: "checkbox" })[field.control] ?? "text";
-    control = <input {...common} type={inputType} inputMode={field.control === "decimal" ? "decimal" : undefined} checked={field.control === "checkbox" ? Boolean(value) : undefined} value={field.control === "checkbox" ? undefined : value} onChange={(event) => onChange(field.id, field.control === "checkbox" ? event.target.checked : event.target.value)} />;
-  }
-
-  return (
-    <div className={`htd-field${error ? " has-error" : ""}`}>
-      <label className="htd-label" htmlFor={field.control === "money" ? `${id}-amount` : id}>
-        {field.label}{required && <span className="htd-required-mark" aria-hidden="true"> *</span>}
-      </label>
-      {control}
-      {field.help && <small id={descriptionId}>{field.help}</small>}
-      {error && <span className="htd-field-error" id={errorId}>{error}</span>}
-    </div>
-  );
-}
 
 function stateLabel(snapshot) {
   if (!snapshot) return "Starting synthetic workflow";
@@ -118,10 +31,11 @@ function TaskFormPrototype() {
   const [runId, setRunId] = useState(1);
   const [session, setSession] = useState(null);
   const [snapshot, setSnapshot] = useState(null);
-  const [values, setValues] = useState(() => emptyValues(form));
+  const [values, setValues] = useState(() => createInitialTaskValues(form));
   const [errors, setErrors] = useState([]);
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [attemptedOutcome, setAttemptedOutcome] = useState(null);
 
   useEffect(() => {
     const runtime = createCorrectionWorkflowRuntime();
@@ -141,7 +55,7 @@ function TaskFormPrototype() {
     actor.send({ type: "evidence.validate" });
     setSession({ actor, host: null, runId });
     setValues({
-      ...emptyValues(form),
+      ...createInitialTaskValues(form),
       correctionKind: "Credit",
       correctionReason: "Signed meter evidence confirms the corrected usage.",
       correctionEvidence: "EVIDENCE-METER-7781",
@@ -150,6 +64,7 @@ function TaskFormPrototype() {
     setErrors([]);
     setNotice(null);
     setSubmitting(false);
+    setAttemptedOutcome(null);
     return () => {
       subscription.unsubscribe();
       actor.stop();
@@ -169,6 +84,7 @@ function TaskFormPrototype() {
 
   function submit(eventType) {
     if (!host || !open || submitting) return;
+    setAttemptedOutcome(eventType);
     setSubmitting(true);
     const result = host.submit({
       eventType,
@@ -233,12 +149,12 @@ function TaskFormPrototype() {
             <div><span>Re-rated charge</span><strong>€ {context.rating?.grossEur?.toFixed(2) ?? "3.20"}</strong></div>
             <div className="htd-delta"><span>Calculated adjustment ceiling</span><strong>€ {Number(amount).toFixed(2)}</strong></div>
           </div>
-          <TaskField
-            field={form.fields.find((field) => field.id === "paymentReference")}
-            value={null}
-            onChange={() => {}}
+          <TaskFormRenderer
+            form={form}
+            mode="display"
             context={context}
-            outcome={null}
+            showOutcomes={false}
+            idPrefix="case-context"
           />
           <p className="htd-readonly-note">The original CDR and meter event stay unchanged. The correction creates a linked record through registered workflow services.</p>
         </aside>
@@ -248,17 +164,21 @@ function TaskFormPrototype() {
             <div><p className="eyebrow">Task contract · {form.id} v{form.version}</p><h3>Decision inputs</h3></div>
             <span>Only fields in this task are editable</span>
           </div>
-          {form.fields.filter((field) => field.mode === "input").map((field) => (
-            <TaskField key={field.id} field={field} value={values[field.id]} onChange={changeValue} error={errors.find((error) => error.toLowerCase().includes(field.label.toLowerCase()))} context={context} outcome="approval.granted" />
-          ))}
-          {errors.length > 0 && <div className="htd-form-errors" role="alert" aria-live="assertive"><strong>Review these task inputs</strong><ul>{errors.map((error) => <li key={error}>{error}</li>)}</ul></div>}
+          <TaskFormRenderer
+            form={form}
+            mode="input"
+            values={values}
+            errors={errors}
+            context={context}
+            outcome={attemptedOutcome}
+            disabled={!open || submitting}
+            onChange={changeValue}
+            onOutcome={submit}
+            showOutcomes
+            idPrefix="approval-task"
+          />
           {notice && <div className={`htd-submit-notice ${notice.tone}`} role="status">{notice.text}</div>}
-          <div className="htd-outcome-actions" aria-label="Allowed task outcomes">
-            {form.outcomes.map((outcome) => (
-              <button key={outcome.eventType} className={`htd-outcome-button ${outcome.tone ?? ""}`} type="button" disabled={!open || submitting} onClick={() => submit(outcome.eventType)}>
-                {outcome.eventType === "approval.granted" ? <Check size={16} /> : <ShieldCheck size={16} />}{outcome.label}
-              </button>
-            ))}
+          <div className="htd-outcome-actions">
             <button className="htd-reset-button" type="button" onClick={reset}><RotateCcw size={15} /> Start fresh run</button>
           </div>
           <p className="htd-host-boundary">This page simulates the task host in your browser. It demonstrates role, revision, shape, reference and idempotency checks; it does not call an API, persist data or provide production authorization.</p>
@@ -378,7 +298,7 @@ export default function HumanTaskDesign() {
 
       <section className="htd-boundary">
         <p className="eyebrow">Current implementation boundary</p>
-        <p>The first renderer now demonstrates ontology-bound controls, task-specific validation, a bounded money proposal, a masked read-only value and guarded event delivery into the correction workflow. Production requires a trusted host that independently authenticates and authorizes users, resolves live references, validates SHACL and domain rules, persists an audit record, and commits the domain operation transactionally. A general form-authoring studio can follow after those service boundaries are implemented.</p>
+        <p>The shared task-form engine and React renderer provide ontology-bound controls, outcome-scoped validation, exact-decimal money entry, safe masked display, reference options and a neutral task-submission event contract. The correction workflow is the first profile using those reusable pieces. Production still needs a trusted host that independently authenticates and authorizes users, resolves live references, validates SHACL and domain rules, persists an audit record, and commits the domain operation transactionally. A form-authoring studio can follow after those service boundaries are implemented.</p>
         <a href={`${import.meta.env.BASE_URL}developer/flows/`}>Open the current Workflow Studio <ArrowRight size={15} /></a>
       </section>
     </div>

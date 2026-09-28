@@ -189,7 +189,11 @@ The existing Finance and Data Explorer views remain linked destinations for fina
 
 ## Human task forms and controlled changes
 
-**Status: browser prototype implemented; production host remains future work.** The Human task forms page compiles a task-scoped form for the J07/J08 approval state, renders ontology-informed controls, validates the demo contract, applies simulated role/revision/idempotency checks and resumes the XState actor with a declared outcome. It does not provide a durable work queue, production authorization, backend writes or general editing of canonical business records.
+**Status: reusable browser engine and renderer implemented; production host remains future work.** The shared task-form package compiles and validates version-pinned profiles against any supported XFlow `HumanTask`, then a reusable React renderer presents the compiled controls and outcomes. The J07/J08 correction profile is the first consumer. A browser-only adapter exercises role/revision/idempotency checks and resumes its XState actor through a neutral `taskSubmission` event envelope. This does not provide a durable work queue, production authorization, backend writes or general editing of canonical business records.
+
+The reusable implementation is split by responsibility: `website/src/task-forms/engine.js` contains profile compilation, control inference, constraint validation, outcome-scoped value projection, initial-value creation and safe display masking; `website/src/components/task-forms/TaskFormRenderer.jsx` renders the compiled field and outcome contract; the in-memory adapter is isolated in `website/src/simulation/simulated-task-host.js`. A new workflow supplies its own versioned profile, ontology bindings, task constraints, references, labels and outcome event names, while its XState actions decide how to consume the neutral submission envelope. Rendering does not imply production authorization or persistence.
+
+See the [reusable task-form engine guide](task-form-engine.md) for the renderer API, supported controls, validation contract and steps for adding another task profile.
 
 The platform should render a form from a task contract, not turn every ontology class into a CRUD screen. Keep four responsibilities distinct:
 
