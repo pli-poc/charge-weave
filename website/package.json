@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build",
+    "check:blog": "node scripts/check-blog-content.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "test": "node --test src/simulation/*.test.js src/model/*.test.js && playwright test",
     "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
