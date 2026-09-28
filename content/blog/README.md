@@ -10,7 +10,7 @@ Write posts as Markdown in `articles/`. The site builds one public page for each
 4. Put image files in `assets/<article-slug>/` and link them relative to the article. For example, from `articles/why-operational-context-matters.md`, use `![A connected operating view](../assets/why-operational-context-matters/network-view.png)`.
 5. Set `published: true` when it is ready for the next site build. A draft can remain `false`.
 
-The rendered page sanitizes generated Markdown HTML. PNG, JPG, WebP, GIF and SVG images are copied to stable public URLs under `/blog/assets/`. The LinkedIn copy button rewrites local image paths to those public URLs. LinkedIn may still require image files to be uploaded separately in its composer.
+The renderer builds safe React elements from supported Markdown instead of inserting raw article HTML. PNG, JPG, WebP, GIF and SVG images are copied to stable public URLs under `/blog/assets/`. The LinkedIn copy button rewrites local image paths to those public URLs. LinkedIn may still require image files to be uploaded separately in its composer.
 
 ## Categories
 
