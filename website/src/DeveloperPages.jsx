@@ -35,6 +35,7 @@ const pages = [
   { id: "protocols", route: "developer/protocols", label: "Protocols" },
   { id: "switchboard", route: "developer/switchboard", label: "Switchboard" },
   { id: "storage", route: "developer/storage", label: "Storage" },
+  { id: "models", route: "developer/models", label: "Model provider" },
   { id: "replay", route: "developer/replay", label: "Replay" },
 ];
 
@@ -143,6 +144,7 @@ function RuntimePage() {
     ["protocols", "Protocol adapters", "Versioned exchanges and actor boundaries."],
     ["switchboard", "Switchboard", "Change one source without changing every store."],
     ["storage", "Storage contracts", "Test distinct storage behavior without database products."],
+    ["models", "Model package provider", "Load pinned ontology and constraint packages through a replaceable source."],
     ["replay", "Deterministic replay", "Repeat the same process run from a saved seed."],
   ];
   return (
@@ -568,6 +570,64 @@ function StoragePage() {
   );
 }
 
+function ModelProviderPage() {
+  return (
+    <>
+      <section className="container dev-switch-section">
+        <SectionTitle eyebrow="Model package port" title="Load shared definitions through a replaceable provider.">
+          The app asks for a versioned model package. It does not care whether
+          that package comes from static web assets today or a service backed by
+          a database later.
+        </SectionTitle>
+        <div className="dev-table-wrap">
+          <table>
+            <thead><tr><th>Provider</th><th>Source</th><th>Status</th><th>Package contents</th></tr></thead>
+            <tbody>
+              <tr><th>Static web</th><td>Published manifest and immutable JSON assets</td><td>Implemented</td><td>Ontology catalogue, rules, temporal policy and RDF graph</td></tr>
+              <tr><th>Database or model service</th><td>Versioned package API or model registry</td><td>Future adapter</td><td>Same package contract, revision and integrity metadata</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="dev-scenario-band">
+        <div className="container">
+          <SectionTitle eyebrow="Stable application contract" title="Resolve a package once, then use its pinned revision.">
+            Startup resolves the active package manifest, checks that metadata
+            and graph revisions agree, and caches the result for the session.
+            Workflow definitions should pin compatible model and shape versions
+            when they are published.
+          </SectionTitle>
+          <pre className="dev-code"><code>{`{
+  "provider": "static-web",
+  "packageId": "chargeweave",
+  "modelVersion": "repository snapshot",
+  "sourceHash": "sha256:…",
+  "artifacts": ["model.json", "triples.json"]
+}`}</code></pre>
+          <p className="dev-inline-note">
+            A future database adapter can implement the same <code>loadModelPackage</code>
+            and <code>loadOntologyGraph</code> contract. This provider reads
+            model definitions only; tenant facts, work items and workflow runs
+            belong to separately authorized runtime services.
+          </p>
+        </div>
+      </section>
+      <section className="container dev-boundary-note">
+        <ShieldCheck size={24} />
+        <div>
+          <h3>Integrity is not authorization.</h3>
+          <p>
+            The published manifest and package hashes detect mismatched assets.
+            A production model service must also authorize package access,
+            enforce publication governance and keep a pinned package available
+            for any workflow version that references it.
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}
+
 function ReplayPage() {
   return (
     <>
@@ -692,6 +752,10 @@ const pageCopy = {
     title: <>Exercise storage contracts.<br /><span>Leave products undecided.</span></>,
     description: "Simulate semantic, operational, temporal, telemetry and evidence stores with just enough behavior to test real process rules.",
   },
+  models: {
+    title: <>One model contract.<br /><span>Replaceable package source.</span></>,
+    description: "Load ontology definitions and constraints through a versioned provider contract, keeping today's static web package replaceable by a future model service.",
+  },
   replay: {
     title: <>Same seed.<br /><span>Same process trace.</span></>,
     description: "Seeded generation, a virtual clock and versioned run records make synthetic process scenarios repeatable and reviewable.",
@@ -719,6 +783,7 @@ export default function DeveloperPages({ route }) {
     protocols: <ProtocolsPage />,
     switchboard: <SwitchboardPage />,
     storage: <StoragePage />,
+    models: <ModelProviderPage />,
     replay: <ReplayPage />,
   }[id];
   return (

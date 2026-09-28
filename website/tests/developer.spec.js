@@ -13,6 +13,7 @@ const routeCases = [
   { route: "developer/protocols/", title: "Protocol simulation", active: "Protocols", marker: "OCPP 2.1" },
   { route: "developer/switchboard/", title: "Runtime switchboard", active: "Switchboard", marker: "Observe" },
   { route: "developer/storage/", title: "Simulated storage", active: "Storage", marker: "Temporal event store" },
+  { route: "developer/models/", title: "Model package provider", active: "Model provider", marker: "Load shared definitions through a replaceable provider." },
   { route: "developer/replay/", title: "Deterministic replay", active: "Replay", marker: "chargeweave-xorshift32-v1" },
 ];
 

@@ -1,4 +1,11 @@
-import model from "./generated/model.json" with { type: "json" };
+import { modelProvider } from "./model/provider.js";
+
+// Browser consumers wait for the active package at startup. Node-based tooling
+// keeps the generated snapshot as its deterministic, network-free source.
+const model =
+  typeof window === "undefined"
+    ? (await import("./generated/model.json", { with: { type: "json" } })).default
+    : await modelProvider.loadModelPackage();
 export { model };
 export const cardinality = { "!": "1", "?": "0..1", "+": "1..*", "*": "0..*" };
 export const words = (value) =>
@@ -97,17 +104,6 @@ export function downloadTriples(rows, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-let subjectsPromise;
 export function loadSubjects() {
-  if (!subjectsPromise)
-    subjectsPromise = fetch(import.meta.env.BASE_URL + model.triplesFile)
-      .then((response) => {
-        if (!response.ok) throw new Error("Schema data could not be loaded.");
-        return response.json();
-      })
-      .catch((error) => {
-        subjectsPromise = undefined;
-        throw error;
-      });
-  return subjectsPromise;
+  return modelProvider.loadOntologyGraph();
 }

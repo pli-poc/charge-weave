@@ -5,3 +5,5 @@ test-results/
 .sites-runtime/
 src/generated/
 public/model-triples*.json
+
+public/model-packages/
