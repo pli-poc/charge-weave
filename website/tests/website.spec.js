@@ -124,6 +124,7 @@ test("the Insights blog filters Markdown articles and copies a LinkedIn draft", 
   const platformMarkdown = await page.evaluate(() => window.__copiedMarkdown);
   expect(platformMarkdown).toContain("# Build AI into the platform, not around it");
   expect(platformMarkdown).toContain("https://pli-poc.github.io/charge-weave/blog/assets/the-platform-as-a-harness/shared-harness.png");
+  await page.getByRole("link", { name: "All insights" }).click();
   await page.getByRole("button", { name: "Charging operations" }).click();
   await page.getByRole("link", { name: /A charging network is an operating business/ }).click();
   await expect(page).toHaveURL(/\/blog\/operating-the-whole-charging-journey\/$/);
