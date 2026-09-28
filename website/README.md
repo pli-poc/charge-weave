@@ -21,8 +21,14 @@ React + Vite presentation site using the Midnight Network direction. The landing
 | `developer/storage/`         | Simulated semantic, operational, temporal, telemetry and evidence stores                               |
 | `developer/replay/`          | Seeded data generation, virtual time, fault injection and reproducible run records                     |
 | `app/`                       | Isolated operations console concept for owned NL/BE sites, European Chargecard roaming, energy, finance, data, onboarding and a model-driven Work inbox |
+| `blog/`                      | ChargeWeave Insights index with topic filters and Markdown-authored articles |
+| `blog/<slug>/`               | Rendered article with a direct shareable route and a Markdown handoff for LinkedIn |
 
 Each page has a real static `index.html` entry and page-specific metadata, so direct links and refreshes work on GitHub Pages. Class selection is shareable, for example `ontology/?class=TariffVersion`. The concept image is available from a disclosure at the bottom of the explorer; it is a visual study, not the source of model facts.
+
+## Corporate blog
+
+The blog is authored in the separate root-level `content/blog/` structure. Add Markdown posts in `content/blog/articles/` with title, category, ISO date, summary, author and `published` front matter. The accompanying `content/blog/README.md` documents the authoring workflow and available categories. Put illustrations and infographics in `content/blog/assets/<article-slug>/` and reference them with normal Markdown image links. The website renders Markdown into static shareable pages, sanitizes generated HTML, and provides a **Copy Markdown** button that rewrites local image paths to public image URLs. LinkedIn may require uploading image files separately. The site build creates metadata and direct-load HTML entries for every published article; the browser never loads article content from a CMS.
 
 ## Develop and verify
 

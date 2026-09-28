@@ -2,7 +2,12 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
+const blogRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../content/blog");
 const pages = {
+  blog: [
+    "ChargeWeave insights",
+    "Perspectives on charging operations, platform architecture, commercial models, energy and interoperability.",
+  ],
   ontology: [
     "Ontology explorer",
     "Explore ChargeWeave classes, relationships, RDF triples, validation rules and temporal definitions.",
@@ -56,12 +61,28 @@ const pages = {
     "Learn how a seeded scenario, virtual clock and versioned fault plan make ChargeWeave process tests reproducible.",
   ],
 };
+
+for (const filename of fs.readdirSync(path.join(blogRoot, "articles"))) {
+  if (!filename.endsWith(".md") || filename.startsWith("_")) continue;
+  const source = fs.readFileSync(path.join(blogRoot, "articles", filename), "utf8");
+  const frontmatter = source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
+  if (!frontmatter) continue;
+  const field = (key) => frontmatter[1].match(new RegExp(`^${key}:\\s*(.*)$`, "m"))?.[1]?.trim().replace(/^["']|["']$/g, "");
+  if (field("published") !== "true") continue;
+  const slug = filename.replace(/\.md$/i, "");
+  pages[`blog/${slug}`] = [field("title") || slug, field("summary") || "ChargeWeave insights article."];
+}
 export default defineConfig({
   plugins: [
     react(),
     {
       name: "static-page-entries",
       writeBundle() {
+        fs.mkdirSync(path.join("dist", "blog", "assets"), { recursive: true });
+        const assets = path.join(blogRoot, "assets");
+        if (fs.existsSync(assets)) {
+          fs.cpSync(assets, path.join("dist", "blog", "assets"), { recursive: true });
+        }
         const html = fs.readFileSync("dist/index.html", "utf8");
         for (const [slug, [title, description]] of Object.entries(pages)) {
           const dir = path.join("dist", slug);
