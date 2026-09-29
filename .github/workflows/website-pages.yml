@@ -97,6 +97,8 @@ jobs:
       - run: npm run build --prefix ../console-app
       - run: npm run build
       - run: mkdir -p dist/app && cp -R ../console-app/dist/. dist/app/
+      - name: Verify public build has no source-repository links
+        run: npm run check:public-links
       - name: Protect assembled production JavaScript
         run: npm run protect:build
       - name: Verify protected deploy artifact

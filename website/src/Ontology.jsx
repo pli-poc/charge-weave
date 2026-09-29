@@ -17,7 +17,6 @@ import {
   Layers,
   PanelLeftClose,
   PanelLeftOpen,
-  ExternalLink,
   X,
 } from "lucide-react";
 import {
@@ -34,9 +33,7 @@ import {
 import "./ontology.css";
 import TemporalFixture from "./TemporalFixture";
 import { isTime, isTimeLink, timeRole } from "./temporal-utils";
-const base = import.meta.env.BASE_URL,
-  repo = "https://github.com/pli-poc/charge-weave";
-const sourceLink = (path) => repo + "/blob/main/" + path;
+const base = import.meta.env.BASE_URL;
 
 function Chip({ children, tone = "" }) {
   return <span className={"explorer-chip " + tone}>{children}</span>;
@@ -122,8 +119,8 @@ function TimeInspector({ name, relationship }) {
           TemporalSlice selects the business interval. Every joined record is read from the same immutable payload graph.
         </p>
         <p className="inspector-copy">The reference writer executes validAt / knownAt queries in standard SPARQL. Production storage integration and a native SPARQL-T facade remain separate work.</p>
-        <a className="inspector-link" href={sourceLink("docs/temporal-contract.md")} target="_blank" rel="noreferrer">
-          Read the temporal contract and acceptance evidence <ArrowUpRight size={14} />
+        <a className="inspector-link" href={base + "developer/storage/"}>
+          Read the temporal model <ArrowUpRight size={14} />
         </a>
       </div>
       <TemporalFixture />
@@ -504,7 +501,7 @@ function TripleTable({ name, field }) {
         </button>
       </div>
       <p className="table-note">
-        Actual schema triples from the repository, including referenced blank
+        Actual schema triples from the published model, including referenced blank
         nodes.{" "}
         {field
           ? "Showing the selected property contract."
@@ -532,15 +529,9 @@ function TripleTable({ name, field }) {
                 </td>
                 <td>
                   <code title={t.o}>{display(t.o)}</code>
-                  <a
-                    className="triple-source"
-                    href={sourceLink(t.source)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t.source.startsWith("ontology") ? "OWL" : "SHACL"}{" "}
-                    <ExternalLink size={10} />
-                  </a>
+                  <span className="triple-source">
+                    {t.source.startsWith("ontology") ? "OWL" : "SHACL"}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -730,14 +721,6 @@ export default function Ontology() {
               </p>
             )}
           </div>
-          <a
-            className="browser-source"
-            href={sourceLink("model/domain.schema")}
-            target="_blank"
-            rel="noreferrer"
-          >
-            View source model <ArrowUpRight size={14} />
-          </a>
         </aside>
         <section className="explorer-center" aria-label="Selected class">
           <div className="class-heading">
@@ -913,13 +896,6 @@ export default function Ontology() {
                     <Plus size={16} />
                   </summary>
                   <pre>{r.query}</pre>
-                  <a
-                    href={sourceLink("queries/" + r.id + ".rq")}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open source query <ArrowUpRight size={13} />
-                  </a>
                 </details>
               ))}
               {!rules.length && (
@@ -1116,14 +1092,6 @@ export default function Ontology() {
                 >
                   View schema triples <Braces size={14} />
                 </button>
-                <a
-                  className="inspector-link"
-                  href={sourceLink("validation/structure.shacl.ttl")}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open SHACL source <ArrowUpRight size={14} />
-                </a>
               </div>
             </>
           ) : (
@@ -1147,7 +1115,7 @@ export default function Ontology() {
           </summary>
           <p>
             A visual direction study. The interactive explorer above uses the
-            repository definitions.
+            published model definitions.
           </p>
           <a
             href={`${base}ontology-concept.webp`}

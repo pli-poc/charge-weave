@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowUpRight, Github, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import "@fontsource-variable/manrope";
 import "./styles.css";
 import "./pages.css";
@@ -10,7 +10,6 @@ const Ontology = lazy(() => import("./Ontology.jsx"));
 const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
 const Blog = lazy(() => import("./Blog.jsx"));
 export const base = import.meta.env.BASE_URL;
-export const repository = "https://github.com/pli-poc/charge-weave";
 export function Mark() {
   return (
     <svg
@@ -93,14 +92,6 @@ function App() {
               </a>
             ))}
           </nav>
-          <a
-            className="nav-source"
-            href={repository}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Follow the build <ArrowUpRight size={16} />
-          </a>
         </div>
       </header>
       <Suspense
@@ -129,9 +120,6 @@ function App() {
             <span>ChargeWeave</span>
           </a>
           <span>A connected foundation for the charging business.</span>
-          <a href={repository} target="_blank" rel="noreferrer">
-            <Github size={17} /> GitHub <ArrowUpRight size={15} />
-          </a>
           <span className="footer-status">In development</span>
         </div>
       </footer>

@@ -12,11 +12,9 @@ import {
   X,
   Plus,
   Check,
-  Github,
   ArrowDown,
 } from "lucide-react";
 
-const repository = "https://github.com/pli-poc/charge-weave";
 export const capabilities = [
   {
     id: "operations",
@@ -324,7 +322,7 @@ export default function Home() {
                 <span>Tariffs</span>
                 <span>Settlement</span>
               </div>
-              <p>Semantic foundation available in the repository</p>
+              <p>Semantic foundation available in the ontology explorer</p>
             </div>
           </div>
           <div className="container foundation-benefits">
@@ -560,9 +558,9 @@ export default function Home() {
               </li>
             </ol>
             <div className="roadmap-footnote">
-              This site presents the product direction. The current repository
-              contains the semantic foundation; the operational platform is in
-              development.
+              This site presents the product direction. The semantic foundation is
+              available through the ontology explorer; the operational platform
+              is in development.
             </div>
           </div>
         </section>
@@ -575,11 +573,9 @@ export default function Home() {
           </h2>
           <a
             className="button primary"
-            href={repository}
-            target="_blank"
-            rel="noreferrer"
+            href={`${import.meta.env.BASE_URL}ontology/`}
           >
-            Explore ChargeWeave <ArrowUpRight size={18} />
+            Explore the model <ArrowUpRight size={18} />
           </a>
         </section>
       </main>
