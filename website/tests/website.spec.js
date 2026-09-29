@@ -92,7 +92,7 @@ test("the corporate navigation opens the co-hosted operations console", async ({
   }
   const consoleLink = page.getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: "Operations console", exact: true });
-  await expect(consoleLink).toHaveAttribute("href", "/charge-weave/app/");
+  await expect(consoleLink).toHaveAttribute("href", "/charge-weave-app/app/");
   await consoleLink.click();
   await expect(page).toHaveURL(/\/charge-weave\/app\/$/);
   await expect(page.getByRole("heading", { name: "Network overview" })).toBeVisible();
@@ -126,7 +126,7 @@ test("the Insights blog filters Markdown articles and copies a LinkedIn draft", 
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
   const platformMarkdown = await page.evaluate(() => window.__copiedMarkdown);
   expect(platformMarkdown).toContain("# Build AI into the platform, not around it");
-  expect(platformMarkdown).toContain("https://pli-poc.github.io/charge-weave/blog/assets/the-platform-as-a-harness/shared-harness.png");
+  expect(platformMarkdown).toContain("https://pli-poc.github.io/charge-weave-app/blog/assets/the-platform-as-a-harness/shared-harness.png");
   await page.getByRole("link", { name: "All insights" }).click();
   await page.getByRole("button", { name: "Charging operations" }).click();
   await page.getByRole("link", { name: /A charging network is an operating business/ }).click();
@@ -139,7 +139,7 @@ test("the Insights blog filters Markdown articles and copies a LinkedIn draft", 
   const copied = await page.evaluate(() => window.__copiedMarkdown);
   expect(copied).toContain("# A charging network is an operating business, not a map of sockets");
   expect(copied).toContain("## Preserve evidence as the work moves");
-  expect(copied).toContain("https://pli-poc.github.io/charge-weave/blog/assets/operating-the-whole-charging-journey/operating-journey.png");
+  expect(copied).toContain("https://pli-poc.github.io/charge-weave-app/blog/assets/operating-the-whole-charging-journey/operating-journey.png");
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("A charging network is an operating business, not a map of sockets");
   expect(errors).toEqual([]);
