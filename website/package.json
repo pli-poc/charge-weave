@@ -12,7 +12,8 @@
     "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
     "predev": "node scripts/build-model.mjs",
     "protect:build": "node scripts/protect-build.mjs",
-    "check:protection": "node scripts/check-production-protection.mjs"
+    "check:protection": "node scripts/check-production-protection.mjs",
+    "check:public-links": "node scripts/check-public-source-links.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
