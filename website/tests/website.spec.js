@@ -94,7 +94,7 @@ test("the corporate navigation opens the co-hosted operations console", async ({
     .getByRole("link", { name: "Operations console", exact: true });
   await expect(consoleLink).toHaveAttribute("href", "/charge-weave-app/app/");
   await consoleLink.click();
-  await expect(page).toHaveURL(/\/charge-weave\/app\/$/);
+  await expect(page).toHaveURL(/\/charge-weave-app\/app\/$/);
   await expect(page.getByRole("heading", { name: "Network overview" })).toBeVisible();
 });
 
