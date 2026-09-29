@@ -151,27 +151,6 @@ jobs:
           DEPLOY_TOKEN: ${{ secrets.CHARGE_WEAVE_APP_TOKEN }}
           SOURCE_SHA: ${{ github.sha }}
         run: |
-          if [[ -z "$DEPLOY_TOKEN" ]]; then
-            echo "Missing repository secret CHARGE_WEAVE_APP_TOKEN"
-            exit 1
-          fi
-
-          cd public-site
-          touch .nojekyll
-          git init
-          git checkout -b main
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Deploy ChargeWeave ${SOURCE_SHA:0:12}"
-          git remote add origin "https://x-access-token:${DEPLOY_TOKEN}@github.com/pli-poc/charge-weave-app.git"
-          git push --force origin main
-
-      - name: Configure and publish GitHub Pages
-        shell: bash
-        env:
-          DEPLOY_TOKEN: ${{ secrets.CHARGE_WEAVE_APP_TOKEN }}
-        run: |
           set -euo pipefail
 
           if [[ -z "$DEPLOY_TOKEN" ]]; then
@@ -179,75 +158,27 @@ jobs:
             exit 1
           fi
 
-          api="https://api.github.com/repos/pli-poc/charge-weave-app/pages"
-          accept="Accept: application/vnd.github+json"
-          auth="Authorization: Bearer $DEPLOY_TOKEN"
-          version="X-GitHub-Api-Version: 2026-03-10"
-          payload='{"build_type":"legacy","source":{"branch":"main","path":"/"}}'
+          git clone --depth 1 --branch main \
+            "https://x-access-token:${DEPLOY_TOKEN}@github.com/pli-poc/charge-weave-app.git" \
+            public-repo
 
-          current_status=$(curl -sS -o /tmp/pages-current.json -w "%{http_code}" \
-            -H "$accept" -H "$auth" -H "$version" "$api")
+          find public-repo -mindepth 1 -maxdepth 1 \
+            ! -name .git \
+            ! -name .github \
+            -exec rm -rf {} +
 
-          if [[ "$current_status" == "404" ]]; then
-            echo "GitHub Pages is not enabled yet; creating the site."
-            configure_status=$(curl -sS -o /tmp/pages-configure.json -w "%{http_code}" \
-              -X POST -H "$accept" -H "$auth" -H "$version" \
-              "$api" -d "$payload")
-            if [[ "$configure_status" != "201" ]]; then
-              echo "Failed to create GitHub Pages (HTTP $configure_status):"
-              cat /tmp/pages-configure.json
-              exit 1
-            fi
-          elif [[ "$current_status" == "200" ]]; then
-            echo "GitHub Pages exists; enforcing main:/ branch publishing."
-            configure_status=$(curl -sS -o /tmp/pages-configure.json -w "%{http_code}" \
-              -X PUT -H "$accept" -H "$auth" -H "$version" \
-              "$api" -d "$payload")
-            if [[ "$configure_status" != "204" ]]; then
-              echo "Failed to update GitHub Pages (HTTP $configure_status):"
-              cat /tmp/pages-configure.json
-              exit 1
-            fi
-          else
-            echo "Could not inspect GitHub Pages (HTTP $current_status):"
-            cat /tmp/pages-current.json
-            exit 1
+          cp -a public-site/. public-repo/
+
+          cd public-repo
+          touch .nojekyll
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Protected public artifact is unchanged."
+            exit 0
           fi
 
-          echo "Requesting a Pages build for the protected main-branch artifact."
-          build_status=$(curl -sS -o /tmp/pages-build.json -w "%{http_code}" \
-            -X POST -H "$accept" -H "$auth" -H "$version" "$api/builds")
-
-          if [[ "$build_status" != "201" && "$build_status" != "409" ]]; then
-            echo "Failed to request GitHub Pages build (HTTP $build_status):"
-            cat /tmp/pages-build.json
-            exit 1
-          fi
-
-          for attempt in {1..30}; do
-            sleep 5
-            latest_status=$(curl -sS -o /tmp/pages-latest.json -w "%{http_code}" \
-              -H "$accept" -H "$auth" -H "$version" "$api/builds/latest")
-            if [[ "$latest_status" != "200" ]]; then
-              echo "Could not read latest Pages build (HTTP $latest_status):"
-              cat /tmp/pages-latest.json
-              exit 1
-            fi
-
-            state=$(jq -r '.status // "unknown"' /tmp/pages-latest.json)
-            echo "Pages build state: $state (attempt $attempt/30)"
-
-            if [[ "$state" == "built" ]]; then
-              echo "GitHub Pages published: https://pli-poc.github.io/charge-weave-app/"
-              exit 0
-            fi
-
-            if [[ "$state" == "errored" ]]; then
-              cat /tmp/pages-latest.json
-              exit 1
-            fi
-          done
-
-          echo "Timed out waiting for GitHub Pages to finish publishing."
-          cat /tmp/pages-latest.json
-          exit 1
+          git commit -m "Deploy ChargeWeave ${SOURCE_SHA:0:12}"
+          git push origin main
