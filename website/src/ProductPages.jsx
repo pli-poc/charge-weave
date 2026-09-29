@@ -14,8 +14,7 @@ const ArchitectureScene3D = lazy(() => import("./ArchitectureScene3D.jsx"));
 import { capabilities, useCases } from "./Home";
 import summary from "./generated/summary.json";
 import "./architecture-3d.css";
-const base = import.meta.env.BASE_URL,
-  repo = "https://github.com/pli-poc/charge-weave";
+const base = import.meta.env.BASE_URL;
 const explore = (name) => `${base}ontology/?class=${name}`;
 const sections = {
   operations: {
@@ -53,7 +52,7 @@ const sections = {
     example:
       "A corrected charge should preserve the original evidence and lead to an explicit adjustment, with reconciliation of the financial result.",
     boundary:
-      "The repository models these contracts and checks. Billing execution, payment processing and accounting integrations are planned.",
+      "The published model defines these contracts and checks. Billing execution, payment processing and accounting integrations are planned.",
   },
   roaming: {
     headline: "Put partner responsibilities in the model.",
@@ -90,7 +89,7 @@ const sections = {
     example:
       "A protocol transaction and a canonical charging session represent different things. An adapter must preserve their correlation and their separate identities.",
     boundary:
-      "The explorer reads a static repository snapshot. It is not a live GraphQL API, SPARQL endpoint or operational management console.",
+      "The explorer reads a static published model snapshot. It is not a live GraphQL API, SPARQL endpoint or operational management console.",
   },
 };
 function Intro({ eyebrow, title, description, children }) {
@@ -318,8 +317,8 @@ function ArchitecturePage() {
           <strong>High-level design (HLD)</strong>
           <p>
             This page is the platform-level design reference. The ontology,
-            shapes and rules are in the repository; operational services remain
-            a target design.
+            shapes and rules are exposed through the product explorer; operational
+            services remain a target design.
           </p>
           <a href={`${base}ontology/`}>
             Inspect the semantic foundation <ArrowRight size={17} />
@@ -554,8 +553,8 @@ function ArchitecturePage() {
                 earlier decision can be explained against the evidence then
                 available.
               </p>
-              <a href={`${repo}/blob/main/docs/temporal-contract.md`} target="_blank" rel="noreferrer">
-                Read the temporal contract <ArrowUpRight size={15} />
+              <a href={`${base}developer/storage/`}>
+                Read the temporal model <ArrowUpRight size={15} />
               </a>
             </article>
           </div>
@@ -597,14 +596,6 @@ function ArchitecturePage() {
             </a>
           ))}
         </div>
-        <a
-          className="architecture-hld-source"
-          href={`${repo}/blob/main/docs/runtime-architecture.md`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Read the complete HLD source <ArrowUpRight size={15} />
-        </a>
       </section>
       <NextPage
         title="Explore the contracts behind this architecture."
@@ -617,16 +608,16 @@ function ArchitecturePage() {
 function RoadmapPage() {
   const stages = [
     {
-      state: "Available in the repository",
+      state: "Available in the product explorer",
       title: "The semantic foundation",
       text: "Class definitions, relationships, controlled vocabularies, structural validation and declared business invariants. The explorer presents the published main-branch model snapshot.",
       items: [
         `${summary.classes} classes across ${summary.modules} modules`,
         `${summary.rules} declared SPARQL business rules`,
-        "Fixtures and verification in GitHub Actions",
+        "Automated fixtures and model verification",
       ],
-      href: repo,
-      label: "View source and evidence",
+      href: `${base}ontology/`,
+      label: "Inspect the published model",
     },
     {
       state: "Current product exploration",
@@ -682,8 +673,8 @@ function RoadmapPage() {
             runtime, protocol support and operational performance remain
             implementation work.
           </p>
-          <a href={`${repo}/actions`} target="_blank" rel="noreferrer">
-            Review verification runs <ArrowUpRight size={17} />
+          <a href={`${base}ontology/`}>
+            Inspect the published model <ArrowUpRight size={17} />
           </a>
         </div>
       </Intro>
@@ -718,39 +709,21 @@ function RoadmapPage() {
         ))}
       </div>
       <section className="container evidence-links">
-        <p className="eyebrow">Read the evidence</p>
-        <h2>An open view of progress.</h2>
+        <p className="eyebrow">Model evidence</p>
+        <h2>Progress you can inspect in the product.</h2>
         <div>
-          {[
-            [
-              "Domain dictionary",
-              "docs/domain-dictionary.md",
-              "Class definitions and structural contracts.",
-            ],
-            [
-              "Business-domain audit",
-              "docs/business-domain-audit.md",
-              "Declared requirements, journeys and boundaries.",
-            ],
-            [
-              "Runtime architecture",
-              "docs/runtime-architecture.md",
-              "Service responsibilities and implementation considerations.",
-            ],
-          ].map(([title, path, desc]) => (
-            <a
-              href={`${repo}/blob/main/${path}`}
-              target="_blank"
-              rel="noreferrer"
-              key={title}
-            >
-              <h3>
-                {title}
-                <ArrowUpRight size={18} />
-              </h3>
-              <p>{desc}</p>
-            </a>
-          ))}
+          <article>
+            <h3>Domain model</h3>
+            <p>Class definitions, relationships and structural contracts are available in the ontology explorer.</p>
+          </article>
+          <article>
+            <h3>Business rules</h3>
+            <p>Declared constraints and SPARQL business rules are visible alongside the concepts they govern.</p>
+          </article>
+          <article>
+            <h3>Runtime design</h3>
+            <p>The architecture and developer pages explain service responsibilities, workflows, storage and simulation boundaries.</p>
+          </article>
         </div>
         <p className="evidence-note">
           Verification establishes specific model properties and fixture
