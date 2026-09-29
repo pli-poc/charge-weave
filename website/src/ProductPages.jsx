@@ -610,7 +610,7 @@ function RoadmapPage() {
     {
       state: "Available in the product explorer",
       title: "The semantic foundation",
-      text: "Class definitions, relationships, controlled vocabularies, structural validation and declared business invariants. The explorer presents the published main-branch model snapshot.",
+      text: "Class definitions, relationships, controlled vocabularies, structural validation and declared business invariants. The explorer presents the current published model snapshot.",
       items: [
         `${summary.classes} classes across ${summary.modules} modules`,
         `${summary.rules} declared SPARQL business rules`,
