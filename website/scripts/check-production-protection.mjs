@@ -33,7 +33,16 @@ for (const file of jsFiles) {
   const entry = protectedFiles.get(relative);
 
   if (!entry) throw new Error(`Bundle was not covered by production protection: ${relative}`);
-  if (entry.beforeSha256 === entry.afterSha256) throw new Error(`Bundle was not transformed: ${relative}`);
+  if (entry.profile === "framework-runtime") {
+    if (!/(?:preload-helper|rolldown-runtime)/i.test(relative)) {
+      throw new Error(`Unexpected untransformed framework-runtime bundle: ${relative}`);
+    }
+    if (entry.beforeSha256 !== entry.afterSha256) {
+      throw new Error(`Framework runtime bundle was unexpectedly transformed: ${relative}`);
+    }
+  } else if (entry.beforeSha256 === entry.afterSha256) {
+    throw new Error(`Protected bundle was not transformed: ${relative}`);
+  }
   if (/sourceMappingURL\s*=/.test(source)) throw new Error(`Source-map reference leaked from ${relative}`);
   if (/\b(?:src|website|console-app)\/(?:[A-Za-z0-9_.-]+\/){0,6}[A-Za-z0-9_.-]+\.(?:ts|tsx|jsx)\b/.test(source)) {
     throw new Error(`Source path leaked from ${relative}`);
@@ -44,4 +53,5 @@ if (protectedFiles.size !== jsFiles.length) {
   throw new Error(`Protection report/file mismatch: report=${protectedFiles.size}, dist=${jsFiles.length}`);
 }
 
-console.log(`Production protection verified for ${jsFiles.length} JavaScript bundles; no source maps or source files are deployable.`);
+const runtimeCount = report.files.filter((entry) => entry.profile === "framework-runtime").length;
+console.log(`Production protection verified for ${jsFiles.length} JavaScript bundles, including ${runtimeCount} preserved framework runtime bundles; no source maps or source files are deployable.`);
