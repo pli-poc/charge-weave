@@ -17,7 +17,6 @@ import {
   Layers,
   PanelLeftClose,
   PanelLeftOpen,
-  ExternalLink,
   X,
 } from "lucide-react";
 import {
@@ -897,7 +896,6 @@ export default function Ontology() {
                     <Plus size={16} />
                   </summary>
                   <pre>{r.query}</pre>
-                  
                 </details>
               ))}
               {!rules.length && (
@@ -1094,7 +1092,6 @@ export default function Ontology() {
                 >
                   View schema triples <Braces size={14} />
                 </button>
-                
               </div>
             </>
           ) : (
