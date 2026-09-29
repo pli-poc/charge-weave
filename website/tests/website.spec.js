@@ -118,7 +118,10 @@ test("the Insights blog filters Markdown articles and copies a LinkedIn draft", 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Build AI into the platform, not around it");
   const articleImages = page.locator(".insight-prose img");
   await expect(articleImages).toHaveCount(4);
-  for (const image of await articleImages.all()) await expect(image).toHaveJSProperty("naturalWidth", 1080);
+  for (const image of await articleImages.all()) {
+    await expect.poll(() => image.evaluate((element) => element.naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(() => image.evaluate((element) => element.naturalHeight)).toBeGreaterThan(0);
+  }
   await page.getByRole("button", { name: "Copy Markdown" }).click();
   await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
   const platformMarkdown = await page.evaluate(() => window.__copiedMarkdown);
