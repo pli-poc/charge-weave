@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 const blogRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../content/blog");
 const websiteRoot = path.dirname(new URL(import.meta.url).pathname);
-const siteBase = "/charge-weave/";
+const siteBase = "/charge-weave-app/";
 const categories = new Set([
   "Charging operations",
   "Platform architecture",
@@ -193,8 +193,8 @@ export default defineConfig({
               (_match, prefix) => prefix + escapeHtml(description),
             )
             .replace(
-              "https://pli-poc.github.io/charge-weave/",
-              "https://pli-poc.github.io/charge-weave/" + slug + "/",
+              "https://pli-poc.github.io/charge-weave-app/",
+              "https://pli-poc.github.io/charge-weave-app/" + slug + "/",
             );
           fs.writeFileSync(path.join(dir, "index.html"), content);
         }
