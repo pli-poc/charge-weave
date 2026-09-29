@@ -24,7 +24,7 @@ test("developer guide routes load directly with page-specific metadata", async (
     const html = fs.readFileSync(entry, "utf8");
     expect(html).toContain(`<title>${title} — ChargeWeave</title>`);
     expect(html).toContain("property=\"og:url\"");
-    expect(html).toContain(`https://pli-poc.github.io/charge-weave/${route}`);
+    expect(html).toContain(`https://pli-poc.github.io/charge-weave-app/${route}`);
   }
 });
 
@@ -38,7 +38,7 @@ test("developer pages explain the proposed runtime and keep guide navigation in 
     await expect(page.locator(".dev-guide-content")).toContainText(marker);
     await expect(page.getByRole("link", { name: /High-level architecture and design principles/ })).toHaveAttribute(
       "href",
-      "/charge-weave/architecture/",
+      "/charge-weave-app/architecture/",
     );
     await expect(
       page.getByRole("navigation", { name: "Developer guide pages" })
@@ -106,7 +106,7 @@ test("human task form prototype keeps ontology guidance separate from task autho
   await page.getByRole("button", { name: "Reject and quarantine" }).click();
   await expect(page.getByText("Rejection recorded.")).toBeVisible();
   await expect(page.getByText("Workflow rejected")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Open the current Workflow Studio/ })).toHaveAttribute("href", "/charge-weave/developer/flows/");
+  await expect(page.getByRole("link", { name: /Open the current Workflow Studio/ })).toHaveAttribute("href", "/charge-weave-app/developer/flows/");
   expect(pageErrors).toEqual([]);
 });
 
