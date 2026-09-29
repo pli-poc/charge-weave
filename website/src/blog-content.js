@@ -26,7 +26,7 @@ export function articleMarkdown(article, mode = "render") {
     const target = normalizeRelativePath(article.sourcePath, url);
     if (!target.startsWith("assets/")) return match;
     const imageUrl = mode === "copy"
-      ? `https://pli-poc.github.io/charge-weave/blog/${target}`
+      ? `https://pli-poc.github.io/charge-weave-app/blog/${target}`
       : `${import.meta.env.BASE_URL}blog/${target}`;
     return `${start}${imageUrl}${end}`;
   });
