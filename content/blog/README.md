@@ -29,3 +29,7 @@ If a change also touches application code, workflow definitions, the model or on
 ## LinkedIn handoff
 
 Open the article on the website and choose **Copy Markdown**. This copies the title, summary, article text and public image links. The Markdown file remains the source of truth; edit the Markdown in this folder and commit it with any accompanying assets.
+
+## Infographic style guide
+
+Use the ChargeWeave Insight Infographic Style Guide in this folder for the editorial palette, evidence and chart rules, accessible captions, and dark-mode SVG behavior. Keep editable SVG sources with article assets. The site exposes its active theme through CSS color-scheme, so embedded SVGs follow the page theme.
