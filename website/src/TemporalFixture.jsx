@@ -48,6 +48,6 @@ export default function TemporalFixture() {
     </details>
     <details className="temporal-query"><summary>Reproduce with SPARQL</summary><pre>{example.query + "\n" + example.priceQuery}</pre></details>
     <p className="inspector-hint">The browser selects from this published fixture. CI compares {example.expectedCases.length} date pairs with standard SPARQL results from the reference writer. This page has no live endpoint. Knowledge is bounded by {day(example.knownThrough)} UTC.</p>
-    <a className="inspector-link" href="https://github.com/pli-poc/charge-weave/blob/main/examples/temporal/tariff-history.trig" target="_blank" rel="noreferrer">Open the complete RDF history ↗</a>
+    <span className="inspector-hint">Complete RDF history is included in the protected model evidence used by this demo.</span>
   </div>;
 }
