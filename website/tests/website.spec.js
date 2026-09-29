@@ -11,6 +11,8 @@ test("the presentation loads at the Pages subpath and supports exploration", asy
       failedAssets.push(response.url());
   });
   await page.goto("./");
+  await expect(page.locator('meta[name="darkreader-lock"]')).toHaveCount(1);
+  await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "dark");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Connect thewhole chargingbusiness.",
   );
