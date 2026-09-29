@@ -202,5 +202,21 @@ export default defineConfig({
     },
   ],
   base: siteBase,
+  build: {
+    target: "es2019",
+    sourcemap: false,
+    minify: "esbuild",
+    cssMinify: "esbuild",
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]",
+        manualChunks(id) {
+          if (id.includes("node_modules")) return "vendor";
+        },
+      },
+    },
+  },
   server: { allowedHosts: ["terminal.local"] },
 });

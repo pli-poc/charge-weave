@@ -2,6 +2,7 @@ node_modules/
 dist/
 playwright-report/
 test-results/
+.production-protection-report.json
 .sites-runtime/
 src/generated/
 public/model-triples*.json

@@ -10,7 +10,9 @@
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "test": "node --test src/simulation/*.test.js src/model/*.test.js && playwright test",
     "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
-    "predev": "node scripts/build-model.mjs"
+    "predev": "node scripts/build-model.mjs",
+    "protect:build": "node scripts/protect-build.mjs",
+    "check:protection": "node scripts/check-production-protection.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",

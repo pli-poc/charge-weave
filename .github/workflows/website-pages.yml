@@ -87,6 +87,8 @@ jobs:
             console-app/package-lock.json
       - run: npm ci --prefix ../console-app
       - run: npm ci
+      - name: Install pinned production obfuscator
+        run: npm install --no-save --package-lock=false javascript-obfuscator@5.8.0
       - name: Validate published articles and image references
         run: npm run check:blog
       - name: Test the console application
@@ -95,6 +97,10 @@ jobs:
       - run: npm run build --prefix ../console-app
       - run: npm run build
       - run: mkdir -p dist/app && cp -R ../console-app/dist/. dist/app/
+      - name: Protect assembled production JavaScript
+        run: npm run protect:build
+      - name: Verify protected deploy artifact
+        run: npm run check:protection
       - name: Verify generated article pages and images
         run: node scripts/check-blog-content.mjs --built
       - name: Install browser for full application checks
@@ -111,6 +117,7 @@ jobs:
           path: |
             website/playwright-report
             website/test-results
+            website/.production-protection-report.json
           retention-days: 14
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
