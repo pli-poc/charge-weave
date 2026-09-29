@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="theme-color" content="#080f16" />
+    <title>ChargeWeave — Moving to the public app</title>
+    <script>
+      (() => {
+        const legacyBase = "/charge-weave";
+        const publicBase = "https://pli-poc.github.io/charge-weave-app";
+        const path = location.pathname.startsWith(legacyBase)
+          ? location.pathname.slice(legacyBase.length)
+          : "/";
+        const suffix = path.startsWith("/") ? path : "/" + path;
+        location.replace(publicBase + suffix + location.search + location.hash);
+      })();
+    </script>
+    <style>
+      html { color-scheme: dark; background: #080f16; color: #edf1f1; font-family: system-ui, sans-serif; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; }
+      main { text-align: center; padding: 2rem; }
+      a { color: #9aefc7; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>Opening the ChargeWeave public app…</p>
+      <p><a href="https://pli-poc.github.io/charge-weave-app/">Continue to ChargeWeave</a></p>
+    </main>
+  </body>
+</html>
