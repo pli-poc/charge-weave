@@ -203,7 +203,7 @@ export default defineConfig({
   ],
   base: siteBase,
   build: {
-    target: "es2019",
+    target: "es2022",
     sourcemap: false,
     minify: "esbuild",
     cssMinify: "esbuild",
