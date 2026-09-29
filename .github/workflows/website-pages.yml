@@ -1,4 +1,4 @@
-name: Website / GitHub Pages
+name: Website / Public App Deployment
 
 on:
   push:
@@ -121,27 +121,48 @@ jobs:
             website/test-results
             website/.production-protection-report.json
           retention-days: 14
-      - name: Upload Pages artifact
+      - name: Upload protected public-site artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: charge-weave-public-site
           path: website/dist
+          if-no-files-found: error
+          retention-days: 7
 
   deploy:
-    name: Deploy to GitHub Pages
+    name: Publish protected build to charge-weave-app
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: read
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Deploy verified website
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Download protected public-site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: charge-weave-public-site
+          path: public-site
+
+      - name: Publish generated files to public repository
+        shell: bash
+        env:
+          DEPLOY_TOKEN: ${{ secrets.CHARGE_WEAVE_APP_TOKEN }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          if [[ -z "$DEPLOY_TOKEN" ]]; then
+            echo "Missing repository secret CHARGE_WEAVE_APP_TOKEN"
+            exit 1
+          fi
+
+          cd public-site
+          touch .nojekyll
+          git init
+          git checkout -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy ChargeWeave ${SOURCE_SHA:0:12}"
+          git remote add origin "https://x-access-token:${DEPLOY_TOKEN}@github.com/pli-poc/charge-weave-app.git"
+          git push --force origin main
