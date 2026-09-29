@@ -36,7 +36,7 @@ for (const [route, title] of [
     }
     await expect(page.locator('.nav a[aria-current="page"]')).toHaveAttribute(
       "href",
-      `/charge-weave/${route}/`,
+      `/charge-weave-app/${route}/`,
     );
     expect(
       await page.evaluate(
@@ -61,7 +61,7 @@ test("architecture page presents the HLD and links to developer details", async 
   await expect(page.locator(".architecture-detail-links")).toContainText("Human task forms");
   await expect(page.getByRole("link", { name: /Read the complete HLD source/ })).toHaveAttribute(
     "href",
-    "https://github.com/pli-poc/charge-weave/blob/main/docs/runtime-architecture.md",
+    "https://github.com/pli-poc/charge-weave-app/blob/main/docs/runtime-architecture.md",
   );
 });
 
@@ -192,7 +192,7 @@ test("temporal inspector exposes interval links, time roles and coverage boundar
     await page.goto(`ontology/?class=${name}`);
     await page.getByRole("button", { name: "Temporal", exact: true }).click();
     await expect(page.locator(".temporal-windows")).toContainText(`${link} → ${range}`);
-    await expect(page.locator(".temporal-windows a").filter({ hasText: `${link} → ${range}` })).toHaveAttribute("href", `/charge-weave/ontology/?class=${range}`);
+    await expect(page.locator(".temporal-windows a").filter({ hasText: `${link} → ${range}` })).toHaveAttribute("href", `/charge-weave-app/ontology/?class=${range}`);
     await expect(page.locator(".temporal-coverage")).toContainText("Shared snapshot contract");
     await expect(page.locator(".temporal-lab")).toContainText("independent of the selected class");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
