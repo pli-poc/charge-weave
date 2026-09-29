@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   font-family: "Manrope Variable", sans-serif;
   color: #edf1f1;
   background: #080f16;
@@ -9,6 +10,8 @@
   --line: #233039;
   --surface: #101a23;
 }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 * {
   box-sizing: border-box;
 }
