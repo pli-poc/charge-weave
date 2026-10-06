@@ -1,0 +1,375 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix ex: <https://example.org/reference/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:analytics-dimension-day a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-dimension-day"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass cd:TimeWindow ;
+    cd:dimensionExpression "day"^^xsd:string ;
+    cd:dimensionKey "day"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:parentDimension ex:analytics-dimension-month ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-dimension-setting a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-dimension-setting"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass cd:ChargingSite ;
+    cd:dimensionExpression "setting"^^xsd:string ;
+    cd:dimensionKey "setting"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-measure-sessions a cd:MeasureDefinition ;
+    cd:additivity cd:additivity_Additive ;
+    cd:aggregationPolicy cd:aggregationPolicy_Sum ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-measure-sessions"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:financialBasis cd:financialBasis_NotApplicable ;
+    cd:metricDefinition ex:analytics-metric-sessions ;
+    cd:missingValuePolicy cd:missingValuePolicy_Unavailable ;
+    cd:numeratorExpression "sessionCount"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scaleFactor 1.0 ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-measure-value a cd:MeasureDefinition ;
+    cd:additivity cd:additivity_Additive ;
+    cd:aggregationPolicy cd:aggregationPolicy_Sum ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-measure-value"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:financialBasis cd:financialBasis_NetEstimate ;
+    cd:metricDefinition ex:analytics-metric-value ;
+    cd:missingValuePolicy cd:missingValuePolicy_Unavailable ;
+    cd:numeratorExpression "netValueEur"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scaleFactor 1.0 ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-overview a cd:DashboardDefinition ;
+    cd:canonicalId "analytics-overview"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dashboardKey "overview"^^xsd:string ;
+    cd:definitionVersion "1.0.0"^^xsd:string ;
+    cd:paneDefinition ex:analytics-pane-activity,
+        ex:analytics-pane-energy,
+        ex:analytics-pane-ranking,
+        ex:analytics-pane-roaming,
+        ex:analytics-pane-sites,
+        ex:analytics-pane-trend ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-baseline-window a cd:TimeWindow ;
+    cd:canonicalId "analytics-baseline-window"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:endsAt "2026-07-01T00:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:startsAt "2026-04-01T00:00:00+00:00"^^xsd:dateTime ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-dimension-site a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-dimension-site"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass cd:ChargingSite ;
+    cd:dimensionExpression "siteId"^^xsd:string ;
+    cd:dimensionKey "site"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:parentDimension ex:analytics-dimension-country ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-measure-availability a cd:MeasureDefinition ;
+    cd:additivity cd:additivity_Ratio ;
+    cd:aggregationPolicy cd:aggregationPolicy_RatioOfSums ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-measure-availability"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:denominatorExpression "eligibleSeconds"^^xsd:string ;
+    cd:financialBasis cd:financialBasis_NotApplicable ;
+    cd:metricDefinition ex:analytics-metric-availability ;
+    cd:missingValuePolicy cd:missingValuePolicy_Unavailable ;
+    cd:numeratorExpression "availableSeconds"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scaleFactor 100.0 ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-metric-availability a cd:MetricDefinition ;
+    cd:canonicalId "analytics-metric-availability"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:expressionLanguage "ChargeWeave analytical profile v1"^^xsd:string ;
+    cd:metricExpression "100 × sum(available point-seconds) / sum(eligible point-seconds). Includes planned downtime; never an average of site percentages."^^xsd:string ;
+    cd:metricName "Availability"^^xsd:string ;
+    cd:metricVersion "1"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeClass cd:ChargingSite ;
+    cd:tenant ex:Tenant ;
+    cd:unitIri <http://qudt.org/vocab/unit/PERCENT> .
+
+ex:analytics-metric-energy a cd:MetricDefinition ;
+    cd:canonicalId "analytics-metric-energy"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:expressionLanguage "ChargeWeave analytical profile v1"^^xsd:string ;
+    cd:metricExpression "Sum of measured import energy, once per site/day."^^xsd:string ;
+    cd:metricName "Delivered energy"^^xsd:string ;
+    cd:metricVersion "1"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeClass cd:ChargingSite ;
+    cd:tenant ex:Tenant ;
+    cd:unitIri <http://qudt.org/vocab/unit/KiloW-HR> .
+
+ex:analytics-metric-sessions a cd:MetricDefinition ;
+    cd:canonicalId "analytics-metric-sessions"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:expressionLanguage "ChargeWeave analytical profile v1"^^xsd:string ;
+    cd:metricExpression "Sum of completed-session counts; excludes the separate live-session snapshot."^^xsd:string ;
+    cd:metricName "Completed sessions"^^xsd:string ;
+    cd:metricVersion "1"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeClass cd:ChargingSite ;
+    cd:tenant ex:Tenant ;
+    cd:unitIri <http://qudt.org/vocab/unit/NUM> .
+
+ex:analytics-metric-value a cd:MetricDefinition ;
+    cd:canonicalId "analytics-metric-value"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:expressionLanguage "ChargeWeave analytical profile v1"^^xsd:string ;
+    cd:metricExpression "Energy × illustrative net tariff, rounded to cents per site/day. Excludes VAT; no invoices, credits or procurement costs are modeled."^^xsd:string ;
+    cd:metricName "Estimated charging value"^^xsd:string ;
+    cd:metricVersion "1"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeClass cd:ChargingSite ;
+    cd:tenant ex:Tenant ;
+    cd:unitIri <http://qudt.org/vocab/currency/EUR> .
+
+ex:analytics-pane-activity a cd:DashboardPane ;
+    cd:canonicalId "analytics-pane-activity"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "activity"^^xsd:string ;
+    cd:paneKind cd:paneKind_Custom ;
+    cd:paneOrder "4"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Recent activity"^^xsd:string ;
+    cd:rendererKey "activity"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-pane-energy a cd:DashboardPane ;
+    cd:analyticalQuery ex:analytics-query-energy ;
+    cd:canonicalId "analytics-pane-energy"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "energy"^^xsd:string ;
+    cd:paneKind cd:paneKind_Bar ;
+    cd:paneOrder "5"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Network energy"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-pane-ranking a cd:DashboardPane ;
+    cd:analyticalQuery ex:analytics-query-ranking ;
+    cd:canonicalId "analytics-pane-ranking"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "ranking"^^xsd:string ;
+    cd:paneKind cd:paneKind_Bar ;
+    cd:paneOrder "3"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Availability by site"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-pane-roaming a cd:DashboardPane ;
+    cd:canonicalId "analytics-pane-roaming"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "roaming"^^xsd:string ;
+    cd:paneKind cd:paneKind_Custom ;
+    cd:paneOrder "1"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Chargecard roaming"^^xsd:string ;
+    cd:rendererKey "roaming"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-pane-sites a cd:DashboardPane ;
+    cd:canonicalId "analytics-pane-sites"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "sites"^^xsd:string ;
+    cd:paneKind cd:paneKind_Custom ;
+    cd:paneOrder "0"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Owned sites & parking"^^xsd:string ;
+    cd:rendererKey "sites"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-pane-trend a cd:DashboardPane ;
+    cd:analyticalQuery ex:analytics-query-trend ;
+    cd:canonicalId "analytics-pane-trend"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "trend"^^xsd:string ;
+    cd:paneKind cd:paneKind_Line ;
+    cd:paneOrder "2"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "Energy through the period"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-query-energy a cd:AnalyticalQuery ;
+    cd:analyticalComparison ex:analytics-comparison ;
+    cd:analyticalOperator cd:analyticalOperator_Value ;
+    cd:analyticalRanking ex:analytics-ranking-energy ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-query-energy"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionDefinition ex:analytics-dimension-country ;
+    cd:measureDefinition ex:analytics-measure-energy ;
+    cd:queryVersion "1.0.0"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timeContext ex:analytics-time .
+
+ex:analytics-query-ranking a cd:AnalyticalQuery ;
+    cd:analyticalComparison ex:analytics-comparison ;
+    cd:analyticalOperator cd:analyticalOperator_Value ;
+    cd:analyticalRanking ex:analytics-ranking-ranking ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-query-ranking"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionDefinition ex:analytics-dimension-site ;
+    cd:measureDefinition ex:analytics-measure-availability ;
+    cd:queryVersion "1.0.0"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timeContext ex:analytics-time .
+
+ex:analytics-query-trend a cd:AnalyticalQuery ;
+    cd:analyticalComparison ex:analytics-comparison ;
+    cd:analyticalOperator cd:analyticalOperator_Value ;
+    cd:analyticalRanking ex:analytics-ranking-trend ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-query-trend"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionDefinition ex:analytics-dimension-month ;
+    cd:measureDefinition ex:analytics-measure-energy ;
+    cd:queryVersion "1.0.0"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timeContext ex:analytics-time .
+
+ex:analytics-ranking-energy a cd:AnalyticalRanking ;
+    cd:canonicalId "analytics-ranking-energy"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:rankBy cd:rankBy_Value ;
+    cd:rankDirection cd:rankDirection_Descending ;
+    cd:rankLimit "0"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:tiePolicy cd:tiePolicy_StableKey .
+
+ex:analytics-ranking-ranking a cd:AnalyticalRanking ;
+    cd:canonicalId "analytics-ranking-ranking"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:rankBy cd:rankBy_Value ;
+    cd:rankDirection cd:rankDirection_Ascending ;
+    cd:rankLimit "5"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:tiePolicy cd:tiePolicy_StableKey .
+
+ex:analytics-ranking-trend a cd:AnalyticalRanking ;
+    cd:canonicalId "analytics-ranking-trend"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:rankBy cd:rankBy_Value ;
+    cd:rankDirection cd:rankDirection_Descending ;
+    cd:rankLimit "0"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:tiePolicy cd:tiePolicy_StableKey .
+
+ex:analytics-report-window a cd:TimeWindow ;
+    cd:canonicalId "analytics-report-window"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:endsAt "2026-10-01T00:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:startsAt "2026-07-01T00:00:00+00:00"^^xsd:dateTime ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-dimension-country a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-dimension-country"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass cd:Address ;
+    cd:dimensionExpression "country"^^xsd:string ;
+    cd:dimensionKey "country"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-dimension-month a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-dimension-month"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass cd:TimeWindow ;
+    cd:dimensionExpression "month"^^xsd:string ;
+    cd:dimensionKey "month"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-measure-energy a cd:MeasureDefinition ;
+    cd:additivity cd:additivity_Additive ;
+    cd:aggregationPolicy cd:aggregationPolicy_Sum ;
+    cd:analyticalSubject ex:analytics-subject ;
+    cd:canonicalId "analytics-measure-energy"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:financialBasis cd:financialBasis_NotApplicable ;
+    cd:metricDefinition ex:analytics-metric-energy ;
+    cd:missingValuePolicy cd:missingValuePolicy_Unavailable ;
+    cd:numeratorExpression "energyKwh"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scaleFactor 1.0 ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-comparison a cd:AnalyticalComparison ;
+    cd:alignmentPolicy cd:alignmentPolicy_CalendarPeriod ;
+    cd:canonicalId "analytics-comparison"^^xsd:string ;
+    cd:cohortPolicy cd:cohortPolicy_SamePopulation ;
+    cd:comparisonKind cd:comparisonKind_PreviousPeriod ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:referenceWindow ex:analytics-baseline-window ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:analytics-time a cd:AnalyticalTimeContext ;
+    cd:bucketGrain cd:bucketGrain_Day ;
+    cd:canonicalId "analytics-time"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:knownAt "2027-01-05T00:00:00+00:00"^^xsd:dateTime ;
+    cd:reportWindow ex:analytics-report-window ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timezoneName "UTC"^^xsd:string .
+
+ex:analytics-subject a cd:AnalyticalSubject ;
+    cd:canonicalId "analytics-subject"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:factGrain "siteId + UTC calendar day"^^xsd:string ;
+    cd:joinPolicy "One row per site/day/revision; dimensions captured at event time; no invoice-line joins"^^xsd:string ;
+    cd:populationExpression "Owned NL/BE sites with complete daily measurements"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:subjectClass cd:ChargingSite ;
+    cd:subjectKey "site-day"^^xsd:string ;
+    cd:tenant ex:Tenant .
+

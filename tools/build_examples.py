@@ -84,6 +84,12 @@ code('ProjectionWatermark','watermarkState','Complete')
 code('TemporalSnapshotSelection','selectionState','Retracted')
 setv('TemporalSnapshotSelection','selectedCommit',E.TemporalCommit)
 setv('TemporalSnapshotSelection','selectedSlice',E.TemporalSlice)
+# Positive analytical boundary: absent baseline and unavailable value remain explicit.
+code('MeasureDefinition','aggregationPolicy','Sum');code('MeasureDefinition','additivity','Additive')
+code('AnalyticalComparison','comparisonKind','None');code('AnalyticalQuery','analyticalOperator','Value')
+code('AnalyticalResult','resultState','Unavailable');code('AnalyticalExecution','executionState','Unavailable')
+code('DashboardPane','paneKind','Custom');setv('DashboardPane','rendererKey',Literal('sites',datatype=XSD.string))
+setv('AnalyticalFilter','filterDatatype',XSD.string);setv('DimensionDefinition','dimensionValueDatatype',XSD.string)
 from temporal_integrity import stamp_digests
 stamp_digests(g)
 temp=P/'examples/reference.ttl.tmp';temp.write_text(g.serialize(format='turtle'));temp.replace(P/'examples/reference.ttl');print(len(g),'example triples',len(catalog)-1,'explicit domain instances')

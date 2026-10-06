@@ -16480,5 +16480,706 @@
         ]
       }
     ]
+  },
+  "AnalyticalSubject": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Approved analytical population and fact grain; arbitrary relationship traversal is not a join plan.",
+    "fields": [
+      {
+        "property": "subjectKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "subjectClass",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "factGrain",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "populationExpression",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "joinPolicy",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "MeasureDefinition": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Structured aggregation policy for a versioned metric; ratios retain numerator and denominator instead of averaging percentages.",
+    "fields": [
+      {
+        "property": "metricDefinition",
+        "type": "object",
+        "range": "MetricDefinition",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "analyticalSubject",
+        "type": "object",
+        "range": "AnalyticalSubject",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "aggregationPolicy",
+        "type": "enum",
+        "range": "AggregationPolicyCode",
+        "cardinality": "!",
+        "values": [
+          "Sum",
+          "RatioOfSums",
+          "Maximum"
+        ]
+      },
+      {
+        "property": "numeratorExpression",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "denominatorExpression",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "scaleFactor",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "additivity",
+        "type": "enum",
+        "range": "AdditivityCode",
+        "cardinality": "!",
+        "values": [
+          "Additive",
+          "Ratio",
+          "SemiAdditive"
+        ]
+      },
+      {
+        "property": "missingValuePolicy",
+        "type": "enum",
+        "range": "MissingValuePolicyCode",
+        "cardinality": "!",
+        "values": [
+          "Unavailable",
+          "Exclude"
+        ]
+      },
+      {
+        "property": "financialBasis",
+        "type": "enum",
+        "range": "FinancialBasisCode",
+        "cardinality": "!",
+        "values": [
+          "NotApplicable",
+          "NetEstimate",
+          "NetBooked",
+          "GrossBooked"
+        ]
+      }
+    ]
+  },
+  "DimensionDefinition": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Approved many-to-one dimension path and historical assignment policy; physical quantities are distinct from analytical grouping dimensions.",
+    "fields": [
+      {
+        "property": "analyticalSubject",
+        "type": "object",
+        "range": "AnalyticalSubject",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dimensionKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dimensionClass",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dimensionExpression",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dimensionValueDatatype",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "parentDimension",
+        "type": "object",
+        "range": "DimensionDefinition",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "joinCardinality",
+        "type": "enum",
+        "range": "JoinCardinalityCode",
+        "cardinality": "!",
+        "values": [
+          "ManyToOne",
+          "OneToOne"
+        ]
+      },
+      {
+        "property": "historicalAssignment",
+        "type": "enum",
+        "range": "HistoricalAssignmentCode",
+        "cardinality": "!",
+        "values": [
+          "AtEventTime",
+          "AtQueryTime"
+        ]
+      }
+    ]
+  },
+  "AnalyticalFilter": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Typed predicate applied before or after aggregation under an approved query contract.",
+    "fields": [
+      {
+        "property": "dimensionDefinition",
+        "type": "object",
+        "range": "DimensionDefinition",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "filterOperator",
+        "type": "enum",
+        "range": "FilterOperatorCode",
+        "cardinality": "!",
+        "values": [
+          "Equal",
+          "In",
+          "GreaterOrEqual",
+          "LessThan"
+        ]
+      },
+      {
+        "property": "filterValue",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "filterDatatype",
+        "type": "iri",
+        "range": "IRI",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "filterStage",
+        "type": "enum",
+        "range": "FilterStageCode",
+        "cardinality": "!",
+        "values": [
+          "BeforeAggregation",
+          "AfterAggregation"
+        ]
+      }
+    ]
+  },
+  "AnalyticalTimeContext": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Reporting interval and knowledge cutoff remain separate; timezone and bucket grain are explicit.",
+    "fields": [
+      {
+        "property": "reportWindow",
+        "type": "object",
+        "range": "TimeWindow",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "knownAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "timezoneName",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "bucketGrain",
+        "type": "enum",
+        "range": "BucketGrainCode",
+        "cardinality": "!",
+        "values": [
+          "Day",
+          "Month",
+          "Quarter",
+          "Year"
+        ]
+      }
+    ]
+  },
+  "AnalyticalComparison": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Reference period or fixed target aligned to the same measure and declared population.",
+    "fields": [
+      {
+        "property": "comparisonKind",
+        "type": "enum",
+        "range": "ComparisonKindCode",
+        "cardinality": "!",
+        "values": [
+          "None",
+          "PreviousPeriod",
+          "Target"
+        ]
+      },
+      {
+        "property": "referenceWindow",
+        "type": "object",
+        "range": "TimeWindow",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "targetValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "cohortPolicy",
+        "type": "enum",
+        "range": "CohortPolicyCode",
+        "cardinality": "!",
+        "values": [
+          "SamePopulation"
+        ]
+      },
+      {
+        "property": "alignmentPolicy",
+        "type": "enum",
+        "range": "AlignmentPolicyCode",
+        "cardinality": "!",
+        "values": [
+          "CalendarPeriod",
+          "ElapsedDuration",
+          "FixedTarget"
+        ]
+      }
+    ]
+  },
+  "AnalyticalRanking": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Deterministic cardinality and ordering policy; a zero limit returns the full ranked population.",
+    "fields": [
+      {
+        "property": "rankBy",
+        "type": "enum",
+        "range": "RankByCode",
+        "cardinality": "!",
+        "values": [
+          "Value",
+          "Change",
+          "PercentChange"
+        ]
+      },
+      {
+        "property": "rankDirection",
+        "type": "enum",
+        "range": "RankDirectionCode",
+        "cardinality": "!",
+        "values": [
+          "Ascending",
+          "Descending"
+        ]
+      },
+      {
+        "property": "rankLimit",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "tiePolicy",
+        "type": "enum",
+        "range": "TiePolicyCode",
+        "cardinality": "!",
+        "values": [
+          "StableKey"
+        ]
+      }
+    ]
+  },
+  "AnalyticalQuery": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Versioned analytical intent carrying subject, measure, operator, dimensions, filters, time, comparison and ranking.",
+    "fields": [
+      {
+        "property": "analyticalSubject",
+        "type": "object",
+        "range": "AnalyticalSubject",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "measureDefinition",
+        "type": "object",
+        "range": "MeasureDefinition",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "analyticalOperator",
+        "type": "enum",
+        "range": "AnalyticalOperatorCode",
+        "cardinality": "!",
+        "values": [
+          "Value",
+          "Change",
+          "PercentChange"
+        ]
+      },
+      {
+        "property": "dimensionDefinition",
+        "type": "object",
+        "range": "DimensionDefinition",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "analyticalFilter",
+        "type": "object",
+        "range": "AnalyticalFilter",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "timeContext",
+        "type": "object",
+        "range": "AnalyticalTimeContext",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "analyticalComparison",
+        "type": "object",
+        "range": "AnalyticalComparison",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "analyticalRanking",
+        "type": "object",
+        "range": "AnalyticalRanking",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "queryVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
+  },
+  "AnalyticalExecution": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Evidence binding an analytical query to its measure revision, authorized scope, snapshot identity and source completeness; the browser is not an authorization service.",
+    "fields": [
+      {
+        "property": "analyticalQuery",
+        "type": "object",
+        "range": "AnalyticalQuery",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "queryDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "metricVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "executedAt",
+        "type": "datatype",
+        "range": "dateTime",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "executionState",
+        "type": "enum",
+        "range": "ExecutionStateCode",
+        "cardinality": "!",
+        "values": [
+          "Succeeded",
+          "Unavailable",
+          "Rejected"
+        ]
+      },
+      {
+        "property": "authorizedScope",
+        "type": "object",
+        "range": "Record",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceSnapshotDigest",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "sourceWatermark",
+        "type": "object",
+        "range": "ProjectionWatermark",
+        "cardinality": "+",
+        "values": null
+      },
+      {
+        "property": "populationCount",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "evidence",
+        "type": "object",
+        "range": "EvidenceDocument",
+        "cardinality": "+",
+        "values": null
+      }
+    ]
+  },
+  "AnalyticalResult": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "One grouping result retaining weighted components and explicit unavailable state; missing measurements never become zero.",
+    "fields": [
+      {
+        "property": "analyticalExecution",
+        "type": "object",
+        "range": "AnalyticalExecution",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "resultKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "dimensionValue",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "*",
+        "values": null
+      },
+      {
+        "property": "resultState",
+        "type": "enum",
+        "range": "ResultStateCode",
+        "cardinality": "!",
+        "values": [
+          "Available",
+          "Unavailable"
+        ]
+      },
+      {
+        "property": "numericValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "baselineNumericValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "absoluteChange",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "relativeChange",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "numeratorValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "denominatorValue",
+        "type": "datatype",
+        "range": "decimal",
+        "cardinality": "?",
+        "values": null
+      }
+    ]
+  },
+  "DashboardDefinition": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Versioned composition of reusable panes referencing analytical intent or approved custom renderers.",
+    "fields": [
+      {
+        "property": "dashboardKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "definitionVersion",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "paneDefinition",
+        "type": "object",
+        "range": "DashboardPane",
+        "cardinality": "+",
+        "values": null
+      }
+    ]
+  },
+  "DashboardPane": {
+    "module": "analytics",
+    "parent": "Record",
+    "definition": "Presentation descriptor separated from calculation; one query result can be viewed as a chart or a table.",
+    "fields": [
+      {
+        "property": "paneKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "paneTitle",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "!",
+        "values": null
+      },
+      {
+        "property": "paneKind",
+        "type": "enum",
+        "range": "PaneKindCode",
+        "cardinality": "!",
+        "values": [
+          "Kpi",
+          "Line",
+          "Bar",
+          "Table",
+          "Custom"
+        ]
+      },
+      {
+        "property": "analyticalQuery",
+        "type": "object",
+        "range": "AnalyticalQuery",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "rendererKey",
+        "type": "datatype",
+        "range": "string",
+        "cardinality": "?",
+        "values": null
+      },
+      {
+        "property": "paneOrder",
+        "type": "datatype",
+        "range": "nonNegativeInteger",
+        "cardinality": "!",
+        "values": null
+      }
+    ]
   }
 }

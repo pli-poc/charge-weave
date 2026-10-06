@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?dashboard ?pane ?kind ?query ?renderer WHERE {?dashboard a cd:DashboardDefinition; cd:paneDefinition ?pane. ?pane cd:paneKind ?kind. OPTIONAL {?pane cd:analyticalQuery ?query} OPTIONAL {?pane cd:rendererKey ?renderer}}

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "B185",
+    "target": "MeasureDefinition",
+    "title": "Ratio measures require a denominator and ratio additivity.",
+    "body": "$this cd:aggregationPolicy cd:aggregationPolicy_RatioOfSums. FILTER(!EXISTS {$this cd:denominatorExpression ?d} || !EXISTS {$this cd:additivity cd:additivity_Ratio})"
+  },
+  {
+    "id": "B186",
+    "target": "AnalyticalQuery",
+    "title": "The measure belongs to the declared analytical subject.",
+    "body": "$this cd:analyticalSubject ?s; cd:measureDefinition/cd:analyticalSubject ?m. FILTER(?s != ?m)"
+  },
+  {
+    "id": "B187",
+    "target": "AnalyticalQuery",
+    "title": "Grouping and filtering dimensions belong to the declared analytical subject.",
+    "body": "$this cd:analyticalSubject ?s. {$this cd:dimensionDefinition/cd:analyticalSubject ?d} UNION {$this cd:analyticalFilter/cd:dimensionDefinition/cd:analyticalSubject ?d} FILTER(?s != ?d)"
+  },
+  {
+    "id": "B188",
+    "target": "AnalyticalComparison",
+    "title": "Comparison kind requires exactly its reference window or target, with no competing baseline.",
+    "body": "$this cd:comparisonKind ?k. FILTER((?k=cd:comparisonKind_PreviousPeriod && (!EXISTS {$this cd:referenceWindow ?r} || EXISTS {$this cd:targetValue ?v})) || (?k=cd:comparisonKind_Target && (!EXISTS {$this cd:targetValue ?v} || EXISTS {$this cd:referenceWindow ?r})) || (?k=cd:comparisonKind_None && (EXISTS {$this cd:referenceWindow ?r} || EXISTS {$this cd:targetValue ?v})))"
+  },
+  {
+    "id": "B189",
+    "target": "AnalyticalQuery",
+    "title": "Change operators require a comparison baseline.",
+    "body": "$this cd:analyticalOperator ?o; cd:analyticalComparison/cd:comparisonKind cd:comparisonKind_None. FILTER(?o != cd:analyticalOperator_Value)"
+  },
+  {
+    "id": "B190",
+    "target": "AnalyticalFilter",
+    "title": "Filter values use the dimension datatype.",
+    "body": "$this cd:filterDatatype ?a; cd:dimensionDefinition/cd:dimensionValueDatatype ?b. FILTER(?a != ?b)"
+  },
+  {
+    "id": "B191",
+    "target": "DimensionDefinition",
+    "title": "Dimension roll-up hierarchies are acyclic.",
+    "body": "$this cd:parentDimension+ $this."
+  },
+  {
+    "id": "B192",
+    "target": "AnalyticalResult",
+    "title": "Available results require a value; unavailable results cannot assert a value.",
+    "body": "$this cd:resultState ?s. FILTER((?s=cd:resultState_Available && !EXISTS {$this cd:numericValue ?v}) || (?s=cd:resultState_Unavailable && EXISTS {$this cd:numericValue ?v}))"
+  },
+  {
+    "id": "B193",
+    "target": "DashboardPane",
+    "title": "Custom panes require an approved renderer; analytical panes require a query.",
+    "body": "$this cd:paneKind ?k. FILTER((?k=cd:paneKind_Custom && !EXISTS {$this cd:rendererKey ?r}) || (?k!=cd:paneKind_Custom && !EXISTS {$this cd:analyticalQuery ?q}))"
+  },
+  {
+    "id": "B194",
+    "target": "AnalyticalExecution",
+    "title": "A successful measurement execution requires complete source coverage through the reporting interval.",
+    "body": "$this cd:executionState cd:executionState_Succeeded; cd:analyticalQuery/cd:timeContext/cd:reportWindow/cd:endsAt ?end; cd:sourceWatermark ?w. ?w cd:completeThrough ?c; cd:watermarkState ?s. FILTER(?c < ?end || ?s != cd:watermarkState_Complete)"
+  },
+  {
+    "id": "B195",
+    "target": "AnalyticalQuery",
+    "title": "Previous-period baselines must end before the report begins.",
+    "body": "$this cd:timeContext/cd:reportWindow/cd:startsAt ?a; cd:analyticalComparison ?c. ?c cd:comparisonKind cd:comparisonKind_PreviousPeriod; cd:referenceWindow/cd:endsAt ?b. FILTER(?b > ?a)"
+  },
+  {
+    "id": "B196",
+    "target": "MeasureDefinition",
+    "title": "Summable measures must declare additive behavior.",
+    "body": "$this cd:aggregationPolicy cd:aggregationPolicy_Sum; cd:additivity ?a. FILTER(?a != cd:additivity_Additive)"
+  }
+]

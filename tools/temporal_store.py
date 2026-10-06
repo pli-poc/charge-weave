@@ -87,7 +87,7 @@ def interval_union_seconds(intervals):
 
 
 class TemporalStore:
-    def __init__(self, tenant, scope, *, clock=None, validator=check, mapping_version='chargeweave-1.2.0'):
+    def __init__(self, tenant, scope, *, clock=None, validator=check, mapping_version='chargeweave-1.3.0'):
         self.tenant, self.scope = URIRef(tenant), URIRef(scope)
         if not all(re.match(r'^https?://', str(x)) for x in (self.tenant, self.scope)):
             raise TemporalError('Tenant and scope require absolute HTTP(S) IRIs')

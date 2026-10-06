@@ -182,5 +182,17 @@
   "B181": "ex:this cd:credential ex:k; cd:validFrom \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:validUntil \"2026-09-25T13:00:00Z\"^^xsd:dateTime. ex:other a cd:CredentialAssignment; cd:credential ex:k; cd:validFrom \"2026-09-25T11:00:00Z\"^^xsd:dateTime; cd:validUntil \"2026-09-25T14:00:00Z\"^^xsd:dateTime.",
   "B182": "ex:this cd:totalCabinetPowerKW 10. ex:a a cd:PowerModuleAllocation; cd:powerCabinet ex:this; cd:allocatedPowerKW 6; cd:interval ex:i. ex:b a cd:PowerModuleAllocation; cd:powerCabinet ex:this; cd:allocatedPowerKW 6; cd:interval ex:i. ex:i cd:startsAt \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:endsAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime.",
   "B183": "ex:this cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ex:u; cd:bookingWindow ex:i. ex:other a cd:Booking; cd:bookingState cd:bookingState_Confirmed; cd:chargingUnit ex:u; cd:bookingWindow ex:i. ex:i cd:startsAt \"2026-09-25T10:00:00Z\"^^xsd:dateTime; cd:endsAt \"2026-09-25T13:00:00Z\"^^xsd:dateTime.",
-  "B184": "ex:this a cd:TemporalSnapshotSelection; cd:selectionState cd:selectionState_Present ."
+  "B184": "ex:this a cd:TemporalSnapshotSelection; cd:selectionState cd:selectionState_Present .",
+  "B185": "ex:this cd:aggregationPolicy cd:aggregationPolicy_RatioOfSums; cd:additivity cd:additivity_Ratio.",
+  "B186": "ex:this cd:analyticalSubject ex:a; cd:measureDefinition ex:b. ex:b cd:analyticalSubject ex:c.",
+  "B187": "ex:this cd:analyticalSubject ex:a; cd:dimensionDefinition ex:b. ex:b cd:analyticalSubject ex:c.",
+  "B188": "ex:this cd:comparisonKind cd:comparisonKind_Target.",
+  "B189": "ex:this cd:analyticalOperator cd:analyticalOperator_Change; cd:analyticalComparison ex:b. ex:b cd:comparisonKind cd:comparisonKind_None.",
+  "B190": "ex:this cd:filterDatatype xsd:decimal; cd:dimensionDefinition ex:b. ex:b cd:dimensionValueDatatype xsd:string.",
+  "B191": "ex:this cd:parentDimension ex:b. ex:b cd:parentDimension ex:this.",
+  "B192": "ex:this cd:resultState cd:resultState_Unavailable; cd:numericValue 0.0.",
+  "B193": "ex:this cd:paneKind cd:paneKind_Line.",
+  "B194": "ex:this cd:executionState cd:executionState_Succeeded; cd:analyticalQuery ex:q; cd:sourceWatermark ex:w. ex:q cd:timeContext ex:t. ex:t cd:reportWindow ex:p. ex:p cd:endsAt \"2026-10-01T00:00:00Z\"^^xsd:dateTime. ex:w cd:completeThrough \"2026-09-01T00:00:00Z\"^^xsd:dateTime; cd:watermarkState cd:watermarkState_Complete.",
+  "B195": "ex:this cd:timeContext ex:t; cd:analyticalComparison ex:c. ex:t cd:reportWindow ex:p. ex:p cd:startsAt \"2026-07-01T00:00:00Z\"^^xsd:dateTime. ex:c cd:comparisonKind cd:comparisonKind_PreviousPeriod; cd:referenceWindow ex:r. ex:r cd:endsAt \"2026-08-01T00:00:00Z\"^^xsd:dateTime.",
+  "B196": "ex:this cd:aggregationPolicy cd:aggregationPolicy_Sum; cd:additivity cd:additivity_Ratio."
 }

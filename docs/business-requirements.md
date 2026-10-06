@@ -100,6 +100,7 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | BR-171 | Allowance totals reconcile actual usage and reservations for the same allowance, period and session customer. | J14 | AllowanceBalance | B171 | BR-171-PASS, BR-171-REJECT, ADV-ALLOWANCE-ALLOW, ADV-ALLOWANCE-REJECT |
 | BR-172 | Money-denominated allowances identify a currency instead of being treated as energy credits. | J14 | AllowanceBalance | B172 | BR-172-PASS, BR-172-REJECT |
 | BR-180 | Historical decisions and relationships are selected from immutable, complete bitemporal scopes with explicit source checkpoints. | J20 | TemporalCommit, TemporalSlice, ProjectionWatermark, TemporalSnapshotSelection, TemporalStreamPolicy | B176, B177, B178, B179, B180, B181, B184 | REF-PASS, UNIT-B176-REJECT, UNIT-B177-REJECT, UNIT-B178-REJECT, UNIT-B179-REJECT, UNIT-B180-REJECT, UNIT-B181-REJECT, UNIT-B184-REJECT |
+| BR-185 | Analytical questions declare population, measure, dimensions, typed filters, time, reference and ranking; reusable dashboard panes consume the same reproducible calculations. | J20 | AnalyticalSubject, MeasureDefinition, DimensionDefinition, AnalyticalFilter, AnalyticalTimeContext, AnalyticalComparison, AnalyticalRanking, AnalyticalQuery, AnalyticalExecution, AnalyticalResult, DashboardDefinition, DashboardPane | B185, B186, B187, B188, B189, B190, B191, B192, B193, B194, B195, B196 | REF-PASS, UNIT-B185-REJECT, UNIT-B186-REJECT, UNIT-B187-REJECT, UNIT-B188-REJECT, UNIT-B189-REJECT, UNIT-B190-REJECT, UNIT-B191-REJECT, UNIT-B192-REJECT, UNIT-B193-REJECT, UNIT-B194-REJECT, UNIT-B195-REJECT, UNIT-B196-REJECT |
 
 ## BR-001 — Tenant identity and isolation
 
@@ -2002,3 +2003,25 @@ Validation boundary: model-level decisions over complete authorized snapshots. R
 | Concept | Reviewed relationship/value paths |
 |---|---|
 | TemporalCommit | snapshotScope, recordedAt, previousCommit, temporalSlice, sourceWatermark, schemaDigest |
+
+## BR-185 — Analytical questions declare population, measure, dimensions, typed filters, time, reference and ranking; reusable dashboard panes consume the same reproducible calculations.
+
+- Accountable: Operator responsible for analytical definitions and source completeness.
+- Financial ownership: Commercial operator responsible for financial interpretation of reported metrics.
+- Actors: CPO, Finance, Auditor, PlatformOperator.
+- Preconditions: An approved metric version and complete authorized source population exist at the knowledge cutoff; dimensions use approved non-multiplying paths.
+- Normal outcome: Weighted, additive and comparative results remain consistent across KPIs, charts and tables and disclose their calculation evidence.
+- Exception outcome: Reject incompatible subjects, dimensions, datatypes, comparisons, aggregation policies or incomplete coverage; represent missing and zero-denominator results as unavailable.
+- Review finding: Analytical intent and reusable dashboard review
+- Disposition: model-and-synthetic-adapter-implemented.
+- Adversarial review: Not challenged by this six-family review.
+- Sources: CW-POLICY.
+- Associated full-graph journey snapshots: JOURNEY-PROCESS-PASS, JOURNEY-PROCESS-REJECT. These exercise the journey; focused scenarios above isolate this requirement.
+- Structural contracts: AnalyticalQueryShape, MeasureDefinitionShape, AnalyticalExecutionShape, DashboardPaneShape.
+- Runtime acceptance: A trusted production analytics service must enforce real identity and data isolation, select immutable temporal scopes, verify source checkpoints, retain versioned result receipts and implement accounting/tax policies before accepting live financial reporting.
+
+| Concept | Reviewed relationship/value paths |
+|---|---|
+| MeasureDefinition | metricDefinition, analyticalSubject, aggregationPolicy, numeratorExpression, denominatorExpression, additivity |
+| AnalyticalQuery | analyticalSubject, measureDefinition, dimensionDefinition, analyticalFilter, timeContext, analyticalComparison, analyticalRanking |
+| DashboardPane | paneKind, analyticalQuery, rendererKey |

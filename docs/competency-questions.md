@@ -28,3 +28,6 @@ Load the complete ontology and the reference graph together. These queries inspe
 | CQ22 | Assisted action approval binding |
 | CQ23 | Payout obligation |
 | CQ24 | Documented state transition |
+| CQ25 | Analytical question contract |
+| CQ26 | Structured measure aggregation |
+| CQ27 | Reusable dashboard pane binding |

@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?measure ?metric ?policy ?numerator ?denominator WHERE {?measure a cd:MeasureDefinition; cd:metricDefinition ?metric; cd:aggregationPolicy ?policy; cd:numeratorExpression ?numerator. OPTIONAL {?measure cd:denominatorExpression ?denominator}}

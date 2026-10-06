@@ -1,0 +1,311 @@
+@prefix cd: <https://example.org/charge-domain#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cd:AnalyticalResult a owl:Class ;
+    rdfs:label "Analytical Result"@en ;
+    rdfs:comment "One grouping result retaining weighted components and explicit unavailable state; missing measurements never become zero."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:relativeChange ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:numeratorValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalExecution ;
+            owl:onProperty cd:analyticalExecution ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:denominatorValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:dimensionValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ResultStateCode ;
+            owl:onProperty cd:resultState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:baselineNumericValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:resultKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:absoluteChange ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:numericValue ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:DashboardDefinition a owl:Class ;
+    rdfs:label "Dashboard Definition"@en ;
+    rdfs:comment "Versioned composition of reusable panes referencing analytical intent or approved custom renderers."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:dashboardKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:definitionVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DashboardPane ;
+            owl:onProperty cd:paneDefinition ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalComparison a owl:Class ;
+    rdfs:label "Analytical Comparison"@en ;
+    rdfs:comment "Reference period or fixed target aligned to the same measure and declared population."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:ComparisonKindCode ;
+            owl:onProperty cd:comparisonKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:CohortPolicyCode ;
+            owl:onProperty cd:cohortPolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:referenceWindow ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:targetValue ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AlignmentPolicyCode ;
+            owl:onProperty cd:alignmentPolicy ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalExecution a owl:Class ;
+    rdfs:label "Analytical Execution"@en ;
+    rdfs:comment "Evidence binding an analytical query to its measure revision, authorized scope, snapshot identity and source completeness; the browser is not an authorization service."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:EvidenceDocument ;
+            owl:onProperty cd:evidence ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ProjectionWatermark ;
+            owl:onProperty cd:sourceWatermark ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:Record ;
+            owl:onProperty cd:authorizedScope ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:queryDigest ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:metricVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:sourceSnapshotDigest ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalQuery ;
+            owl:onProperty cd:analyticalQuery ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:ExecutionStateCode ;
+            owl:onProperty cd:executionState ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:executedAt ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:populationCount ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalFilter a owl:Class ;
+    rdfs:label "Analytical Filter"@en ;
+    rdfs:comment "Typed predicate applied before or after aggregation under an approved query contract."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:FilterStageCode ;
+            owl:onProperty cd:filterStage ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DimensionDefinition ;
+            owl:onProperty cd:dimensionDefinition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FilterOperatorCode ;
+            owl:onProperty cd:filterOperator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:filterValue ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalRanking a owl:Class ;
+    rdfs:label "Analytical Ranking"@en ;
+    rdfs:comment "Deterministic cardinality and ordering policy; a zero limit returns the full ranked population."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:rankLimit ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TiePolicyCode ;
+            owl:onProperty cd:tiePolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RankByCode ;
+            owl:onProperty cd:rankBy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:RankDirectionCode ;
+            owl:onProperty cd:rankDirection ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalTimeContext a owl:Class ;
+    rdfs:label "Analytical Time Context"@en ;
+    rdfs:comment "Reporting interval and knowledge cutoff remain separate; timezone and bucket grain are explicit."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:timezoneName ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:BucketGrainCode ;
+            owl:onProperty cd:bucketGrain ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:TimeWindow ;
+            owl:onProperty cd:reportWindow ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:dateTime ;
+            owl:onProperty cd:knownAt ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:DashboardPane a owl:Class ;
+    rdfs:label "Dashboard Pane"@en ;
+    rdfs:comment "Presentation descriptor separated from calculation; one query result can be viewed as a chart or a table."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:nonNegativeInteger ;
+            owl:onProperty cd:paneOrder ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:rendererKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:PaneKindCode ;
+            owl:onProperty cd:paneKind ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalQuery ;
+            owl:onProperty cd:analyticalQuery ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:paneKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:paneTitle ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:MeasureDefinition a owl:Class ;
+    rdfs:label "Measure Definition"@en ;
+    rdfs:comment "Structured aggregation policy for a versioned metric; ratios retain numerator and denominator instead of averaging percentages."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:MissingValuePolicyCode ;
+            owl:onProperty cd:missingValuePolicy ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalSubject ;
+            owl:onProperty cd:analyticalSubject ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:denominatorExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:decimal ;
+            owl:onProperty cd:scaleFactor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MetricDefinition ;
+            owl:onProperty cd:metricDefinition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:FinancialBasisCode ;
+            owl:onProperty cd:financialBasis ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:numeratorExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AdditivityCode ;
+            owl:onProperty cd:additivity ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AggregationPolicyCode ;
+            owl:onProperty cd:aggregationPolicy ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalQuery a owl:Class ;
+    rdfs:label "Analytical Query"@en ;
+    rdfs:comment "Versioned analytical intent carrying subject, measure, operator, dimensions, filters, time, comparison and ranking."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalOperatorCode ;
+            owl:onProperty cd:analyticalOperator ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:queryVersion ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalFilter ;
+            owl:onProperty cd:analyticalFilter ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalComparison ;
+            owl:onProperty cd:analyticalComparison ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DimensionDefinition ;
+            owl:onProperty cd:dimensionDefinition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalTimeContext ;
+            owl:onProperty cd:timeContext ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalRanking ;
+            owl:onProperty cd:analyticalRanking ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:MeasureDefinition ;
+            owl:onProperty cd:measureDefinition ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalSubject ;
+            owl:onProperty cd:analyticalSubject ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:AnalyticalSubject a owl:Class ;
+    rdfs:label "Analytical Subject"@en ;
+    rdfs:comment "Approved analytical population and fact grain; arbitrary relationship traversal is not a join plan."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:subjectKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:factGrain ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:populationExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:joinPolicy ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+
+cd:DimensionDefinition a owl:Class ;
+    rdfs:label "Dimension Definition"@en ;
+    rdfs:comment "Approved many-to-one dimension path and historical assignment policy; physical quantities are distinct from analytical grouping dimensions."@en ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom cd:AnalyticalSubject ;
+            owl:onProperty cd:analyticalSubject ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:HistoricalAssignmentCode ;
+            owl:onProperty cd:historicalAssignment ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:dimensionKey ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:JoinCardinalityCode ;
+            owl:onProperty cd:joinCardinality ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty cd:dimensionExpression ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom cd:DimensionDefinition ;
+            owl:onProperty cd:parentDimension ],
+        cd:Record ;
+    cd:definitionStatus "Defined" ;
+    cd:module "analytics" .
+

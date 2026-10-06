@@ -91,6 +91,9 @@ jobs:
           - gate: Temporal writer and query acceptance
             id: temporal-writer
             command: python tools/test_temporal.py
+          - gate: Analytical profile and canonical bindings
+            id: analytics
+            command: python tools/test_analytics.py
           - gate: Current source naming
             id: naming
             command: python tools/check_naming.py

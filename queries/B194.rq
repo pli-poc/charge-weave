@@ -1,0 +1,6 @@
+PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?this WHERE { ?this rdf:type/rdfs:subClassOf* cd:AnalyticalExecution . ?this cd:executionState cd:executionState_Succeeded; cd:analyticalQuery/cd:timeContext/cd:reportWindow/cd:endsAt ?end; cd:sourceWatermark ?w. ?w cd:completeThrough ?c; cd:watermarkState ?s. FILTER(?c < ?end || ?s != cd:watermarkState_Complete) }

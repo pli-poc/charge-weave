@@ -405,8 +405,8 @@ Lead: Business process owner. Accountable: Named accountable party. Financial ow
 | suspension | Record failure, compensation or explicit skip |
 | termination | Close only terminal successful/compensated steps with evidence |
 
-Concrete domain concepts: ProcessExecution, ProcessStep, LifecycleSnapshot, StateTransition.
+Concrete domain concepts: ProcessExecution, ProcessStep, LifecycleSnapshot, StateTransition, AnalyticalQuery, AnalyticalExecution, DashboardDefinition.
 
-Requirements: BR-163, BR-164, BR-166, BR-167, BR-168, BR-180.
+Requirements: BR-163, BR-164, BR-166, BR-167, BR-168, BR-180, BR-185.
 
 Runtime acceptance: Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval.

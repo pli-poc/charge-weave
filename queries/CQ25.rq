@@ -1,0 +1,2 @@
+PREFIX cd: <https://example.org/charge-domain#>
+SELECT ?query ?subject ?measure ?operator ?time ?comparison ?ranking WHERE {?query a cd:AnalyticalQuery; cd:analyticalSubject ?subject; cd:measureDefinition ?measure; cd:analyticalOperator ?operator; cd:timeContext ?time; cd:analyticalComparison ?comparison; cd:analyticalRanking ?ranking}

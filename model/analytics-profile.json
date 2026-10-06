@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "namespace": "https://example.org/charge-domain#",
+  "subject": {"id": "site-day", "label": "Owned network performance", "class": "ChargingSite", "grain": "siteId + UTC calendar day", "population": "Owned NL/BE sites with complete daily measurements", "joinPolicy": "One row per site/day/revision; dimensions captured at event time; no invoice-line joins"},
+  "dimensions": [
+    {"id": "site", "label": "Site", "field": "siteId", "labelField": "siteName", "class": "ChargingSite", "datatype": "string", "parent": "country", "kind": "category"},
+    {"id": "country", "label": "Country", "field": "country", "class": "Address", "datatype": "string", "kind": "category"},
+    {"id": "setting", "label": "Site setting", "field": "setting", "class": "ChargingSite", "datatype": "string", "kind": "category"},
+    {"id": "month", "label": "Month", "field": "month", "class": "TimeWindow", "datatype": "string", "kind": "time"},
+    {"id": "day", "label": "Day", "field": "day", "class": "TimeWindow", "datatype": "string", "parent": "month", "kind": "time"}
+  ],
+  "measures": [
+    {"id": "energy", "label": "Delivered energy", "version": "1", "class": "UsageAggregate", "property": "importedEnergyKWh", "field": "energyKwh", "aggregation": "Sum", "additivity": "Additive", "scale": 1, "unit": "kWh", "unitIri": "http://qudt.org/vocab/unit/KiloW-HR", "format": "number", "description": "Sum of measured import energy, once per site/day.", "better": "higher"},
+    {"id": "value", "label": "Estimated charging value", "version": "1", "class": "MetricObservation", "property": "numericValue", "field": "netValueEur", "aggregation": "Sum", "additivity": "Additive", "scale": 1, "unit": "EUR", "unitIri": "http://qudt.org/vocab/currency/EUR", "format": "currency", "currency": "EUR", "financialBasis": "NetEstimate", "description": "Energy × illustrative net tariff, rounded to cents per site/day. Excludes VAT; no invoices, credits or procurement costs are modeled.", "better": "higher"},
+    {"id": "sessions", "label": "Completed sessions", "version": "1", "class": "MetricObservation", "property": "numericValue", "field": "sessionCount", "aggregation": "Sum", "additivity": "Additive", "scale": 1, "unit": "sessions", "unitIri": "http://qudt.org/vocab/unit/NUM", "format": "integer", "description": "Sum of completed-session counts; excludes the separate live-session snapshot.", "better": "higher"},
+    {"id": "availability", "label": "Availability", "version": "1", "class": "AvailabilityResult", "property": "availabilityFraction", "field": "availableSeconds", "denominator": "eligibleSeconds", "aggregation": "RatioOfSums", "additivity": "Ratio", "scale": 100, "unit": "%", "unitIri": "http://qudt.org/vocab/unit/PERCENT", "format": "percent", "target": 98.5, "description": "100 × sum(available point-seconds) / sum(eligible point-seconds). Includes planned downtime; never an average of site percentages.", "better": "higher"}
+  ],
+  "periods": [
+    {"id": "q3", "label": "Q3 2026", "start": "2026-07-01T00:00:00Z", "end": "2026-10-01T00:00:00Z", "reference": {"start": "2026-04-01T00:00:00Z", "end": "2026-07-01T00:00:00Z"}},
+    {"id": "september", "label": "September 2026", "start": "2026-09-01T00:00:00Z", "end": "2026-10-01T00:00:00Z", "reference": {"start": "2026-08-01T00:00:00Z", "end": "2026-09-01T00:00:00Z"}},
+    {"id": "year", "label": "Full synthetic year 2026", "start": "2026-01-01T00:00:00Z", "end": "2027-01-01T00:00:00Z"}
+  ],
+  "knowledgeCutoffs": [
+    {"id": "2027-01-05T00:00:00Z", "label": "Final synthetic snapshot"},
+    {"id": "2026-10-01T00:00:00Z", "label": "As known on 1 October 2026"}
+  ],
+  "operators": [{"id": "Value", "label": "Measured value"}, {"id": "Change", "label": "Change vs comparison"}, {"id": "PercentChange", "label": "Percentage change"}],
+  "dashboards": {
+    "overview": {
+      "kpis": ["energy", "value", "sessions", "availability"],
+      "panes": [
+        {"id": "sites", "title": "Owned sites & parking", "renderer": "sites", "size": "wide"},
+        {"id": "roaming", "title": "Chargecard roaming", "renderer": "roaming", "size": "half"},
+        {"id": "trend", "title": "Energy through the period", "kind": "line", "measure": "energy", "dimension": "month", "size": "wide"},
+        {"id": "ranking", "title": "Availability by site", "kind": "bar", "measure": "availability", "dimension": "site", "limit": 5, "direction": "Ascending", "size": "half"},
+        {"id": "activity", "title": "Recent activity", "renderer": "activity", "size": "wide"},
+        {"id": "energy", "title": "Network energy", "kind": "bar", "measure": "energy", "dimension": "country", "size": "half"}
+      ]
+    }
+  }
+}

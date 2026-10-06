@@ -113,6 +113,98 @@ cd:AllowanceConsumptionShape a sh:NodeShape ;
         cd:AllowanceConsumption_sessionShape ;
     sh:targetClass cd:AllowanceConsumption .
 
+cd:AnalyticalComparisonShape a sh:NodeShape ;
+    sh:description "Reference period or fixed target aligned to the same measure and declared population." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalComparison_alignmentPolicyShape,
+        cd:AnalyticalComparison_cohortPolicyShape,
+        cd:AnalyticalComparison_comparisonKindShape,
+        cd:AnalyticalComparison_referenceWindowShape,
+        cd:AnalyticalComparison_targetValueShape ;
+    sh:targetClass cd:AnalyticalComparison .
+
+cd:AnalyticalExecutionShape a sh:NodeShape ;
+    sh:description "Evidence binding an analytical query to its measure revision, authorized scope, snapshot identity and source completeness; the browser is not an authorization service." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalExecution_analyticalQueryShape,
+        cd:AnalyticalExecution_authorizedScopeShape,
+        cd:AnalyticalExecution_evidenceShape,
+        cd:AnalyticalExecution_executedAtShape,
+        cd:AnalyticalExecution_executionStateShape,
+        cd:AnalyticalExecution_metricVersionShape,
+        cd:AnalyticalExecution_populationCountShape,
+        cd:AnalyticalExecution_queryDigestShape,
+        cd:AnalyticalExecution_sourceSnapshotDigestShape,
+        cd:AnalyticalExecution_sourceWatermarkShape ;
+    sh:targetClass cd:AnalyticalExecution .
+
+cd:AnalyticalFilterShape a sh:NodeShape ;
+    sh:description "Typed predicate applied before or after aggregation under an approved query contract." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalFilter_dimensionDefinitionShape,
+        cd:AnalyticalFilter_filterDatatypeShape,
+        cd:AnalyticalFilter_filterOperatorShape,
+        cd:AnalyticalFilter_filterStageShape,
+        cd:AnalyticalFilter_filterValueShape ;
+    sh:targetClass cd:AnalyticalFilter .
+
+cd:AnalyticalQueryShape a sh:NodeShape ;
+    sh:description "Versioned analytical intent carrying subject, measure, operator, dimensions, filters, time, comparison and ranking." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalQuery_analyticalComparisonShape,
+        cd:AnalyticalQuery_analyticalFilterShape,
+        cd:AnalyticalQuery_analyticalOperatorShape,
+        cd:AnalyticalQuery_analyticalRankingShape,
+        cd:AnalyticalQuery_analyticalSubjectShape,
+        cd:AnalyticalQuery_dimensionDefinitionShape,
+        cd:AnalyticalQuery_measureDefinitionShape,
+        cd:AnalyticalQuery_queryVersionShape,
+        cd:AnalyticalQuery_timeContextShape ;
+    sh:targetClass cd:AnalyticalQuery .
+
+cd:AnalyticalRankingShape a sh:NodeShape ;
+    sh:description "Deterministic cardinality and ordering policy; a zero limit returns the full ranked population." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalRanking_rankByShape,
+        cd:AnalyticalRanking_rankDirectionShape,
+        cd:AnalyticalRanking_rankLimitShape,
+        cd:AnalyticalRanking_tiePolicyShape ;
+    sh:targetClass cd:AnalyticalRanking .
+
+cd:AnalyticalResultShape a sh:NodeShape ;
+    sh:description "One grouping result retaining weighted components and explicit unavailable state; missing measurements never become zero." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalResult_absoluteChangeShape,
+        cd:AnalyticalResult_analyticalExecutionShape,
+        cd:AnalyticalResult_baselineNumericValueShape,
+        cd:AnalyticalResult_denominatorValueShape,
+        cd:AnalyticalResult_dimensionValueShape,
+        cd:AnalyticalResult_numeratorValueShape,
+        cd:AnalyticalResult_numericValueShape,
+        cd:AnalyticalResult_relativeChangeShape,
+        cd:AnalyticalResult_resultKeyShape,
+        cd:AnalyticalResult_resultStateShape ;
+    sh:targetClass cd:AnalyticalResult .
+
+cd:AnalyticalSubjectShape a sh:NodeShape ;
+    sh:description "Approved analytical population and fact grain; arbitrary relationship traversal is not a join plan." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalSubject_factGrainShape,
+        cd:AnalyticalSubject_joinPolicyShape,
+        cd:AnalyticalSubject_populationExpressionShape,
+        cd:AnalyticalSubject_subjectClassShape,
+        cd:AnalyticalSubject_subjectKeyShape ;
+    sh:targetClass cd:AnalyticalSubject .
+
+cd:AnalyticalTimeContextShape a sh:NodeShape ;
+    sh:description "Reporting interval and knowledge cutoff remain separate; timezone and bucket grain are explicit." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:AnalyticalTimeContext_bucketGrainShape,
+        cd:AnalyticalTimeContext_knownAtShape,
+        cd:AnalyticalTimeContext_reportWindowShape,
+        cd:AnalyticalTimeContext_timezoneNameShape ;
+    sh:targetClass cd:AnalyticalTimeContext .
+
 cd:AnnotationShape a sh:NodeShape ;
     sh:description "Authored note attached to a domain record; stored independently from controlled classifications." ;
     sh:nodeKind sh:IRI ;
@@ -917,6 +1009,25 @@ cd:CustomerNotificationShape a sh:NodeShape ;
         cd:CustomerNotification_sourceEventShape ;
     sh:targetClass cd:CustomerNotification .
 
+cd:DashboardDefinitionShape a sh:NodeShape ;
+    sh:description "Versioned composition of reusable panes referencing analytical intent or approved custom renderers." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:DashboardDefinition_dashboardKeyShape,
+        cd:DashboardDefinition_definitionVersionShape,
+        cd:DashboardDefinition_paneDefinitionShape ;
+    sh:targetClass cd:DashboardDefinition .
+
+cd:DashboardPaneShape a sh:NodeShape ;
+    sh:description "Presentation descriptor separated from calculation; one query result can be viewed as a chart or a table." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:DashboardPane_analyticalQueryShape,
+        cd:DashboardPane_paneKeyShape,
+        cd:DashboardPane_paneKindShape,
+        cd:DashboardPane_paneOrderShape,
+        cd:DashboardPane_paneTitleShape,
+        cd:DashboardPane_rendererKeyShape ;
+    sh:targetClass cd:DashboardPane .
+
 cd:DataDispositionShape a sh:NodeShape ;
     sh:description "Evidence of a requested or completed deletion/anonymization action." ;
     sh:nodeKind sh:IRI ;
@@ -974,6 +1085,19 @@ cd:DiagnosticArtifactShape a sh:NodeShape ;
         cd:DiagnosticArtifact_requestedAtShape,
         cd:DiagnosticArtifact_stationShape ;
     sh:targetClass cd:DiagnosticArtifact .
+
+cd:DimensionDefinitionShape a sh:NodeShape ;
+    sh:description "Approved many-to-one dimension path and historical assignment policy; physical quantities are distinct from analytical grouping dimensions." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:DimensionDefinition_analyticalSubjectShape,
+        cd:DimensionDefinition_dimensionClassShape,
+        cd:DimensionDefinition_dimensionExpressionShape,
+        cd:DimensionDefinition_dimensionKeyShape,
+        cd:DimensionDefinition_dimensionValueDatatypeShape,
+        cd:DimensionDefinition_historicalAssignmentShape,
+        cd:DimensionDefinition_joinCardinalityShape,
+        cd:DimensionDefinition_parentDimensionShape ;
+    sh:targetClass cd:DimensionDefinition .
 
 cd:DiscountRuleShape a sh:NodeShape ;
     sh:description "Explicit reduction applied to selected price dimensions or a session total; computation order is part of the policy." ;
@@ -1609,6 +1733,20 @@ cd:ManufacturerShape a sh:NodeShape ;
     sh:property cd:Manufacturer_manufacturerNameShape,
         cd:Manufacturer_manufacturerPartyShape ;
     sh:targetClass cd:Manufacturer .
+
+cd:MeasureDefinitionShape a sh:NodeShape ;
+    sh:description "Structured aggregation policy for a versioned metric; ratios retain numerator and denominator instead of averaging percentages." ;
+    sh:nodeKind sh:IRI ;
+    sh:property cd:MeasureDefinition_additivityShape,
+        cd:MeasureDefinition_aggregationPolicyShape,
+        cd:MeasureDefinition_analyticalSubjectShape,
+        cd:MeasureDefinition_denominatorExpressionShape,
+        cd:MeasureDefinition_financialBasisShape,
+        cd:MeasureDefinition_metricDefinitionShape,
+        cd:MeasureDefinition_missingValuePolicyShape,
+        cd:MeasureDefinition_numeratorExpressionShape,
+        cd:MeasureDefinition_scaleFactorShape ;
+    sh:targetClass cd:MeasureDefinition .
 
 cd:MediaAssetShape a sh:NodeShape ;
     sh:description "Image or media associated with a place or brand, with rights and language metadata." ;
@@ -3877,6 +4015,460 @@ cd:AllowanceConsumption_sessionShape a sh:PropertyShape ;
     sh:name "session" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:session .
+
+cd:AnalyticalComparison_alignmentPolicyShape a sh:PropertyShape ;
+    sh:class cd:AlignmentPolicyCode ;
+    sh:in ( cd:alignmentPolicy_CalendarPeriod cd:alignmentPolicy_ElapsedDuration cd:alignmentPolicy_FixedTarget ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalComparison.alignmentPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "alignment Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:alignmentPolicy .
+
+cd:AnalyticalComparison_cohortPolicyShape a sh:PropertyShape ;
+    sh:class cd:CohortPolicyCode ;
+    sh:in ( cd:cohortPolicy_SamePopulation ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalComparison.cohortPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "cohort Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:cohortPolicy .
+
+cd:AnalyticalComparison_comparisonKindShape a sh:PropertyShape ;
+    sh:class cd:ComparisonKindCode ;
+    sh:in ( cd:comparisonKind_None cd:comparisonKind_PreviousPeriod cd:comparisonKind_Target ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalComparison.comparisonKind violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "comparison Kind" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:comparisonKind .
+
+cd:AnalyticalComparison_referenceWindowShape a sh:PropertyShape ;
+    sh:class cd:TimeWindow ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalComparison.referenceWindow violates its domain contract." ;
+    sh:name "reference Window" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:referenceWindow .
+
+cd:AnalyticalComparison_targetValueShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalComparison.targetValue violates its domain contract." ;
+    sh:name "target Value" ;
+    sh:path cd:targetValue .
+
+cd:AnalyticalExecution_analyticalQueryShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalQuery ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.analyticalQuery violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Query" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalQuery .
+
+cd:AnalyticalExecution_authorizedScopeShape a sh:PropertyShape ;
+    sh:class cd:Record ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.authorizedScope violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "authorized Scope" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:authorizedScope .
+
+cd:AnalyticalExecution_evidenceShape a sh:PropertyShape ;
+    sh:class cd:EvidenceDocument ;
+    sh:message "AnalyticalExecution.evidence violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "evidence" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:evidence .
+
+cd:AnalyticalExecution_executedAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.executedAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "executed At" ;
+    sh:path cd:executedAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AnalyticalExecution_executionStateShape a sh:PropertyShape ;
+    sh:class cd:ExecutionStateCode ;
+    sh:in ( cd:executionState_Succeeded cd:executionState_Unavailable cd:executionState_Rejected ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.executionState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "execution State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:executionState .
+
+cd:AnalyticalExecution_metricVersionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.metricVersion violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "metric Version" ;
+    sh:path cd:metricVersion .
+
+cd:AnalyticalExecution_populationCountShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.populationCount violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "population Count" ;
+    sh:path cd:populationCount .
+
+cd:AnalyticalExecution_queryDigestShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.queryDigest violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "query Digest" ;
+    sh:path cd:queryDigest .
+
+cd:AnalyticalExecution_sourceSnapshotDigestShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalExecution.sourceSnapshotDigest violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "source Snapshot Digest" ;
+    sh:path cd:sourceSnapshotDigest .
+
+cd:AnalyticalExecution_sourceWatermarkShape a sh:PropertyShape ;
+    sh:class cd:ProjectionWatermark ;
+    sh:message "AnalyticalExecution.sourceWatermark violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "source Watermark" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:sourceWatermark .
+
+cd:AnalyticalFilter_dimensionDefinitionShape a sh:PropertyShape ;
+    sh:class cd:DimensionDefinition ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalFilter.dimensionDefinition violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "dimension Definition" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:dimensionDefinition .
+
+cd:AnalyticalFilter_filterDatatypeShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalFilter.filterDatatype violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "filter Datatype" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:filterDatatype .
+
+cd:AnalyticalFilter_filterOperatorShape a sh:PropertyShape ;
+    sh:class cd:FilterOperatorCode ;
+    sh:in ( cd:filterOperator_Equal cd:filterOperator_In cd:filterOperator_GreaterOrEqual cd:filterOperator_LessThan ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalFilter.filterOperator violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "filter Operator" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:filterOperator .
+
+cd:AnalyticalFilter_filterStageShape a sh:PropertyShape ;
+    sh:class cd:FilterStageCode ;
+    sh:in ( cd:filterStage_BeforeAggregation cd:filterStage_AfterAggregation ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalFilter.filterStage violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "filter Stage" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:filterStage .
+
+cd:AnalyticalFilter_filterValueShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:message "AnalyticalFilter.filterValue violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "filter Value" ;
+    sh:path cd:filterValue .
+
+cd:AnalyticalQuery_analyticalComparisonShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalComparison ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.analyticalComparison violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Comparison" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalComparison .
+
+cd:AnalyticalQuery_analyticalFilterShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalFilter ;
+    sh:message "AnalyticalQuery.analyticalFilter violates its domain contract." ;
+    sh:name "analytical Filter" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalFilter .
+
+cd:AnalyticalQuery_analyticalOperatorShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalOperatorCode ;
+    sh:in ( cd:analyticalOperator_Value cd:analyticalOperator_Change cd:analyticalOperator_PercentChange ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.analyticalOperator violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Operator" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalOperator .
+
+cd:AnalyticalQuery_analyticalRankingShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalRanking ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.analyticalRanking violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Ranking" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalRanking .
+
+cd:AnalyticalQuery_analyticalSubjectShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalSubject ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.analyticalSubject violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Subject" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalSubject .
+
+cd:AnalyticalQuery_dimensionDefinitionShape a sh:PropertyShape ;
+    sh:class cd:DimensionDefinition ;
+    sh:message "AnalyticalQuery.dimensionDefinition violates its domain contract." ;
+    sh:name "dimension Definition" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:dimensionDefinition .
+
+cd:AnalyticalQuery_measureDefinitionShape a sh:PropertyShape ;
+    sh:class cd:MeasureDefinition ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.measureDefinition violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "measure Definition" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:measureDefinition .
+
+cd:AnalyticalQuery_queryVersionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.queryVersion violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "query Version" ;
+    sh:path cd:queryVersion .
+
+cd:AnalyticalQuery_timeContextShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalTimeContext ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalQuery.timeContext violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "time Context" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:timeContext .
+
+cd:AnalyticalRanking_rankByShape a sh:PropertyShape ;
+    sh:class cd:RankByCode ;
+    sh:in ( cd:rankBy_Value cd:rankBy_Change cd:rankBy_PercentChange ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalRanking.rankBy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "rank By" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:rankBy .
+
+cd:AnalyticalRanking_rankDirectionShape a sh:PropertyShape ;
+    sh:class cd:RankDirectionCode ;
+    sh:in ( cd:rankDirection_Ascending cd:rankDirection_Descending ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalRanking.rankDirection violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "rank Direction" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:rankDirection .
+
+cd:AnalyticalRanking_rankLimitShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalRanking.rankLimit violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "rank Limit" ;
+    sh:path cd:rankLimit .
+
+cd:AnalyticalRanking_tiePolicyShape a sh:PropertyShape ;
+    sh:class cd:TiePolicyCode ;
+    sh:in ( cd:tiePolicy_StableKey ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalRanking.tiePolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "tie Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:tiePolicy .
+
+cd:AnalyticalResult_absoluteChangeShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.absoluteChange violates its domain contract." ;
+    sh:name "absolute Change" ;
+    sh:path cd:absoluteChange .
+
+cd:AnalyticalResult_analyticalExecutionShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalExecution ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.analyticalExecution violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Execution" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalExecution .
+
+cd:AnalyticalResult_baselineNumericValueShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.baselineNumericValue violates its domain contract." ;
+    sh:name "baseline Numeric Value" ;
+    sh:path cd:baselineNumericValue .
+
+cd:AnalyticalResult_denominatorValueShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.denominatorValue violates its domain contract." ;
+    sh:name "denominator Value" ;
+    sh:path cd:denominatorValue .
+
+cd:AnalyticalResult_dimensionValueShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:message "AnalyticalResult.dimensionValue violates its domain contract." ;
+    sh:minLength 1 ;
+    sh:name "dimension Value" ;
+    sh:path cd:dimensionValue .
+
+cd:AnalyticalResult_numeratorValueShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.numeratorValue violates its domain contract." ;
+    sh:name "numerator Value" ;
+    sh:path cd:numeratorValue .
+
+cd:AnalyticalResult_numericValueShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.numericValue violates its domain contract." ;
+    sh:name "numeric Value" ;
+    sh:path cd:numericValue .
+
+cd:AnalyticalResult_relativeChangeShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.relativeChange violates its domain contract." ;
+    sh:name "relative Change" ;
+    sh:path cd:relativeChange .
+
+cd:AnalyticalResult_resultKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.resultKey violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "result Key" ;
+    sh:path cd:resultKey .
+
+cd:AnalyticalResult_resultStateShape a sh:PropertyShape ;
+    sh:class cd:ResultStateCode ;
+    sh:in ( cd:resultState_Available cd:resultState_Unavailable ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalResult.resultState violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "result State" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:resultState .
+
+cd:AnalyticalSubject_factGrainShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalSubject.factGrain violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "fact Grain" ;
+    sh:path cd:factGrain .
+
+cd:AnalyticalSubject_joinPolicyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalSubject.joinPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "join Policy" ;
+    sh:path cd:joinPolicy .
+
+cd:AnalyticalSubject_populationExpressionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalSubject.populationExpression violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "population Expression" ;
+    sh:path cd:populationExpression .
+
+cd:AnalyticalSubject_subjectClassShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalSubject.subjectClass violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "subject Class" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:subjectClass .
+
+cd:AnalyticalSubject_subjectKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalSubject.subjectKey violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "subject Key" ;
+    sh:path cd:subjectKey .
+
+cd:AnalyticalTimeContext_bucketGrainShape a sh:PropertyShape ;
+    sh:class cd:BucketGrainCode ;
+    sh:in ( cd:bucketGrain_Day cd:bucketGrain_Month cd:bucketGrain_Quarter cd:bucketGrain_Year ) ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalTimeContext.bucketGrain violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "bucket Grain" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:bucketGrain .
+
+cd:AnalyticalTimeContext_knownAtShape a sh:PropertyShape ;
+    sh:datatype xsd:dateTime ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalTimeContext.knownAt violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "known At" ;
+    sh:path cd:knownAt ;
+    sh:pattern "(Z|[+-][0-9]{2}:[0-9]{2})$" .
+
+cd:AnalyticalTimeContext_reportWindowShape a sh:PropertyShape ;
+    sh:class cd:TimeWindow ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalTimeContext.reportWindow violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "report Window" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:reportWindow .
+
+cd:AnalyticalTimeContext_timezoneNameShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "AnalyticalTimeContext.timezoneName violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "timezone Name" ;
+    sh:path cd:timezoneName .
 
 cd:Annotation_authorShape a sh:PropertyShape ;
     sh:class cd:Principal ;
@@ -8016,6 +8608,85 @@ cd:CustomerNotification_sourceEventShape a sh:PropertyShape ;
     sh:nodeKind sh:IRI ;
     sh:path cd:sourceEvent .
 
+cd:DashboardDefinition_dashboardKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DashboardDefinition.dashboardKey violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "dashboard Key" ;
+    sh:path cd:dashboardKey .
+
+cd:DashboardDefinition_definitionVersionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DashboardDefinition.definitionVersion violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "definition Version" ;
+    sh:path cd:definitionVersion .
+
+cd:DashboardDefinition_paneDefinitionShape a sh:PropertyShape ;
+    sh:class cd:DashboardPane ;
+    sh:message "DashboardDefinition.paneDefinition violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "pane Definition" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:paneDefinition .
+
+cd:DashboardPane_analyticalQueryShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalQuery ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.analyticalQuery violates its domain contract." ;
+    sh:name "analytical Query" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalQuery .
+
+cd:DashboardPane_paneKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.paneKey violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "pane Key" ;
+    sh:path cd:paneKey .
+
+cd:DashboardPane_paneKindShape a sh:PropertyShape ;
+    sh:class cd:PaneKindCode ;
+    sh:in ( cd:paneKind_Kpi cd:paneKind_Line cd:paneKind_Bar cd:paneKind_Table cd:paneKind_Custom ) ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.paneKind violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "pane Kind" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:paneKind .
+
+cd:DashboardPane_paneOrderShape a sh:PropertyShape ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.paneOrder violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minInclusive 0 ;
+    sh:name "pane Order" ;
+    sh:path cd:paneOrder .
+
+cd:DashboardPane_paneTitleShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.paneTitle violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "pane Title" ;
+    sh:path cd:paneTitle .
+
+cd:DashboardPane_rendererKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DashboardPane.rendererKey violates its domain contract." ;
+    sh:minLength 1 ;
+    sh:name "renderer Key" ;
+    sh:path cd:rendererKey .
+
 cd:DataDisposition_completedAtShape a sh:PropertyShape ;
     sh:datatype xsd:dateTime ;
     sh:maxCount 1 ;
@@ -8304,6 +8975,77 @@ cd:DiagnosticArtifact_stationShape a sh:PropertyShape ;
     sh:name "station" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:station .
+
+cd:DimensionDefinition_analyticalSubjectShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalSubject ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.analyticalSubject violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Subject" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalSubject .
+
+cd:DimensionDefinition_dimensionClassShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.dimensionClass violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "dimension Class" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:dimensionClass .
+
+cd:DimensionDefinition_dimensionExpressionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.dimensionExpression violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "dimension Expression" ;
+    sh:path cd:dimensionExpression .
+
+cd:DimensionDefinition_dimensionKeyShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.dimensionKey violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "dimension Key" ;
+    sh:path cd:dimensionKey .
+
+cd:DimensionDefinition_dimensionValueDatatypeShape a sh:PropertyShape ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.dimensionValueDatatype violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "dimension Value Datatype" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:dimensionValueDatatype .
+
+cd:DimensionDefinition_historicalAssignmentShape a sh:PropertyShape ;
+    sh:class cd:HistoricalAssignmentCode ;
+    sh:in ( cd:historicalAssignment_AtEventTime cd:historicalAssignment_AtQueryTime ) ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.historicalAssignment violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "historical Assignment" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:historicalAssignment .
+
+cd:DimensionDefinition_joinCardinalityShape a sh:PropertyShape ;
+    sh:class cd:JoinCardinalityCode ;
+    sh:in ( cd:joinCardinality_ManyToOne cd:joinCardinality_OneToOne ) ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.joinCardinality violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "join Cardinality" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:joinCardinality .
+
+cd:DimensionDefinition_parentDimensionShape a sh:PropertyShape ;
+    sh:class cd:DimensionDefinition ;
+    sh:maxCount 1 ;
+    sh:message "DimensionDefinition.parentDimension violates its domain contract." ;
+    sh:name "parent Dimension" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:parentDimension .
 
 cd:DiscountRule_affectedDimensionShape a sh:PropertyShape ;
     sh:class cd:AffectedDimensionCode ;
@@ -11341,6 +12083,89 @@ cd:Manufacturer_manufacturerPartyShape a sh:PropertyShape ;
     sh:name "manufacturer Party" ;
     sh:nodeKind sh:IRI ;
     sh:path cd:manufacturerParty .
+
+cd:MeasureDefinition_additivityShape a sh:PropertyShape ;
+    sh:class cd:AdditivityCode ;
+    sh:in ( cd:additivity_Additive cd:additivity_Ratio cd:additivity_SemiAdditive ) ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.additivity violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "additivity" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:additivity .
+
+cd:MeasureDefinition_aggregationPolicyShape a sh:PropertyShape ;
+    sh:class cd:AggregationPolicyCode ;
+    sh:in ( cd:aggregationPolicy_Sum cd:aggregationPolicy_RatioOfSums cd:aggregationPolicy_Maximum ) ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.aggregationPolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "aggregation Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:aggregationPolicy .
+
+cd:MeasureDefinition_analyticalSubjectShape a sh:PropertyShape ;
+    sh:class cd:AnalyticalSubject ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.analyticalSubject violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "analytical Subject" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:analyticalSubject .
+
+cd:MeasureDefinition_denominatorExpressionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.denominatorExpression violates its domain contract." ;
+    sh:minLength 1 ;
+    sh:name "denominator Expression" ;
+    sh:path cd:denominatorExpression .
+
+cd:MeasureDefinition_financialBasisShape a sh:PropertyShape ;
+    sh:class cd:FinancialBasisCode ;
+    sh:in ( cd:financialBasis_NotApplicable cd:financialBasis_NetEstimate cd:financialBasis_NetBooked cd:financialBasis_GrossBooked ) ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.financialBasis violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "financial Basis" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:financialBasis .
+
+cd:MeasureDefinition_metricDefinitionShape a sh:PropertyShape ;
+    sh:class cd:MetricDefinition ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.metricDefinition violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "metric Definition" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:metricDefinition .
+
+cd:MeasureDefinition_missingValuePolicyShape a sh:PropertyShape ;
+    sh:class cd:MissingValuePolicyCode ;
+    sh:in ( cd:missingValuePolicy_Unavailable cd:missingValuePolicy_Exclude ) ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.missingValuePolicy violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "missing Value Policy" ;
+    sh:nodeKind sh:IRI ;
+    sh:path cd:missingValuePolicy .
+
+cd:MeasureDefinition_numeratorExpressionShape a sh:PropertyShape ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.numeratorExpression violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:minLength 1 ;
+    sh:name "numerator Expression" ;
+    sh:path cd:numeratorExpression .
+
+cd:MeasureDefinition_scaleFactorShape a sh:PropertyShape ;
+    sh:datatype xsd:decimal ;
+    sh:maxCount 1 ;
+    sh:message "MeasureDefinition.scaleFactor violates its domain contract." ;
+    sh:minCount 1 ;
+    sh:name "scale Factor" ;
+    sh:path cd:scaleFactor .
 
 cd:MediaAsset_altTextShape a sh:PropertyShape ;
     sh:datatype rdf:langString ;

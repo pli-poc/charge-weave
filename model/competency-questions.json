@@ -118,5 +118,20 @@
     "id": "CQ24",
     "question": "Documented state transition",
     "query": "queries/CQ24.rq"
+  },
+  {
+    "id": "CQ25",
+    "question": "Analytical question contract",
+    "query": "queries/CQ25.rq"
+  },
+  {
+    "id": "CQ26",
+    "question": "Structured measure aggregation",
+    "query": "queries/CQ26.rq"
+  },
+  {
+    "id": "CQ27",
+    "question": "Reusable dashboard pane binding",
+    "query": "queries/CQ27.rq"
   }
 ]

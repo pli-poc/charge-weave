@@ -2,6 +2,9 @@ import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
 import { meterCorrectionModel, makeMeterCorrectionRun, rateCorrectedReading } from "./work-model.js";
 import { renderGeneratedTaskForm } from "./task-form-renderer.js";
+import { defaultAnalyticsState, overviewDescriptors, analyticsControls, normalizeAnalyticsState, renderOverviewAnalytics, renderPanePreferences, renderAnalyticsPage, resolveResult } from "./analytics/dashboard.js";
+import { renderChart } from "./components/analytics-panes.js";
+import "./analytics/analytics.css";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -15,7 +18,7 @@ const recentActivity = provider.getActivity();
 const roamingSessions = provider.getRoamingSessions();
 
 const root = document.querySelector("#app");
-const views = ["overview", "work", "journey", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "data"];
+const views = ["overview", "work", "journey", "operations", "sites", "geography", "sessions", "roaming", "energy", "finance", "analytics", "data"];
 const nav = [
   { id: "overview", label: "Overview", icon: "overview", group: "Workspace" },
   { id: "work", label: "My work", icon: "work", group: "Workspace" },
@@ -27,6 +30,7 @@ const nav = [
   { id: "roaming", label: "Chargecard roaming", icon: "roaming", group: "Commercial" },
   { id: "energy", label: "Energy & capacity", icon: "energy", group: "Commercial" },
   { id: "finance", label: "Finance", icon: "finance", group: "Commercial" },
+  { id: "analytics", label: "Analytics", icon: "pulse", group: "Platform" },
   { id: "data", label: "Data explorer", icon: "data", group: "Platform" },
 ];
 const iconPaths = {
@@ -58,6 +62,9 @@ let currentView = viewFromHash();
 let theme = stored("chargeweave-console-theme") || "dark";
 let arrange = stored("chargeweave-console-arrange") === "true";
 let panelOrder = stored("chargeweave-console-panel-order");
+let analyticsState = { ...defaultAnalyticsState };
+let hiddenPanes = stored("chargeweave-console-hidden-panes");
+if (!Array.isArray(hiddenPanes)) hiddenPanes = [];
 let country = "all";
 let search = "";
 let selectedSession = liveSessions[0]?.id;
@@ -81,12 +88,15 @@ const cpoDemo = {
   session: null,
   invoiceCreated: false,
 };
-if (!Array.isArray(panelOrder) || panelOrder.length !== 4) panelOrder = ["sites", "roaming", "activity", "energy"];
+const paneIds = overviewDescriptors.map((pane) => pane.id);
+if (!Array.isArray(panelOrder)) panelOrder = paneIds;
+panelOrder = [...new Set([...panelOrder.filter((id) => paneIds.includes(id)), ...paneIds])];
+hiddenPanes = hiddenPanes.filter((id) => paneIds.includes(id));
 
 function stored(key) {
   try {
     const value = localStorage.getItem(key);
-    return key.endsWith("panel-order") && value ? JSON.parse(value) : value;
+    return /panel-order|hidden-panes/.test(key) && value ? JSON.parse(value) : value;
   } catch { return null; }
 }
 function save(key, value) {
@@ -144,9 +154,6 @@ function panelControls(id, label) {
     ? `<span class="move-controls"><button type="button" data-action="move-panel" data-panel="${id}" data-direction="up" aria-label="Move ${esc(label)} up">↑</button><button type="button" data-action="move-panel" data-panel="${id}" data-direction="down" aria-label="Move ${esc(label)} down">↓</button></span><span class="panel-grip is-draggable" title="Drag to move">${icon("grip")}</span>`
     : `<span class="panel-grip" title="Turn on Arrange panels to move this pane">${icon("grip")}</span>`;
 }
-function panel(id, title, content, size = "half") {
-  return `<section class="panel dashboard-panel panel-${id} size-${size}" data-panel="${id}" draggable="${arrange}"><header class="panel-heading"><h2>${esc(title)}</h2><div class="panel-tools">${panelControls(id, title)}<button type="button" class="more-button" data-action="panel-menu" aria-label="${esc(title)} options">···</button></div></header><div class="panel-content">${content}</div></section>`;
-}
 function kpi(label, value, caption, symbol, tone = "mint") {
   return `<article class="kpi-card"><div class="kpi-top"><span>${label}</span><span class="kpi-icon tone-${tone}">${icon(symbol)}</span></div><strong class="kpi-value">${value}</strong><div class="kpi-caption">${caption}</div></article>`;
 }
@@ -172,22 +179,16 @@ function roamingPanel() {
 function activityPanel() {
   return `<div class="activity-list">${recentActivity.map((item) => `<div class="activity-item"><span class="activity-mark tone-${item.tone}">${item.tone === "warn" ? icon("alert") : item.tone === "good" ? icon("check") : icon("plug")}</span><div><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></div><time>${esc(item.time)}</time></div>`).join("")}</div><button class="panel-footer-link" type="button" data-view="operations">Open event timeline ${icon("arrow")}</button>`;
 }
-function energyPanel() {
-  const bars = [31, 39, 44, 51, 57, 66, 71, 82, 76, 69, 58, 47].map((height, index) => `<span class="energy-bar${index === 7 ? " is-current" : ""}" style="--bar-height:${height}%" title="${index + 8}:00"></span>`).join("");
-  return `<div class="energy-summary"><div><span>Current network load</span><strong>${formatNumber(metrics.currentKw / 1000)} <small>MW</small></strong></div><div><span>Available capacity</span><strong>${formatNumber((metrics.capacityKw - metrics.currentKw) / 1000)} <small>MW</small></strong></div><div><span>Today so far</span><strong>18,6 <small>MWh</small></strong></div></div><div class="chart-bars" role="img" aria-label="Illustrative network load by hour, peaking around 15:00">${bars}</div><div class="chart-axis"><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span></div><button class="panel-footer-link" type="button" data-view="energy">Inspect site capacity ${icon("arrow")}</button>`;
-}
 function overviewPage() {
-  const panels = {
-    sites: panel("sites", "Owned sites & parking", overviewSites(), "wide"),
-    roaming: panel("roaming", "Chargecard roaming", roamingPanel()),
-    activity: panel("activity", "Recent activity", activityPanel()),
-    energy: panel("energy", "Network energy", energyPanel()),
-  };
-  return `${heading("Network overview", "Owned charging operations in the Netherlands and Belgium, with Chargecard roaming across Europe.", `<div class="date-range">${icon("clock")}<span>Today · Last 24 hours</span>${icon("chevron")}</div>`)}
-    <div class="overview-scope"><span class="scope-icon">${icon("pin")}</span><span><strong>Owned network</strong><small>8 sites · 230 charge points · 1,924 parking spaces</small></span><div class="owned-country-summary"><span><b>NL</b> 4 sites</span><span><b>BE</b> 4 sites</span></div><span class="scope-meta">Fixture · ${DEMO_SOURCE.seed}</span></div>
-    <section class="kpi-grid" aria-label="Network performance">${kpi("Live sessions", "10", '<span class="delta-positive">4 Chargecard</span> · 2 fleet agreements', "plug")}${kpi("Charge points online", `${metrics.online}<small> / ${metrics.chargePoints}</small>`, '<span class="delta-positive">97,8%</span> network availability', "check")}${kpi("Energy delivered today", "18,6 <small>MWh</small>", '<span class="delta-positive">+8,4%</span> against previous day', "energy", "blue")}${kpi("Session value today", formatEuro(2463.04), 'Gross session value <span class="tax-note">incl. VAT</span>', "finance", "violet")}</section>
-    <div class="dashboard-grid${arrange ? " is-arranging" : ""}" id="dashboard-grid">${panelOrder.map((key) => panels[key]).join("")}</div>
-    <div class="workspace-footnote">${icon("check")} Demo workspace · deterministic synthetic data · no live charge points or payment services are connected.</div>`;
+  let analytics;
+  try {
+    analytics = renderOverviewAnalytics(provider, analyticsState, { order: panelOrder, hidden: hiddenPanes, controls: panelControls, arrange,
+      custom: { sites: overviewSites, roaming: roamingPanel, activity: activityPanel } });
+  } catch (error) { analytics = `<div class="analytics-empty" role="status">${esc(error.message)}</div>`; }
+  return `${heading("Network overview", "Owned charging operations in the Netherlands and Belgium, with Chargecard roaming across Europe.", '<button class="secondary-button" type="button" data-view="analytics">Explore analytics</button>')}
+    <div class="overview-scope"><span class="scope-icon">${icon("pin")}</span><span><strong>Owned network</strong><small>${metrics.sites} sites · ${metrics.chargePoints} charge points · ${formatNumber(metrics.parkingSpaces)} parking spaces</small></span><div class="owned-country-summary"><span><b>NL</b> 4 sites</span><span><b>BE</b> 4 sites</span></div><span class="scope-meta">Snapshot: ${metrics.online}/${metrics.chargePoints} online</span></div>
+    ${analyticsControls(analyticsState, ownSites, { compact: true })}${analytics}${renderPanePreferences(hiddenPanes)}
+    <div class="workspace-footnote">${icon("check")} Deterministic synthetic year · historical analytics use the selected period; site inventory and live operations show the separate demo snapshot.</div>`;
 }
 function journeyPage() {
   const steps = ["Site & agreement", "Installation order", "Commissioning", "Operations", "Billing"];
@@ -420,12 +421,16 @@ function geographyPage() {
       <aside class="geo-pane geo-details-pane">${geographyDetails(selectedSite, selectedRoaming)}</aside>
     </div><div class="workspace-footnote">Map tiles load from OpenStreetMap and need an internet connection. Addresses and coordinates point to public venues for illustration; they do not verify ChargeWeave sites or charger locations.</div>`;
 }
+function measuredEnergyTrend() {
+  try { return renderChart(resolveResult(provider, analyticsState, { measure: "energy", dimension: "month", operator: "Value", comparison: "None", limit: 0 }), { kind: "line", id: "network-energy" }); }
+  catch (error) { return `<p class="analytics-empty" role="status">${esc(error.message)}</p>`; }
+}
 function energyPage() {
   const rows = ownSites.map((site) => {
     const percent = Math.round((site.currentKw / site.capacityKw) * 100);
     return `<tr><td><strong class="table-primary-text">${esc(site.name)}</strong><small class="table-subtext">${esc(site.city)} · ${site.country}</small></td><td class="numeric">${site.currentKw} kW</td><td class="numeric">${site.capacityKw} kW</td><td><div class="utilisation"><span>${percent}%</span><span class="progress"><i style="width:${percent}%"></i></span></div></td><td class="numeric">${formatEuro(site.tariff)} / kWh</td><td><span class="status-pill ${percent > 72 ? "is-review" : "is-live"}"><i></i>${percent > 72 ? "Watch" : "Within limit"}</span></td></tr>`;
   }).join("");
-  return `${heading("Energy & capacity", "See charging demand against site limits before local constraints become an operational surprise.", `<button class="secondary-button" type="button" data-action="export-sites">${icon("download")} Export</button>`)}<div class="energy-hero"><div><span class="eyebrow">OWNED NETWORK · TODAY</span><h2>Demand remains within site limits.</h2><p>Aggregate view for your Netherlands and Belgium locations. Local protection and charger controls remain authoritative.</p></div><div class="capacity-meter"><span>Current demand</span><strong>${formatNumber(metrics.currentKw / 1000)} <small>MW</small></strong><div class="progress"><i style="width:57%"></i></div><small>${formatNumber(metrics.currentKw)} kW of ${formatNumber(metrics.capacityKw)} kW contracted capacity</small></div></div><div class="energy-chart-panel panel"><div class="panel-heading"><div><h2>Network load through the day</h2><p>Illustrative 15-minute roll-up</p></div><span class="chart-legend"><i></i>Measured demand <b></b>Site limit</span></div><div class="large-chart" role="img" aria-label="Illustrative load profile remains below the aggregate site limit"><div class="limit-line"><span>site capacity</span></div><svg viewBox="0 0 900 180" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="load-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".25"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs><path class="chart-fill" d="M0 132 C60 128 76 113 128 118 S218 110 270 94 S348 110 402 86 S496 91 548 61 S644 82 690 56 S786 67 900 42 V180 H0Z"/><path class="chart-stroke" d="M0 132 C60 128 76 113 128 118 S218 110 270 94 S348 110 402 86 S496 91 548 61 S644 82 690 56 S786 67 900 42"/></svg><div class="chart-x-axis"><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span></div></div></div>${table(["Owned site", "Current demand", "Site limit", "Utilisation", "Indicative tariff", "Status"], rows, "Site energy and capacity")}<div class="workspace-footnote">Demand values and tariffs are illustrative. The console does not issue real-time power setpoints.</div>`;
+  return `${heading("Energy & capacity", "See charging demand against site limits before local constraints become an operational surprise.", `<button class="secondary-button" type="button" data-action="export-sites">${icon("download")} Export</button>`)}<div class="energy-hero"><div><span class="eyebrow">OWNED NETWORK · TODAY</span><h2>Demand remains within site limits.</h2><p>Aggregate view for your Netherlands and Belgium locations. Local protection and charger controls remain authoritative.</p></div><div class="capacity-meter"><span>Current demand</span><strong>${formatNumber(metrics.currentKw / 1000)} <small>MW</small></strong><div class="progress"><i style="width:${Math.round(metrics.currentKw / metrics.capacityKw * 100)}%"></i></div><small>${formatNumber(metrics.currentKw)} kW of ${formatNumber(metrics.capacityKw)} kW contracted capacity</small></div></div><div class="energy-chart-panel panel"><div class="panel-heading"><div><h2>Delivered energy through the period</h2><p>Calculated daily facts · ${esc(analyticsState.period)} · UTC</p></div></div>${measuredEnergyTrend()}</div>${table(["Owned site", "Current demand", "Site limit", "Utilisation", "Indicative tariff", "Status"], rows, "Site energy and capacity")}<div class="workspace-footnote">Demand values and tariffs are illustrative. The console does not issue real-time power setpoints.</div>`;
 }
 function financePage() {
   const net = financialLines.reduce((total, line) => total + line.amount, 0);
@@ -465,6 +470,7 @@ function page() {
     case "roaming": return roamingPage();
     case "energy": return energyPage();
     case "finance": return financePage();
+    case "analytics": return `${heading("Analytics", "Compare owned-network performance using consistent measures, historical facts and reusable views.")}${renderAnalyticsPage(provider, analyticsState)}`;
     case "data": return dataPage();
     default: return overviewPage();
   }
@@ -540,6 +546,14 @@ function bindDragging() {
 }
 
 root.addEventListener("click", (event) => {
+  const chart = event.target.closest("[data-analytics-chart]");
+  if (chart) { analyticsState.chart = chart.dataset.analyticsChart; render(); return; }
+  const drill = event.target.closest("[data-analytics-drill]");
+  if (drill) {
+    analyticsState[drill.dataset.analyticsDrill] = drill.dataset.key;
+    analyticsState.dimension = drill.dataset.analyticsDrill === "country" ? "site" : "month";
+    currentView = "analytics"; location.hash = "analytics"; render(); return;
+  }
   const cpoScreen = event.target.closest("[data-cpo-screen]");
   if (cpoScreen) {
     const targetScreen = Number(cpoScreen.dataset.cpoScreen);
@@ -603,6 +617,13 @@ root.addEventListener("click", (event) => {
     case "arrange": arrange = !arrange; save("chargeweave-console-arrange", String(arrange)); render(); break;
     case "move-panel": movePanel(action.dataset.panel, action.dataset.direction); break;
     case "source-info": showSourceDialog(); break;
+    case "reset-analytics": analyticsState = { ...defaultAnalyticsState }; render(); break;
+    case "export-analytics": {
+      const result = resolveResult(provider, analyticsState);
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = "chargeweave-analytical-result.json"; link.click(); URL.revokeObjectURL(url); break;
+    }
     case "close-dialog": root.querySelector("#dialog-root").innerHTML = ""; break;
     case "toggle-sidebar": sidebarOpen = !sidebarOpen; root.querySelector(".app-frame").classList.toggle("sidebar-open", sidebarOpen); root.querySelector(".mobile-menu")?.setAttribute("aria-expanded", String(sidebarOpen)); root.querySelector(".mobile-menu")?.setAttribute("aria-label", sidebarOpen ? "Close navigation" : "Open navigation"); break;
     case "export-sessions": exportCsv("sessions"); break;
@@ -621,7 +642,24 @@ root.addEventListener("click", (event) => {
     default: break;
   }
 });
+root.addEventListener("change", (event) => {
+  const control = event.target.closest("[data-analytics-field]");
+  if (control) {
+    analyticsState[control.dataset.analyticsField] = control.value;
+    if (control.dataset.analyticsField === "country") analyticsState.site = "all";
+    normalizeAnalyticsState(analyticsState); render();
+    root.querySelector(`[data-analytics-field="${control.dataset.analyticsField}"]`)?.focus(); return;
+  }
+  const visible = event.target.closest("[data-pane-visible]");
+  if (visible) {
+    hiddenPanes = visible.checked ? hiddenPanes.filter((id) => id !== visible.dataset.paneVisible) : [...hiddenPanes, visible.dataset.paneVisible];
+    save("chargeweave-console-hidden-panes", hiddenPanes); render();
+    const preferences = root.querySelector(".analytics-pane-preferences"); preferences.open = true;
+    preferences.querySelector(`[data-pane-visible="${visible.dataset.paneVisible}"]`)?.focus();
+  }
+});
 root.addEventListener("submit", (event) => {
+  if (event.target.matches(".analytics-controls")) { event.preventDefault(); return; }
   const taskForm = event.target.closest("[data-work-task]");
   if (taskForm) {
     event.preventDefault();

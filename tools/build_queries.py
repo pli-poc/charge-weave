@@ -25,6 +25,10 @@ questions=[
 ('Assisted action approval binding','SELECT ?approval ?recommendation ?proposed ?approved ?decision WHERE {?approval a cd:ActionApproval; cd:recommendation ?recommendation; cd:approvalDecision ?decision. ?recommendation cd:proposedCommand ?proposed. OPTIONAL {?approval cd:approvedCommand ?approved}}'),
 ('Payout obligation','SELECT ?payout ?beneficiary ?amount ?currency ?state WHERE {?payout a cd:Payout; cd:beneficiary ?beneficiary; cd:payoutAmount ?amount; cd:currency/cd:currencyCode ?currency; cd:payoutState ?state}'),
 ('Documented state transition','SELECT ?change ?target ?property ?from ?to ?time WHERE {?change a cd:StateTransition; cd:targetRecord ?target; cd:stateProperty ?property; cd:previousState ?from; cd:nextState ?to; cd:transitionedAt ?time}')]
+questions += [
+('Analytical question contract', 'SELECT ?query ?subject ?measure ?operator ?time ?comparison ?ranking WHERE {?query a cd:AnalyticalQuery; cd:analyticalSubject ?subject; cd:measureDefinition ?measure; cd:analyticalOperator ?operator; cd:timeContext ?time; cd:analyticalComparison ?comparison; cd:analyticalRanking ?ranking}'),
+('Structured measure aggregation', 'SELECT ?measure ?metric ?policy ?numerator ?denominator WHERE {?measure a cd:MeasureDefinition; cd:metricDefinition ?metric; cd:aggregationPolicy ?policy; cd:numeratorExpression ?numerator. OPTIONAL {?measure cd:denominatorExpression ?denominator}}'),
+('Reusable dashboard pane binding', 'SELECT ?dashboard ?pane ?kind ?query ?renderer WHERE {?dashboard a cd:DashboardDefinition; cd:paneDefinition ?pane. ?pane cd:paneKind ?kind. OPTIONAL {?pane cd:analyticalQuery ?query} OPTIONAL {?pane cd:rendererKey ?renderer}}')]
 prefix='PREFIX cd: <https://example.org/charge-domain#>\n';rows=[]
 for i,(question,query) in enumerate(questions,1):
  key=f'CQ{i:02d}';(P/f'queries/{key}.rq').write_text(prefix+query+'\n');rows.append({'id':key,'question':question,'query':f'queries/{key}.rq'})

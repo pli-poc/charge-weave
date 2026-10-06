@@ -6498,5 +6498,115 @@
       "JOURNEY-PROCESS-PASS",
       "JOURNEY-PROCESS-REJECT"
     ]
+  },
+  {
+    "id": "BR-185",
+    "kind": "analytical-contract",
+    "statement": "Analytical questions declare population, measure, dimensions, typed filters, time, reference and ranking; reusable dashboard panes consume the same reproducible calculations.",
+    "journey": "J20",
+    "phase": "operation",
+    "actors": [
+      "CPO",
+      "Finance",
+      "Auditor",
+      "PlatformOperator"
+    ],
+    "accountableParty": "Operator responsible for analytical definitions and source completeness",
+    "financialOwner": "Commercial operator responsible for financial interpretation of reported metrics",
+    "classes": [
+      "AnalyticalSubject",
+      "MeasureDefinition",
+      "DimensionDefinition",
+      "AnalyticalFilter",
+      "AnalyticalTimeContext",
+      "AnalyticalComparison",
+      "AnalyticalRanking",
+      "AnalyticalQuery",
+      "AnalyticalExecution",
+      "AnalyticalResult",
+      "DashboardDefinition",
+      "DashboardPane"
+    ],
+    "rules": [
+      "B185",
+      "B186",
+      "B187",
+      "B188",
+      "B189",
+      "B190",
+      "B191",
+      "B192",
+      "B193",
+      "B194",
+      "B195",
+      "B196"
+    ],
+    "sources": [
+      "CW-POLICY"
+    ],
+    "preconditions": "An approved metric version and complete authorized source population exist at the knowledge cutoff; dimensions use approved non-multiplying paths.",
+    "normalOutcome": "Weighted, additive and comparative results remain consistent across KPIs, charts and tables and disclose their calculation evidence.",
+    "exceptionOutcome": "Reject incompatible subjects, dimensions, datatypes, comparisons, aggregation policies or incomplete coverage; represent missing and zero-denominator results as unavailable.",
+    "scenarios": [
+      "REF-PASS",
+      "UNIT-B185-REJECT",
+      "UNIT-B186-REJECT",
+      "UNIT-B187-REJECT",
+      "UNIT-B188-REJECT",
+      "UNIT-B189-REJECT",
+      "UNIT-B190-REJECT",
+      "UNIT-B191-REJECT",
+      "UNIT-B192-REJECT",
+      "UNIT-B193-REJECT",
+      "UNIT-B194-REJECT",
+      "UNIT-B195-REJECT",
+      "UNIT-B196-REJECT"
+    ],
+    "finding": "Analytical intent and reusable dashboard review",
+    "disposition": "model-and-synthetic-adapter-implemented",
+    "runtimeObligation": "A trusted production analytics service must enforce real identity and data isolation, select immutable temporal scopes, verify source checkpoints, retain versioned result receipts and implement accounting/tax policies before accepting live financial reporting.",
+    "relationships": [
+      {
+        "class": "MeasureDefinition",
+        "properties": [
+          "metricDefinition",
+          "analyticalSubject",
+          "aggregationPolicy",
+          "numeratorExpression",
+          "denominatorExpression",
+          "additivity"
+        ]
+      },
+      {
+        "class": "AnalyticalQuery",
+        "properties": [
+          "analyticalSubject",
+          "measureDefinition",
+          "dimensionDefinition",
+          "analyticalFilter",
+          "timeContext",
+          "analyticalComparison",
+          "analyticalRanking"
+        ]
+      },
+      {
+        "class": "DashboardPane",
+        "properties": [
+          "paneKind",
+          "analyticalQuery",
+          "rendererKey"
+        ]
+      }
+    ],
+    "structuralShapes": [
+      "AnalyticalQueryShape",
+      "MeasureDefinitionShape",
+      "AnalyticalExecutionShape",
+      "DashboardPaneShape"
+    ],
+    "journeyScenarios": [
+      "JOURNEY-PROCESS-PASS",
+      "JOURNEY-PROCESS-REJECT"
+    ]
   }
 ]

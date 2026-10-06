@@ -448,6 +448,18 @@
     "TemporalSlice": "history-metadata",
     "ProjectionWatermark": "history-metadata",
     "TemporalSnapshotSelection": "history-metadata",
-    "TemporalStreamPolicy": "history-metadata"
+    "TemporalStreamPolicy": "history-metadata",
+    "AnalyticalSubject": "snapshot-versioned",
+    "MeasureDefinition": "snapshot-versioned",
+    "DimensionDefinition": "snapshot-versioned",
+    "AnalyticalFilter": "snapshot-versioned",
+    "AnalyticalTimeContext": "snapshot-versioned",
+    "AnalyticalComparison": "snapshot-versioned",
+    "AnalyticalRanking": "snapshot-versioned",
+    "AnalyticalQuery": "snapshot-versioned",
+    "AnalyticalExecution": "snapshot-versioned",
+    "AnalyticalResult": "snapshot-versioned",
+    "DashboardDefinition": "snapshot-versioned",
+    "DashboardPane": "snapshot-versioned"
   }
 }

@@ -60,3 +60,7 @@ All declared requirements have semantic-contract dispositions and executable mod
 A complete snapshot can state a false fact. SHACL cannot prove a signature was verified, an invoice was delivered, a charger was safe, a bank transferred funds or personal data was actually erased. These responsibilities have explicit runtime owners in the scope and journey registers. Full-graph snapshots are semantic end states, not executions of protocol handlers or payment workflows. Each requirement retains its corresponding runtime acceptance obligation.
 
 Production completion therefore still requires real protocol and payment integration tests, pricing/tax golden calculations for adopted policies, atomic persistence and idempotency under concurrency, authorization/isolation enforcement, physical energy safety, recovery/scale measurements, accessible user journeys and market-specific regulatory review. These boundaries are intrinsic to an ontology deliverable; they are not counted as implemented runtime services.
+
+## Analytical extension
+
+The [analytical contract](analytics-contract.md) records the additional subject/measure/query/result and dashboard scope, independent acceptance matrix and production obligations. B185–B196, CQ25–CQ27, canonical profile projection, Node calculation cases and desktop/mobile flows provide model and demo evidence; these do not extend the original business review into a claim of production analytics completeness.

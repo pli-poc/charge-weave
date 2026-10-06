@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0 — Analytical contracts and reusable dashboard
+
+- Added structured subject, measure, dimension, filter, time, comparison, ranking, query, execution, result and dashboard contracts; 12 invariants and three competency questions.
+- Added a shared analytical profile and its generated RDF projection with a required CI gate.
+- Replaced fixed overview analytics and the decorative energy curve with calculated results from 2,920 synthetic site-days and one delayed correction.
+- Added reusable KPI, line, bar and table panes; country/site drill-down; calendar comparisons; ranking; historical cutoff selection; evidence export; persistent pane visibility and order.
+- Added weighted aggregation, deduplication, missing-population, currency/scope and desktop/mobile acceptance coverage.
+
+
 ## 1.2.0 — Bitemporal contracts and executable evidence — 2026-09-26
 
 - Add scoped immutable commits, effective slices, snapshot selection, projection checkpoints and stream policies; classify every class across all 18 modules.

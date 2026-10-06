@@ -113,6 +113,18 @@ These are canonical domain policies. Vendor-specific restrictions belong in the 
 | B107 | TariffVersion | A discount-based tariff requires explicit discount rules. |
 | B108 | PowerModuleAllocation | Allocated charging unit must be served by the cabinet. |
 | B109 | RatingCalculation | Rating a deferred-base discount requires the resolved immutable base tariff. |
+| B185 | MeasureDefinition | Ratio measures require a denominator and ratio additivity. |
+| B186 | AnalyticalQuery | The measure belongs to the declared analytical subject. |
+| B187 | AnalyticalQuery | Grouping and filtering dimensions belong to the declared analytical subject. |
+| B188 | AnalyticalComparison | Comparison kind requires exactly its reference window or target, with no competing baseline. |
+| B189 | AnalyticalQuery | Change operators require a comparison baseline. |
+| B190 | AnalyticalFilter | Filter values use the dimension datatype. |
+| B191 | DimensionDefinition | Dimension roll-up hierarchies are acyclic. |
+| B192 | AnalyticalResult | Available results require a value; unavailable results cannot assert a value. |
+| B193 | DashboardPane | Custom panes require an approved renderer; analytical panes require a query. |
+| B194 | AnalyticalExecution | A successful measurement execution requires complete source coverage through the reporting interval. |
+| B195 | AnalyticalQuery | Previous-period baselines must end before the report begins. |
+| B196 | MeasureDefinition | Summable measures must declare additive behavior. |
 | B110 | ServiceAgreement | An active agreement has evidence of acceptance and at least one allocated contractual obligation. |
 | B111 | ContractObligation | Fulfilled duties retain a satisfied assessment; waived duties retain a waiver assessment. |
 | B112 | AgreementLifecycleEvent | Amendment and renewal create a distinct successor version retaining the contract identity. |

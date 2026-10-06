@@ -114,6 +114,8 @@ rule('B106','PaymentCapture','Confirmed captures require a provider confirmation
 rule('B107','TariffVersion','A discount-based tariff requires explicit discount rules.','$this cd:tariffMode cd:tariffMode_DiscountBased. FILTER NOT EXISTS {$this cd:discountRule ?d}')
 rule('B108','PowerModuleAllocation','Allocated charging unit must be served by the cabinet.','$this cd:chargingUnit ?u; cd:powerCabinet ?c. FILTER NOT EXISTS {?c cd:servedUnit ?u}')
 rule('B109','RatingCalculation','Rating a deferred-base discount requires the resolved immutable base tariff.','$this cd:selectedTariff/cd:baseTariffSelection ?mode. FILTER(?mode IN (cd:baseTariffSelection_SetBase,cd:baseTariffSelection_RoamingWholesale)) FILTER NOT EXISTS {$this cd:tariffResolution/cd:resolvedBaseTariff ?base}')
+for extra in json.loads((P/'model/analytics-rules.json').read_text()):
+ rule(extra['id'],extra['target'],extra['title'],extra['body'])
 for extra in json.loads((P/'model/audit-rules.json').read_text()):
  rule(extra['id'],extra['target'],extra['title'],extra['body'])
 # Enumeration transitions are domain policy, not a copied vendor state machine.

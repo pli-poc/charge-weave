@@ -2,6 +2,194 @@
 
 Cardinalities: `!` exactly one, `?` zero or one, `+` one or more, `*` any number. Every Record subclass also inherits the Record properties. OWL has open-world semantics; mandatory fields are enforced by SHACL.
 
+## analytics
+
+### AnalyticalSubject
+
+Approved analytical population and fact grain; arbitrary relationship traversal is not a join plan.
+
+Parent: Record. Shape: `AnalyticalSubjectShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| subjectKey | string | ! |
+| subjectClass | IRI | ! |
+| factGrain | string | ! |
+| populationExpression | string | ! |
+| joinPolicy | string | ! |
+
+### MeasureDefinition
+
+Structured aggregation policy for a versioned metric; ratios retain numerator and denominator instead of averaging percentages.
+
+Parent: Record. Shape: `MeasureDefinitionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| metricDefinition | MetricDefinition | ! |
+| analyticalSubject | AnalyticalSubject | ! |
+| aggregationPolicy | Sum, RatioOfSums, Maximum | ! |
+| numeratorExpression | string | ! |
+| denominatorExpression | string | ? |
+| scaleFactor | decimal | ! |
+| additivity | Additive, Ratio, SemiAdditive | ! |
+| missingValuePolicy | Unavailable, Exclude | ! |
+| financialBasis | NotApplicable, NetEstimate, NetBooked, GrossBooked | ! |
+
+### DimensionDefinition
+
+Approved many-to-one dimension path and historical assignment policy; physical quantities are distinct from analytical grouping dimensions.
+
+Parent: Record. Shape: `DimensionDefinitionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| analyticalSubject | AnalyticalSubject | ! |
+| dimensionKey | string | ! |
+| dimensionClass | IRI | ! |
+| dimensionExpression | string | ! |
+| dimensionValueDatatype | IRI | ! |
+| parentDimension | DimensionDefinition | ? |
+| joinCardinality | ManyToOne, OneToOne | ! |
+| historicalAssignment | AtEventTime, AtQueryTime | ! |
+
+### AnalyticalFilter
+
+Typed predicate applied before or after aggregation under an approved query contract.
+
+Parent: Record. Shape: `AnalyticalFilterShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| dimensionDefinition | DimensionDefinition | ! |
+| filterOperator | Equal, In, GreaterOrEqual, LessThan | ! |
+| filterValue | string | + |
+| filterDatatype | IRI | ! |
+| filterStage | BeforeAggregation, AfterAggregation | ! |
+
+### AnalyticalTimeContext
+
+Reporting interval and knowledge cutoff remain separate; timezone and bucket grain are explicit.
+
+Parent: Record. Shape: `AnalyticalTimeContextShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| reportWindow | TimeWindow | ! |
+| knownAt | dateTime | ! |
+| timezoneName | string | ! |
+| bucketGrain | Day, Month, Quarter, Year | ! |
+
+### AnalyticalComparison
+
+Reference period or fixed target aligned to the same measure and declared population.
+
+Parent: Record. Shape: `AnalyticalComparisonShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| comparisonKind | None, PreviousPeriod, Target | ! |
+| referenceWindow | TimeWindow | ? |
+| targetValue | decimal | ? |
+| cohortPolicy | SamePopulation | ! |
+| alignmentPolicy | CalendarPeriod, ElapsedDuration, FixedTarget | ! |
+
+### AnalyticalRanking
+
+Deterministic cardinality and ordering policy; a zero limit returns the full ranked population.
+
+Parent: Record. Shape: `AnalyticalRankingShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| rankBy | Value, Change, PercentChange | ! |
+| rankDirection | Ascending, Descending | ! |
+| rankLimit | nonNegativeInteger | ! |
+| tiePolicy | StableKey | ! |
+
+### AnalyticalQuery
+
+Versioned analytical intent carrying subject, measure, operator, dimensions, filters, time, comparison and ranking.
+
+Parent: Record. Shape: `AnalyticalQueryShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| analyticalSubject | AnalyticalSubject | ! |
+| measureDefinition | MeasureDefinition | ! |
+| analyticalOperator | Value, Change, PercentChange | ! |
+| dimensionDefinition | DimensionDefinition | * |
+| analyticalFilter | AnalyticalFilter | * |
+| timeContext | AnalyticalTimeContext | ! |
+| analyticalComparison | AnalyticalComparison | ! |
+| analyticalRanking | AnalyticalRanking | ! |
+| queryVersion | string | ! |
+
+### AnalyticalExecution
+
+Evidence binding an analytical query to its measure revision, authorized scope, snapshot identity and source completeness; the browser is not an authorization service.
+
+Parent: Record. Shape: `AnalyticalExecutionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| analyticalQuery | AnalyticalQuery | ! |
+| queryDigest | string | ! |
+| metricVersion | string | ! |
+| executedAt | dateTime | ! |
+| executionState | Succeeded, Unavailable, Rejected | ! |
+| authorizedScope | Record | ! |
+| sourceSnapshotDigest | string | ! |
+| sourceWatermark | ProjectionWatermark | + |
+| populationCount | nonNegativeInteger | ! |
+| evidence | EvidenceDocument | + |
+
+### AnalyticalResult
+
+One grouping result retaining weighted components and explicit unavailable state; missing measurements never become zero.
+
+Parent: Record. Shape: `AnalyticalResultShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| analyticalExecution | AnalyticalExecution | ! |
+| resultKey | string | ! |
+| dimensionValue | string | * |
+| resultState | Available, Unavailable | ! |
+| numericValue | decimal | ? |
+| baselineNumericValue | decimal | ? |
+| absoluteChange | decimal | ? |
+| relativeChange | decimal | ? |
+| numeratorValue | decimal | ? |
+| denominatorValue | decimal | ? |
+
+### DashboardDefinition
+
+Versioned composition of reusable panes referencing analytical intent or approved custom renderers.
+
+Parent: Record. Shape: `DashboardDefinitionShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| dashboardKey | string | ! |
+| definitionVersion | string | ! |
+| paneDefinition | DashboardPane | + |
+
+### DashboardPane
+
+Presentation descriptor separated from calculation; one query result can be viewed as a chart or a table.
+
+Parent: Record. Shape: `DashboardPaneShape`.
+
+| Property | Range | Cardinality |
+|---|---|---|
+| paneKey | string | ! |
+| paneTitle | string | ! |
+| paneKind | Kpi, Line, Bar, Table, Custom | ! |
+| analyticalQuery | AnalyticalQuery | ? |
+| rendererKey | string | ? |
+| paneOrder | nonNegativeInteger | ! |
+
 ## assets
 
 ### Manufacturer

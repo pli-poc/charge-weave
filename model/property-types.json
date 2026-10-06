@@ -7148,5 +7148,395 @@
       "enum",
       "DuplicateEventActionCode"
     ]
+  ],
+  "subjectKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "subjectClass": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "factGrain": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "populationExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "joinPolicy": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "analyticalSubject": [
+    [
+      "object",
+      "AnalyticalSubject"
+    ]
+  ],
+  "aggregationPolicy": [
+    [
+      "enum",
+      "AggregationPolicyCode"
+    ]
+  ],
+  "numeratorExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "denominatorExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "scaleFactor": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "additivity": [
+    [
+      "enum",
+      "AdditivityCode"
+    ]
+  ],
+  "missingValuePolicy": [
+    [
+      "enum",
+      "MissingValuePolicyCode"
+    ]
+  ],
+  "financialBasis": [
+    [
+      "enum",
+      "FinancialBasisCode"
+    ]
+  ],
+  "dimensionKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "dimensionClass": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "dimensionExpression": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "dimensionValueDatatype": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "parentDimension": [
+    [
+      "object",
+      "DimensionDefinition"
+    ]
+  ],
+  "joinCardinality": [
+    [
+      "enum",
+      "JoinCardinalityCode"
+    ]
+  ],
+  "historicalAssignment": [
+    [
+      "enum",
+      "HistoricalAssignmentCode"
+    ]
+  ],
+  "dimensionDefinition": [
+    [
+      "object",
+      "DimensionDefinition"
+    ]
+  ],
+  "filterOperator": [
+    [
+      "enum",
+      "FilterOperatorCode"
+    ]
+  ],
+  "filterValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "filterDatatype": [
+    [
+      "iri",
+      "IRI"
+    ]
+  ],
+  "filterStage": [
+    [
+      "enum",
+      "FilterStageCode"
+    ]
+  ],
+  "reportWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "bucketGrain": [
+    [
+      "enum",
+      "BucketGrainCode"
+    ]
+  ],
+  "comparisonKind": [
+    [
+      "enum",
+      "ComparisonKindCode"
+    ]
+  ],
+  "referenceWindow": [
+    [
+      "object",
+      "TimeWindow"
+    ]
+  ],
+  "targetValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "cohortPolicy": [
+    [
+      "enum",
+      "CohortPolicyCode"
+    ]
+  ],
+  "alignmentPolicy": [
+    [
+      "enum",
+      "AlignmentPolicyCode"
+    ]
+  ],
+  "rankBy": [
+    [
+      "enum",
+      "RankByCode"
+    ]
+  ],
+  "rankDirection": [
+    [
+      "enum",
+      "RankDirectionCode"
+    ]
+  ],
+  "rankLimit": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "tiePolicy": [
+    [
+      "enum",
+      "TiePolicyCode"
+    ]
+  ],
+  "measureDefinition": [
+    [
+      "object",
+      "MeasureDefinition"
+    ]
+  ],
+  "analyticalOperator": [
+    [
+      "enum",
+      "AnalyticalOperatorCode"
+    ]
+  ],
+  "analyticalFilter": [
+    [
+      "object",
+      "AnalyticalFilter"
+    ]
+  ],
+  "timeContext": [
+    [
+      "object",
+      "AnalyticalTimeContext"
+    ]
+  ],
+  "analyticalComparison": [
+    [
+      "object",
+      "AnalyticalComparison"
+    ]
+  ],
+  "analyticalRanking": [
+    [
+      "object",
+      "AnalyticalRanking"
+    ]
+  ],
+  "queryVersion": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "analyticalQuery": [
+    [
+      "object",
+      "AnalyticalQuery"
+    ]
+  ],
+  "queryDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "executedAt": [
+    [
+      "datatype",
+      "dateTime"
+    ]
+  ],
+  "executionState": [
+    [
+      "enum",
+      "ExecutionStateCode"
+    ]
+  ],
+  "sourceSnapshotDigest": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "populationCount": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
+  ],
+  "analyticalExecution": [
+    [
+      "object",
+      "AnalyticalExecution"
+    ]
+  ],
+  "resultKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "dimensionValue": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "resultState": [
+    [
+      "enum",
+      "ResultStateCode"
+    ]
+  ],
+  "baselineNumericValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "absoluteChange": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "relativeChange": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "numeratorValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "denominatorValue": [
+    [
+      "datatype",
+      "decimal"
+    ]
+  ],
+  "dashboardKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paneDefinition": [
+    [
+      "object",
+      "DashboardPane"
+    ]
+  ],
+  "paneKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paneTitle": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paneKind": [
+    [
+      "enum",
+      "PaneKindCode"
+    ]
+  ],
+  "rendererKey": [
+    [
+      "datatype",
+      "string"
+    ]
+  ],
+  "paneOrder": [
+    [
+      "datatype",
+      "nonNegativeInteger"
+    ]
   ]
 }

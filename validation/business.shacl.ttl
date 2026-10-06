@@ -1841,3 +1841,123 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT $this WHERE { { $this cd:selectionState ?state. OPTIONAL {$this cd:selectedCommit ?c} OPTIONAL {$this cd:selectedSlice ?s} FILTER((?state=cd:selectionState_Unavailable && (BOUND(?c)||BOUND(?s))) || (?state!=cd:selectionState_Unavailable && (!BOUND(?c)||!BOUND(?s)))) } UNION { $this cd:selectedCommit ?c; cd:selectedSlice ?s; cd:selectionState ?state; cd:validAt ?v; cd:knownAt ?k; cd:snapshotScope ?scope; cd:tenant ?tenant. FILTER NOT EXISTS {?c cd:temporalSlice ?s; cd:snapshotScope ?scope; cd:tenant ?tenant; cd:recordedAt ?r. ?s cd:validFrom ?a; cd:sliceState ?ss. OPTIONAL {?s cd:validUntil ?b} FILTER(?r<=?k && ?a<=?v && (!BOUND(?b)||?v<?b) && ((?state=cd:selectionState_Present && ?ss=cd:sliceState_Present)||(?state=cd:selectionState_Retracted && ?ss=cd:sliceState_Retracted))) FILTER NOT EXISTS {?new a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?nr. FILTER(?r<?nr && ?nr<=?k)}} } UNION { $this cd:selectionState cd:selectionState_Unavailable; cd:validAt ?v; cd:knownAt ?k; cd:snapshotScope ?scope; cd:tenant ?tenant. ?c a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?r; cd:temporalSlice ?s. ?s cd:validFrom ?a. OPTIONAL {?s cd:validUntil ?b} FILTER(?r<=?k && ?a<=?v && (!BOUND(?b)||?v<?b)) FILTER NOT EXISTS {?new a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?nr. FILTER(?r<?nr && ?nr<=?k)} } }""" ] ;
     sh:targetClass cd:TemporalSnapshotSelection .
 
+cd:B185 a sh:NodeShape ;
+    sh:sparql [ sh:message "B185: Ratio measures require a denominator and ratio additivity." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:aggregationPolicy cd:aggregationPolicy_RatioOfSums. FILTER(!EXISTS {$this cd:denominatorExpression ?d} || !EXISTS {$this cd:additivity cd:additivity_Ratio}) }""" ] ;
+    sh:targetClass cd:MeasureDefinition .
+
+cd:B186 a sh:NodeShape ;
+    sh:sparql [ sh:message "B186: The measure belongs to the declared analytical subject." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:analyticalSubject ?s; cd:measureDefinition/cd:analyticalSubject ?m. FILTER(?s != ?m) }""" ] ;
+    sh:targetClass cd:AnalyticalQuery .
+
+cd:B187 a sh:NodeShape ;
+    sh:sparql [ sh:message "B187: Grouping and filtering dimensions belong to the declared analytical subject." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:analyticalSubject ?s. {$this cd:dimensionDefinition/cd:analyticalSubject ?d} UNION {$this cd:analyticalFilter/cd:dimensionDefinition/cd:analyticalSubject ?d} FILTER(?s != ?d) }""" ] ;
+    sh:targetClass cd:AnalyticalQuery .
+
+cd:B188 a sh:NodeShape ;
+    sh:sparql [ sh:message "B188: Comparison kind requires exactly its reference window or target, with no competing baseline." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:comparisonKind ?k. FILTER((?k=cd:comparisonKind_PreviousPeriod && (!EXISTS {$this cd:referenceWindow ?r} || EXISTS {$this cd:targetValue ?v})) || (?k=cd:comparisonKind_Target && (!EXISTS {$this cd:targetValue ?v} || EXISTS {$this cd:referenceWindow ?r})) || (?k=cd:comparisonKind_None && (EXISTS {$this cd:referenceWindow ?r} || EXISTS {$this cd:targetValue ?v}))) }""" ] ;
+    sh:targetClass cd:AnalyticalComparison .
+
+cd:B189 a sh:NodeShape ;
+    sh:sparql [ sh:message "B189: Change operators require a comparison baseline." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:analyticalOperator ?o; cd:analyticalComparison/cd:comparisonKind cd:comparisonKind_None. FILTER(?o != cd:analyticalOperator_Value) }""" ] ;
+    sh:targetClass cd:AnalyticalQuery .
+
+cd:B190 a sh:NodeShape ;
+    sh:sparql [ sh:message "B190: Filter values use the dimension datatype." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:filterDatatype ?a; cd:dimensionDefinition/cd:dimensionValueDatatype ?b. FILTER(?a != ?b) }""" ] ;
+    sh:targetClass cd:AnalyticalFilter .
+
+cd:B191 a sh:NodeShape ;
+    sh:sparql [ sh:message "B191: Dimension roll-up hierarchies are acyclic." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:parentDimension+ $this. }""" ] ;
+    sh:targetClass cd:DimensionDefinition .
+
+cd:B192 a sh:NodeShape ;
+    sh:sparql [ sh:message "B192: Available results require a value; unavailable results cannot assert a value." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:resultState ?s. FILTER((?s=cd:resultState_Available && !EXISTS {$this cd:numericValue ?v}) || (?s=cd:resultState_Unavailable && EXISTS {$this cd:numericValue ?v})) }""" ] ;
+    sh:targetClass cd:AnalyticalResult .
+
+cd:B193 a sh:NodeShape ;
+    sh:sparql [ sh:message "B193: Custom panes require an approved renderer; analytical panes require a query." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:paneKind ?k. FILTER((?k=cd:paneKind_Custom && !EXISTS {$this cd:rendererKey ?r}) || (?k!=cd:paneKind_Custom && !EXISTS {$this cd:analyticalQuery ?q})) }""" ] ;
+    sh:targetClass cd:DashboardPane .
+
+cd:B194 a sh:NodeShape ;
+    sh:sparql [ sh:message "B194: A successful measurement execution requires complete source coverage through the reporting interval." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:executionState cd:executionState_Succeeded; cd:analyticalQuery/cd:timeContext/cd:reportWindow/cd:endsAt ?end; cd:sourceWatermark ?w. ?w cd:completeThrough ?c; cd:watermarkState ?s. FILTER(?c < ?end || ?s != cd:watermarkState_Complete) }""" ] ;
+    sh:targetClass cd:AnalyticalExecution .
+
+cd:B195 a sh:NodeShape ;
+    sh:sparql [ sh:message "B195: Previous-period baselines must end before the report begins." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:timeContext/cd:reportWindow/cd:startsAt ?a; cd:analyticalComparison ?c. ?c cd:comparisonKind cd:comparisonKind_PreviousPeriod; cd:referenceWindow/cd:endsAt ?b. FILTER(?b > ?a) }""" ] ;
+    sh:targetClass cd:AnalyticalQuery .
+
+cd:B196 a sh:NodeShape ;
+    sh:sparql [ sh:message "B196: Summable measures must declare additive behavior." ;
+            sh:select """PREFIX cd: <https://example.org/charge-domain#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT $this WHERE { $this cd:aggregationPolicy cd:aggregationPolicy_Sum; cd:additivity ?a. FILTER(?a != cd:additivity_Additive) }""" ] ;
+    sh:targetClass cd:MeasureDefinition .
+

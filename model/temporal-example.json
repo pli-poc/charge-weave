@@ -1,7 +1,7 @@
 {
   "scope": "https://example.org/scope/tariff-retail",
   "tenant": "https://example.org/reference/Tenant",
-  "schemaDigest": "sha256:6c86a043d3d238f8ff0e9745ec2ef5eed1e3f0e5bbc8b99cd73d74bb8ea34a94",
+  "schemaDigest": "sha256:f420d81a561608eebf37e13b0bdc6b584b7ce311e48c2dd216ddf89d5b2b6db2",
   "fixture": "Synthetic tariff evidence, verified by standard SPARQL over committed RDF graphs.",
   "knownThrough": "2026-06-15T00:00:00+00:00",
   "query": "PREFIX cd: <https://example.org/charge-domain#>\nSELECT ?commit ?slice ?graph ?digest ?validFrom ?validUntil ?systemFrom ?systemUntil ?schemaDigest\nWHERE {\n  # Bind tenant, scope, validAt and knownAt. Never union historical payload graphs.\n  ?commit a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope;\n          cd:recordedAt ?systemFrom; cd:temporalSlice ?slice; cd:schemaDigest ?schemaDigest.\n  FILTER(?systemFrom <= ?knownAt)\n  FILTER NOT EXISTS {\n    ?later a cd:TemporalCommit; cd:tenant ?tenant; cd:snapshotScope ?scope; cd:recordedAt ?laterTime.\n    FILTER(?laterTime > ?systemFrom && ?laterTime <= ?knownAt)\n  }\n  OPTIONAL { ?next cd:previousCommit ?commit; cd:recordedAt ?systemUntil. }\n  ?slice cd:validFrom ?validFrom.\n  OPTIONAL { ?slice cd:validUntil ?validUntil. }\n  FILTER(?validFrom <= ?validAt && (!BOUND(?validUntil) || ?validAt < ?validUntil))\n  OPTIONAL { ?slice cd:payloadGraph ?graph; cd:contentDigest ?digest. }\n}\n",

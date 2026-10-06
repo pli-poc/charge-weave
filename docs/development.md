@@ -39,6 +39,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `xflow/ontology.ttl`, `xflow/shapes.ttl`, `xflow/charge-correction.profile.json` | Generic workflow vocabulary, shapes and executable JSON-LD workflow profile |
 | `console-app/src/work-model.js`, `console-app/src/task-form-renderer.js` | Synthetic work-item fixture and generic operator task-form renderer; app styles and tests |
 | `tools/build_queries.py` | Competency questions and CQ queries |
+| `model/analytics-profile.json`, `model/analytics-rules.json`, `tools/build_analytics.py` | Analytical RDF profile and canonical query/pane bindings; shared console registry |
 | `tests/negative-cases.json`, `tools/test_*.py` | Validation reports |
 
 `tools/check_generated.py` builds in a clean temporary output tree using only
@@ -107,3 +108,7 @@ No workflow automatically updates the benchmark from a moving website or treats
 technical success as independent business completeness. The completed semantic review has its own [findings and evidence boundary](business-domain-audit.md).
 
 Temporal review: run `python tools/audit_temporal.py`. After class contracts change, regenerate `docs/temporal-coverage.md` with `--write-inventory` and review the results. `reports/temporal-audit.json` requires every controlled rejection. Run `python tools/test_temporal.py` for writer/query acceptance.
+
+## Historical analytics and configurable dashboard
+
+See [Analytical contract and reusable dashboard](analytics-contract.md) for the S/M/O/D/F/T/R/K intent, weighted aggregation, generated profile, synthetic year, adapter boundary and test evidence. The app workspace is `/app/#analytics`; the overview consumes the same provider and result renderers. Run `python tools/test_analytics.py` and `npm test --prefix console-app`.

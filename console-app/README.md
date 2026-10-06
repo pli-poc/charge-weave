@@ -24,3 +24,7 @@ Owned locations are in the Netherlands and Belgium. Chargecard roaming examples 
 The **Site to revenue** workspace is a set of interactive application screens, not a static process illustration. It lets a presenter enter a site and site-host agreement, issue an installation work order, complete commissioning checks, enter session meter readings and tariff, calculate the rated amount, and issue a synthetic invoice. Each submission updates the case context shown beside the active screen. The site inventory's **Add site** action opens the same site-registration screen.
 
 The final billing screen links to the developer guide's executable J07/J08 charge-record correction workflow, so the CPO business walkthrough leads into the existing billing exception demo. All mutations are in browser memory; resetting the demo restores the fixture. No real partner, station, meter, invoice, payment or backend is contacted. The sample calculation is usage multiplied by tariff and is not a tax or accounting calculation.
+
+## Historical analytics
+
+The overview and `/app/#analytics` share the canonical `model/analytics-profile.json`, a calculated synthetic 2026 year and reusable KPI/chart/table panes. Measures, periods, filters, comparisons, ranking and knowledge cutoffs drive the same engine. Pane visibility and ordering persist in browser preferences. See [the analytical contract](../docs/analytics-contract.md) for calculation semantics, synthetic data boundaries and validation.

@@ -583,7 +583,10 @@
       "ProcessExecution",
       "ProcessStep",
       "LifecycleSnapshot",
-      "StateTransition"
+      "StateTransition",
+      "AnalyticalQuery",
+      "AnalyticalExecution",
+      "DashboardDefinition"
     ],
     "runtimeAcceptance": "Execute the same ordered journey against real adapters and durable services; verify authorization, atomicity, side effects, failure recovery and evidence retrieval."
   }

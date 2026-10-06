@@ -15,7 +15,9 @@ test("the isolated console is published under the corporate site and presents th
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Network overview");
   await expect(page.getByText("Owned charging operations in the Netherlands and Belgium", { exact: false })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sites & parking", exact: true })).toBeVisible();
-  await expect(page.locator(".kpi-grid")).toContainText(/€\s?2\.463,04/);
+  await expect(page.locator(".kpi-grid .kpi-card")).toHaveCount(4);
+  await expect(page.locator('[data-measure="availability"]')).toContainText("98,46%");
+  await expect(page.locator('[data-measure="value"]')).toContainText("Estimated charging value");
   if (testInfo.project.name === "desktop") {
     const screenshot = testInfo.outputPath("operations-overview.png");
     await page.screenshot({ path: screenshot, fullPage: true });

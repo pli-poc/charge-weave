@@ -75,6 +75,26 @@ ex:AllowanceConsumption a cd:AllowanceConsumption ;
     cd:session ex:ChargingSession ;
     cd:tenant ex:Tenant .
 
+ex:AnalyticalFilter a cd:AnalyticalFilter ;
+    cd:canonicalId "AnalyticalFilter-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionDefinition ex:DimensionDefinition ;
+    cd:filterDatatype xsd:string ;
+    cd:filterOperator cd:filterOperator_Equal ;
+    cd:filterStage cd:filterStage_BeforeAggregation ;
+    cd:filterValue "AnalyticalFilter-filterValue"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:AnalyticalResult a cd:AnalyticalResult ;
+    cd:analyticalExecution ex:AnalyticalExecution ;
+    cd:canonicalId "AnalyticalResult-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:resultKey "AnalyticalResult-resultKey"^^xsd:string ;
+    cd:resultState cd:resultState_Unavailable ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
 ex:Annotation a cd:Annotation ;
     cd:author ex:Principal ;
     cd:canonicalId "Annotation-canonicalId"^^xsd:string ;
@@ -442,6 +462,15 @@ ex:CustomerNotification a cd:CustomerNotification ;
     cd:notificationChannel cd:notificationChannel_Email ;
     cd:notificationState cd:notificationState_Queued ;
     cd:requestedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:DashboardDefinition a cd:DashboardDefinition ;
+    cd:canonicalId "DashboardDefinition-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dashboardKey "DashboardDefinition-dashboardKey"^^xsd:string ;
+    cd:definitionVersion "DashboardDefinition-definitionVersion"^^xsd:string ;
+    cd:paneDefinition ex:DashboardPane ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
@@ -1806,6 +1835,64 @@ ex:WorkOrder a cd:WorkOrder ;
     cd:tenant ex:Tenant ;
     cd:workState cd:workState_New .
 
+ex:AnalyticalComparison a cd:AnalyticalComparison ;
+    cd:alignmentPolicy cd:alignmentPolicy_CalendarPeriod ;
+    cd:canonicalId "AnalyticalComparison-canonicalId"^^xsd:string ;
+    cd:cohortPolicy cd:cohortPolicy_SamePopulation ;
+    cd:comparisonKind cd:comparisonKind_None ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:AnalyticalExecution a cd:AnalyticalExecution ;
+    cd:analyticalQuery ex:AnalyticalQuery ;
+    cd:authorizedScope ex:ChargingSession ;
+    cd:canonicalId "AnalyticalExecution-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:evidence ex:EvidenceDocument ;
+    cd:executedAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:executionState cd:executionState_Unavailable ;
+    cd:metricVersion "AnalyticalExecution-metricVersion"^^xsd:string ;
+    cd:populationCount "1"^^xsd:nonNegativeInteger ;
+    cd:queryDigest "AnalyticalExecution-queryDigest"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceSnapshotDigest "AnalyticalExecution-sourceSnapshotDigest"^^xsd:string ;
+    cd:sourceWatermark ex:ProjectionWatermark ;
+    cd:tenant ex:Tenant .
+
+ex:AnalyticalQuery a cd:AnalyticalQuery ;
+    cd:analyticalComparison ex:AnalyticalComparison ;
+    cd:analyticalOperator cd:analyticalOperator_Value ;
+    cd:analyticalRanking ex:AnalyticalRanking ;
+    cd:analyticalSubject ex:AnalyticalSubject ;
+    cd:canonicalId "AnalyticalQuery-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:measureDefinition ex:MeasureDefinition ;
+    cd:queryVersion "AnalyticalQuery-queryVersion"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timeContext ex:AnalyticalTimeContext .
+
+ex:AnalyticalRanking a cd:AnalyticalRanking ;
+    cd:canonicalId "AnalyticalRanking-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:rankBy cd:rankBy_Value ;
+    cd:rankDirection cd:rankDirection_Ascending ;
+    cd:rankLimit "1"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:tiePolicy cd:tiePolicy_StableKey .
+
+ex:AnalyticalTimeContext a cd:AnalyticalTimeContext ;
+    cd:bucketGrain cd:bucketGrain_Day ;
+    cd:canonicalId "AnalyticalTimeContext-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:knownAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:reportWindow ex:TimeWindow ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant ;
+    cd:timezoneName "Europe/London"^^xsd:string .
+
 ex:AssistantRecommendation a cd:AssistantRecommendation ;
     cd:affectedRecord ex:ChargingSession ;
     cd:canonicalId "AssistantRecommendation-canonicalId"^^xsd:string ;
@@ -2018,6 +2105,17 @@ ex:CustomerGroup a cd:CustomerGroup ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
+ex:DashboardPane a cd:DashboardPane ;
+    cd:canonicalId "DashboardPane-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:paneKey "DashboardPane-paneKey"^^xsd:string ;
+    cd:paneKind cd:paneKind_Custom ;
+    cd:paneOrder "1"^^xsd:nonNegativeInteger ;
+    cd:paneTitle "DashboardPane-paneTitle"^^xsd:string ;
+    cd:rendererKey "sites"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
 ex:DemandResponseProgram a cd:DemandResponseProgram ;
     cd:canonicalId "DemandResponseProgram-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2027,6 +2125,19 @@ ex:DemandResponseProgram a cd:DemandResponseProgram ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:serviceAgreement ex:ServiceAgreement ;
     cd:settlementUnit <https://example.org/value/settlementUnit> ;
+    cd:tenant ex:Tenant .
+
+ex:DimensionDefinition a cd:DimensionDefinition ;
+    cd:analyticalSubject ex:AnalyticalSubject ;
+    cd:canonicalId "DimensionDefinition-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:dimensionClass <https://example.org/value/dimensionClass> ;
+    cd:dimensionExpression "DimensionDefinition-dimensionExpression"^^xsd:string ;
+    cd:dimensionKey "DimensionDefinition-dimensionKey"^^xsd:string ;
+    cd:dimensionValueDatatype xsd:string ;
+    cd:historicalAssignment cd:historicalAssignment_AtEventTime ;
+    cd:joinCardinality cd:joinCardinality_ManyToOne ;
+    cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
 ex:DocumentNumberSequence a cd:DocumentNumberSequence ;
@@ -2210,6 +2321,20 @@ ex:LedgerAccount a cd:LedgerAccount ;
     cd:revision "1"^^xsd:positiveInteger ;
     cd:tenant ex:Tenant .
 
+ex:MeasureDefinition a cd:MeasureDefinition ;
+    cd:additivity cd:additivity_Additive ;
+    cd:aggregationPolicy cd:aggregationPolicy_Sum ;
+    cd:analyticalSubject ex:AnalyticalSubject ;
+    cd:canonicalId "MeasureDefinition-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:financialBasis cd:financialBasis_NotApplicable ;
+    cd:metricDefinition ex:MetricDefinition ;
+    cd:missingValuePolicy cd:missingValuePolicy_Unavailable ;
+    cd:numeratorExpression "MeasureDefinition-numeratorExpression"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scaleFactor 0.0 ;
+    cd:tenant ex:Tenant .
+
 ex:MeterRegisterEpoch a cd:MeterRegisterEpoch ;
     cd:canonicalId "MeterRegisterEpoch-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2222,18 +2347,6 @@ ex:MeterRegisterEpoch a cd:MeterRegisterEpoch ;
     cd:tenant ex:Tenant ;
     cd:unitIri <https://example.org/value/unitIri> ;
     cd:validFrom "2026-09-25T10:00:00+00:00"^^xsd:dateTime .
-
-ex:MetricDefinition a cd:MetricDefinition ;
-    cd:canonicalId "MetricDefinition-canonicalId"^^xsd:string ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:expressionLanguage "MetricDefinition-expressionLanguage"^^xsd:string ;
-    cd:metricExpression "MetricDefinition-metricExpression"^^xsd:string ;
-    cd:metricName "MetricDefinition-metricName"^^xsd:string ;
-    cd:metricVersion "MetricDefinition-metricVersion"^^xsd:string ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:scopeClass <https://example.org/value/scopeClass> ;
-    cd:tenant ex:Tenant ;
-    cd:unitIri <https://example.org/value/unitIri> .
 
 ex:PaymentInstrument a cd:PaymentInstrument ;
     cd:canonicalId "PaymentInstrument-canonicalId"^^xsd:string ;
@@ -2300,19 +2413,6 @@ ex:ProcessStep a cd:ProcessStep ;
     cd:stepSequence "1"^^xsd:positiveInteger ;
     cd:stepState cd:stepState_Pending ;
     cd:tenant ex:Tenant .
-
-ex:ProjectionWatermark a cd:ProjectionWatermark ;
-    cd:canonicalId "ProjectionWatermark-canonicalId"^^xsd:string ;
-    cd:completeThrough "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:maximumLatenessSeconds "1"^^xsd:nonNegativeInteger ;
-    cd:revision "1"^^xsd:positiveInteger ;
-    cd:sourceOffset "1"^^xsd:nonNegativeInteger ;
-    cd:sourcePartition "ProjectionWatermark-sourcePartition"^^xsd:string ;
-    cd:sourceSystem "ProjectionWatermark-sourceSystem"^^xsd:string ;
-    cd:tenant ex:Tenant ;
-    cd:watermarkAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
-    cd:watermarkState cd:watermarkState_Complete .
 
 ex:ProvisioningCertificate a cd:ProvisioningCertificate ;
     cd:canonicalId "ProvisioningCertificate-canonicalId"^^xsd:string ;
@@ -2751,6 +2851,18 @@ ex:MeterObservation a cd:MeterObservation ;
     cd:tenant ex:Tenant ;
     cd:unitIri <https://example.org/value/unitIri> .
 
+ex:MetricDefinition a cd:MetricDefinition ;
+    cd:canonicalId "MetricDefinition-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:expressionLanguage "MetricDefinition-expressionLanguage"^^xsd:string ;
+    cd:metricExpression "MetricDefinition-metricExpression"^^xsd:string ;
+    cd:metricName "MetricDefinition-metricName"^^xsd:string ;
+    cd:metricVersion "MetricDefinition-metricVersion"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:scopeClass <https://example.org/value/scopeClass> ;
+    cd:tenant ex:Tenant ;
+    cd:unitIri <https://example.org/value/unitIri> .
+
 ex:PaymentIntent a cd:PaymentIntent ;
     cd:canonicalId "PaymentIntent-canonicalId"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
@@ -2791,6 +2903,19 @@ ex:PriceComponent a cd:PriceComponent ;
     cd:tenant ex:Tenant ;
     cd:unitIri <https://example.org/value/unitIri> ;
     cd:unitPrice 0.0 .
+
+ex:ProjectionWatermark a cd:ProjectionWatermark ;
+    cd:canonicalId "ProjectionWatermark-canonicalId"^^xsd:string ;
+    cd:completeThrough "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:maximumLatenessSeconds "1"^^xsd:nonNegativeInteger ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:sourceOffset "1"^^xsd:nonNegativeInteger ;
+    cd:sourcePartition "ProjectionWatermark-sourcePartition"^^xsd:string ;
+    cd:sourceSystem "ProjectionWatermark-sourceSystem"^^xsd:string ;
+    cd:tenant ex:Tenant ;
+    cd:watermarkAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:watermarkState cd:watermarkState_Complete .
 
 ex:ProtocolEndpoint a cd:ProtocolEndpoint ;
     cd:canonicalId "ProtocolEndpoint-canonicalId"^^xsd:string ;
@@ -2901,6 +3026,17 @@ ex:Address a cd:Address ;
     cd:countryCode "GB"^^xsd:string ;
     cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
     cd:revision "1"^^xsd:positiveInteger ;
+    cd:tenant ex:Tenant .
+
+ex:AnalyticalSubject a cd:AnalyticalSubject ;
+    cd:canonicalId "AnalyticalSubject-canonicalId"^^xsd:string ;
+    cd:createdAt "2026-09-25T12:00:00+00:00"^^xsd:dateTime ;
+    cd:factGrain "AnalyticalSubject-factGrain"^^xsd:string ;
+    cd:joinPolicy "AnalyticalSubject-joinPolicy"^^xsd:string ;
+    cd:populationExpression "AnalyticalSubject-populationExpression"^^xsd:string ;
+    cd:revision "1"^^xsd:positiveInteger ;
+    cd:subjectClass <https://example.org/value/subjectClass> ;
+    cd:subjectKey "AnalyticalSubject-subjectKey"^^xsd:string ;
     cd:tenant ex:Tenant .
 
 ex:AvailabilityPolicy a cd:AvailabilityPolicy ;

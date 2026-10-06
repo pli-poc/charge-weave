@@ -6,6 +6,7 @@ This table inventories structural coverage, not business completeness. See [the 
 
 | Module | Classes | Business date/time fields present | Linked time definitions present |
 |---|---:|---:|---:|
+| analytics | 12 | 2 | 2 |
 | assets | 14 | 6 | 0 |
 | billing-tax | 13 | 8 | 0 |
 | commands-booking | 6 | 3 | 2 |
@@ -27,6 +28,18 @@ This table inventories structural coverage, not business completeness. See [the 
 
 | Class | Module | Temporal policy | Business date/time fields | Linked intervals / recurrences | Record metadata |
 |---|---|---|---|---|---|
+| AnalyticalComparison | analytics | snapshot-versioned | — | referenceWindow → TimeWindow | createdAt, revision |
+| AnalyticalExecution | analytics | snapshot-versioned | executedAt | — | createdAt, revision |
+| AnalyticalFilter | analytics | snapshot-versioned | — | — | createdAt, revision |
+| AnalyticalQuery | analytics | snapshot-versioned | — | — | createdAt, revision |
+| AnalyticalRanking | analytics | snapshot-versioned | — | — | createdAt, revision |
+| AnalyticalResult | analytics | snapshot-versioned | — | — | createdAt, revision |
+| AnalyticalSubject | analytics | snapshot-versioned | — | — | createdAt, revision |
+| AnalyticalTimeContext | analytics | snapshot-versioned | knownAt | reportWindow → TimeWindow | createdAt, revision |
+| DashboardDefinition | analytics | snapshot-versioned | — | — | createdAt, revision |
+| DashboardPane | analytics | snapshot-versioned | — | — | createdAt, revision |
+| DimensionDefinition | analytics | snapshot-versioned | — | — | createdAt, revision |
+| MeasureDefinition | analytics | snapshot-versioned | — | — | createdAt, revision |
 | AssetLifecycleEvent | assets | snapshot-versioned | effectiveAt | — | createdAt, revision |
 | CalibrationRecord | assets | snapshot-versioned | validFrom, validUntil | — | createdAt, revision |
 | ChargingStation | assets | snapshot-versioned | commissionedAt, manufacturedAt | — | createdAt, revision |

@@ -4,7 +4,7 @@
 
 A modular business ontology for charging management: CPO and eMSP services, public and ad hoc charging, fleet/workplace and home charging, roaming, payments, settlement, energy control and governance.
 
-Version **1.2.0** includes **282 classes in 18 modules, 1,189 properties, 211 controlled code schemes and 184 SHACL-SPARQL business rules**. The independent business review defines **92 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
+Version **1.3.0** includes **294 classes in 19 modules, 1,254 properties, 230 controlled code schemes and 196 SHACL-SPARQL business rules**. The independent business review defines **93 requirements, 28 actor roles and 20 journeys**. It closes identified semantic gaps with 42 additional concepts and 63 additional rules. Read the [audit findings and evidence boundary](docs/business-domain-audit.md). A subsequent [adversarial review](docs/adversarial-review.md) found and fixed six cross-record gaps, with 14 additional full-graph regression cases.
 
 Each journey covers contracting, onboarding, operation, change, suspension and termination, with accountability, financial ownership and exceptions. Requirements link to concepts, relationships, structural constraints, business rules and acceptance scenarios. This is a finite, declared CPMS business profile; passing model tests does not establish an implemented or certified production service.
 
@@ -61,3 +61,5 @@ The independent denominator is in `requirements/`, not a vendor endpoint list. A
 The development namespace remains `https://example.org/charge-domain#`. It is a placeholder, not a registered production namespace. Select an owned IRI before first production publication, migrate consistently and rerun verification. Keep published term identities stable afterwards.
 
 Canonical repository: [pli-poc/charge-weave](https://github.com/pli-poc/charge-weave). Contributions, generators, model sources, tests, evidence and releases are maintained here.
+
+The [analytical extension](docs/analytics-contract.md) adds shared S/M/O/D/F/T/R/K contracts, a generated analytical profile and a configurable dashboard over repeatable synthetic history. Open the app Analytics workspace for weighted measures, calendar comparisons, ranking, drill-down and knowledge-cutoff evidence.
