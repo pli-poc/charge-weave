@@ -31,6 +31,7 @@ The React product site lives in [`website/`](website/README.md), with a landing 
 | All class contracts | [Domain dictionary](docs/domain-dictionary.md) |
 | Business invariants | [Validation rules](docs/validation-rules.md) |
 | Semantic and runtime boundaries | [Semantic design](docs/semantic-design.md), [runtime architecture](docs/runtime-architecture.md) |
+| Client-first refactor: generated GraphQL, XFlow and browser persistence | [Detailed build plan and next-session handoff](docs/client-runtime-build-plan.md) |
 | Validation and reproducibility | [Validation guide](docs/validation-guide.md), [development](docs/development.md) |
 | Current reports and verified package | [GitHub Actions](https://github.com/pli-poc/charge-weave/actions/workflows/ontology-ci.yml) |
 

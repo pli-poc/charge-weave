@@ -3,6 +3,12 @@
 ChargeWeave uses GitHub as its canonical source and GitHub Actions as its shared
 verification record. Version 1.1 includes the independent business requirement register and its executable semantic evidence.
 
+## Planned client-runtime refactor
+
+The [client-first build plan](client-runtime-build-plan.md) records the agreed architecture, inspected source baseline, phases P0–P8, acceptance scenarios and next-session handoff. It preserves the ontology/SHACL and XFlow/XState, generates the GraphQL SDL and runtime metadata, reuses local providers, and adds coordinated browser save/resume. Syntriq backend changes are deferred.
+
+This is planned work, not implemented capability. Follow the progress ledger in that document, retain current source ownership and verification gates, and record evidence as each phase is delivered. Generated SDL is a build output; it must never become a second manually maintained schema.
+
 ## Environment and commands
 
 CI runs Python 3.12 and Java 17 on Ubuntu 24.04. Runtime and transitive Python

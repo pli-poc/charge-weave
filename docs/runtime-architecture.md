@@ -6,6 +6,10 @@
 
 This is the canonical HLD for platform-wide responsibilities and design principles. The website's [Architecture page](https://pli-poc.github.io/charge-weave/architecture/) presents the business-level overview. The [Developer guide](https://pli-poc.github.io/charge-weave/developer/) expands individual runtime boundaries without changing the HLD.
 
+## Client-first implementation sequence
+
+The [detailed client-runtime build plan](client-runtime-build-plan.md) defines the next browser refactor: a generated application package, local GraphQL over existing providers, shared application services, XFlow/XState task execution and coordinated local persistence. The ontology, constraints and workflow definitions remain authoritative; the SDL is generated. The plan establishes client behavior first and defers Syntriq/server work. Its phases and acceptance gates describe proposed implementation, not capabilities already delivered by this HLD.
+
 ## Platform design principles
 
 1. **Share business meaning across bounded capabilities.** Use stable identifiers, domain terms and relationships to connect service-owned records and partner exchanges. Keep each capability responsible for its own policy, transactions and operational decisions.
