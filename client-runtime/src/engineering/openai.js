@@ -41,6 +41,7 @@ export function createOpenAIAdapter({ endpoint, model, authorization, fetch = gl
   }
   return {
     id: `openai:${model}`, connect,
+    get canCompact() { return compact && capabilities?.features?.compaction === true; },
     async next({ task, packet, tools, signal }) {
       if (!capabilities) await connect();
       const input = [

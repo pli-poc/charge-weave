@@ -1,0 +1,322 @@
+{
+  "id": "document-review",
+  "namespace": "urn:syntriq:document-review:",
+  "version": "1.0.0",
+  "catalog": {
+    "Document": {
+      "fields": [],
+      "parent": null
+    }
+  },
+  "api": {
+    "maxDepth": 8,
+    "maxFields": 100,
+    "types": [
+      {
+        "name": "Document",
+        "class": "Document",
+        "fields": [
+          {
+            "name": "id",
+            "type": "ID!",
+            "source": "id",
+            "binding": "projection:id"
+          },
+          {
+            "name": "title",
+            "type": "String!",
+            "source": "title",
+            "binding": "projection:title"
+          },
+          {
+            "name": "status",
+            "type": "String!",
+            "source": "status",
+            "binding": "projection:status"
+          }
+        ]
+      }
+    ],
+    "operations": [
+      {
+        "name": "documents",
+        "type": "[Document!]!",
+        "handler": "documents"
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "id": "draft",
+      "title": "Submit a document",
+      "form": {
+        "fields": [
+          {
+            "id": "note",
+            "label": "Review note",
+            "concept": "command:submitDocument.note",
+            "datatype": "string",
+            "control": "textarea",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 300,
+            "binding": {
+              "kind": "commandInput",
+              "command": "submitDocument",
+              "field": "note"
+            }
+          }
+        ]
+      },
+      "command": "submitDocument"
+    },
+    {
+      "id": "review",
+      "title": "Review the document",
+      "form": {
+        "fields": [
+          {
+            "id": "note",
+            "label": "Review note",
+            "concept": "command:reviewDocument.note",
+            "datatype": "string",
+            "control": "textarea",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 300,
+            "binding": {
+              "kind": "commandInput",
+              "command": "reviewDocument",
+              "field": "note"
+            }
+          }
+        ]
+      },
+      "command": "reviewDocument"
+    },
+    {
+      "id": "changes",
+      "title": "Request and incorporate changes",
+      "form": {
+        "fields": [
+          {
+            "id": "note",
+            "label": "Review note",
+            "concept": "command:resubmitDocument.note",
+            "datatype": "string",
+            "control": "textarea",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 300,
+            "binding": {
+              "kind": "commandInput",
+              "command": "resubmitDocument",
+              "field": "note"
+            }
+          }
+        ]
+      },
+      "command": "resubmitDocument"
+    },
+    {
+      "id": "request-changes",
+      "title": "Request document changes",
+      "form": {
+        "fields": [
+          {
+            "id": "note",
+            "label": "Review note",
+            "concept": "command:requestChanges.note",
+            "datatype": "string",
+            "control": "textarea",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 300,
+            "binding": {
+              "kind": "commandInput",
+              "command": "requestChanges",
+              "field": "note"
+            }
+          }
+        ]
+      },
+      "command": "requestChanges",
+      "activeStep": "review"
+    }
+  ],
+  "commands": {
+    "commands": [
+      {
+        "id": "submitDocument",
+        "inputType": "SubmitDocumentInput",
+        "handler": "submitDocument",
+        "class": "Document",
+        "role": "Author",
+        "inputs": [
+          "note"
+        ],
+        "requiredInputs": [
+          "note"
+        ],
+        "requiredRules": [
+          "task-fields",
+          "task-scope",
+          "expected-revision"
+        ]
+      },
+      {
+        "id": "reviewDocument",
+        "inputType": "ReviewDocumentInput",
+        "handler": "reviewDocument",
+        "class": "Document",
+        "role": "Reviewer",
+        "inputs": [
+          "note"
+        ],
+        "requiredInputs": [
+          "note"
+        ],
+        "requiredRules": [
+          "task-fields",
+          "task-scope",
+          "expected-revision"
+        ]
+      },
+      {
+        "id": "resubmitDocument",
+        "inputType": "ResubmitDocumentInput",
+        "handler": "resubmitDocument",
+        "class": "Document",
+        "role": "Author",
+        "inputs": [
+          "note"
+        ],
+        "requiredInputs": [
+          "note"
+        ],
+        "requiredRules": [
+          "task-fields",
+          "task-scope",
+          "expected-revision"
+        ]
+      },
+      {
+        "id": "requestChanges",
+        "inputType": "RequestChangesInput",
+        "handler": "requestChanges",
+        "class": "Document",
+        "role": "Reviewer",
+        "inputs": [
+          "note"
+        ],
+        "requiredInputs": [
+          "note"
+        ],
+        "requiredRules": [
+          "task-fields",
+          "task-scope",
+          "expected-revision"
+        ]
+      }
+    ]
+  },
+  "capabilities": {
+    "handlers": [
+      "submitDocument",
+      "reviewDocument",
+      "resubmitDocument",
+      "requestChanges"
+    ],
+    "rules": [
+      "task-fields",
+      "task-scope",
+      "expected-revision"
+    ],
+    "unsupported": [
+      "full-semantic-reference",
+      "production-identity",
+      "cross-device-sync"
+    ]
+  },
+  "flow": {
+    "@graph": [
+      {
+        "@type": "xflow:WorkflowDefinition",
+        "workflowId": "document-review",
+        "workflowVersion": "1",
+        "initialStep": {
+          "@id": "#draft"
+        },
+        "hasStep": [
+          {
+            "@id": "#draft"
+          },
+          {
+            "@id": "#review"
+          },
+          {
+            "@id": "#changes"
+          },
+          {
+            "@id": "#approved"
+          }
+        ]
+      },
+      {
+        "@id": "#draft",
+        "@type": "xflow:HumanTask",
+        "stepKey": "draft",
+        "onEvent": [
+          {
+            "eventType": "submit",
+            "targetStep": {
+              "@id": "#review"
+            }
+          }
+        ]
+      },
+      {
+        "@id": "#review",
+        "@type": "xflow:HumanTask",
+        "stepKey": "review",
+        "onEvent": [
+          {
+            "eventType": "approve",
+            "targetStep": {
+              "@id": "#approved"
+            }
+          },
+          {
+            "eventType": "requestChanges",
+            "targetStep": {
+              "@id": "#changes"
+            }
+          }
+        ]
+      },
+      {
+        "@id": "#changes",
+        "@type": "xflow:HumanTask",
+        "stepKey": "changes",
+        "onEvent": [
+          {
+            "eventType": "resubmit",
+            "targetStep": {
+              "@id": "#review"
+            }
+          }
+        ]
+      },
+      {
+        "@id": "#approved",
+        "@type": "xflow:EndStep",
+        "stepKey": "approved"
+      }
+    ]
+  },
+  "analytics": {},
+  "modules": {
+    "analytics": false,
+    "temporal": false
+  }
+}

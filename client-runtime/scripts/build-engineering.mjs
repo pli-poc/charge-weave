@@ -12,6 +12,6 @@ const sources = paths.map(([id, label, editable, dependencies]) => {
   const text = readFileSync(new URL(id, root), "utf8");
   return { id, label, editable, dependencies, text, hash: createHash("sha256").update(text).digest("hex"), mediaType: "application/json", state: "implemented" };
 });
-const bundle = { version: "1.0.0", sourceRevision: process.env.GITHUB_SHA ?? "local-build", sources };
+const bundle = { version: "1.0.0", sourceRevision: process.env.GITHUB_SHA ?? "local-build", sourceRepository: process.env.GITHUB_REPOSITORY ?? "pli-poc/charge-weave", sources };
 writeFileSync(new URL("client-runtime/generated/engineering.json", root), JSON.stringify(bundle) + "\n");
 console.log(`Engineering catalogue: ${sources.length} pinned contracts`);

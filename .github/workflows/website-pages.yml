@@ -98,6 +98,8 @@ jobs:
         run: diff -u ../tests/client-contract/schema.graphql ../client-runtime/generated/schema.graphql > ../client-runtime/generated/schema-diff.txt
       - run: npm run check:generated --prefix ../client-runtime
       - run: npm test --prefix ../client-runtime
+      - name: Evaluate versioned engineering context
+        run: node ../client-runtime/scripts/evaluate-engineering.mjs
       - name: Test authenticated AI relay contracts
         run: node --test ../ai-relay/*.test.mjs
       - run: npm ci --prefix ../console-app
@@ -126,6 +128,10 @@ jobs:
       - name: Run application and browser checks
         if: needs.scope.outputs.article_only != 'true'
         run: npm test
+      - name: Record exact-commit engineering verification
+        env:
+          ARTICLE_ONLY: ${{ needs.scope.outputs.article_only }}
+        run: node scripts/write-engineering-verification.mjs
       - name: Save browser report and screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -136,6 +142,7 @@ jobs:
             website/test-results
             website/.production-protection-report.json
             client-runtime/generated/
+            website/dist/engineering-verification.json
           retention-days: 14
       - name: Upload protected public-site artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

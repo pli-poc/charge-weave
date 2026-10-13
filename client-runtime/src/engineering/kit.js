@@ -33,11 +33,16 @@ export async function createEngineeringKit({ bundle, initialPackage, compile, ad
   });
   register("evidence.read", "Read a recorded scenario, retaining its verified scope and candidate identity.", object({ evidenceId: string }), anyObject, ({ evidenceId }) => runner.read(evidenceId));
   register("evidence.compare", "Compare runs only when pinned scenario inputs and adapter versions match.", object({ baselineId: string, candidateId: string }), anyObject, ({ baselineId, candidateId }) => runner.compare(baselineId, candidateId));
+  register("capability.search", "Discover additional granted tool definitions for compilation, candidate editing, evidence or external reads.", object({ query: string }), anyObject, ({ query }, host) => {
+    const terms = query.toLowerCase().match(/[a-z0-9_]+/g) ?? [];
+    const ids = broker.catalog(host.grant).filter(d => d.id !== "capability.search" && terms.some(t => `${d.id} ${d.description}`.toLowerCase().includes(t))).slice(0, 6).map(d => d.id.replaceAll(".", "_"));
+    return { tools: broker.tools(host.grant).filter(t => ids.includes(t.name)) };
+  });
   let operation = 0;
   const manualGrant = { taskId: "manual", capabilities: broker.catalog().map(d => d.id) };
   return {
     version: VERSION, candidate, broker, context, runner, journal,
-    invoke: (id, args, signal) => broker.invoke(id, args, { grant: manualGrant, invocationId: `manual-${globalThis.crypto.randomUUID()}`, signal }),
+    invoke: (id, args, signal) => broker.invoke(id, args, { grant: { ...manualGrant, capabilities: broker.catalog().map(d => d.id) }, invocationId: `manual-${globalThis.crypto.randomUUID()}`, signal }),
     taskGrant(taskId, writable = false) { return { taskId, capabilities: broker.catalog().filter(d => writable || d.effect === "read").map(d => d.id) }; },
     export: () => ({ revision: ++operation, format: 1, baselineDigest: initialPackage.digest, candidate: candidate.export(), journal: structuredClone(journal), evidence: runner.export() }),
   };

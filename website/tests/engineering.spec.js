@@ -34,3 +34,24 @@ test("candidate edit compiles supported preview and scripted task uses real evid
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });
+test("neutral application generates review forms, resumes waiting state and uses the shared studio", async ({ page }) => {
+  await page.goto("developer/workbench/?application=document-review");
+  await expect(page.getByRole("button", { name: "Run checks", exact: true })).toBeEnabled();
+  await page.getByLabel("Scenario", { exact: true }).selectOption("document.changes");
+  await page.getByRole("button", { name: "Run checks", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "6/6 assertions passed" })).toBeVisible();
+  const preview = page.locator(".eng-card").filter({ has: page.getByRole("heading", { name: "Document review", exact: true }) });
+  await preview.getByLabel("Review note", { exact: true }).fill("Synthetic proposal ready for a reviewer.");
+  await preview.getByRole("button", { name: "Submit a document", exact: true }).click();
+  await expect(preview.getByRole("status")).toContainText("Document review");
+  await preview.getByRole("button", { name: "Save document checkpoint", exact: true }).click();
+  await expect(preview.getByRole("status")).toContainText("checkpoint saved");
+  await page.reload(); await expect(page.getByRole("button", { name: "Run checks", exact: true })).toBeEnabled();
+  await preview.getByRole("button", { name: "Restore document checkpoint", exact: true }).click();
+  await expect(preview.getByRole("status")).toContainText("checkpoint restored");
+  await preview.getByLabel("Simulated document role", { exact: true }).selectOption("Reviewer");
+  await preview.getByLabel("Review note", { exact: true }).first().fill("Original source and synthetic evidence reviewed.");
+  await preview.getByRole("button", { name: "Review the document", exact: true }).click();
+  await expect(preview.getByRole("status")).toContainText("Document approved");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

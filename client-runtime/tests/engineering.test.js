@@ -16,7 +16,7 @@ import catalog from "../../model/catalog.json" with { type: "json" };
 import analytics from "../../model/analytics-profile.json" with { type: "json" };
 async function compile(sources) {
   const get = id => JSON.parse(sources[id]);
-  const body = compileApplicationBody({ catalog, api: get("model/client-api-profile.json"), task: get("model/client-task-profile.json"), commands: get("model/client-command-profile.json"), capabilities: get("model/client-capabilities.json"), flow: get("xflow/charge-correction.profile.json"), analytics, inputDigest: await sha256(sources) });
+  const body = compileApplicationBody({ namespace: "https://example.org/charge-domain#", catalog, api: get("model/client-api-profile.json"), task: get("model/client-task-profile.json"), commands: get("model/client-command-profile.json"), capabilities: get("model/client-capabilities.json"), flow: get("xflow/charge-correction.profile.json"), analytics, inputDigest: await sha256(sources) });
   return { ...body, digest: await sha256(body) };
 }
 const kit = snapshot => createEngineeringKit({ bundle, initialPackage: pkg, compile, adapters: chargeweaveAdapters, snapshot });

@@ -16,14 +16,14 @@ const machine = createMachine({ id: "engineering-task", initial: "idle", states:
 export function createCoordinator({ kit, adapter, snapshot, checkpoint = async () => {}, budgets = {} }) {
   const actor = createActor(machine); actor.start();
   let task = snapshot ? clone(snapshot) : null, controller = null, running = false;
-  const limits = { maxSteps: 16, maxCalls: 40, maxTokens: 50000, maxMs: 180000, ...budgets };
+  const limits = { maxSteps: 16, maxCalls: 40, maxTokens: 50000, maxMs: 180000, compactBytes: 40000, ...budgets };
   const save = () => checkpoint(clone(task));
   async function start({ goal, writable = false, scenarioId, seed = "4242", startAt = "2026-10-13T08:00:00.000Z", resume = false }) {
     if (running) throw Error("Task already running");
     if (resume && (!task || task.provider !== adapter.id || task.pendingCall)) throw Error("Cannot resume an unreconciled call or incompatible provider; start a fresh task");
     if (!resume) {
       const id = globalThis.crypto.randomUUID();
-      task = { id, goal, provider: adapter.id, status: "running", grant: kit.taskGrant(id, writable), steps: 0, calls: 0, tokens: 0, continuation: [], decisions: [], pendingCall: null, output: null, scenario: { scenarioId, seed, startAt } };
+      task = { id, goal, provider: adapter.id, status: "running", grant: kit.taskGrant(id, writable), discoveredTools: [], steps: 0, calls: 0, tokens: 0, continuation: [], decisions: [], pendingCall: null, output: null, scenario: { scenarioId, seed, startAt } };
     }
     controller = new AbortController(); running = true; actor.send({ type: "START" });
     const started = Date.now();
@@ -33,8 +33,15 @@ export function createCoordinator({ kit, adapter, snapshot, checkpoint = async (
       while (task.steps < limits.maxSteps) {
         if (controller.signal.aborted) throw Error("Cancelled");
         if (Date.now() - started > limits.maxMs || task.tokens >= limits.maxTokens) throw Error("Task budget exhausted");
-        const packet = await kit.context.assemble({ goal: task.goal, taskId: task.id, constraints: ["Browser-contract evidence only", `Writable:${writable}`, "Full semantic and CI verification require external providers"], journal: task.decisions });
-        const response = await adapter.next({ task: clone(task), packet, tools: kit.broker.tools(task.grant), signal: controller.signal });
+        if (adapter.canCompact && new TextEncoder().encode(stable(task.continuation)).length > limits.compactBytes) {
+          task.continuation = await adapter.compact(clone(task.continuation), controller.signal);
+          task.decisions.push({ capability: "provider.compaction", status: "completed", identity: kit.candidate.identity(), evidenceRefs: [] });
+          await save();
+        }
+        const packet = await kit.context.assemble({ goal: task.goal, taskId: task.id, constraints: ["Browser-contract evidence only", "Full semantic and CI verification require external providers"], journal: task.decisions, state: { scenario: task.scenario, candidate: { compiled: kit.candidate.inspect().compiled, changes: kit.candidate.inspect().changes.map(c => ({ id: c.id, beforeHash: c.beforeHash, afterHash: c.afterHash })) } }, execution: { grantedCapabilities: task.grant.capabilities, remainingSteps: limits.maxSteps - task.steps, remainingCalls: limits.maxCalls - task.calls, remainingTokens: limits.maxTokens - task.tokens } });
+        const initialTools = ["capability_search", "context_search", "context_read", "candidate_inspect", "scenario_list", "scenario_run"];
+        const tools = kit.broker.tools(task.grant).filter(t => initialTools.includes(t.name) || task.discoveredTools?.includes(t.name));
+        const response = await adapter.next({ task: clone(task), packet, tools, signal: controller.signal });
         if (!Array.isArray(response.output) || response.output.length > 80) throw Error("Invalid model output");
         if (response.status !== "completed") throw Error(`Model response ${response.status ?? "unknown"}`);
         task.steps++; task.tokens += response.usage?.total_tokens ?? 0;
@@ -53,6 +60,7 @@ export function createCoordinator({ kit, adapter, snapshot, checkpoint = async (
           try { result = await kit.broker.invoke(descriptor.id, JSON.parse(call.arguments), { grant: task.grant, invocationId: call.call_id, signal: controller.signal }); }
           catch (e) { result = { status: "failed", ...kit.candidate.identity(), data: { error: e.message }, evidenceRefs: [], unsupported: [], truncated: false, continuation: null }; }
           task.continuation.push({ type: "function_call_output", call_id: call.call_id, output: JSON.stringify(result) });
+          if (descriptor.id === "capability.search" && result.status === "ok") task.discoveredTools = [...new Set([...(task.discoveredTools ?? []), ...result.data.tools.map(t => t.name)])];
           task.decisions.push({ capability: descriptor.id, status: result.status, identity: kit.candidate.identity(), evidenceRefs: result.evidenceRefs, error: result.data?.error ?? null });
           task.pendingCall = null; await save();
         }

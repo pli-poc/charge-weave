@@ -28,7 +28,7 @@ export function createContextEngine({ sources, identity, maxBytes = 24000 }) {
   }
   return {
     catalog, read, related, search,
-    async assemble({ goal, taskId, constraints = [], journal = [] }) {
+    async assemble({ goal, taskId, constraints = [], journal = [], state = {}, execution = {} }) {
       const selected = await search(goal), evidence = [], gaps = [];
       let bytes = 0;
       for (const source of selected) {
@@ -37,7 +37,7 @@ export function createContextEngine({ sources, identity, maxBytes = 24000 }) {
         bytes += size; evidence.push(source);
       }
       if (!evidence.length) gaps.push("No matching source in the curated catalogue");
-      const packet = { version: "1.0.0", identity: { taskId, ...identity() }, intent: { goal }, constraints: clone(constraints), evidence, memory: clone(journal.slice(-12)), gaps, indexScope: "curated-engineering-contracts", bytes };
+      const packet = { version: "1.0.0", identity: { taskId, ...identity() }, intent: { goal }, constraints: clone(constraints), evidence, memory: clone(journal.slice(-12)), state: clone(state), execution: clone(execution), gaps, indexScope: "curated-engineering-contracts", bytes };
       return { ...packet, digest: await sha256(packet) };
     },
     metrics: () => ({ hits, misses, entries: cache.size }),

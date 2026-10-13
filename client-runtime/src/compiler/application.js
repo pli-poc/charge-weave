@@ -9,8 +9,14 @@ export function compileApplicationBody({
   flow,
   analytics,
   inputDigest,
-  namespace = "https://example.org/charge-domain#",
+  namespace,
+  tasks,
+  modules = { analytics: true, temporal: true },
 }) {
+  if (typeof namespace !== "string" || !/^[a-z][a-z0-9+.-]*:/i.test(namespace)) throw Error("Explicit application namespace required");
+  const taskList = tasks ?? [task.task];
+  if (!Array.isArray(taskList) || !taskList.length || new Set(taskList.map(t => t.id)).size !== taskList.length) throw Error("Unique application tasks required");
+  const taskFields = taskList.flatMap(t => t.form.fields);
   const names = new Set();
   for (const t of api.types) {
     if (!catalog[t.class]) throw Error(`Unknown class ${t.class}`);
@@ -33,7 +39,7 @@ export function compileApplicationBody({
       if (!capabilities.rules.includes(id))
         throw Error(`Unsupported required rule ${id}`);
   }
-  for (const f of task.task.form.fields) {
+  for (const f of taskFields) {
     if (
       f.binding?.kind !== "commandInput" ||
       !commands.commands
@@ -55,7 +61,7 @@ export function compileApplicationBody({
   for (const command of commands.commands) {
     for (const required of command.requiredInputs ?? []) {
       if (
-        !task.task.form.fields.some(
+        !taskFields.some(
           (f) =>
             f.id === required && f.required && f.binding.command === command.id,
         )
@@ -70,7 +76,7 @@ export function compileApplicationBody({
  ${commands.commands
    .map(
      (c) =>
-       `input ${c.inputType} { ${task.task.form.fields
+       `input ${c.inputType} { ${taskFields
          .filter((f) => f.binding.command === c.id)
          .map(
            (f) =>
@@ -89,7 +95,7 @@ export function compileApplicationBody({
  type AnalyticsRow { key: String, label: String, value: Float, numerator: Float, denominator: Float, count: Int, reference: Float, change: Float, percentChange: Float }
  type AnalyticsResult { rows: [AnalyticsRow!]!, total: AnalyticsRow!, totalGroups: Int!, field: String!, evidence: JSON!, measure: JSON!, dimension: JSON, query: JSON! }
  type TemporalResult { state: String!, price: Decimal, commit: JSON, slice: JSON }
- type Query { ${api.operations.map((o) => `${o.name}: ${o.type}`).join("\n")} task: Task!, metadata: JSON!, analytics(input: AnalyticsInput!): AnalyticsResult!, temporal(validAt: String!, knownAt: String!): TemporalResult! }
+ type Query { ${api.operations.map((o) => `${o.name}: ${o.type}`).join("\n")} ${tasks ? "tasks: [Task!]!, task(id: ID!): Task!" : "task: Task!"}, metadata: JSON!${modules.analytics ? ", analytics(input: AnalyticsInput!): AnalyticsResult!" : ""}${modules.temporal ? ", temporal(validAt: String!, knownAt: String!): TemporalResult!" : ""} }
  type Mutation { ${commands.commands.map((c) => `${c.id}(input: ${c.inputType}!, expectedRevision: Int!, idempotencyKey: String!): CommandResult!`).join("\n")} }
  `;
   const errors = validateSchema(buildSchema(schema));
@@ -114,7 +120,7 @@ export function compileApplicationBody({
     schema,
     runtimeModel,
     api,
-    task,
+    ...(tasks ? { tasks, namespace, modules } : { task }),
     commands,
     capabilities,
     flow: normaliseWorkflowProfile(flow),

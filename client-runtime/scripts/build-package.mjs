@@ -21,7 +21,7 @@ const hash = (v) =>
     .update(typeof v === "string" ? v : stable(v))
     .digest("hex");
 export function compileApplication(options) {
-  const body = compileApplicationBody(options);
+  const body = compileApplicationBody({ namespace: "https://example.org/charge-domain#", ...options });
   return { ...body, digest: hash(body) };
 }
 

@@ -58,11 +58,12 @@ export function createLocalClient({ applicationPackage: pkg, services }) {
     rootValue[op.name] = (args) => services[op.handler](args);
   }
   Object.assign(rootValue, {
-    task: () => services.task(),
+    task: (args) => services.task(args),
+    ...(pkg.tasks ? { tasks: () => services.tasks() } : {}),
     metadata: () => ({
       digest: pkg.digest,
       capabilities: pkg.capabilities,
-      task: pkg.task.task,
+      task: pkg.task?.task ?? pkg.tasks,
       analytics: pkg.analytics,
       api: pkg.api,
     }),
