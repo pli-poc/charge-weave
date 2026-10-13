@@ -109,6 +109,8 @@ Use a small explicit state machine, reusing the installed XState library. Keep e
 
 The coordinator owns the plan, candidate, tool budget, cancellation and run journal. The model adapter takes a bounded context and returns proposed steps or tool requests. It does not receive unrestricted source-control, network or shell authority. AI provider selection can change without changing the plan/evidence formats.
 
+The [context architecture](ai-context-architecture.md) defines how that bounded context is assembled: a versioned component/capability catalogue, exact and lexical search, explicit dependency traversal, scoped source reads and a structured task journal. It separates browser data caches from cloud prompt/KV caching and places optional semantic retrieval, document trees and Jev behind measured upgrade gates. This is a proposed engineering-kit capability, not an implemented memory service.
+
 Persist stable step boundaries locally. On reload, reconcile any external task handle before retrying. A browser that is closed is not a background worker. A remote job may continue only if its provider explicitly supports durable task handles; otherwise mark the step interrupted and resume deliberately.
 
 ### 5.4 Scenario runner and evidence recorder
@@ -315,6 +317,8 @@ This is a follow-on engineering track to [P0–P8](client-runtime-build-plan.md)
 | E6: Second application and Syntriq seam | Neutral app with its own namespace, multiple tasks/commands, generated views, scenarios and checkpoint behavior; host adapter contract exercised by a minimal host fixture | No ChargeWeave-specific class names, fixed global task or ontology namespace in the required core path; same conformance suite and workbench operations serve both packs |
 
 Start **E1 + E2** next. They turn today's disconnected tools into a useful browser test studio before adding AI orchestration or remote services. E3 removes the actual compiler barriers to modelling another application. E4 can begin with a scripted provider and remain useful without a live model connection. Syntriq adoption follows validation of the seam; moving these contracts into its UI must not require rewriting the generic runtime.
+
+The [C1–C6 context increments](ai-context-architecture.md#11-delivery-order-and-measurable-gates) refine this sequence: inventory/evidence identity with E1/E2, inspectable context assembly with E3 before live E4, then measured retrieval and provider-cache upgrades. They add no requirement to deploy a vector database, Jev or an agent backend.
 
 Full browser conformance, live services, multi-user collaboration, durable unattended agents, a server-side registry, distributed scheduling and production database integration remain separate future decisions. They do not belong in the next client milestone.
 

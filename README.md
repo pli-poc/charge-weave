@@ -33,6 +33,7 @@ The React product site lives in [`website/`](website/README.md), with a landing 
 | Semantic and runtime boundaries | [Semantic design](docs/semantic-design.md), [runtime architecture](docs/runtime-architecture.md) |
 | Client-first refactor: generated GraphQL, XFlow and browser persistence | [Detailed build plan and next-session handoff](docs/client-runtime-build-plan.md) |
 | Browser engineering: AI, MCP providers, synthetic scenarios and verification | [Engineering workbench architecture and phased plan](docs/engineering-workbench-architecture.md) |
+| AI context: existing components, retrieval, caching and Jev | [Browser-first context and agent architecture](docs/ai-context-architecture.md) |
 | Validation and reproducibility | [Validation guide](docs/validation-guide.md), [development](docs/development.md) |
 | Current reports and verified package | [GitHub Actions](https://github.com/pli-poc/charge-weave/actions/workflows/ontology-ci.yml) |
 
