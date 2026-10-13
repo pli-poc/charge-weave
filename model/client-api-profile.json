@@ -1,0 +1,10 @@
+{
+ "version":"1.0.0",
+ "maxDepth":8,
+ "maxFields":150,
+ "types":[
+  {"name":"Site","class":"ChargingSite","fields":[{"name":"id","type":"ID!","source":"id","binding":"projection:id"},{"name":"name","type":"String!","source":"name","binding":"projection:name"},{"name":"country","type":"String","source":"country","binding":"projection:country"}]},
+  {"name":"Session","class":"ChargingSession","fields":[{"name":"id","type":"ID!","source":"id","binding":"projection:id"}]}
+ ],
+ "operations":[{"name":"sites","type":"[Site!]!","handler":"sites"},{"name":"sessions","type":"[Session!]!","handler":"sessions"}]
+}

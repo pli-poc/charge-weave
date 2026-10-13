@@ -1,3 +1,4 @@
+import { createConsoleClient } from "./local-client.js";
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
 import { meterCorrectionModel, makeMeterCorrectionRun, rateCorrectedReading } from "./work-model.js";
@@ -9,6 +10,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 const provider = createPlatformProvider();
+const localClient = createConsoleClient(provider, { indexedDB: globalThis.indexedDB, crypto: globalThis.crypto });
 const DEMO_SOURCE = provider.source;
 const dataEntities = provider.getEntities();
 const financialLines = provider.getFinanceLines();
@@ -80,6 +82,9 @@ let dataTab = "Graph";
 let sidebarOpen = false;
 let selectedWorkItem = false;
 let workRun = makeMeterCorrectionRun();
+let workReady = false;
+function projectTask(task) { workRun = { ...task, currentStage: task.stage }; }
+function storageControls() { return `<div class="workspace-storage"><span role="status">${esc(localClient.status())}</span><button type="button" class="secondary-button" data-action="save-work" ${!workReady ? "disabled" : ""}>Save workspace</button><button type="button" class="secondary-button" data-action="export-work">Export</button><button type="button" class="secondary-button" data-action="reset-work-demo">Reset workspace</button><label class="secondary-button">Import<input type="file" accept="application/json" data-import-work hidden /></label></div>`; }
 const cpoDemo = {
   screen: 0,
   site: { name: "Arena parking P2", host: "Arena Parking Services", address: "Burgemeester Stramanweg 130", city: "Amsterdam", country: "NL", spaces: 480, capacityKw: 900, agreement: "SA-ARENA-2026-014" },
@@ -260,7 +265,7 @@ function workCasePage() {
       <p class="work-form-boundary">Allowed fields come from this task's versioned presentation profile. The task host applies identity, permission, revision and business validation before the workflow resumes.</p></section>`;
 
   return `${heading("Work item", "Review the evidence, record your decision, and keep the correction linked to its original charge.", `<button type="button" class="secondary-button" data-action="back-to-work">${icon("arrow")} Back to work</button>`)}
-    <div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : "Needs your review"}</span></div>
+    ${storageControls()}<div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : "Needs your review"}</span></div>
     <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : "Waiting for CPO review"}</strong></div><span>${completed ? "4 of 4 stages" : "2 of 4 stages complete"}</span></div>${workProgress()}</section>
     <div class="work-case-layout"><div class="work-case-main">${taskPanel}<section class="work-financial-impact"><div><span class="eyebrow">CALCULATED FROM METER EVIDENCE</span><h2>Billing impact</h2><p>Rate is € ${formatNumber(caseData.tariffEurPerKwh)} per kWh. The amount is recalculated from the register difference.</p></div><div class="work-impact-values"><div><span>Original</span><strong>${formatNumber(originalRating.energyKwh)} kWh · ${formatEuro(originalRating.amountEur)}</strong></div><div><span>${completed ? "Corrected" : "Proposed"}</span><strong>${formatNumber(currentRating.energyKwh)} kWh · ${formatEuro(currentRating.amountEur)}</strong></div><div class="work-impact-delta"><span>Adjustment</span><strong>${formatEuro(currentRating.amountEur - originalRating.amountEur)}</strong></div></div></section></div>
       <aside class="work-case-aside"><section class="work-context-card"><div class="work-aside-title">${icon("plug")}<h3>Charging record</h3></div><dl><div><dt>Session</dt><dd>${esc(caseData.sessionId)}</dd></div><div><dt>Original CDR</dt><dd>${esc(caseData.cdrId)}</dd></div><div><dt>Site</dt><dd>${esc(caseData.site)}</dd></div><div><dt>Meter</dt><dd>${esc(caseData.meterId)}</dd></div><div><dt>Start reading</dt><dd>${formatNumber(caseData.meterStart)} kWh</dd></div><div><dt>Original end</dt><dd>${formatNumber(caseData.originalMeterEnd)} kWh</dd></div><div><dt>Partner proposal</dt><dd>${formatNumber(caseData.proposedMeterEnd)} kWh</dd></div><div><dt>Evidence ref</dt><dd>${esc(caseData.evidenceReference)}</dd></div></dl></section>
@@ -545,7 +550,7 @@ function bindDragging() {
   });
 }
 
-root.addEventListener("click", (event) => {
+root.addEventListener("click", async (event) => {
   const chart = event.target.closest("[data-analytics-chart]");
   if (chart) { analyticsState.chart = chart.dataset.analyticsChart; render(); return; }
   const drill = event.target.closest("[data-analytics-drill]");
@@ -612,7 +617,9 @@ root.addEventListener("click", (event) => {
   switch (action.dataset.action) {
     case "open-work-item": selectedWorkItem = true; currentView = "work"; location.hash = "work"; render(); break;
     case "back-to-work": selectedWorkItem = false; render(); break;
-    case "reset-work-demo": workRun = makeMeterCorrectionRun(); selectedWorkItem = false; currentView = "work"; render(); break;
+    case "reset-work-demo": try { projectTask(await localClient.reset()); selectedWorkItem = false; currentView = "work"; } catch {} render(); break;
+    case "save-work": try { await localClient.save(); } catch {} render(); break;
+    case "export-work": { const url = URL.createObjectURL(new Blob([await localClient.export()], { type: "application/json" })); const link=document.createElement("a"); link.href=url; link.download="chargeweave-workspace.json"; link.click(); URL.revokeObjectURL(url); break; }
     case "theme": theme = theme === "dark" ? "light" : "dark"; save("chargeweave-console-theme", theme); render(); break;
     case "arrange": arrange = !arrange; save("chargeweave-console-arrange", String(arrange)); render(); break;
     case "move-panel": movePanel(action.dataset.panel, action.dataset.direction); break;
@@ -658,27 +665,25 @@ root.addEventListener("change", (event) => {
     preferences.querySelector(`[data-pane-visible="${visible.dataset.paneVisible}"]`)?.focus();
   }
 });
-root.addEventListener("submit", (event) => {
+root.addEventListener("submit", async (event) => {
   if (event.target.matches(".analytics-controls")) { event.preventDefault(); return; }
   const taskForm = event.target.closest("[data-work-task]");
   if (taskForm) {
     event.preventDefault();
     const values = Object.fromEntries(new FormData(taskForm).entries());
-    const meterEnd = Number(values.meterEnd);
     const error = root.querySelector("#work-form-error");
-    const reading = taskForm.elements.namedItem("meterEnd");
-    if (meterEnd <= meterCorrectionModel.case.meterStart) {
-      reading.setCustomValidity("The corrected meter end must be greater than the start reading.");
-      reading.reportValidity();
-      reading.addEventListener("input", () => reading.setCustomValidity(""), { once: true });
-      if (error) { error.hidden = false; error.textContent = "The corrected reading must exceed the accepted start reading."; }
+    const button = taskForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    try {
+      if (!workReady) throw new Error("Workspace is still loading.");
+      const result = await localClient.submit(values, workRun.revision, crypto.randomUUID());
+      if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
+      projectTask(result.task);
+    } catch (failure) {
+      if (error) { error.hidden = false; error.textContent = failure.message; }
+      button.disabled = false;
       return;
     }
-    if (error) error.hidden = true;
-    workRun.values = values;
-    workRun.status = "completed";
-    workRun.currentStage = "adjustment";
-    workRun.outcome = { type: "correction.accepted", amount: rateCorrectedReading(meterEnd).amountEur };
     selectedWorkItem = true;
     render();
     return;
@@ -738,3 +743,11 @@ window.addEventListener("keydown", (event) => {
 });
 
 render();
+
+localClient.restore().then(task => { projectTask(task); workReady=true; render(); });
+root.addEventListener("change", async event => {
+ if (!event.target.matches("[data-import-work]")) return;
+ const file=event.target.files[0]; if (!file) return;
+ try { projectTask(await localClient.import(await file.text())); render(); }
+ catch(error) { const status=root.querySelector(".workspace-storage [role=status]"); if(status) status.textContent="Import rejected: "+error.message; }
+});

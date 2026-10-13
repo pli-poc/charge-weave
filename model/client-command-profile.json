@@ -1,0 +1,4 @@
+{
+ "version":"1.0.0",
+ "commands":[{"id":"submitCorrection","handler":"submitCorrection","class":"RecordCorrection","requiredRules":["task-fields","meter-order","evidence-match","task-scope","expected-revision"],"role":"BillingApprover","inputs":["meterEnd","reason","evidenceReference","operatorNote"]}]
+}

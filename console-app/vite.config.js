@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     outDir: path.join(projectRoot, "dist"),
     emptyOutDir: true,
-    target: "es2019",
+    target: "es2020",
     sourcemap: false,
     minify: "esbuild",
     cssMinify: "esbuild",

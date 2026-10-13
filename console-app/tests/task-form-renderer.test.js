@@ -12,7 +12,7 @@ test("the generic renderer derives labeled controls and constraints from task de
   assert.match(html, /<select[^>]*name="reason"[^>]*><option/);
   assert.match(html, /data-mask="EV-####-####"/);
   assert.match(html, /name="operatorNote"[^>]*rows="4"/);
-  assert.match(html, /ChargingSession\.meterEndReading/);
+  assert.match(html, /command:submitCorrection\.meterEnd/);
 });
 
 test("the generic renderer escapes model labels, hints, values and options", () => {

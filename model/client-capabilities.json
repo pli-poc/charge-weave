@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    "task-fields",
+    "meter-order",
+    "evidence-match",
+    "task-scope",
+    "expected-revision"
+  ],
+  "unsupported": [
+    "full-shacl",
+    "owl-reasoning",
+    "temporal-writes",
+    "live-integrations",
+    "production-authorization",
+    "mid-activity-checkpoints"
+  ],
+  "temporal": "published-tariff-fixture-read-only",
+  "analytics": "existing-flat-projection-number-v1",
+  "handlers": [
+    "submitCorrection"
+  ],
+  "ruleSources": {
+    "meter-order": [
+      "B129",
+      "B130"
+    ],
+    "evidence-match": [
+      "B130"
+    ],
+    "task-scope": [
+      "application-task-contract"
+    ],
+    "expected-revision": [
+      "application-command-contract"
+    ],
+    "task-fields": [
+      "application-task-profile"
+    ]
+  }
+}

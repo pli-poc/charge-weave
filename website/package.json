@@ -9,7 +9,7 @@
     "check:blog": "node scripts/check-blog-content.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "test": "node --test src/simulation/*.test.js src/model/*.test.js && playwright test",
-    "prebuild": "node scripts/build-model.mjs && node scripts/check-temporal.mjs",
+    "prebuild": "npm run generate --prefix ../client-runtime && node scripts/build-model.mjs && node scripts/check-temporal.mjs",
     "predev": "node scripts/build-model.mjs",
     "protect:build": "node scripts/protect-build.mjs",
     "check:protection": "node scripts/check-production-protection.mjs",
@@ -21,7 +21,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "three": "^0.186.1",
-    "xstate": "^5.33.2"
+    "xstate": "5.33.2",
+    "@chargeweave/client-runtime": "file:../client-runtime"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

@@ -993,3 +993,7 @@ tr[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+.workspace-storage { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin: 12px 0 20px; }
+.workspace-storage [role=status] { flex:1 1 180px; font-size:13px; }
+.workspace-storage label { cursor:pointer; }
