@@ -51,6 +51,13 @@ test("required command fields cannot be weakened in presentation", () => {
   next.task.task.form.fields[0].required = false;
   assert.throws(() => compileApplication(next), /Weakened/);
 });
+test("editable model inheritance and immediate decision cycles cannot lock the browser preview", async () => {
+  const next = structuredClone(options); next.catalog.ChargingSite.parent = "ChargingSite";
+  assert.throws(() => compileApplication(next), /Circular class inheritance/);
+  const { createFlowRuntime } = await import("../src/flow/engine.js");
+  const runtime = createFlowRuntime({ guards: { never: () => false } });
+  assert.throws(() => runtime.createActor({ id: "loop", version: "1", initialStep: "decide", steps: [{ id: "decide", kind: "decision", routes: [{ guard: "never", target: "done" }], defaultTarget: "decide" }, { id: "done", kind: "end" }] }), /Immediate decision cycle/);
+});
 test("a document review package runs through the same generator, GraphQL dispatcher and flow compiler", async () => {
   const { createLocalClient } = await import("../src/graphql/client.js");
   const { createFlowRuntime } = await import("../src/flow/engine.js");

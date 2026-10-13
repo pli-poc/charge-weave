@@ -89,6 +89,23 @@ function validateTarget(target, path, stepIds, errors) {
     errors.push(`${path} references unknown step '${target}'.`);
 }
 
+export function decisionCycleErrors(definition) {
+  const nodes = new Map((definition?.steps ?? []).filter(s => s?.kind === "decision").map(s => [s.id, s]));
+  const colors = new Map();
+  for (const id of nodes.keys()) {
+    const stack = [[id, false]];
+    while (stack.length) {
+      const [current, complete] = stack.pop();
+      if (complete) { colors.set(current, 2); continue; }
+      if (colors.get(current) === 2) continue;
+      if (colors.get(current) === 1) return [`Immediate decision cycle at '${current}' requires an event or service boundary.`];
+      colors.set(current, 1); stack.push([current, true]);
+      const node = nodes.get(current);
+      for (const target of [...(node.routes ?? []).map(r => r?.target), node.defaultTarget]) if (nodes.has(target)) stack.push([target, false]);
+    }
+  }
+  return [];
+}
 export function validateWorkflowDefinition(definition, registry = {}) {
   const normalizedRegistry = {
     activities: registry.activities ?? {},
@@ -107,6 +124,7 @@ export function validateWorkflowDefinition(definition, registry = {}) {
     errors.push("definition.steps must contain at least one step.");
     return [...new Set(errors)];
   }
+  errors.push(...decisionCycleErrors(definition));
   const stepIds = new Set();
   for (const [index, step] of definition.steps.entries()) {
     if (!isObject(step)) {

@@ -1,5 +1,6 @@
 import { buildSchema, validateSchema } from "graphql";
 import { normaliseWorkflowProfile } from "../flow/normalize.js";
+import { decisionCycleErrors } from "../flow/engine.js";
 export function compileApplicationBody({
   catalog,
   api,
@@ -14,6 +15,16 @@ export function compileApplicationBody({
   modules = { analytics: true, temporal: true },
 }) {
   if (typeof namespace !== "string" || !/^[a-z][a-z0-9+.-]*:/i.test(namespace)) throw Error("Explicit application namespace required");
+  for (const name of Object.keys(catalog)) {
+    const seen = new Set(); let current = name;
+    while (current && Object.hasOwn(catalog, current)) {
+      if (seen.has(current)) throw Error(`Circular class inheritance at ${current}`);
+      seen.add(current); current = catalog[current].parent;
+    }
+  }
+  const normalizedFlow = normaliseWorkflowProfile(flow);
+  const cycleErrors = decisionCycleErrors(normalizedFlow);
+  if (cycleErrors.length) throw Error(cycleErrors[0]);
   const taskList = tasks ?? [task.task];
   if (!Array.isArray(taskList) || !taskList.length || new Set(taskList.map(t => t.id)).size !== taskList.length) throw Error("Unique application tasks required");
   const taskFields = taskList.flatMap(t => t.form.fields);
@@ -123,7 +134,7 @@ export function compileApplicationBody({
     ...(tasks ? { tasks, namespace, modules } : { task }),
     commands,
     capabilities,
-    flow: normaliseWorkflowProfile(flow),
+    flow: normalizedFlow,
     analytics,
     inputDigest,
     contractVersion: "1.0.0",
