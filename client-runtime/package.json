@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/build-package.mjs",
+    "generate": "node scripts/build-package.mjs && node scripts/build-engineering.mjs",
     "test": "node --test tests/*.test.js",
     "check:generated": "node scripts/build-package.mjs --check"
   },

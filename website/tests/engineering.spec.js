@@ -1,0 +1,36 @@
+import { test, expect } from "@playwright/test";
+test("engineering studio executes, replays, saves and restores separate evidence", async ({ page }) => {
+  const errors = []; page.on("pageerror", e => errors.push(e.message));
+  await page.goto("developer/workbench/");
+  await expect(page.getByRole("button", { name: "Run checks", exact: true })).toBeEnabled();
+  await page.getByLabel("Scenario", { exact: true }).selectOption("correction.bad-evidence");
+  await page.getByRole("button", { name: "Run checks", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "2/2 assertions passed" })).toBeVisible();
+  await page.getByRole("button", { name: "Replay run", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Scenario assertions passed");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Saved on this device");
+  await page.reload(); await expect(page.getByRole("status")).toContainText("restored");
+  await page.getByRole("button", { name: "Evidence", exact: true }).click();
+  await expect(page.getByRole("button", { name: /correction.bad-evidence/ })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});
+test("candidate edit compiles supported preview and scripted task uses real evidence", async ({ page }) => {
+  const errors = []; page.on("pageerror", e => errors.push(e.message));
+  await page.goto("developer/workbench/"); await expect(page.getByRole("button", { name: "Run checks", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Model & changes", exact: true }).click();
+  const editor = page.getByLabel("Candidate source"), source = JSON.parse(await editor.inputValue());
+  source.task.instructions += " Check the source again."; await editor.fill(JSON.stringify(source, null, 2));
+  await page.getByRole("button", { name: "Apply change", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("compile before running");
+  await page.getByRole("button", { name: "Compile preview", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Supported contracts compiled");
+  await page.getByRole("button", { name: "AI & plan", exact: true }).click();
+  await page.getByRole("button", { name: "Run assisted task", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Assisted task completed");
+  await expect(page.getByText("The selected scenario executed through the capability broker.", { exact: true })).toBeVisible();
+  await page.reload(); await expect(page.getByRole("status")).toContainText("restored");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});

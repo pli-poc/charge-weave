@@ -8,6 +8,7 @@ on:
         "website/**",
         "console-app/**",
         "client-runtime/**",
+        "ai-relay/**",
         "tests/client-contract/**",
         "content/blog/**",
         "model/**",
@@ -23,6 +24,7 @@ on:
         "website/**",
         "console-app/**",
         "client-runtime/**",
+        "ai-relay/**",
         "tests/client-contract/**",
         "content/blog/**",
         "model/**",
@@ -96,6 +98,8 @@ jobs:
         run: diff -u ../tests/client-contract/schema.graphql ../client-runtime/generated/schema.graphql > ../client-runtime/generated/schema-diff.txt
       - run: npm run check:generated --prefix ../client-runtime
       - run: npm test --prefix ../client-runtime
+      - name: Test authenticated AI relay contracts
+        run: node --test ../ai-relay/*.test.mjs
       - run: npm ci --prefix ../console-app
       - run: npm ci
       - name: Install pinned production obfuscator

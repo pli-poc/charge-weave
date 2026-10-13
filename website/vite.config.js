@@ -105,6 +105,7 @@ const pages = {
     "Developer guide",
     "Explore the browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
   ],
+  "developer/workbench": ["Engineering workbench", "Model candidates, run synthetic scenarios and inspect context and assisted engineering evidence."],
   "developer/local": ["Local workspace — ChargeWeave", "Inspect the saved client runtime task and workflow."],
   "developer/platform": [
     "Workflow runtime architecture",

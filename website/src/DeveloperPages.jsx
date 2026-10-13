@@ -17,6 +17,7 @@ import {
   Shuffle,
   Waypoints,
 } from "lucide-react";
+import EngineeringWorkbench from "./EngineeringWorkbench.jsx";
 import LocalWorkspaceInspector from "./LocalWorkspaceInspector.jsx";
 import SimulationWorkbench from "./SimulationWorkbench.jsx";
 import HumanTaskDesign from "./HumanTaskDesign.jsx";
@@ -27,6 +28,7 @@ import "./developer.css";
 const base = import.meta.env.BASE_URL;
 const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`;
 const pages = [
+  { id: "workbench", route: "developer/workbench", label: "Engineering workbench" },
   { id: "local", route: "developer/local", label: "Local workspace" },
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "platform", route: "developer/platform", label: "Workflow runtime" },
@@ -718,6 +720,7 @@ function ReplayPage() {
 }
 
 const pageCopy = {
+  workbench: { title: <>Build with evidence.<br /><span>Accelerate with context.</span></>, description: "Model candidate changes, run synthetic scenarios and use the same browser tools manually or through an AI adapter." },
   local: { title: <>Client execution.<br /><span>One saved workspace.</span></>, description: "Inspect the operator task, pinned workflow and accepted correction from the local application runtime." },
   runtime: {
     title: <>Test the process<br /><span>before the infrastructure.</span></>,
@@ -777,6 +780,7 @@ export default function DeveloperPages({ route }) {
     );
   }
   const content = {
+    workbench: <EngineeringWorkbench />,
     local: <LocalWorkspaceInspector />,
     runtime: <RuntimePage />,
     platform: <WorkflowPlatformOverview />,
