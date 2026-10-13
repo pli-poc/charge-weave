@@ -28,3 +28,11 @@ The first workbench commit's CI run passed 54/56 browser checks; two new selecto
 The second milestone passed 56/58 browser checks, including both neutral application journeys and studio replay/storage. The remaining test assumed that the task profile was the first editor source; it now explicitly selects that profile, matching the intended user action. Subsequent release evidence records the final commit's actual results.
 
 See the original E1–E6 plan, C1–C6 context increments and OA1–OA7 OpenAI integration sequence for acceptance boundaries. Browser assertions cannot promote a candidate to released status.
+
+## Verified release
+
+Application source release `50fe0b384ab3f3075bf07573652865bdcc19805f` passed 32 runtime/application/provider contracts, two authenticated-relay contracts, the curated retrieval evaluation, the existing console/simulator checks, and all 58 protected-build desktop/mobile journeys. Website workflow run `38432812290` and ontology workflow run `38432812454` completed successfully. Full ontology, SHACL, OWL, temporal, analytical, journey and traceability gates passed for that source commit.
+
+The verified public artifact was published. The hosting workflow initially hit an artifact metadata visibility race; retrying produced duplicate artifact names. The preserved public workflow now names artifacts per run/attempt and waits for the exact returned artifact ID. Public workflow commit `75a6f9ecf227a2d3f925c0addee43ce00a1e1def`, run `38434030799`, deployed successfully and passed live HTML/CSS smoke checks. Its canonical copy is `tools/deployment/public-pages.yml`. The browser verified the live workbench's `0cc8325491273560` package prefix and ready state.
+
+E1–E3 have executable browser proofs. E4 has scripted and mocked Responses proofs, including bounded source editing/compilation/scenario checks and stable cancellation/resume; live account access remains unverified. E5 has bounded MCP fixture proofs and real commit-bound deployment verification. E6 has a complete neutral synthetic application and the shared host fixture. Actual Syntriq shell adoption, remaining console journey migrations, live relay/provider configuration and optional measurement-gated upgrades remain explicit follow-on scope.
