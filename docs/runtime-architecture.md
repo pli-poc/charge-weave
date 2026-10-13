@@ -14,6 +14,8 @@ The [detailed client-runtime build plan](client-runtime-build-plan.md) defines t
 
 ## Platform design principles
 
+The [engineering workbench architecture](engineering-workbench-architecture.md) defines a separate, reusable authoring and verification layer over this runtime: browser experiments, synthetic scenarios, model-independent AI and optional MCP providers. The current client is the proving host; Syntriq is the future UI integration target. GitHub remains the independent release gate. This is a design proposal, not an implemented backend or MCP service.
+
 1. **Share business meaning across bounded capabilities.** Use stable identifiers, domain terms and relationships to connect service-owned records and partner exchanges. Keep each capability responsible for its own policy, transactions and operational decisions.
 2. **Validate changes at the boundary that owns them.** Use SHACL for explicit graph and payload constraints, plus deterministic domain rules for business invariants. Validate against the affected records and required reference closure; keep full-tenant analysis off the real-time path.
 3. **Let workflows orchestrate; let domain services own effects.** Versioned XFlow definitions describe process sequence and outcomes. The XState host selects transitions and invokes registered capabilities; business services authorize and perform the authoritative change.

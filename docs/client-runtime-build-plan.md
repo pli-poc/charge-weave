@@ -10,6 +10,8 @@
 
 **Scope:** Browser application, generated contracts, local execution, persistence and GitHub verification. Syntriq integration is a later project.
 
+**Engineering follow-on (2026-10-13):** The [browser-first engineering workbench design](engineering-workbench-architecture.md) defines how engineers can model, generate synthetic scenarios, validate and test through reusable local/MCP capability providers. Syntriq is the intended future host UI; the immediate implementation stays in this client. Its E1–E6 phases supplement this plan and do not mark the remaining P0–P8 acceptance work complete.
+
 ## 1. Outcome and agreed decisions
 
 Build and experiment with a small, fully local ChargeWeave application using the existing ontology, XFlow, temporal and analytical contracts. Generate its GraphQL interface and frontend metadata from authoritative model inputs. Reuse existing browser providers and XState logic. Establish a versioned, executable client contract that a future Syntriq backend can implement.
