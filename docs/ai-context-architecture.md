@@ -4,11 +4,13 @@
 
 This extends the [engineering workbench architecture](engineering-workbench-architecture.md). [Delivered client scope](client-runtime-status.md) remains the implementation record. Syntriq stays a separate product and future host; the current client is the proving environment.
 
+**Provider decision:** OpenAI is the primary API target. The [OpenAI integration architecture](openai-integration-architecture.md) supersedes the provider-selection examples below and specifies the browser tool loop, relay, continuation and cache contracts. Evaluate OpenAI Decisions first for optional narrow judgments; Jev remains a comparison behind the same adapter.
+
 ## 1. Decision
 
 Add a small **Context Engine** to the generic engineering kit. It gives any plugged-in model a versioned view of what exists, what is supported, what the task requires and what has actually been verified. It is a browser module with existing storage APIs, not a new database engine or an autonomous backend.
 
-Start with a component catalogue, exact and lexical search, explicit dependency traversal and source reads. Add local embeddings when measured retrieval misses justify them. Use document trees for long specifications, summaries for navigation, and provider prompt caching for repeated model input. Jev is an optional cloud decision adapter for narrow semantic choices. The main reasoning model proposes changes; deterministic tools and independent tests establish whether they work.
+Start with a component catalogue, exact and lexical search, explicit dependency traversal and source reads. Add local embeddings when measured retrieval misses justify them. Use document trees for long specifications, summaries for navigation, and OpenAI prompt caching for repeated model input. OpenAI Decisions is the first optional narrow-decision experiment; Jev is an alternative to compare if needed. The main reasoning model proposes changes; deterministic tools and independent tests establish whether they work.
 
 The browser owns the task, source selection, candidate overlay and evidence. AI providers receive bounded context and return proposals. Replacing a model must not lose the task or change the platform's acceptance criteria.
 
@@ -43,8 +45,8 @@ flowchart TD
         T --> E["Evidence and candidate changes"]
         E --> C
     end
-    A <--> M["Cloud reasoning model and provider cache"]
-    C -. optional ranking .-> J["Cloud Jev decision adapter"]
+    A <--> M["OpenAI Responses and prompt cache"]
+    C -. optional ranking .-> J["OpenAI Decisions / optional Jev adapter"]
     B -. MCP when needed .-> X["External research, builds and CI"]
     X --> E
     M -. proposed actions .-> O
@@ -59,7 +61,7 @@ These are logical modules. We can implement them in the current repository witho
 | Context assembly | Browser | Scope filters, source freshness, mandatory constraints, budgets, provenance and gaps |
 | Task coordination and memory | Browser | Existing XState pattern, bounded steps, cancellation and IndexedDB journal |
 | Optional semantic retrieval | Browser worker by default | Compatible small embedding model; retain lexical fallback |
-| Narrow probabilistic decisions | Optional cloud model adapter | Jev or another evaluated classifier; no dependency in the basic path |
+| Narrow probabilistic decisions | Optional cloud model adapter | Evaluate OpenAI Decisions first; no dependency in the basic path |
 | Reasoning and generation | Selected cloud model | Planning, explanations and candidate edits using the supplied evidence |
 | Runtime and scenario checks | Browser for supported operations | Existing registered checks, fixed-point services and seeded synthetic scenarios |
 | Full semantic build and release checks | Existing external providers/CI | Python/reference or browser-automation work that is not implemented in-page |
@@ -136,6 +138,8 @@ ContextPacket
 
 Keep three memory scopes: a small project primer, the current task journal, and optional reusable lessons. A lesson records its source scope, version and evidence; it becomes a hypothesis when those dependencies change. Keep observations, user decisions and model suggestions distinguishable. Store concise rationale and results, not hidden model reasoning.
 
+The OpenAI adapter separately retains opaque provider continuation items as required for replay. These are not readable project memory or acceptance evidence; see the [continuation contract](openai-integration-architecture.md).
+
 Compaction preserves unresolved requirements, constraints, failed attempts and evidence pointers. It must not convert “planned” into “implemented,” or “browser checks passed” into “released.” Before resuming, resolve source references again and reconcile in-flight provider jobs.
 
 Set budgets by the selected model's actual context limit and measured task needs. Reserve room for output and tool results. Mandatory constraints and direct evidence take priority over historical dialogue. If required evidence will not fit, split the task or fetch it over multiple steps; do not silently truncate a necessary invariant.
@@ -164,6 +168,8 @@ Use one knowledge revision for the selected source map and index definitions, a 
 A tariff rule edit invalidates its derived rule summary, affected retrieval results and relevant scenario evidence. An unchanged source blob can still reuse its parse or embedding. A permission change invalidates access regardless of content hashes. Never serve one workspace's private cached result to another scope, and never replay a cached mutation as a new command.
 
 ## 8. Jev's precise role
+
+This remains a research comparison. OpenAI Decisions is the preferred first experiment for the equivalent optional role, as specified in the [OpenAI integration plan](openai-integration-architecture.md).
 
 Assuming “Jev” means TypeSafe's Jev: it evaluates supplied state using typed question primitives. Choice and Score return distributions and a derived confidence value; Noul returns a yes/no probability [R10, R11]. It still needs our Context Engine to supply the right evidence.
 
