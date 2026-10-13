@@ -1,0 +1,118 @@
+name: Publish protected ChargeWeave site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy static site to GitHub Pages
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout protected public artifact
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload protected site
+        id: pages_artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Wait for the exact uploaded Pages artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          ARTIFACT_ID: ${{ steps.pages_artifact.outputs.artifact_id }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..20}; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$ARTIFACT_NAME" > "$RUNNER_TEMP/pages-artifacts.json" &&
+              node -e 'const fs=require("node:fs"); const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/pages-artifacts.json")).artifacts; process.exit(a.filter(x=>String(x.id)===process.env.ARTIFACT_ID && x.name===process.env.ARTIFACT_NAME && !x.expired).length===1?0:1)'; then
+              echo "Uploaded Pages artifact is visible."
+              break
+            fi
+            if [[ "$attempt" == "20" ]]; then
+              echo "Pages artifact did not become visible."
+              exit 1
+            fi
+            sleep 3
+          done
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Smoke-test published HTML and CSS
+        shell: bash
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+
+          for attempt in {1..20}; do
+            if curl -fsSL --retry 2 --retry-delay 1 "$SITE_URL" -o /tmp/chargeweave-index.html; then
+              break
+            fi
+            if [[ "$attempt" == "20" ]]; then
+              echo "Published site did not become reachable: $SITE_URL"
+              exit 1
+            fi
+            sleep 3
+          done
+
+          mapfile -t stylesheets < <(
+            grep -oE 'href="[^"]+\.css"' /tmp/chargeweave-index.html |
+              sed -E 's/^href="|"$//g'
+          )
+
+          grep -q 'name="darkreader-lock"' /tmp/chargeweave-index.html
+          grep -q 'name="color-scheme" content="dark"' /tmp/chargeweave-index.html
+
+          if [[ "${#stylesheets[@]}" -lt 1 ]]; then
+            echo "No CSS stylesheets found in published HTML."
+            cat /tmp/chargeweave-index.html
+            exit 1
+          fi
+
+          : > /tmp/chargeweave-all.css
+          for href in "${stylesheets[@]}"; do
+            if [[ "$href" == http://* || "$href" == https://* ]]; then
+              css_url="$href"
+            elif [[ "$href" == /* ]]; then
+              css_url="https://pli-poc.github.io$href"
+            else
+              css_url="${SITE_URL%/}/$href"
+            fi
+
+            echo "Checking stylesheet: $css_url"
+            curl -fsSL --retry 3 --retry-delay 1 "$css_url" -o /tmp/chargeweave-style.css
+            test -s /tmp/chargeweave-style.css
+            cat /tmp/chargeweave-style.css >> /tmp/chargeweave-all.css
+          done
+
+          grep -q '.container{' /tmp/chargeweave-all.css
+          grep -q '.header{' /tmp/chargeweave-all.css
+          grep -q '.hero{' /tmp/chargeweave-all.css
+
+          echo "Published HTML and core ChargeWeave CSS are reachable."
