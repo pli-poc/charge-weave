@@ -9,7 +9,8 @@ export function createMCPProvider({ endpoint, authorization, fetch = globalThis.
   async function rpc(method, params, signal) {
     const id = ++request;
     const body = { jsonrpc: "2.0", id, method, params: { ...params, _meta: { "io.modelcontextprotocol/protocolVersion": MCP_VERSION, "io.modelcontextprotocol/clientInfo": { name: "syntriq-engineering", version: "1.0.0" }, "io.modelcontextprotocol/clientCapabilities": {} } } };
-    const r = await fetch(url.href, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "MCP-Protocol-Version": MCP_VERSION, "Mcp-Method": method, ...(params.name ? { "Mcp-Name": params.name } : {}), ...(authorization ? { Authorization: `Bearer ${authorization}` } : {}) }, body: JSON.stringify(body), signal });
+    const boundedSignal = signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000);
+    const r = await fetch(url.href, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "MCP-Protocol-Version": MCP_VERSION, "Mcp-Method": method, ...(params.name ? { "Mcp-Name": params.name } : {}), ...(authorization ? { Authorization: `Bearer ${authorization}` } : {}) }, body: JSON.stringify(body), signal: boundedSignal });
     if (!r.ok) throw Error(`MCP provider rejected request (${r.status}); pinned protocol ${MCP_VERSION}`);
     const reader = r.body.getReader(), decoder = new TextDecoder(); let text = "", size = 0;
     try { while (true) { const next = await reader.read(); if (next.done) break; size += next.value.byteLength; if (size > maxBytes) throw Error("MCP response budget exceeded"); text += decoder.decode(next.value, { stream: true }); } }

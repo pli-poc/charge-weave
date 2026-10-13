@@ -110,3 +110,36 @@ test("OpenAI adapter preserves opaque output/call correlations and never stores 
   const body = JSON.parse(requests.at(-1).init.body);
   assert.deepEqual(body.input.slice(1, 4), continuation); assert.equal(body.store, false); assert.ok(!requests.at(-1).init.body.includes("session-secret"));
 });
+test("assisted discovery can edit, compile and independently exercise the resulting candidate", async () => {
+  const k = await kit(), source = k.candidate.sources().find(s => s.id === "model/client-task-profile.json");
+  const changed = JSON.parse(source.text); changed.task.instructions += " Inspect the original evidence.";
+  const actions = [
+    ["capability_search", { query: "candidate compile" }],
+    ["candidate_apply_change", { sourceId: source.id, expectedHash: source.hash, expectedRevision: 0, text: JSON.stringify(changed) }],
+    ["model_compile_supported", { expectedRevision: 1 }],
+    ["scenario_run", inputs],
+  ];
+  const adapter = { id: "fixture-planner", async next({ task, tools }) {
+    const action = actions[task.steps];
+    if (action) {
+      assert.ok(tools.some(t => t.name === action[0]), `Missing discovered tool ${action[0]}`);
+      return { status: "completed", output: [{ type: "function_call", name: action[0], call_id: `step-${task.steps}`, arguments: JSON.stringify(action[1]) }] };
+    }
+    const last = JSON.parse(task.continuation.filter(i => i.type === "function_call_output").at(-1).output);
+    assert.equal(last.status, "ok");
+    return { status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({ summary: "Candidate scenario executed", findings: [], evidenceRefs: last.evidenceRefs, unrunChecks: last.unsupported }) }] }] };
+  } };
+  const c = createCoordinator({ kit: k, adapter }); const task = await c.start({ goal: "meter correction evidence", writable: true, ...inputs });
+  assert.equal(task.status, "completed", task.error); assert.equal(k.candidate.identity().workspaceRevision, 1);
+  assert.notEqual(k.candidate.identity().candidateDigest, pkg.digest);
+  assert.ok(k.runner.read(task.output.evidenceRefs[0]).assertions.every(a => a.passed)); c.dispose();
+});
+test("a cancelled stable task resumes without repeating completed tool effects", async () => {
+  const k = await kit(); let c;
+  c = createCoordinator({ kit: k, adapter: createScriptedAdapter(), checkpoint: async t => { if (t.calls === 1 && !t.pendingCall) c.cancel(); } });
+  const stopped = await c.start({ goal: "meter correction", ...inputs });
+  assert.equal(stopped.status, "paused"); assert.equal(stopped.calls, 1); c.dispose();
+  const resumed = createCoordinator({ kit: k, adapter: createScriptedAdapter(), snapshot: stopped });
+  const result = await resumed.start({ resume: true }); assert.equal(result.status, "completed", result.error);
+  assert.equal(k.journal.filter(j => j.capability === "context.search").length, 1); assert.equal(result.calls, 2); resumed.dispose();
+});

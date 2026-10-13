@@ -25,4 +25,6 @@ The live relay must be deployed with service credentials and allowed model/featu
 
 The first workbench commit's CI run passed 54/56 browser checks; two new selectors timed out because the Scenario label included option text. Explicit accessible selector labels correct that failure. Existing correction and the new candidate/assisted journeys passed on desktop and mobile. The neutral journey and the corrected selector are checked by the next commit's pipeline.
 
+The second milestone passed 56/58 browser checks, including both neutral application journeys and studio replay/storage. The remaining test assumed that the task profile was the first editor source; it now explicitly selects that profile, matching the intended user action. Subsequent release evidence records the final commit's actual results.
+
 See the original E1–E6 plan, C1–C6 context increments and OA1–OA7 OpenAI integration sequence for acceptance boundaries. Browser assertions cannot promote a candidate to released status.

@@ -30,7 +30,7 @@ export function createDocumentWorkspace({ applicationPackage: pkg, principal = {
     if (principal.role !== command.role) return result(false, "FORBIDDEN");
     if (typeof args.idempotencyKey !== "string" || !args.idempotencyKey.trim() || args.idempotencyKey.length > 120) return result(false, "INVALID_KEY");
     const signature = stable({ commandId, ...args });
-    if (state.receipts[args.idempotencyKey]) return state.receipts[args.idempotencyKey].signature === signature ? clone(state.receipts[args.idempotencyKey].result) : result(false, "KEY_REUSED");
+    if (Object.hasOwn(state.receipts, args.idempotencyKey)) return state.receipts[args.idempotencyKey].signature === signature ? clone(state.receipts[args.idempotencyKey].result) : result(false, "KEY_REUSED");
     const violations = validateFields(descriptor.form.fields, args.input).map(v => ({ ...v, ruleId: "task-fields" }));
     if (args.expectedRevision !== state.revision) violations.push({ ruleId: "expected-revision", message: "Stale document revision" });
     if (transitions[commandId][0] !== state.document.status) violations.push({ ruleId: "task-scope", message: "Command is not active at this stage" });

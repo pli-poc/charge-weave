@@ -17,6 +17,7 @@ test("relay authenticates, enforces feature/model/tool budgets and keeps upstrea
     assert.equal((await post({ ...body, model: "not-allowed" })).status, 400);
     assert.equal((await post({ ...body, tools: [{ type: "web_search" }] })).status, 400);
     assert.equal((await post({ ...body, previous_response_id: "hidden-state" })).status, 400);
+    assert.equal((await post({ ...body, max_output_tokens: "unbounded" })).status, 400);
     const r = await post(body); assert.equal(r.status, 200); assert.ok(!(await r.text()).includes("server-only-secret"));
     assert.equal(seen[0].url, "https://api.openai.com/v1/responses"); assert.equal(JSON.parse(seen[0].init.body).max_output_tokens, 5000);
     assert.equal(seen[0].init.headers.Authorization, "Bearer server-only-secret");

@@ -20,6 +20,7 @@ test("candidate edit compiles supported preview and scripted task uses real evid
   const errors = []; page.on("pageerror", e => errors.push(e.message));
   await page.goto("developer/workbench/"); await expect(page.getByRole("button", { name: "Run checks", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Model & changes", exact: true }).click();
+  await page.getByLabel("Source", { exact: true }).selectOption("model/client-task-profile.json");
   const editor = page.getByLabel("Candidate source"), source = JSON.parse(await editor.inputValue());
   source.task.instructions += " Check the source again."; await editor.fill(JSON.stringify(source, null, 2));
   await page.getByRole("button", { name: "Apply change", exact: true }).click();

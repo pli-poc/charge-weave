@@ -30,6 +30,7 @@ export function createRelay({ apiKey, accessToken, models, origins, fetch = glob
       const chunks = []; let size = 0;
       for await (const c of req) { size += c.length; if (size > maxBytes) { send(res, 413, { error: "Request budget exceeded" }); return; } chunks.push(c); }
       const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      if (body.max_output_tokens !== undefined && (!Number.isSafeInteger(body.max_output_tokens) || body.max_output_tokens < 1)) return send(res, 400, { error: "Invalid output-token budget" });
       const allowedKeys = new Set(routes[req.url] === "responses/compact" ? ["model", "input"] : ["model", "store", "stream", "parallel_tool_calls", "max_output_tokens", "input", "tools", "text", ...(promptCache ? ["prompt_cache_options"] : [])]);
       if (Object.keys(body).some(k => !allowedKeys.has(k)) || !models.includes(body.model) || !Array.isArray(body.input) || body.input.length > 240 || body.store !== undefined && body.store !== false) return send(res, 400, { error: "Request contract rejected" });
       if (body.tools && (!Array.isArray(body.tools) || body.tools.length > 30 || body.tools.some(t => t.type !== "function" || !(TOOL_NAMES.has(t.name) || extraFunctionNames.includes(t.name)) || t.strict !== true))) return send(res, 400, { error: "Tool is not enabled" });
