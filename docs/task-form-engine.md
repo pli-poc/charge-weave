@@ -1,5 +1,7 @@
 # Generic task forms and operator workspace
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 **Status:** Reusable browser renderer demonstrated in the operations console; durable work-item API and production authorization remain future work.
 **Scope:** Business-facing human tasks emitted by workflow hosts across ChargeWeave capabilities.
 

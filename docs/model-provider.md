@@ -1,5 +1,7 @@
 # Model package provider
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 **Status:** Static web provider implemented for the browser explorer. Database or service-backed providers are future adapters.
 
 ## Purpose

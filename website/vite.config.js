@@ -105,6 +105,7 @@ const pages = {
     "Developer guide",
     "Explore the browser-hosted simulator, protocol adapters, storage ports, switchboard and deterministic replay.",
   ],
+  "developer/local": ["Local workspace — ChargeWeave", "Inspect the saved client runtime task and workflow."],
   "developer/platform": [
     "Workflow runtime architecture",
     "Developer detail on generic XFlow definitions, ontology bindings, validation, XState execution and replaceable runtime ports.",

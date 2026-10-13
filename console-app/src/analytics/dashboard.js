@@ -5,7 +5,7 @@ export const defaultAnalyticsState = { period: "q3", measure: "energy", dimensio
   comparison: "PreviousPeriod", operator: "Value", limit: "0", direction: "Descending", knownAt: profile.knowledgeCutoffs[0].id, chart: "bar" };
 export const overviewDescriptors = profile.dashboards.overview.panes;
 function select(label, field, options, state) {
-  return `<label>${e(label)}<select data-analytics-field="${field}">${options.map((item) => `<option value="${e(item.id)}"${String(state[field]) === String(item.id) ? " selected" : ""}>${e(item.label)}</option>`).join("")}</select></label>`;
+  return `<label>${e(label)}<select aria-label="${e(label)}" data-analytics-field="${field}">${options.map((item) => `<option value="${e(item.id)}"${String(state[field]) === String(item.id) ? " selected" : ""}>${e(item.label)}</option>`).join("")}</select></label>`;
 }
 
 export function analyticsControls(state, sites, { compact = false } = {}) {

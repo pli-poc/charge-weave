@@ -1,20 +1,187 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { webcrypto } from 'node:crypto';
-import { indexedDB } from 'fake-indexeddb';
-import pkg from '../generated/application.json' with {type:'json'};
-import { createWorkspace } from '../src/profiles/chargeweave/workspace.js';
-import { createLocalClient } from '../src/graphql/client.js';
-import { createCheckpointStore } from '../src/adapters/browser/checkpoints.js';
-import { rateReading } from '../src/services/decimal.js';
-import { evaluateRules } from '../src/services/validation.js';
-import { createFlowRuntime } from '../src/flow/engine.js';
-const input={meterEnd:'12882.700',reason:'partner-correction',evidenceReference:'EV-2026-4481',operatorNote:'Signed partner evidence checked against the accepted register.'};
-const args={input,expectedRevision:0,idempotencyKey:'test-1'};
-const workspace=()=>createWorkspace({applicationPackage:pkg});
-test('exact correction arithmetic and bounded precision',()=>{assert.deepEqual(rateReading(input.meterEnd,pkg.task.case),{energyKwh:'42.200',amountEur:'23.21',calculationVersion:'meter-fixed-v1'});assert.throws(()=>rateReading('12882.70001',pkg.task.case));});
-test('accepted command runs existing correction flow once; changed retry and stale revision rejected',async()=>{const w=workspace();const r=await w.submit(args);assert.equal(r.accepted,true,JSON.stringify(r));assert.equal(r.task.flowState,'completed');assert.equal(r.task.outcome.amount,'23.21');assert.deepEqual(await w.submit(args),r);assert.equal(w.history().length,1);assert.equal((await w.submit({...args,input:{...input,meterEnd:'12882.8'}})).code,'KEY_REUSED');assert.equal((await w.submit({...args,idempotencyKey:'other'})).accepted,false);});
-test('invalid inputs, unsupported rules and denied role cannot change records',async()=>{for(const change of [{meterEnd:'0'},{evidenceReference:'EV-0000-0000'},{operatorNote:'short'},{reason:'unknown'}]){const w=workspace();assert.equal((await w.submit({...args,input:{...input,...change}})).accepted,false);assert.equal(w.export().revision,0);}assert.equal((await createWorkspace({applicationPackage:pkg,principal:{role:'viewer'}}).submit(args)).code,'FORBIDDEN');assert.equal(evaluateRules(['absent'],{},{}).length,1);});
-test('local GraphQL has typed validation and rejects multi-command aliases/fragments',async()=>{const w=workspace();const c=createLocalClient({applicationPackage:pkg,services:{sites:()=>[{id:'s',name:'Site',country:'NL'}],sessions:()=>[],task:w.task,submitCorrection:w.submit,analytics:()=>{},temporal:()=>{}}});assert.equal((await c.execute({query:'{ sites { id name } task { revision } }'})).data.sites[0].id,'s');const q='mutation($input:CorrectionInput!){submitCorrection(input:$input,expectedRevision:0,idempotencyKey:"gql"){accepted task{flowState}}}';assert.ok((await c.execute({query:q,variables:{input:{...input,meterEnd:123}}})).errors);assert.equal((await c.execute({query:q,variables:{input}})).data.submitCorrection.accepted,true);assert.ok((await c.execute({query:'mutation { ...M } fragment M on Mutation { a:submitCorrection(input:{meterEnd:"1",reason:"x",evidenceReference:"x",operatorNote:"x"},expectedRevision:0,idempotencyKey:"a"){accepted} b:submitCorrection(input:{meterEnd:"1",reason:"x",evidenceReference:"x",operatorNote:"x"},expectedRevision:0,idempotencyKey:"b"){accepted} }'})).errors);});
-test('coherent checkpoint, conflict, integrity, pinned version and scoped reset',async()=>{const s=createCheckpointStore({indexedDB,crypto:webcrypto,database:'tests'});const w=workspace();await w.submit(args);await s.save('one',w.export(),pkg,0);const saved=await s.load('one',pkg);assert.deepEqual(createWorkspace({applicationPackage:pkg,snapshot:saved.payload}).task(),w.task());await assert.rejects(s.save('one',w.export(),pkg,0));await assert.rejects(s.load('one',{...pkg,digest:'new'}));await assert.rejects(s.verify({...saved,checksum:'bad'},pkg));await s.save('two',w.export(),pkg,0);await s.remove('one',1);assert.equal(await s.load('one',pkg),null);assert.ok(await s.load('two',pkg));});
-test('domain neutral document review uses shared compiler and snapshot restoration',()=>{const d={id:'document-review',version:'1',initialStep:'review',steps:[{id:'review',kind:'humanTask',on:{approve:{target:'done'},reject:{target:'declined'}}},{id:'done',kind:'end'},{id:'declined',kind:'end'}]};const runtime=createFlowRuntime();const a=runtime.createActor(d);a.start();const snapshot=a.getPersistedSnapshot();a.stop();const b=runtime.createActor(d,{snapshot});b.start();b.send({type:'approve'});assert.equal(b.getSnapshot().value,'done');b.stop();});
+import test from "node:test";
+import assert from "node:assert/strict";
+import { webcrypto } from "node:crypto";
+import { indexedDB } from "fake-indexeddb";
+import pkg from "../generated/application.json" with { type: "json" };
+import { createWorkspace } from "../src/profiles/chargeweave/workspace.js";
+import { createLocalClient } from "../src/graphql/client.js";
+import { createCheckpointStore } from "../src/adapters/browser/checkpoints.js";
+import { rateReading } from "../src/profiles/chargeweave/rating.js";
+import { evaluateRules } from "../src/services/validation.js";
+import { createFlowRuntime } from "../src/flow/engine.js";
+const input = {
+  meterEnd: "12882.700",
+  reason: "partner-correction",
+  evidenceReference: "EV-2026-4481",
+  operatorNote:
+    "Signed partner evidence checked against the accepted register.",
+};
+const args = { input, expectedRevision: 0, idempotencyKey: "test-1" };
+const workspace = () => createWorkspace({ applicationPackage: pkg });
+test("exact correction arithmetic and bounded precision", () => {
+  assert.deepEqual(rateReading(input.meterEnd, pkg.task.case), {
+    energyKwh: "42.200",
+    amountEur: "23.21",
+    calculationVersion: "meter-fixed-v1",
+  });
+  assert.throws(() => rateReading("12882.70001", pkg.task.case));
+});
+test("accepted command runs existing correction flow once; changed retry and stale revision rejected", async () => {
+  const w = workspace();
+  const r = await w.submit(args);
+  assert.equal(r.accepted, true, JSON.stringify(r));
+  assert.equal(r.task.flowState, "completed");
+  assert.equal(r.task.outcome.amount, "23.21");
+  assert.deepEqual(await w.submit(args), r);
+  assert.equal(w.history().length, 1);
+  assert.equal(
+    (await w.submit({ ...args, input: { ...input, meterEnd: "12882.8" } }))
+      .code,
+    "KEY_REUSED",
+  );
+  assert.equal(
+    (await w.submit({ ...args, idempotencyKey: "other" })).accepted,
+    false,
+  );
+});
+test("invalid inputs, unsupported rules and denied role cannot change records", async () => {
+  for (const change of [
+    { meterEnd: "0" },
+    { evidenceReference: "EV-0000-0000" },
+    { operatorNote: "short" },
+    { reason: "unknown" },
+  ]) {
+    const w = workspace();
+    assert.equal(
+      (await w.submit({ ...args, input: { ...input, ...change } })).accepted,
+      false,
+    );
+    assert.equal(w.export().revision, 0);
+  }
+  assert.equal(
+    (
+      await createWorkspace({
+        applicationPackage: pkg,
+        principal: { role: "viewer" },
+      }).submit(args)
+    ).code,
+    "FORBIDDEN",
+  );
+  assert.equal(evaluateRules(["absent"], {}, {}).length, 1);
+});
+test("local GraphQL has typed validation and rejects multi-command aliases/fragments", async () => {
+  const w = workspace();
+  const c = createLocalClient({
+    applicationPackage: pkg,
+    services: {
+      sites: () => [{ id: "s", name: "Site", country: "NL" }],
+      sessions: () => [],
+      task: w.task,
+      submitCorrection: w.submit,
+      analytics: () => {},
+      temporal: () => {},
+    },
+  });
+  assert.equal(
+    (await c.execute({ query: "{ sites { id name } task { revision } }" })).data
+      .sites[0].id,
+    "s",
+  );
+  const q =
+    'mutation($input:CorrectionInput!){submitCorrection(input:$input,expectedRevision:0,idempotencyKey:"gql"){accepted task{flowState}}}';
+  assert.ok(
+    (
+      await c.execute({
+        query: q,
+        variables: { input: { ...input, meterEnd: 123 } },
+      })
+    ).errors,
+  );
+  assert.equal(
+    (await c.execute({ query: q, variables: { input } })).data.submitCorrection
+      .accepted,
+    true,
+  );
+  assert.ok(
+    (
+      await c.execute({
+        query:
+          'mutation { ...M } fragment M on Mutation { a:submitCorrection(input:{meterEnd:"1",reason:"x",evidenceReference:"x",operatorNote:"x"},expectedRevision:0,idempotencyKey:"a"){accepted} b:submitCorrection(input:{meterEnd:"1",reason:"x",evidenceReference:"x",operatorNote:"x"},expectedRevision:0,idempotencyKey:"b"){accepted} }',
+      })
+    ).errors,
+  );
+});
+test("coherent checkpoint, conflict, integrity, pinned version and scoped reset", async () => {
+  const s = createCheckpointStore({
+    indexedDB,
+    crypto: webcrypto,
+    database: "tests",
+  });
+  const w = workspace();
+  await w.submit(args);
+  await s.save("one", w.export(), pkg, 0);
+  const saved = await s.load("one", pkg);
+  assert.deepEqual(
+    createWorkspace({
+      applicationPackage: pkg,
+      snapshot: saved.payload,
+    }).task(),
+    w.task(),
+  );
+  await assert.rejects(s.save("one", w.export(), pkg, 0));
+  await assert.rejects(s.load("one", { ...pkg, digest: "new" }));
+  await assert.rejects(s.verify({ ...saved, checksum: "bad" }, pkg));
+  await s.save("two", w.export(), pkg, 0);
+  await s.remove("one", 1);
+  assert.equal(await s.load("one", pkg), null);
+  assert.ok(await s.load("two", pkg));
+});
+test("domain neutral document review uses shared compiler and snapshot restoration", () => {
+  const d = {
+    id: "document-review",
+    version: "1",
+    initialStep: "review",
+    steps: [
+      {
+        id: "review",
+        kind: "humanTask",
+        on: { approve: { target: "done" }, reject: { target: "declined" } },
+      },
+      { id: "done", kind: "end" },
+      { id: "declined", kind: "end" },
+    ],
+  };
+  const runtime = createFlowRuntime();
+  const a = runtime.createActor(d);
+  a.start();
+  const snapshot = a.getPersistedSnapshot();
+  a.stop();
+  const b = runtime.createActor(d, { snapshot });
+  b.start();
+  b.send({ type: "approve" });
+  assert.equal(b.getSnapshot().value, "done");
+  b.stop();
+});
+test("failed workflow evidence does not partially commit and a checkpoint cannot race a queued command", async () => {
+  const damaged = structuredClone(pkg);
+  damaged.task.case.evidence.signatureValid = false;
+  const bad = createWorkspace({ applicationPackage: damaged });
+  const r = await bad.submit(args);
+  assert.equal(r.code, "WORKFLOW_REJECTED");
+  assert.equal(bad.export().revision, 0);
+  const w = workspace();
+  const pending = w.submit(args);
+  assert.throws(() => w.export(), /Unsettled/);
+  await pending;
+  assert.equal(w.export().revision, 1);
+});
+test("checkpoint restoration rejects inconsistent business and process state", async () => {
+  const w = workspace();
+  await w.submit(args);
+  const s = w.export();
+  s.outcome.amount = "999.00";
+  assert.throws(
+    () => createWorkspace({ applicationPackage: pkg, snapshot: s }),
+    /Incoherent/,
+  );
+});

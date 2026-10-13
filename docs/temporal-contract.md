@@ -1,5 +1,7 @@
 # Bitemporal contract and temporal review closure
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 Version 1.2.0 closes the temporal review findings at the **model, executable reference implementation and ontology viewer** levels. It provides a tested contract for all 282 classes across 18 modules. The [original review](temporal-model-review.md) remains the historical baseline. The product proposition is unchanged.
 
 The query implementation is standard SPARQL 1.1 over immutable RDF snapshots. A native SPARQL-T grammar, database engine and production service have not been selected or deployed. A later temporal-language facade must preserve the answers and rejection behavior specified here.

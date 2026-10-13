@@ -29,21 +29,26 @@
     "category": "Billing exception",
     "status": "open",
     "priority": "Needs attention",
-    "dueLabel": "Due today · 16:30",
+    "dueLabel": "Due today \u00b7 16:30",
     "assignedRole": "CPO billing operations",
     "assignee": "Unassigned",
-    "openedAt": "Today · 09:42",
+    "openedAt": "Today \u00b7 09:42",
     "currentStage": "review",
     "sessionId": "SES-AMS-260928-0471",
     "cdrId": "CDR-NL-EV-0471",
-    "site": "Arena parking P2 · Amsterdam",
+    "site": "Arena parking P2 \u00b7 Amsterdam",
     "partner": "Northline Charge Installations",
     "meterId": "NL-MTR-AMS-4481",
     "meterStart": 12840.5,
     "originalMeterEnd": 12883.1,
     "proposedMeterEnd": 12882.7,
     "tariffEurPerKwh": 0.55,
-    "evidenceReference": "EV-2026-4481"
+    "evidenceReference": "EV-2026-4481",
+    "evidence": {
+      "signatureValid": true,
+      "sameRegisterEpoch": true,
+      "verified": true
+    }
   },
   "task": {
     "id": "review-meter-correction",
@@ -130,7 +135,7 @@
           "minLength": 20,
           "maxLength": 500,
           "required": true,
-          "placeholder": "Explain what you checked and why the correction is valid…",
+          "placeholder": "Explain what you checked and why the correction is valid\u2026",
           "help": "This note is retained with the correction record for audit and reconciliation.",
           "span": "wide",
           "binding": {

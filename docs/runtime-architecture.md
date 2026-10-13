@@ -1,5 +1,7 @@
 # ChargeWeave platform design principles and high-level architecture
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 **Architecture level:** High-level design (HLD)
 
 **Status:** Logical target architecture. The ontology, shapes, declared rules and browser demonstrations are available; production services, authorization, durable orchestration and live integrations remain proposed work.

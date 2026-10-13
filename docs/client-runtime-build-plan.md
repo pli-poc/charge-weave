@@ -1,6 +1,6 @@
 # Client-first ontology runtime: architecture and build plan
 
-**Status:** Planned; this document does not implement the refactor.
+**Status:** First connected client slice implemented on 2026-10-13; release verification in progress. See [actual implementation scope and evidence](client-runtime-status.md). The original checklist below remains the full acceptance contract; unchecked items are not implied complete.
 
 **Decision date:** 2026-10-09.
 
@@ -467,15 +467,15 @@ Deferred: Syntriq server implementation, C# engine changes, V8/Jint embedding, N
 
 | Phase | Status at plan commit | Evidence/commit |
 |---|---|---|
-| P0 | Not started | Baseline source inspection only; see section 2 |
-| P1 | Not started | — |
-| P2 | Not started | — |
-| P3 | Not started | — |
-| P4 | Not started | — |
-| P5 | Not started | — |
-| P6 | Not started | — |
-| P7 | Not started | — |
-| P8 | Not started | — |
+| P0 | Implemented for the selected slice | `docs/client-contract-inventory.md`; baseline d335489 |
+| P1 | Implemented | shared compiler, normalizer, analytics/temporal adapters; compatible imports retained |
+| P2 | Implemented scoped generator | generated package, schema, bindings, descriptors, rule support; reviewed profile coverage only |
+| P3 | Implemented scoped local API | typed site/session/task/analytics/temporal operations; runtime contract tests |
+| P4 | Implemented correction command | generated task inputs; checks, exact calculation, revisions and idempotency |
+| P5 | Implemented correction slice | existing workflow execution and shared saved-instance inspector; other journeys unchanged |
+| P6 | Implemented read-only profile | all 63 temporal reference selections and analytical projection parity; no temporal writer |
+| P7 | Implemented initial/end checkpoints | atomic local save, import/export, conflict and package checks; no mid-activity recovery |
+| P8 | Release verification in progress | first commit cd6d1de; see client-runtime-status.md for actual evidence and limits |
 
 Use this request in a later session:
 

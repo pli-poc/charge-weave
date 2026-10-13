@@ -1,5 +1,7 @@
 # XFlow workflow model and XState runtime
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 **Status:** Generic model and browser runtime implemented as a demonstrator; backend host remains future work
 **Scope:** User-configurable business workflows, browser simulation and a later backend host
 

@@ -1,5 +1,7 @@
 # Development and GitHub Actions
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 ChargeWeave uses GitHub as its canonical source and GitHub Actions as its shared
 verification record. Version 1.1 includes the independent business requirement register and its executable semantic evidence.
 

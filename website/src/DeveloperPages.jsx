@@ -17,6 +17,7 @@ import {
   Shuffle,
   Waypoints,
 } from "lucide-react";
+import LocalWorkspaceInspector from "./LocalWorkspaceInspector.jsx";
 import SimulationWorkbench from "./SimulationWorkbench.jsx";
 import HumanTaskDesign from "./HumanTaskDesign.jsx";
 import WorkflowStudio from "./WorkflowStudio.jsx";
@@ -26,6 +27,7 @@ import "./developer.css";
 const base = import.meta.env.BASE_URL;
 const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`;
 const pages = [
+  { id: "local", route: "developer/local", label: "Local workspace" },
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "platform", route: "developer/platform", label: "Workflow runtime" },
   { id: "human-tasks", route: "developer/human-tasks", label: "Human task forms" },
@@ -716,6 +718,7 @@ function ReplayPage() {
 }
 
 const pageCopy = {
+  local: { title: <>Client execution.<br /><span>One saved workspace.</span></>, description: "Inspect the operator task, pinned workflow and accepted correction from the local application runtime." },
   runtime: {
     title: <>Test the process<br /><span>before the infrastructure.</span></>,
     description: "A browser-hosted synthetic runtime composes protocol actors, process logic and simulated stores so a charging journey can be exercised end to end.",
@@ -774,6 +777,7 @@ export default function DeveloperPages({ route }) {
     );
   }
   const content = {
+    local: <LocalWorkspaceInspector />,
     runtime: <RuntimePage />,
     platform: <WorkflowPlatformOverview />,
     "human-tasks": <HumanTaskDesign />,

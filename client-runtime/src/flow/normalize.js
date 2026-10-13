@@ -12,7 +12,10 @@ function refName(value) {
 
 function typeName(step) {
   const types = values(step["@type"]);
-  const type = types.find((candidate) => typeof candidate === "string" && candidate.startsWith("xflow:"));
+  const type = types.find(
+    (candidate) =>
+      typeof candidate === "string" && candidate.startsWith("xflow:"),
+  );
   return type?.slice("xflow:".length) ?? "";
 }
 
@@ -24,29 +27,53 @@ function namedActions(actionRefs) {
 function transitionFrom(node) {
   return {
     target: refName(node.targetStep),
-    ...(node.actionRef === undefined ? {} : { actions: namedActions(node.actionRef) }),
+    ...(node.actionRef === undefined
+      ? {}
+      : { actions: namedActions(node.actionRef) }),
   };
 }
 
 export function normaliseWorkflowProfile(jsonLd) {
   const graph = jsonLd?.["@graph"];
-  if (!Array.isArray(graph)) throw new Error("XFlow profile must contain a JSON-LD @graph.");
-  const root = graph.find((node) => values(node["@type"]).includes("xflow:WorkflowDefinition"));
-  if (!root) throw new Error("XFlow profile is missing xflow:WorkflowDefinition.");
-  const stepIndex = new Map(graph.filter((node) => node.stepKey).map((node) => [refName(node["@id"]), node]));
+  if (!Array.isArray(graph))
+    throw new Error("XFlow profile must contain a JSON-LD @graph.");
+  const root = graph.find((node) =>
+    values(node["@type"]).includes("xflow:WorkflowDefinition"),
+  );
+  if (!root)
+    throw new Error("XFlow profile is missing xflow:WorkflowDefinition.");
+  const stepIndex = new Map(
+    graph
+      .filter((node) => node.stepKey)
+      .map((node) => [refName(node["@id"]), node]),
+  );
   const referencedSteps = values(root.hasStep).map(refName);
   const steps = referencedSteps.map((stepId) => {
     const source = stepIndex.get(stepId);
     if (!source) return { id: stepId, kind: "missing" };
     const common = {
       id: refName(source["@id"]),
-      kind: ({ EventWait: "eventWait", ServiceTask: "serviceTask", Decision: "decision", HumanTask: "humanTask", EndStep: "end" })[typeName(source)] ?? "unknown",
-      label: source.label,
-      description: source.description,
-      ...(source.domainBinding === undefined ? {} : { domainBindings: values(source.domainBinding).map(refName) }),
+      kind:
+        {
+          EventWait: "eventWait",
+          ServiceTask: "serviceTask",
+          Decision: "decision",
+          HumanTask: "humanTask",
+          EndStep: "end",
+        }[typeName(source)] ?? "unknown",
+      label: source.label ?? stepId,
+      description: source.description ?? "",
+      ...(source.domainBinding === undefined
+        ? {}
+        : { domainBindings: values(source.domainBinding).map(refName) }),
     };
     if (common.kind === "eventWait" || common.kind === "humanTask") {
-      common.on = Object.fromEntries(values(source.onEvent).map((eventTransition) => [eventTransition.eventType, transitionFrom(eventTransition)]));
+      common.on = Object.fromEntries(
+        values(source.onEvent).map((eventTransition) => [
+          eventTransition.eventType,
+          transitionFrom(eventTransition),
+        ]),
+      );
     }
     if (common.kind === "serviceTask") {
       common.activity = refName(source.activityRef);
@@ -55,8 +82,14 @@ export function normaliseWorkflowProfile(jsonLd) {
     }
     if (common.kind === "decision") {
       common.routes = values(source.route)
-        .sort((left, right) => Number(left.priority ?? 0) - Number(right.priority ?? 0))
-        .map((route) => ({ guard: refName(route.guardRef), target: refName(route.targetStep) }));
+        .sort(
+          (left, right) =>
+            Number(left.priority ?? 0) - Number(right.priority ?? 0),
+        )
+        .map((route) => ({
+          guard: refName(route.guardRef),
+          target: refName(route.targetStep),
+        }));
       common.defaultTarget = refName(source.defaultTarget);
     }
     if (source.timeoutAfter !== undefined) {
@@ -68,19 +101,28 @@ export function normaliseWorkflowProfile(jsonLd) {
       const timeoutActions = namedActions(source.timeoutAction);
       const timeoutTransition = common.on?.[source.timeoutEvent];
       if (timeoutActions !== undefined && timeoutTransition) {
-        const actions = [...new Set([
-          ...values(timeoutTransition.actions),
-          ...values(timeoutActions),
-        ])];
+        const actions = [
+          ...new Set([
+            ...values(timeoutTransition.actions),
+            ...values(timeoutActions),
+          ]),
+        ];
         common.on[source.timeoutEvent] = {
           ...timeoutTransition,
           actions: actions.length === 1 ? actions[0] : actions,
         };
       }
     }
-    if (source.assigneeRole !== undefined) common.assigneeRole = refName(source.assigneeRole);
-    if (source.taskFormProfileId !== undefined || source.taskFormProfileVersion !== undefined) {
-      common.taskFormProfile = { id: source.taskFormProfileId, version: source.taskFormProfileVersion };
+    if (source.assigneeRole !== undefined)
+      common.assigneeRole = refName(source.assigneeRole);
+    if (
+      source.taskFormProfileId !== undefined ||
+      source.taskFormProfileVersion !== undefined
+    ) {
+      common.taskFormProfile = {
+        id: source.taskFormProfileId,
+        version: source.taskFormProfileVersion,
+      };
     }
     return common;
   });
@@ -102,4 +144,3 @@ export function normaliseWorkflowProfile(jsonLd) {
     steps,
   };
 }
-

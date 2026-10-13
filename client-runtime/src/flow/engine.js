@@ -1,7 +1,13 @@
 import { createActor, fromPromise, setup } from "xstate";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const STEP_KINDS = new Set(["eventWait", "serviceTask", "decision", "humanTask", "end"]);
+const STEP_KINDS = new Set([
+  "eventWait",
+  "serviceTask",
+  "decision",
+  "humanTask",
+  "end",
+]);
 
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -9,14 +15,18 @@ function isObject(value) {
 
 function refs(value, path, errors) {
   if (typeof value === "string") return [value];
-  if (Array.isArray(value) && value.every((item) => typeof item === "string")) return value;
+  if (Array.isArray(value) && value.every((item) => typeof item === "string"))
+    return value;
   errors.push(`${path} must name one or more registered capabilities.`);
   return [];
 }
 
 function checkRefs(value, path, registry, kind, errors) {
   for (const id of refs(value, path, errors)) {
-    if (!Object.hasOwn(registry[kind], id) || typeof registry[kind][id] !== "function") {
+    if (
+      !Object.hasOwn(registry[kind], id) ||
+      typeof registry[kind][id] !== "function"
+    ) {
       errors.push(`${path} references unknown ${kind.slice(0, -1)} '${id}'.`);
     }
   }
@@ -24,39 +34,59 @@ function checkRefs(value, path, registry, kind, errors) {
 
 function checkActions(value, path, registry, errors) {
   for (const id of refs(value, path, errors)) {
-    if (!Object.hasOwn(registry.actions, id) || typeof registry.actions[id] !== "function") {
+    if (
+      !Object.hasOwn(registry.actions, id) ||
+      typeof registry.actions[id] !== "function"
+    ) {
       errors.push(`${path} references unknown action '${id}'.`);
     }
   }
 }
 
 function checkJsonData(value, path, errors, seen = new WeakSet()) {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return;
+  if (value === null || typeof value === "string" || typeof value === "boolean")
+    return;
   if (typeof value === "number") {
-    if (!Number.isFinite(value)) errors.push(`${path} must contain only finite JSON numbers.`);
+    if (!Number.isFinite(value))
+      errors.push(`${path} must contain only finite JSON numbers.`);
     return;
   }
   if (typeof value !== "object") {
-    errors.push(`${path} contains non-JSON data; definitions must not contain executable code.`);
+    errors.push(
+      `${path} contains non-JSON data; definitions must not contain executable code.`,
+    );
     return;
   }
   if (seen.has(value)) {
-    errors.push(`${path} contains a cyclic reference; definitions must be serializable.`);
+    errors.push(
+      `${path} contains a cyclic reference; definitions must be serializable.`,
+    );
     return;
   }
-  if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) {
+  if (
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) !== Object.prototype &&
+    Object.getPrototypeOf(value) !== null
+  ) {
     errors.push(`${path} must contain plain JSON objects.`);
     return;
   }
   seen.add(value);
-  if (Array.isArray(value)) value.forEach((item, index) => checkJsonData(item, `${path}[${index}]`, errors, seen));
-  else for (const [key, nested] of Object.entries(value)) checkJsonData(nested, `${path}.${key}`, errors, seen);
+  if (Array.isArray(value))
+    value.forEach((item, index) =>
+      checkJsonData(item, `${path}[${index}]`, errors, seen),
+    );
+  else
+    for (const [key, nested] of Object.entries(value))
+      checkJsonData(nested, `${path}.${key}`, errors, seen);
   seen.delete(value);
 }
 
 function validateTarget(target, path, stepIds, errors) {
-  if (typeof target !== "string" || !target.trim()) errors.push(`${path} must name a target step.`);
-  else if (!stepIds.has(target)) errors.push(`${path} references unknown step '${target}'.`);
+  if (typeof target !== "string" || !target.trim())
+    errors.push(`${path} must name a target step.`);
+  else if (!stepIds.has(target))
+    errors.push(`${path} references unknown step '${target}'.`);
 }
 
 export function validateWorkflowDefinition(definition, registry = {}) {
@@ -69,8 +99,10 @@ export function validateWorkflowDefinition(definition, registry = {}) {
   const errors = [];
   checkJsonData(definition, "definition", errors);
   if (!isObject(definition)) return ["definition must be an object."];
-  if (typeof definition.id !== "string" || !definition.id.trim()) errors.push("definition.id is required.");
-  if (typeof definition.version !== "string" || !definition.version.trim()) errors.push("definition.version is required.");
+  if (typeof definition.id !== "string" || !definition.id.trim())
+    errors.push("definition.id is required.");
+  if (typeof definition.version !== "string" || !definition.version.trim())
+    errors.push("definition.version is required.");
   if (!Array.isArray(definition.steps) || !definition.steps.length) {
     errors.push("definition.steps must contain at least one step.");
     return [...new Set(errors)];
@@ -81,12 +113,20 @@ export function validateWorkflowDefinition(definition, registry = {}) {
       errors.push(`definition.steps[${index}] must be an object.`);
       continue;
     }
-    if (typeof step.id !== "string" || !step.id.trim()) errors.push(`definition.steps[${index}].id is required.`);
-    else if (stepIds.has(step.id)) errors.push(`definition.steps contains duplicate id '${step.id}'.`);
+    if (typeof step.id !== "string" || !step.id.trim())
+      errors.push(`definition.steps[${index}].id is required.`);
+    else if (stepIds.has(step.id))
+      errors.push(`definition.steps contains duplicate id '${step.id}'.`);
     else stepIds.add(step.id);
-    if (!STEP_KINDS.has(step.kind)) errors.push(`definition.steps[${index}].kind must be one of ${[...STEP_KINDS].join(", ")}.`);
+    if (!STEP_KINDS.has(step.kind))
+      errors.push(
+        `definition.steps[${index}].kind must be one of ${[...STEP_KINDS].join(", ")}.`,
+      );
   }
-  if (typeof definition.initialStep !== "string" || !stepIds.has(definition.initialStep)) {
+  if (
+    typeof definition.initialStep !== "string" ||
+    !stepIds.has(definition.initialStep)
+  ) {
     errors.push("definition.initialStep must name a declared step.");
   }
 
@@ -99,58 +139,121 @@ export function validateWorkflowDefinition(definition, registry = {}) {
         return;
       }
       validateTarget(value.target, `${transitionPath}.target`, stepIds, errors);
-      if (value.actions !== undefined) checkActions(value.actions, `${transitionPath}.actions`, normalizedRegistry, errors);
+      if (value.actions !== undefined)
+        checkActions(
+          value.actions,
+          `${transitionPath}.actions`,
+          normalizedRegistry,
+          errors,
+        );
     };
 
     if (step.kind === "eventWait" || step.kind === "humanTask") {
-      if (!isObject(step.on) || !Object.keys(step.on).length) errors.push(`${path}.on must declare at least one event transition.`);
-      else for (const [eventType, target] of Object.entries(step.on)) {
-        if (!eventType.trim()) errors.push(`${path}.on contains an empty event name.`);
-        transition(target, `${path}.on['${eventType}']`);
-      }
+      if (!isObject(step.on) || !Object.keys(step.on).length)
+        errors.push(`${path}.on must declare at least one event transition.`);
+      else
+        for (const [eventType, target] of Object.entries(step.on)) {
+          if (!eventType.trim())
+            errors.push(`${path}.on contains an empty event name.`);
+          transition(target, `${path}.on['${eventType}']`);
+        }
     }
     if (step.kind === "serviceTask") {
-      if (typeof step.activity !== "string" || !Object.hasOwn(normalizedRegistry.activities, step.activity) || typeof normalizedRegistry.activities[step.activity] !== "function") {
+      if (
+        typeof step.activity !== "string" ||
+        !Object.hasOwn(normalizedRegistry.activities, step.activity) ||
+        typeof normalizedRegistry.activities[step.activity] !== "function"
+      ) {
         errors.push(`${path}.activity must name a registered activity.`);
       }
       transition(step.onDone, `${path}.onDone`);
       transition(step.onError, `${path}.onError`);
     }
     if (step.kind === "decision") {
-      if (!Array.isArray(step.routes) || !step.routes.length) errors.push(`${path}.routes must contain at least one guarded route.`);
-      else for (const [index, route] of step.routes.entries()) {
-        if (!isObject(route)) {
-          errors.push(`${path}.routes[${index}] must be an object.`);
-          continue;
+      if (!Array.isArray(step.routes) || !step.routes.length)
+        errors.push(`${path}.routes must contain at least one guarded route.`);
+      else
+        for (const [index, route] of step.routes.entries()) {
+          if (!isObject(route)) {
+            errors.push(`${path}.routes[${index}] must be an object.`);
+            continue;
+          }
+          checkRefs(
+            route.guard,
+            `${path}.routes[${index}].guard`,
+            normalizedRegistry,
+            "guards",
+            errors,
+          );
+          validateTarget(
+            route.target,
+            `${path}.routes[${index}].target`,
+            stepIds,
+            errors,
+          );
+          if (route.actions !== undefined)
+            checkActions(
+              route.actions,
+              `${path}.routes[${index}].actions`,
+              normalizedRegistry,
+              errors,
+            );
         }
-        checkRefs(route.guard, `${path}.routes[${index}].guard`, normalizedRegistry, "guards", errors);
-        validateTarget(route.target, `${path}.routes[${index}].target`, stepIds, errors);
-        if (route.actions !== undefined) checkActions(route.actions, `${path}.routes[${index}].actions`, normalizedRegistry, errors);
-      }
-      validateTarget(step.defaultTarget, `${path}.defaultTarget`, stepIds, errors);
+      validateTarget(
+        step.defaultTarget,
+        `${path}.defaultTarget`,
+        stepIds,
+        errors,
+      );
     }
     if (step.timeout !== undefined) {
-      if (step.kind !== "humanTask") errors.push(`${path}.timeout is only supported on a humanTask.`);
-      if (!isObject(step.timeout)) errors.push(`${path}.timeout must be an object.`);
+      if (step.kind !== "humanTask")
+        errors.push(`${path}.timeout is only supported on a humanTask.`);
+      if (!isObject(step.timeout))
+        errors.push(`${path}.timeout must be an object.`);
       else {
-        if (typeof step.timeout.after !== "string" || !Object.hasOwn(normalizedRegistry.delays, step.timeout.after) || typeof normalizedRegistry.delays[step.timeout.after] !== "function") {
+        if (
+          typeof step.timeout.after !== "string" ||
+          !Object.hasOwn(normalizedRegistry.delays, step.timeout.after) ||
+          typeof normalizedRegistry.delays[step.timeout.after] !== "function"
+        ) {
           errors.push(`${path}.timeout.after must name a registered delay.`);
         }
-        if (typeof step.timeout.event !== "string" || !step.timeout.event.trim()) {
-          errors.push(`${path}.timeout.event must name the event delivered by the host.`);
+        if (
+          typeof step.timeout.event !== "string" ||
+          !step.timeout.event.trim()
+        ) {
+          errors.push(
+            `${path}.timeout.event must name the event delivered by the host.`,
+          );
         } else {
           const timeoutTransition = step.on?.[step.timeout.event];
           if (!isObject(timeoutTransition)) {
-            errors.push(`${path}.timeout.event must also be declared in step.on.`);
+            errors.push(
+              `${path}.timeout.event must also be declared in step.on.`,
+            );
           } else if (timeoutTransition.target !== step.timeout.target) {
-            errors.push(`${path}.timeout.target must match the target of its step.on event.`);
+            errors.push(
+              `${path}.timeout.target must match the target of its step.on event.`,
+            );
           }
         }
-        validateTarget(step.timeout.target, `${path}.timeout.target`, stepIds, errors);
+        validateTarget(
+          step.timeout.target,
+          `${path}.timeout.target`,
+          stepIds,
+          errors,
+        );
       }
     }
-    if (step.domainBindings !== undefined && (!Array.isArray(step.domainBindings) || step.domainBindings.some((value) => typeof value !== "string"))) {
-      errors.push(`${path}.domainBindings must be an array of ontology identifiers.`);
+    if (
+      step.domainBindings !== undefined &&
+      (!Array.isArray(step.domainBindings) ||
+        step.domainBindings.some((value) => typeof value !== "string"))
+    ) {
+      errors.push(
+        `${path}.domainBindings must be an array of ontology identifiers.`,
+      );
     }
   }
   return [...new Set(errors)];
@@ -161,17 +264,37 @@ function createMachineConfig(definition) {
   for (const step of definition.steps) {
     const config = {};
     if (step.kind === "eventWait" || step.kind === "humanTask") {
-      config.on = Object.fromEntries(Object.entries(step.on).map(([eventType, transition]) => [eventType, {
-        target: transition.target,
-        ...(transition.actions === undefined ? {} : { actions: transition.actions }),
-      }]));
+      config.on = Object.fromEntries(
+        Object.entries(step.on).map(([eventType, transition]) => [
+          eventType,
+          {
+            target: transition.target,
+            ...(transition.actions === undefined
+              ? {}
+              : { actions: transition.actions }),
+          },
+        ]),
+      );
     }
     if (step.kind === "serviceTask") {
       config.invoke = {
         src: step.activity,
-        input: ({ context, event }) => ({ context: clone(context ?? {}), event: clone(event ?? {}) }),
-        onDone: { target: step.onDone.target, ...(step.onDone.actions === undefined ? {} : { actions: step.onDone.actions }) },
-        onError: { target: step.onError.target, ...(step.onError.actions === undefined ? {} : { actions: step.onError.actions }) },
+        input: ({ context, event }) => ({
+          context: clone(context ?? {}),
+          event: clone(event ?? {}),
+        }),
+        onDone: {
+          target: step.onDone.target,
+          ...(step.onDone.actions === undefined
+            ? {}
+            : { actions: step.onDone.actions }),
+        },
+        onError: {
+          target: step.onError.target,
+          ...(step.onError.actions === undefined
+            ? {}
+            : { actions: step.onError.actions }),
+        },
       };
     }
     if (step.kind === "decision") {
@@ -191,7 +314,10 @@ function createMachineConfig(definition) {
     id: definition.id,
     version: definition.version,
     initial: definition.initialStep,
-    context: ({ input }) => ({ ...clone(definition.initialContext ?? {}), ...clone(input?.context ?? {}) }),
+    context: ({ input }) => ({
+      ...clone(definition.initialContext ?? {}),
+      ...clone(input?.context ?? {}),
+    }),
     states,
   };
 }
@@ -215,7 +341,8 @@ export function createFlowRuntime(registry = {}) {
 
   function compile(definition) {
     const errors = validateWorkflowDefinition(definition, normalizedRegistry);
-    if (errors.length) throw new Error(`Invalid workflow definition:\n- ${errors.join("\n- ")}`);
+    if (errors.length)
+      throw new Error(`Invalid workflow definition:\n- ${errors.join("\n- ")}`);
     return setup({
       actors: actorLogic,
       guards: normalizedRegistry.guards,
@@ -238,13 +365,17 @@ export function createFlowRuntime(registry = {}) {
         throw new Error(`Unknown delay '${id}'.`);
       }
       const delay = normalizedRegistry.delays[id];
-      if (typeof delay !== "function") throw new Error(`Unknown delay '${id}'.`);
+      if (typeof delay !== "function")
+        throw new Error(`Unknown delay '${id}'.`);
       const milliseconds = Number(delay({ context: clone(context) }));
       if (!Number.isFinite(milliseconds) || milliseconds < 0) {
-        throw new Error(`Delay '${id}' must resolve to a finite, non-negative number of milliseconds.`);
+        throw new Error(
+          `Delay '${id}' must resolve to a finite, non-negative number of milliseconds.`,
+        );
       }
       return milliseconds;
     },
-    validate: (definition) => validateWorkflowDefinition(definition, normalizedRegistry),
+    validate: (definition) =>
+      validateWorkflowDefinition(definition, normalizedRegistry),
   };
 }

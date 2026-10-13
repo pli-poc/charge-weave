@@ -1,5 +1,7 @@
 # Analytical contract and reusable dashboard
 
+> Client implementation update (2026-10-13): see [client runtime status](client-runtime-status.md) for the connected browser correction slice, generated local API, shared components, verification and explicit limitations. Production responsibilities below remain target contracts.
+
 Version 1.3.0 adds 12 analytical classes, 12 invariants, three competency questions and requirement BR-185. The operations console now calculates historical KPIs and charts from a shared analytical profile. It replaces the fixed overview values, bar heights and decorative energy curve with an executable, repeatable calculation. The live-site inventory, work queue, roaming examples and financial ledger remain separate fixture populations.
 
 ## Shared ownership
