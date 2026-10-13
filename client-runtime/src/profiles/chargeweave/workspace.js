@@ -90,9 +90,9 @@ export function createWorkspace({
     revision: state.revision,
     status: state.status,
     stage: state.currentStage,
-    descriptor: model.task,
+    descriptor: copy(model.task),
     values: copy(state.values),
-    outcome: state.outcome,
+    outcome: copy(state.outcome),
     flowState: state.actor?.value ?? pkg.flow.initialStep,
   });
   const result = (accepted, code, violations = []) => ({
@@ -278,11 +278,12 @@ export function createWorkspace({
       return copy(state);
     },
     submit(args) {
+      const submitted = copy(args);
       pending++;
       const run = queue.then(async () => {
         busy = true;
         try {
-          return await execute(args);
+          return await execute(submitted);
         } finally {
           busy = false;
           pending--;

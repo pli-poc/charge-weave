@@ -185,3 +185,14 @@ test("checkpoint restoration rejects inconsistent business and process state", a
     /Incoherent/,
   );
 });
+
+test('task reads and queued command inputs cannot mutate authoritative workspace state', async () => {
+  const w=workspace();
+  const submitted=structuredClone(args);
+  const pending=w.submit(submitted);
+  submitted.input.meterEnd='0';
+  assert.equal((await pending).accepted,true);
+  const read=w.task();read.outcome.amount='999';read.descriptor.form.fields[0].required=false;
+  assert.equal(w.task().outcome.amount,'23.21');
+  assert.equal(w.task().descriptor.form.fields[0].required,true);
+});
