@@ -1,5 +1,5 @@
 import { createCorrectionWorkflowRuntime } from "./correction-workflow.js";
-import { fixed } from "../../services/decimal.js";
+import { fixed, formatFixed } from "../../services/decimal.js";
 import { rateReading } from "./rating.js";
 import { evaluateRules, validateFields } from "../../services/validation.js";
 const copy = (v) => JSON.parse(JSON.stringify(v));
@@ -173,7 +173,7 @@ export function createWorkspace({
             originalEnergyKwh: Number(original.energyKwh),
             correctedEnergyKwh: Number(rating.energyKwh),
             energyDeltaKwh:
-              Number(original.energyKwh) - Number(rating.energyKwh),
+              Number(formatFixed(fixed(original.energyKwh, 3) - fixed(rating.energyKwh, 3), 3)),
           };
         },
         async calculateCorrectedRating() {
@@ -182,7 +182,7 @@ export function createWorkspace({
             currency: "EUR",
             grossEur: rating.amountEur,
             grossDeltaEur:
-              Number(original.amountEur) - Number(rating.amountEur),
+              Number(formatFixed(fixed(original.amountEur, 2) - fixed(rating.amountEur, 2), 2)),
             ratingVersion: rating.calculationVersion,
           };
         },

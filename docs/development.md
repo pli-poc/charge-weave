@@ -120,3 +120,18 @@ Temporal review: run `python tools/audit_temporal.py`. After class contracts cha
 ## Historical analytics and configurable dashboard
 
 See [Analytical contract and reusable dashboard](analytics-contract.md) for the S/M/O/D/F/T/R/K intent, weighted aggregation, generated profile, synthetic year, adapter boundary and test evidence. The app workspace is `/app/#analytics`; the overview consumes the same provider and result renderers. Run `python tools/test_analytics.py` and `npm test --prefix console-app`.
+
+## Shared browser runtime setup
+
+Install the private runtime before either browser consumer:
+
+```bash
+npm ci --prefix client-runtime
+npm run generate --prefix client-runtime
+npm run check:generated --prefix client-runtime
+npm test --prefix client-runtime
+npm ci --prefix console-app
+npm ci --prefix website
+```
+
+The existing build commands regenerate the application package. Schema changes require review and generator-produced snapshot updates as described in [client runtime status](client-runtime-status.md).

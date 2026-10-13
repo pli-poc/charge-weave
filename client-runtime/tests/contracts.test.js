@@ -196,3 +196,12 @@ test('task reads and queued command inputs cannot mutate authoritative workspace
   assert.equal(w.task().outcome.amount,'23.21');
   assert.equal(w.task().descriptor.form.fields[0].required,true);
 });
+
+test('a one-cent correction is material and cannot disappear through binary subtraction', async () => {
+  const w=workspace();
+  const result=await w.submit({...args,input:{...input,meterEnd:'12883.080'}});
+  assert.equal(result.accepted,true);
+  assert.equal(result.task.outcome.amount,'23.42');
+  assert.equal(result.task.flowState,'completed');
+  assert.equal(w.export().actor.context.rating.grossDeltaEur,0.01);
+});
