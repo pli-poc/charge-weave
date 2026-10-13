@@ -92,6 +92,8 @@ jobs:
             client-runtime/package-lock.json
       - run: npm ci --prefix ../client-runtime
       - run: npm run generate --prefix ../client-runtime
+      - name: Record generated schema compatibility diff
+        run: diff -u ../tests/client-contract/schema.graphql ../client-runtime/generated/schema.graphql > ../client-runtime/generated/schema-diff.txt
       - run: npm run check:generated --prefix ../client-runtime
       - run: npm test --prefix ../client-runtime
       - run: npm ci --prefix ../console-app

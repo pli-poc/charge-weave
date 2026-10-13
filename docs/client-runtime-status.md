@@ -1,7 +1,7 @@
 # Client runtime implementation and acceptance scope
 
 Implemented 2026-10-13, starting from `d335489c3828f11d660c31752b4a6b95374426a5`.
-First implementation commit: `cd6d1de7c4f0236096d1188b9da81331e395c550`.
+First implementation commit: `cd6d1de7c4f0236096d1188b9da81331e395c550`. Acceptance/refinement commit: `83ec0470393868032c06f690c6afec4e30134009`. Its [protected-build browser and deployment run](https://github.com/pli-poc/charge-weave/actions/runs/38363769418) passed and published successfully. Subsequent integrity refinements are verified by their own commit-bound run.
 
 ## What is now connected
 
@@ -27,13 +27,17 @@ The migrated meter calculation uses integer fixed-point arithmetic (0.001 kWh; t
 
 The tariff reader is read-only and tested against all 63 committed Python/SPARQL reference selections. Its graph/slice identity remains in the result. The correction history is not a full temporal writer, and operational corrections do not modify the separate synthetic yearly analytics population.
 
+The generator-produced `tests/client-contract/schema.graphql` is a review snapshot, never an editable semantic source. After reviewing an intended API change, regenerate it with `npm run generate --prefix client-runtime -- --update-schema-snapshot`. CI records the schema diff and rejects unreviewed drift.
+
 ## Verification
 
 - Existing 23 console and 31 website/model contracts remain in use.
 - New runtime contracts cover generated input changes, unresolved identities, weakened required fields, unknown rules/handlers, a neutral document-review package, typed GraphQL, revisions, duplicate commands, invalid evidence, exact rating, coherent restore, package mismatch, storage conflicts and analytic/temporal parity.
 - Browser acceptance covers rejected evidence, accepted correction, explicit save, reload, desktop/mobile layout, absence of business network requests and shared developer inspection.
 - The deployment workflow generates, checks and tests the runtime before both consumers and uploads package/schema/capability artifacts with browser evidence. The protected assembled build is the browser-test target.
-- First GitHub browser run: new Work persistence cases passed in both viewports; analytics controls exposed ambiguous accessible names. Explicit filter labels were corrected for the next run.
+- First GitHub browser run: new Work persistence cases passed in both viewports; analytics controls exposed ambiguous accessible names. Explicit filter labels were corrected; the next full browser run passed.
+
+The separate ontology run exposed a pre-existing temporal fixture mismatch: removing writer-owned ProjectionWatermark records left AnalyticalExecution/AnalyticalResult records with broken mandatory references. The payload fixture now excludes that dependent execution evidence together with trusted metadata; analytical definitions and all business-module coverage remain. Full reference-graph validation is unchanged.
 
 ## Deliberate limits
 

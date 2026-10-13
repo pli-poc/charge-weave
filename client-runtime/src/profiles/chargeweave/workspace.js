@@ -4,7 +4,15 @@ import { rateReading } from "./rating.js";
 import { evaluateRules, validateFields } from "../../services/validation.js";
 const copy = (v) => JSON.parse(JSON.stringify(v));
 const identity = (v) =>
-  JSON.stringify(Object.fromEntries(Object.entries(v).sort()));
+  JSON.stringify(v, (_, value) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(
+          Object.entries(value).sort(([a], [b]) =>
+            a < b ? -1 : a > b ? 1 : 0,
+          ),
+        )
+      : value,
+  );
 async function settle(actor, definition) {
   for (let i = 0; i < 100; i++) {
     const s = actor.getSnapshot();
@@ -234,6 +242,7 @@ export function createWorkspace({
         outcome: {
           type: "correction.accepted",
           amount: rating.amountEur,
+          correctionId: s.context.correctedCdr?.id ?? caseData.cdrId,
           energyKwh: rating.energyKwh,
           calculationVersion: rating.calculationVersion,
         },

@@ -1,6 +1,6 @@
 # Client-first ontology runtime: architecture and build plan
 
-**Status:** First connected client slice implemented on 2026-10-13; release verification in progress. See [actual implementation scope and evidence](client-runtime-status.md). The original checklist below remains the full acceptance contract; unchecked items are not implied complete.
+**Status:** First connected client slice implemented on 2026-10-13; commit 83ec047 passed protected-build browser checks and deployment. See [actual implementation scope and evidence](client-runtime-status.md). The original checklist below remains the full acceptance contract; unchecked items are not implied complete.
 
 **Decision date:** 2026-10-09.
 
@@ -269,7 +269,7 @@ Keep migration re-exports in existing module locations until both console and we
 
 ## 10. Build sequence and reviewable milestones
 
-All items are unchecked because this commit only adds the plan. Complete each phase with code, meaningful evidence, documentation and a commit; record its SHA and known limits in the progress ledger. Dependencies are explicit so a later session can resume without guessing.
+The original checklist below is retained for detailed follow-on coverage; phase completion for the bounded first slice is recorded in the current progress ledger and implementation-status document. Complete each phase with code, meaningful evidence, documentation and a commit; record its SHA and known limits in the progress ledger. Dependencies are explicit so a later session can resume without guessing.
 
 ### P0 — Baseline and executable contract inventory
 
@@ -475,7 +475,7 @@ Deferred: Syntriq server implementation, C# engine changes, V8/Jint embedding, N
 | P5 | Implemented correction slice | existing workflow execution and shared saved-instance inspector; other journeys unchanged |
 | P6 | Implemented read-only profile | all 63 temporal reference selections and analytical projection parity; no temporal writer |
 | P7 | Implemented initial/end checkpoints | atomic local save, import/export, conflict and package checks; no mid-activity recovery |
-| P8 | Release verification in progress | first commit cd6d1de; see client-runtime-status.md for actual evidence and limits |
+| P8 | Scoped release passed | 83ec047; Actions run 38363769418; see client-runtime-status.md for actual evidence and limits |
 
 Use this request in a later session:
 

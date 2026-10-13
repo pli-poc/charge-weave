@@ -80,7 +80,7 @@ test("the app presents a model-driven billing work item with business progress a
   await page.getByLabel("Decision note").fill("Signed partner evidence confirms the corrected register.");
   await page.getByRole("button", { name: /Record decision/ }).click();
   await expect(page.getByRole("heading", { name: "Billing adjustment prepared" })).toBeVisible();
-  await expect(page.getByText("ADJ-2026-00471")).toBeVisible();
+  await expect(page.getByText("CDR-CDR-NL-EV-0471-R1", { exact: true })).toBeVisible();
   await expect(page.locator(".work-state.large")).toContainText("Completed");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

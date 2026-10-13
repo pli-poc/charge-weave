@@ -46,12 +46,118 @@ test("unresolved semantic names, type collisions and unsupported handlers/rules 
     assert.throws(() => compileApplication(input));
   }
 });
-test('required command fields cannot be weakened in presentation',()=>{const next=structuredClone(options);next.task.task.form.fields[0].required=false;assert.throws(()=>compileApplication(next),/Weakened/);});
-test('a document review package runs through the same generator, GraphQL dispatcher and flow compiler',async()=>{
- const {createLocalClient}=await import('../src/graphql/client.js');const {createFlowRuntime}=await import('../src/flow/engine.js');
- const p=compileApplication({catalog:{Document:{fields:[],parent:null}},api:{maxDepth:8,maxFields:30,types:[{name:'Document',class:'Document',fields:[{name:'id',type:'ID!',source:'id',binding:'projection:id'}]}],operations:[{name:'documents',type:'[Document!]!',handler:'documents'}]},task:{task:{id:'review',form:{fields:[{id:'note',datatype:'string',required:true,concept:'command:reviewDocument.note',binding:{kind:'commandInput',command:'reviewDocument',field:'note'}}]}}},commands:{commands:[{id:'reviewDocument',inputType:'DocumentReviewInput',handler:'review',class:'Document',requiredInputs:['note'],inputs:['note'],requiredRules:[]}]},capabilities:{handlers:['review'],rules:[]},flow:{'@graph':[{'@type':'xflow:WorkflowDefinition',workflowId:'document-review',workflowVersion:'1',initialStep:{'@id':'#review'},hasStep:[{'@id':'#review'},{'@id':'#done'}]},{'@id':'#review','@type':'xflow:HumanTask',stepKey:'review',onEvent:[{eventType:'approve',targetStep:{'@id':'#done'}}]},{'@id':'#done','@type':'xflow:EndStep',stepKey:'done'}]},analytics:{},inputDigest:'neutral-fixture'});
- const actor=createFlowRuntime().createActor(p.flow);actor.start();
- const c=createLocalClient({applicationPackage:p,services:{documents:()=>[{id:'document-1'}],review:()=>{actor.send({type:'approve'});return {accepted:true,code:'ACCEPTED',revision:1,violations:[],task:{id:'review',revision:1,status:'completed',stage:'done',descriptor:{},values:{},flowState:actor.getSnapshot().value}};}}});
- const result=await c.execute({query:'mutation {reviewDocument(input:{note:"Reviewed"},expectedRevision:0,idempotencyKey:"doc-1"){accepted task{flowState}}}'});
- assert.equal(result.errors,undefined);assert.equal(result.data.reviewDocument.task.flowState,'done');actor.stop();
+test("required command fields cannot be weakened in presentation", () => {
+  const next = structuredClone(options);
+  next.task.task.form.fields[0].required = false;
+  assert.throws(() => compileApplication(next), /Weakened/);
+});
+test("a document review package runs through the same generator, GraphQL dispatcher and flow compiler", async () => {
+  const { createLocalClient } = await import("../src/graphql/client.js");
+  const { createFlowRuntime } = await import("../src/flow/engine.js");
+  const p = compileApplication({
+    catalog: { Document: { fields: [], parent: null } },
+    api: {
+      maxDepth: 8,
+      maxFields: 30,
+      types: [
+        {
+          name: "Document",
+          class: "Document",
+          fields: [
+            { name: "id", type: "ID!", source: "id", binding: "projection:id" },
+          ],
+        },
+      ],
+      operations: [
+        { name: "documents", type: "[Document!]!", handler: "documents" },
+      ],
+    },
+    task: {
+      task: {
+        id: "review",
+        form: {
+          fields: [
+            {
+              id: "note",
+              datatype: "string",
+              required: true,
+              concept: "command:reviewDocument.note",
+              binding: {
+                kind: "commandInput",
+                command: "reviewDocument",
+                field: "note",
+              },
+            },
+          ],
+        },
+      },
+    },
+    commands: {
+      commands: [
+        {
+          id: "reviewDocument",
+          inputType: "DocumentReviewInput",
+          handler: "review",
+          class: "Document",
+          requiredInputs: ["note"],
+          inputs: ["note"],
+          requiredRules: [],
+        },
+      ],
+    },
+    capabilities: { handlers: ["review"], rules: [] },
+    flow: {
+      "@graph": [
+        {
+          "@type": "xflow:WorkflowDefinition",
+          workflowId: "document-review",
+          workflowVersion: "1",
+          initialStep: { "@id": "#review" },
+          hasStep: [{ "@id": "#review" }, { "@id": "#done" }],
+        },
+        {
+          "@id": "#review",
+          "@type": "xflow:HumanTask",
+          stepKey: "review",
+          onEvent: [{ eventType: "approve", targetStep: { "@id": "#done" } }],
+        },
+        { "@id": "#done", "@type": "xflow:EndStep", stepKey: "done" },
+      ],
+    },
+    analytics: {},
+    inputDigest: "neutral-fixture",
+  });
+  const actor = createFlowRuntime().createActor(p.flow);
+  actor.start();
+  const c = createLocalClient({
+    applicationPackage: p,
+    services: {
+      documents: () => [{ id: "document-1" }],
+      review: () => {
+        actor.send({ type: "approve" });
+        return {
+          accepted: true,
+          code: "ACCEPTED",
+          revision: 1,
+          violations: [],
+          task: {
+            id: "review",
+            revision: 1,
+            status: "completed",
+            stage: "done",
+            descriptor: {},
+            values: {},
+            flowState: actor.getSnapshot().value,
+          },
+        };
+      },
+    },
+  });
+  const result = await c.execute({
+    query:
+      'mutation {reviewDocument(input:{note:"Reviewed"},expectedRevision:0,idempotencyKey:"doc-1"){accepted task{flowState}}}',
+  });
+  assert.equal(result.errors, undefined);
+  assert.equal(result.data.reviewDocument.task.flowState, "done");
+  actor.stop();
 });

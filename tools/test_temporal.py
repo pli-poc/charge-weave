@@ -20,6 +20,22 @@ def person_graph(value='original'):
     return g
 
 
+def business_snapshot_graph():
+    """Exclude trusted history and its execution evidence from payload fixtures.
+
+    AnalyticalExecution requires ProjectionWatermark and AnalyticalResult requires
+    that execution. They cannot survive stripping writer-owned metadata. Analytical
+    definitions and query intent stay in the payload, preserving module coverage.
+    The complete reference graph is still validated separately by ontology CI.
+    """
+    graph=Graph().parse(P/'examples/reference.ttl')
+    excluded={C[k] for k,v in policy()['classPolicies'].items() if v=='history-metadata'}
+    excluded.update({C.AnalyticalExecution,C.AnalyticalResult})
+    for node in {s for cls in excluded for s in graph.subjects(RDF.type,cls)}:
+        graph.remove((node,None,None));graph.remove((None,None,node))
+    return graph
+
+
 class TemporalAcceptance(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -248,10 +264,7 @@ class TemporalAcceptance(unittest.TestCase):
         self.assertIsNone(self.store.head)
 
     def test_25_all_business_modules_roundtrip_in_one_complete_snapshot(self):
-        graph=Graph().parse(P/'examples/reference.ttl')
-        history={C[k] for k,v in policy()['classPolicies'].items() if v=='history-metadata'}
-        for node in {s for cls in history for s in graph.subjects(RDF.type,cls)}:
-            graph.remove((node,None,None));graph.remove((None,None,node))
+        graph=business_snapshot_graph()
         self.clock.set('2026-09-26T00:00:00Z')
         self.put(graph,valid_from='2026-09-25T00:00:00Z')
         selected=self.store.select('2026-09-25T12:00:00Z',self.clock())
@@ -343,10 +356,7 @@ class TemporalAcceptance(unittest.TestCase):
         self.assertFalse(violates('B184',E.Selection))
 
     def test_30_posted_journal_cannot_be_rewritten_or_reopened(self):
-        graph=Graph().parse(P/'examples/reference.ttl')
-        history={C[k] for k,v in policy()['classPolicies'].items() if v=='history-metadata'}
-        for node in {s for cls in history for s in graph.subjects(RDF.type,cls)}:
-            graph.remove((node,None,None));graph.remove((None,None,node))
+        graph=business_snapshot_graph()
         self.clock.set('2026-09-26T00:00:00Z')
         graph.set((E.Journal,C.journalState,C.journalState_Posted))
         self.put(graph,valid_from='2026-09-25T00:00:00Z')

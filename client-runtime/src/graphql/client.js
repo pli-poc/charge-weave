@@ -46,8 +46,10 @@ export function createLocalClient({ applicationPackage: pkg, services }) {
     scalar.parseValue = coerce;
     scalar.parseLiteral = (n) => coerce(valueFromASTUntyped(n));
   }
-  for(const type of pkg.api.types) {
-    for(const field of type.fields) schema.getType(type.name).getFields()[field.name].resolve = record => Object.hasOwn(record,field.source) ? record[field.source] : null;
+  for (const type of pkg.api.types) {
+    for (const field of type.fields)
+      schema.getType(type.name).getFields()[field.name].resolve = (record) =>
+        Object.hasOwn(record, field.source) ? record[field.source] : null;
   }
   const rootValue = {};
   for (const op of pkg.api.operations) {
@@ -69,8 +71,12 @@ export function createLocalClient({ applicationPackage: pkg, services }) {
     temporal: (args) => services.temporal(args),
   });
   for (const command of pkg.commands.commands) {
-    if (!Object.hasOwn(services, command.handler) || typeof services[command.handler] !== "function") throw Error(`Missing command handler ${command.handler}`);
-    rootValue[command.id] = args => services[command.handler](args);
+    if (
+      !Object.hasOwn(services, command.handler) ||
+      typeof services[command.handler] !== "function"
+    )
+      throw Error(`Missing command handler ${command.handler}`);
+    rootValue[command.id] = (args) => services[command.handler](args);
   }
   return {
     async execute({ query, variables = {}, operationName }) {

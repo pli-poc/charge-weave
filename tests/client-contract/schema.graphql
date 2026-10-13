@@ -1,0 +1,30 @@
+scalar JSON
+scalar Decimal
+scalar DateTime
+scalar IRI
+scalar BigInteger
+type Site { id: ID!
+name: String!
+country: String }
+type Session { id: ID! }
+ type Violation { ruleId: String!, field: String, message: String! }
+ type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String! }
+ type CommandResult { accepted: Boolean!, code: String!, revision: Int!, violations: [Violation!]!, task: Task! }
+ input CorrectionInput { meterEnd: Decimal!
+reason: String!
+evidenceReference: String!
+operatorNote: String! }
+ input FilterInput { dimension: String!, operator: String!, values: [String!]!, stage: String!, datatype: String! }
+ input TimeInput { start: DateTime!, end: DateTime!, knownAt: DateTime!, timezone: String!, bucket: String! }
+ input WindowInput { start: DateTime!, end: DateTime! }
+ input ComparisonInput { kind: String!, window: WindowInput, target: Float }
+ input RankingInput { by: String!, direction: String!, limit: Int!, ties: String! }
+ input HavingInput { operator: String!, value: Float! }
+ input AnalyticsInput { subject: String!, measure: String!, dimension: String, filters: [FilterInput!]!, time: TimeInput!, comparison: ComparisonInput!, operator: String!, ranking: RankingInput!, having: HavingInput }
+ type AnalyticsRow { key: String, label: String, value: Float, numerator: Float, denominator: Float, count: Int, reference: Float, change: Float, percentChange: Float }
+ type AnalyticsResult { rows: [AnalyticsRow!]!, total: AnalyticsRow!, totalGroups: Int!, field: String!, evidence: JSON!, measure: JSON!, dimension: JSON, query: JSON! }
+ type TemporalResult { state: String!, price: Decimal, commit: JSON, slice: JSON }
+ type Query { sites: [Site!]!
+sessions: [Session!]! task: Task!, metadata: JSON!, analytics(input: AnalyticsInput!): AnalyticsResult!, temporal(validAt: String!, knownAt: String!): TemporalResult! }
+ type Mutation { submitCorrection(input: CorrectionInput!, expectedRevision: Int!, idempotencyKey: String!): CommandResult! }
+ 
