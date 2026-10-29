@@ -205,3 +205,35 @@ test('a one-cent correction is material and cannot disappear through binary subt
   assert.equal(result.task.flowState,'completed');
   assert.equal(w.export().actor.context.rating.grossDeltaEur,0.01);
 });
+
+test('separate approval survives restore and applies a decision exactly once', async () => {
+  const w = workspace();
+  const pending = await w.prepare(args);
+  assert.equal(pending.code, 'AWAITING_APPROVAL');
+  assert.equal(pending.task.flowState, 'awaitingApproval');
+  assert.equal(w.export().actor.context.credit, undefined);
+  const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
+  const decision = { outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 1, idempotencyKey: 'approval-1' };
+  const accepted = await restored.decide(decision);
+  assert.equal(accepted.task.flowState, 'completed');
+  assert.equal(accepted.task.outcome.amount, '23.21');
+  assert.deepEqual(await restored.decide(decision), accepted);
+  assert.equal((await restored.decide({ ...decision, idempotencyKey: 'stale' })).code, 'STALE_REVISION');
+  assert.equal(restored.history().length, 2);
+  assert.equal(createWorkspace({ applicationPackage: pkg, snapshot: restored.export() }).task().status, 'completed');
+});
+
+test('rejection and virtual deadline do not create financial effects and survive restore', async () => {
+  for (const expire of [false, true]) {
+    let now = '2026-10-13T08:00:00.000Z';
+    const w = createWorkspace({ applicationPackage: pkg, clock: () => now });
+    await w.prepare(args);
+    if (expire) now = '2026-10-13T09:00:00.000Z';
+    const r = await w.decide({ outcome: expire ? 'approve' : 'reject', note: 'Evidence does not support this proposed correction.', expectedRevision: 1, idempotencyKey: 'decision' });
+    assert.equal(r.code, expire ? 'APPROVAL_EXPIRED' : 'DECLINED');
+    assert.equal(w.export().actor.context.credit, undefined);
+    const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export(), clock: () => now });
+    assert.equal(restored.task().flowState, expire ? 'manualReview' : 'declined');
+    assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 2, idempotencyKey: 'again' })).code, 'TASK_NOT_OPEN');
+  }
+});

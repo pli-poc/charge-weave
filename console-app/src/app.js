@@ -1,3 +1,5 @@
+import flowPackage from "../../client-runtime/generated/application.json" with { type: "json" };
+import approvalForm from "../../model/correction-approval-form.json" with { type: "json" };
 import { createConsoleClient } from "./local-client.js";
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
@@ -187,7 +189,8 @@ function activityPanel() {
 function correctionOverview() {
   const item = meterCorrectionModel.case;
   const complete = workRun.status === "completed";
-  return `<section class="panel" aria-label="Connected correction case"><header class="panel-heading"><div><span class="eyebrow">CORRECTION WORKSPACE · SYNTHETIC CASE</span><h2>${complete ? "Correction decision recorded" : "A charging correction needs your attention"}</h2></div><button class="primary-button" type="button" data-action="open-work-item">${complete ? "Inspect result" : "Review correction"} ${icon("arrow")}</button></header><div class="panel-content"><p>${esc(item.sessionId)} · ${esc(item.site)}</p><p>${complete ? "The accepted decision is available in this workspace." : "Review revised meter evidence and record a decision using the generated task form."}</p><p><strong>${complete ? "Completed" : "1 task awaiting review"}</strong> · Local correction state; independent of the historical analytics below.</p></div></section>`;
+  const stateText = { open: "Waiting for evidence validation", awaitingApproval: "Awaiting billing approval", completed: "Correction completed", declined: "Correction declined", expired: "Manual review required" }[workRun.status] ?? workRun.status;
+  return `<section class="panel" aria-label="Connected correction case"><header class="panel-heading"><div><span class="eyebrow">CORRECTION WORKSPACE · SYNTHETIC CASE</span><h2>${complete ? "Correction decision recorded" : "A charging correction needs your attention"}</h2></div><button class="primary-button" type="button" data-action="open-work-item">${complete ? "Inspect result" : "Review correction"} ${icon("arrow")}</button></header><div class="panel-content"><p>${esc(item.sessionId)} · ${esc(item.site)}</p><p>${complete ? "The accepted decision is available in this workspace." : "Review revised meter evidence and record a decision using the generated task form."}</p><p><strong>${esc(stateText)}</strong> · Local correction state; independent of the historical analytics below.</p></div></section>`;
 }
 function overviewPage() {
   let analytics;
@@ -222,23 +225,24 @@ function journeyPage() {
 function workInboxPage() {
   const caseData = meterCorrectionModel.case;
   const completed = workRun.status === "completed";
-  const status = completed ? "Completed" : caseData.status === "open" ? "Needs review" : caseData.status;
+  const actionable = workRun.status === "awaitingApproval";
+  const status = { open: "Evidence validation", awaitingApproval: "Awaiting approval", completed: "Completed", declined: "Declined", expired: "Manual review" }[workRun.status] ?? workRun.status;
   const amount = completed
     ? rateCorrectedReading(workRun.values.meterEnd).amountEur
     : rateCorrectedReading(caseData.proposedMeterEnd).amountEur;
-  return `${heading("My work", "Review the decisions and data updates that need a person in the process.", '<span class="work-fixture-tag"><i></i> 1 task to review</span>')}
+  return `${heading("My work", "Review the decisions and data updates that need a person in the process.", `<span class="work-fixture-tag"><i></i> ${actionable ? "1 approval task" : "Synthetic case"}</span>`)}
     <div class="work-summary-grid" aria-label="Work summary">
-      <article><span>Needs your attention</span><strong>${completed ? "0" : "1"}</strong><small>Human task waiting on your decision</small></article>
+      <article><span>Needs your attention</span><strong>${actionable ? "1" : "0"}</strong><small>Approval tasks for the simulated role</small></article>
       <article><span>Completed today</span><strong>${completed ? "1" : "0"}</strong><small>Decisions recorded in this session</small></article>
       <article><span>Team queue</span><strong>Billing operations</strong><small>CPO · Netherlands and Belgium</small></article>
     </div>
-    <div class="work-inbox-toolbar"><div><span class="eyebrow">TASK INBOX</span><h2>Open work</h2><p>Tasks appear here when a process needs an authorized person to review evidence or update business data.</p></div><span class="subtle-tag">${completed ? "1 completed" : "1 task"}</span></div>
+    <div class="work-inbox-toolbar"><div><span class="eyebrow">TASK INBOX</span><h2>Open work</h2><p>Tasks appear here when a process needs an authorized person to review evidence or update business data.</p></div><span class="subtle-tag">${actionable ? "1 task" : "Case history"}</span></div>
     <section class="work-item-list" aria-label="Work items">
       <button class="work-item-row${completed ? " is-complete" : ""}" type="button" data-action="open-work-item">
         <span class="work-item-icon">${icon(completed ? "check" : "alert")}</span>
         <span class="work-item-copy"><span class="work-item-kicker">${esc(caseData.category)} · ${esc(caseData.id)}</span><strong>${esc(caseData.title)}</strong><small>${esc(caseData.site)} · ${esc(caseData.sessionId)}</small></span>
         <span class="work-item-value"><strong>${formatEuro(amount)}</strong><small>${completed ? "Re-rated amount" : "Proposed amount"}</small></span>
-        <span class="work-item-meta"><span class="work-state ${completed ? "is-complete" : ""}"><i></i>${status}</span><small>${completed ? "Completed just now" : esc(caseData.dueLabel)}</small></span>
+        <span class="work-item-meta"><span class="work-state ${completed ? "is-complete" : ""}"><i></i>${status}</span><small>${actionable ? `Virtual due ${esc(workRun.approvalDueAt)}` : "Synthetic case"}</small></span>
         ${icon("arrow", "work-item-arrow")}
       </button>
     </section>
@@ -258,24 +262,29 @@ function workProgress() {
 function workCasePage() {
   const caseData = meterCorrectionModel.case;
   const completed = workRun.status === "completed";
-  const currentEnd = completed ? Number(workRun.values.meterEnd) : Number(caseData.proposedMeterEnd);
+  const awaitingApproval = workRun.status === "awaitingApproval";
+  const closedWithoutChange = ["declined", "expired"].includes(workRun.status);
+  const currentEnd = completed || awaitingApproval || closedWithoutChange ? Number(workRun.values.meterEnd) : Number(caseData.proposedMeterEnd);
   const currentRating = rateCorrectedReading(currentEnd, caseData);
   const originalRating = rateCorrectedReading(caseData.originalMeterEnd, caseData);
   const form = meterCorrectionModel.task.form;
   const task = meterCorrectionModel.task;
   const taskPanel = completed
-    ? `<section class="work-decision-complete" role="status"><span class="complete-mark">${icon("check")}</span><div><span class="eyebrow">DECISION RECORDED</span><h2>Billing adjustment prepared</h2><p>${esc(workRun.values.operatorNote)}</p><dl><div><dt>New usage</dt><dd>${formatNumber(currentRating.energyKwh)} kWh</dd></div><div><dt>Re-rated amount</dt><dd>${formatEuro(currentRating.amountEur)}</dd></div><div><dt>Correction record</dt><dd>${esc(workRun.outcome?.correctionId)}</dd></div><div><dt>Evidence</dt><dd>${esc(workRun.values.evidenceReference)}</dd></div></dl></div></section>`
+    ? `<section class="work-decision-complete" role="status"><span class="complete-mark">${icon("check")}</span><div><span class="eyebrow">DECISION RECORDED</span><h2>Billing adjustment prepared</h2><p>${esc(workRun.values.operatorNote)}</p><dl><div><dt>New usage</dt><dd>${formatNumber(currentRating.energyKwh)} kWh</dd></div><div><dt>Re-rated amount</dt><dd>${formatEuro(currentRating.amountEur)}</dd></div><div><dt>Correction record</dt><dd>${esc(workRun.outcome?.correctionId)}</dd></div><div><dt>Evidence</dt><dd>${esc(workRun.values.evidenceReference)}</dd></div><div><dt>Credit</dt><dd>${esc(workRun.records?.credit?.id ?? "Not issued")} · ${workRun.records?.credit ? formatEuro(workRun.records.credit.amountEur) : "—"}</dd></div><div><dt>Partner delivery</dt><dd>Not confirmed · acknowledgment unavailable</dd></div></dl></div></section>`
+    : closedWithoutChange ? `<section class="work-decision-complete" role="status"><div><span class="eyebrow">${workRun.status === "expired" ? "DEADLINE EXPIRED" : "CORRECTION DECLINED"}</span><h2>${workRun.status === "expired" ? "Escalated to manual review" : "No correction issued"}</h2><p>${esc(workRun.outcome?.note ?? "The virtual approval deadline was reached. Manual review is required.")}</p></div></section>`
+    : awaitingApproval ? `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">SIMULATED BILLING APPROVER · HUMAN TASK</span><h2>Approve the billing correction</h2><p>Review the original and proposed amounts below. No financial record is created before approval.</p></div><span class="work-task-open"><i></i> Awaiting approval</span></div><form class="work-task-form" data-approval-task><div class="work-task-fields">${renderGeneratedTaskForm(approvalForm, {})}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Virtual deadline: ${esc(workRun.approvalDueAt)} · simulated role</span><button class="primary-button" type="submit">Record decision ${icon("arrow")}</button></div></form></section>`
     : `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">${esc(caseData.assignedRole)} · HUMAN REVIEW</span><h2>${esc(task.title)}</h2><p>${esc(task.instructions)}</p></div><span class="work-task-open"><i></i> Action required</span></div>
-      <form class="work-task-form" data-work-task="${esc(task.id)}"><div class="work-task-fields">${renderGeneratedTaskForm(form, workRun.values)}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Submitting records the decision and recalculates the billing amount.</span><button class="primary-button" type="submit">${esc(task.submitLabel)} ${icon("arrow")}</button></div></form>
-      <p class="work-form-boundary">Allowed fields come from this task's versioned presentation profile. The task host applies identity, permission, revision and business validation before the workflow resumes.</p></section>`;
+      <form class="work-task-form" data-work-task="${esc(task.id)}"><div class="work-task-fields">${renderGeneratedTaskForm(form, workRun.values)}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Validate the evidence and calculate the proposal before approval.</span><button class="primary-button" type="submit">Validate evidence ${icon("arrow")}</button></div></form>
+      <p class="work-form-boundary">Allowed fields come from this task's versioned presentation profile. The local task service checks the simulated role, revision and business rules before the workflow resumes.</p></section>`;
 
   return `${heading("Work item", "Review the evidence, record your decision, and keep the correction linked to its original charge.", `<button type="button" class="secondary-button" data-action="back-to-work">${icon("arrow")} Back to work</button>`)}
-    ${storageControls()}<div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : "Needs your review"}</span></div>
-    <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : "Waiting for CPO review"}</strong></div><span>${completed ? "4 of 4 stages" : "2 of 4 stages complete"}</span></div>${workProgress()}</section>
+    ${storageControls()}<div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : awaitingApproval ? "Awaiting approval" : closedWithoutChange ? (workRun.status === "expired" ? "Manual review" : "Declined") : "Evidence review"}</span></div>
+    <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : awaitingApproval ? "Waiting for billing approval" : closedWithoutChange ? "Review closed" : "Waiting for evidence validation"}</strong></div><span>${completed ? "4 of 4 stages" : "Current case state"}</span></div>${workProgress()}</section>
+    <section class="panel" aria-label="Current correction process"><header class="panel-heading"><div><span class="eyebrow">CONNECTED PROCESS · SYNTHETIC</span><h2>Current process step</h2></div><span class="subtle-tag">${esc(workRun.flowState ?? flowPackage.flow.initialStep)}</span></header><div class="panel-content"><p><strong>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.label ?? "Unknown step")}</strong></p><p>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.description ?? "Process detail unavailable")}</p><p>Workflow ${esc(flowPackage.flow.id)} · case ${esc(caseData.id)} · revision ${workRun.revision}</p><details><summary>View process steps</summary><ol>${flowPackage.flow.steps.map(step => `<li>${esc(step.label)} · ${esc(step.kind)}${step.id === (workRun.flowState ?? flowPackage.flow.initialStep) ? " · Current" : ""}</li>`).join("")}</ol></details></div></section>
     <div class="work-case-layout"><div class="work-case-main">${taskPanel}<section class="work-financial-impact"><div><span class="eyebrow">CALCULATED FROM METER EVIDENCE</span><h2>Billing impact</h2><p>Rate is € ${formatNumber(caseData.tariffEurPerKwh)} per kWh. The amount is recalculated from the register difference.</p></div><div class="work-impact-values"><div><span>Original</span><strong>${formatNumber(originalRating.energyKwh)} kWh · ${formatEuro(originalRating.amountEur)}</strong></div><div><span>${completed ? "Corrected" : "Proposed"}</span><strong>${formatNumber(currentRating.energyKwh)} kWh · ${formatEuro(currentRating.amountEur)}</strong></div><div class="work-impact-delta"><span>Adjustment</span><strong>${formatEuro(currentRating.amountEur - originalRating.amountEur)}</strong></div></div></section></div>
       <aside class="work-case-aside"><section class="work-context-card"><div class="work-aside-title">${icon("plug")}<h3>Charging record</h3></div><dl><div><dt>Session</dt><dd>${esc(caseData.sessionId)}</dd></div><div><dt>Original CDR</dt><dd>${esc(caseData.cdrId)}</dd></div><div><dt>Site</dt><dd>${esc(caseData.site)}</dd></div><div><dt>Meter</dt><dd>${esc(caseData.meterId)}</dd></div><div><dt>Start reading</dt><dd>${formatNumber(caseData.meterStart)} kWh</dd></div><div><dt>Original end</dt><dd>${formatNumber(caseData.originalMeterEnd)} kWh</dd></div><div><dt>Partner proposal</dt><dd>${formatNumber(caseData.proposedMeterEnd)} kWh</dd></div><div><dt>Evidence ref</dt><dd>${esc(caseData.evidenceReference)}</dd></div></dl></section>
       <section class="work-people-card"><div class="work-aside-title">${icon("overview")}<h3>People and responsibilities</h3></div><div class="work-person"><span class="profile-avatar">BO</span><span><strong>${esc(caseData.assignedRole)}</strong><small>${completed ? "Decision recorded by you" : "Responsible for reviewing the evidence"}</small></span></div><div class="work-person"><span class="profile-avatar partner-avatar">NP</span><span><strong>${esc(caseData.partner)}</strong><small>Submitted the revised meter evidence</small></span></div><div class="work-person"><span class="profile-avatar system-avatar">CW</span><span><strong>Billing service</strong><small>Re-rates after an accepted correction</small></span></div></section>
-      <section class="work-history-card"><div class="work-aside-title">${icon("clock")}<h3>Recent activity</h3></div><ol><li><i class="is-done"></i><span><strong>Mismatch detected</strong><small>${esc(caseData.openedAt)} · Reconciliation</small></span></li><li><i class="is-done"></i><span><strong>Partner evidence received</strong><small>Signed meter reading · ${esc(caseData.evidenceReference)}</small></span></li><li><i class="${completed ? "is-done" : "is-current"}"></i><span><strong>${completed ? "Decision recorded" : "Awaiting your review"}</strong><small>${completed ? "Correction linked to the original record" : esc(caseData.dueLabel)}</small></span></li></ol></section></aside></div>
+      <section class="work-history-card"><div class="work-aside-title">${icon("clock")}<h3>Recent activity</h3></div><ol><li><i class="is-done"></i><span><strong>Mismatch detected</strong><small>${esc(caseData.openedAt)} · Reconciliation</small></span></li><li><i class="is-done"></i><span><strong>Partner evidence received</strong><small>Synthetic evidence fixture · ${esc(caseData.evidenceReference)}</small></span></li><li><i class="${completed ? "is-done" : "is-current"}"></i><span><strong>${completed ? "Decision recorded" : awaitingApproval ? "Awaiting approval" : closedWithoutChange ? "Review closed" : "Waiting for validation"}</strong><small>${completed ? "Correction linked to the original record" : awaitingApproval ? `Virtual deadline ${esc(workRun.approvalDueAt)}` : "Synthetic scenario"}</small></span></li></ol></section></aside></div>
     <div class="workspace-footnote">Synthetic task and records. This interaction updates browser demo state only; it does not issue a real credit, invoice change, or payment.</div>`;
 }
 
@@ -672,6 +681,21 @@ root.addEventListener("change", (event) => {
 });
 root.addEventListener("submit", async (event) => {
   if (event.target.matches(".analytics-controls")) { event.preventDefault(); return; }
+  const approvalTask = event.target.closest("[data-approval-task]");
+  if (approvalTask) {
+    event.preventDefault();
+    const button = approvalTask.querySelector('button[type="submit"]');
+    const error = approvalTask.querySelector("#work-form-error");
+    button.disabled = true;
+    try {
+      const result = await localClient.decide(Object.fromEntries(new FormData(approvalTask).entries()), workRun.revision, crypto.randomUUID());
+      if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
+      projectTask(result.task);
+      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
+      render();
+    } catch (failure) { error.hidden = false; error.textContent = failure.message; button.disabled = false; }
+    return;
+  }
   const taskForm = event.target.closest("[data-work-task]");
   if (taskForm) {
     event.preventDefault();
@@ -681,9 +705,10 @@ root.addEventListener("submit", async (event) => {
     button.disabled = true;
     try {
       if (!workReady) throw new Error("Workspace is still loading.");
-      const result = await localClient.submit(values, workRun.revision, crypto.randomUUID());
+      const result = await localClient.prepare(values, workRun.revision, crypto.randomUUID());
       if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
       projectTask(result.task);
+      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
     } catch (failure) {
       if (error) { error.hidden = false; error.textContent = failure.message; }
       button.disabled = false;

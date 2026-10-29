@@ -54,6 +54,7 @@ if (
     "model/temporal-example.json",
     "console-app/src/analytics/fixture.js",
     "console-app/src/data.js",
+    "model/correction-approval-form.json",
     ...files("client-runtime/src"),
     ...readdirSync(resolve(root, "validation"))
       .sort()

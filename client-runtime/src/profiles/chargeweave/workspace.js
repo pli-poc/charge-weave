@@ -64,7 +64,16 @@ export function createWorkspace({
     if (state.revision > 0) {
       const last = state.history.at(-1);
       const expected = rateReading(state.values.meterEnd, caseData);
-      if (
+      if (state.status === "awaitingApproval") {
+        if (state.actor?.status !== "active" || state.actor?.value !== "awaitingApproval" || last.revision !== state.revision || JSON.stringify(last.input) !== JSON.stringify(state.values) || expected.amountEur !== state.actor?.context?.rating?.grossEur || !state.approvalDueAt) throw Error("Incoherent waiting checkpoint");
+        const restored = createCorrectionWorkflowRuntime().createActor(pkg.flow, { snapshot: state.actor });
+        restored.start();
+        if (restored.getSnapshot().value !== "awaitingApproval") throw Error("Unstable restored process");
+        restored.stop();
+      } else if (["declined", "expired"].includes(state.status)) {
+        const expectedStep = state.status === "declined" ? "declined" : "manualReview";
+        if (state.actor?.value !== expectedStep || last.revision !== state.revision || state.actor?.context?.credit || state.actor?.context?.correctedCdr) throw Error("Incoherent exception checkpoint");
+      } else if (
         state.status !== "completed" ||
         state.actor?.status !== "done" ||
         !["completed", "completedNoChange"].includes(state.actor?.value) ||
@@ -73,13 +82,12 @@ export function createWorkspace({
         expected.amountEur !== state.outcome?.amount
       )
         throw Error("Incoherent business/process checkpoint");
-      const restored = createCorrectionWorkflowRuntime().createActor(pkg.flow, {
-        snapshot: state.actor,
-      });
-      restored.start();
-      if (restored.getSnapshot().status !== "done")
-        throw Error("Unstable restored process");
-      restored.stop();
+      if (state.status === "completed") {
+        const restored = createCorrectionWorkflowRuntime().createActor(pkg.flow, { snapshot: state.actor });
+        restored.start();
+        if (restored.getSnapshot().status !== "done") throw Error("Unstable restored process");
+        restored.stop();
+      }
     }
   }
   let queue = Promise.resolve();
@@ -94,6 +102,8 @@ export function createWorkspace({
     values: copy(state.values),
     outcome: copy(state.outcome),
     flowState: state.actor?.value ?? pkg.flow.initialStep,
+    approvalDueAt: state.approvalDueAt ?? null,
+    records: copy({ credit: state.actor?.context?.credit ?? null, correctedCdr: state.actor?.context?.correctedCdr ?? null }),
   });
   const result = (accepted, code, violations = []) => ({
     accepted,
@@ -102,7 +112,7 @@ export function createWorkspace({
     revision: state.revision,
     task: task(),
   });
-  async function execute({ input, expectedRevision, idempotencyKey }) {
+  async function execute({ input, expectedRevision, idempotencyKey }, pauseForApproval = false) {
     const command = pkg.commands.commands.find(
       (c) => c.id === "submitCorrection",
     );
@@ -119,7 +129,7 @@ export function createWorkspace({
       idempotencyKey.length > 120
     )
       return result(false, "INVALID_KEY");
-    const signature = identity({ input, expectedRevision });
+    const signature = identity({ input, expectedRevision, ...(pauseForApproval ? { operation: "prepare" } : {}) });
     if (Object.hasOwn(state.receipts, idempotencyKey)) {
       const prior = state.receipts[idempotencyKey];
       return prior.signature === signature
@@ -215,6 +225,21 @@ export function createWorkspace({
       });
       actor.send({ type: "evidence.validate" });
       let s = await settle(actor, pkg.flow);
+      if (s.value === "awaitingApproval" && pauseForApproval) {
+        const recordedAt = clock();
+        const at = Date.parse(recordedAt);
+        if (!Number.isFinite(at)) throw Error("Invalid virtual clock");
+        state = {
+          ...state, revision: state.revision + 1, values: copy(input),
+          status: "awaitingApproval", currentStage: "review", outcome: null,
+          approvalDueAt: new Date(at + s.context.approvalTimeoutMs).toISOString(),
+          actor: actor.getPersistedSnapshot(),
+          history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(input), rating, original, flowState: s.value }],
+        };
+        const accepted = result(true, "AWAITING_APPROVAL");
+        state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+        return accepted;
+      }
       if (s.value === "awaitingApproval") {
         actor.send({
           type: "approval.granted",
@@ -269,8 +294,51 @@ export function createWorkspace({
       actor.stop();
     }
   }
+  async function decide({ outcome, note, expectedRevision, idempotencyKey }) {
+    if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
+    if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
+    const signature = identity({ operation: "decision", outcome, note, expectedRevision });
+    if (Object.hasOwn(state.receipts, idempotencyKey)) {
+      const prior = state.receipts[idempotencyKey];
+      return prior.signature === signature ? copy(prior.result) : result(false, "KEY_REUSED");
+    }
+    if (expectedRevision !== state.revision) return result(false, "STALE_REVISION");
+    if (state.status !== "awaitingApproval") return result(false, "TASK_NOT_OPEN");
+    if (!["approve", "reject"].includes(outcome) || typeof note !== "string" || note.trim().length < 20 || note.length > 500) return result(false, "REJECTED", [{ field: "note", message: "Select an outcome and provide a decision note of 20–500 characters." }]);
+    const now = clock();
+    if (!Number.isFinite(Date.parse(now))) throw Error("Invalid virtual clock");
+    const expired = Date.parse(now) >= Date.parse(state.approvalDueAt);
+    const runtime = createCorrectionWorkflowRuntime();
+    const actor = runtime.createActor(pkg.flow, { snapshot: state.actor });
+    actor.start();
+    try {
+      actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.task.id, role: principal.role, note, outcome } });
+      const s = await settle(actor, pkg.flow);
+      if (expired || outcome === "reject") {
+        if (s.value !== (expired ? "manualReview" : "declined")) return result(false, "WORKFLOW_REJECTED");
+        state = { ...state, revision: state.revision + 1, status: expired ? "expired" : "declined", currentStage: "review", actor: actor.getPersistedSnapshot(), outcome: { type: expired ? "approval.expired" : "correction.declined", note: expired ? null : note }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), flowState: s.value, decision: { outcome: expired ? "expired" : outcome, note: expired ? null : note } }] };
+        const accepted = result(true, expired ? "APPROVAL_EXPIRED" : "DECLINED");
+        state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+        return accepted;
+      }
+      if (s.status !== "done" || s.value !== "completed") return result(false, "WORKFLOW_REJECTED");
+      const rating = rateReading(state.values.meterEnd, caseData);
+      state = { ...state, revision: state.revision + 1, status: "completed", currentStage: "adjustment", actor: actor.getPersistedSnapshot(), outcome: { type: "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), rating, original: rateReading(caseData.originalMeterEnd, caseData), flowState: s.value, decision: { outcome, note } }] };
+      const accepted = result(true, "ACCEPTED");
+      state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+      return accepted;
+    } finally { actor.stop(); }
+  }
+  function enqueue(fn) {
+    pending++;
+    const run = queue.then(async () => { busy = true; try { return await fn(); } finally { busy = false; pending--; } });
+    queue = run.catch(() => {});
+    return run;
+  }
   return {
     task,
+    prepare(args) { const submitted = copy(args); return enqueue(() => execute(submitted, true)); },
+    decide(args) { const submitted = copy(args); return enqueue(() => decide(submitted)); },
     history: () => copy(state.history),
     isBusy: () => busy || pending > 0,
     export: () => {

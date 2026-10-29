@@ -19,16 +19,20 @@ test("local command is validated, saved and resumed without business network cal
     .getByLabel("Decision note")
     .fill("Signed partner evidence checked against the accepted register.");
   await page.getByLabel("Evidence reference").fill("EV-0000-0000");
-  await page.getByRole("button", { name: /Record decision/ }).click();
+  await page.getByRole("button", { name: /Validate evidence/ }).click();
   await expect(page.locator("#work-form-error")).toContainText("No verified");
   await page.getByLabel("Evidence reference").fill("EV-2026-4481");
+  await page.getByRole("button", { name: /Validate evidence/ }).click();
+  await expect(page.getByRole("heading", { name: "Approve the billing correction" })).toBeVisible();
+  await expect(page.locator(".workspace-storage")).toContainText("Saved on this device");
+  await page.reload();
+  await page.getByRole("button", { name: /Review corrected meter reading/ }).click();
+  await expect(page.getByRole("heading", { name: "Approve the billing correction" })).toBeVisible();
+  await page.getByLabel("Decision", { exact: true }).selectOption("approve");
+  await page.getByLabel("Decision note").fill("The evidence and calculated amount have been reviewed.");
   await page.getByRole("button", { name: /Record decision/ }).click();
-  await expect(
-    page.getByRole("heading", { name: "Billing adjustment prepared" }),
-  ).toBeVisible();
-  await expect(page.locator(".workspace-storage")).toContainText(
-    "Unsaved changes",
-  );
+  await expect(page.getByRole("heading", { name: "Billing adjustment prepared" })).toBeVisible();
+  await expect(page.locator(".workspace-storage")).toContainText("Saved on this device");
   await page
     .getByRole("button", { name: "Save workspace", exact: true })
     .click();

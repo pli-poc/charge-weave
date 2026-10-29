@@ -34,7 +34,7 @@ export function createConsoleClient(provider, environment) {
         "{ task { id revision status stage values outcome descriptor flowState } }",
     });
     if (r.errors) throw Error(r.errors[0].message);
-    return r.data.task;
+    return { ...r.data.task, approvalDueAt: workspace.task().approvalDueAt, records: workspace.task().records };
   }
   const report = (error) => {
     status = `Not saved: ${error.message}`;
@@ -64,6 +64,16 @@ export function createConsoleClient(provider, environment) {
         status = `Memory only — ${e.message}. Export or reset the stored workspace before saving.`;
         return task();
       }
+    },
+    async prepare(input, expectedRevision, idempotencyKey) {
+      const result = await workspace.prepare({ input, expectedRevision, idempotencyKey });
+      if (result.accepted) status = "Unsaved changes";
+      return result;
+    },
+    async decide(input, expectedRevision, idempotencyKey) {
+      const result = await workspace.decide({ ...input, expectedRevision, idempotencyKey });
+      if (result.accepted) status = "Unsaved changes";
+      return result;
     },
     async submit(input, expectedRevision, idempotencyKey) {
       const r = await client.execute({
