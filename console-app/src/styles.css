@@ -1024,6 +1024,7 @@ tr[hidden] { display: none; }
 .correction-preset { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--text-soft); }
 .correction-preset select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--text); background: var(--surface-strong); }
 .case-graph-node[data-action] { cursor: pointer; }
+.case-graph-node:focus-visible > rect { stroke: var(--blue); stroke-width: 4; }
 .case-graph-node.is-selected > rect { stroke: var(--blue); stroke-width: 3; }
 .case-graph-inspector { margin: 12px 0; padding: 12px; background: var(--surface-strong); border-radius: 6px; color: var(--text-soft); }
 .work-summary-grid .correction-filter-card { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; padding: 16px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }

@@ -93,6 +93,9 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.goto('app/');
   const dashboard = page.getByRole('region', { name: 'Correction operations dashboard' });
   await expect(dashboard).toContainText('Awaiting corrected evidence');
+  const historicalPanel = page.locator('.dashboard-panel').first();
+  await expect(historicalPanel).toBeVisible();
+  const historicalBefore = await historicalPanel.innerText();
   await page.screenshot({ path: info.outputPath('correction-dashboard-before.png'), fullPage: true });
   await dashboard.getByRole('button', { name: 'Start demonstration' }).click();
   await page.getByLabel('Decision note').fill('Synthetic evidence checked against the accepted register.');
@@ -102,6 +105,10 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.getByText('View process diagram').click();
   await expect(page.locator('.case-graph-node.is-current title')).toContainText('Approve the billing correction');
   await page.getByRole('button', { name: 'Focus current step' }).click();
+  const currentNode = page.locator('.case-graph-node.is-current');
+  await currentNode.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.case-graph-inspector')).toContainText('Approve the billing correction');
   await page.screenshot({ path: info.outputPath('correction-process.png'), fullPage: true });
   await page.getByRole('combobox', { name: 'Decision', exact: true }).selectOption('approve');
   await page.getByLabel('Decision note').fill('The evidence and calculated amount have been reviewed.');
@@ -111,6 +118,7 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   if (info.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
   await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(dashboard).toContainText('Correction completed');
+  await expect(historicalPanel).toHaveText(historicalBefore);
   await page.screenshot({ path: info.outputPath('correction-dashboard-after.png'), fullPage: true });
   await info.attach('scenario-provenance.json', { body: Buffer.from(JSON.stringify({ scenario: 'correction.approval-restore', case: 'CW-BILL-0471', clock: '2026-10-13T08:00:00.000Z', commit: process.env.EXACT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local', checkpoints: ['initial', 'awaitingApproval', 'completed'], basis: 'synthetic CPO CDR; EUR 0.32/kWh tax-inclusive; no fees' }, null, 2)), contentType: 'application/json' });
 });

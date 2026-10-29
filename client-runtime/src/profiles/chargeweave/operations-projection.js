@@ -29,7 +29,7 @@ export function aggregateCorrectionOperations({ cases, tasks, adjustments, curre
     openCases: open.length,
     actionableTasks: uniqueTasks.filter(item => item.status === 'open' && item.role === role && openIds.has(item.caseId)).length,
     waitingEvidence: open.filter(item => ['awaitingEvidence', 'awaitingAdditionalEvidence'].includes(item.flowState)).length,
-    completedCorrections: uniqueCases.filter(item => item.outcome === 'correction.accepted').length,
+    completedCorrections: uniqueCases.filter(item => item.status === 'completed' && item.outcome === 'correction.accepted').length,
     approvedNetAdjustment: uniqueAdjustments.length ? formatFixed(cents, 2) : null,
     oldestOpenWaitMs: ages.length ? Math.max(...ages) : null,
     pendingPartnerDelivery: null,

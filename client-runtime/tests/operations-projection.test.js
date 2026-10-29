@@ -33,4 +33,5 @@ test('operational aggregation counts distinct cases and tasks and rejects ambigu
   assert.throws(() => aggregate({ ...input, adjustments: [adjustment, { ...adjustment, id: 'other', currency: 'GBP' }] }), /Mixed currency/);
   assert.throws(() => aggregate({ ...input, tasks: [t, { ...t, role: 'Other' }] }), /Conflicting/);
   assert.equal(aggregate({ cases: [], tasks: [], adjustments: [] }).approvedNetAdjustment, null);
+  assert.equal(aggregate({ cases: [{ ...b, status: 'awaitingApproval' }], tasks: [], adjustments: [] }).completedCorrections, 0);
 });
