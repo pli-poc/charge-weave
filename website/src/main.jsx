@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Menu, X } from "lucide-react";
 import "@fontsource-variable/manrope";
 import "./styles.css";
+import chargeWeaveMark from "./assets/chargeweave-power-mark.svg";
 import "./pages.css";
 const Home = lazy(() => import("./Home.jsx"));
 const ProductPages = lazy(() => import("./ProductPages.jsx"));
@@ -11,23 +12,9 @@ const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
 const Blog = lazy(() => import("./Blog.jsx"));
 export const base = import.meta.env.BASE_URL;
 export function Mark() {
-  return (
-    <svg
-      className="brand-mark"
-      viewBox="0 0 40 40"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M7 8h14L7 32h14M19 8h14L19 32h14"
-        stroke="currentColor"
-        strokeWidth="2.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <img className="brand-mark" src={chargeWeaveMark} alt="" aria-hidden="true" />;
 }
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const route = window.location.pathname
