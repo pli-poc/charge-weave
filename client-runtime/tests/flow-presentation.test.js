@@ -19,3 +19,15 @@ test("projection reports missing destinations", () => {
   const [edge] = projectTransitions({ steps: [{ id: "a", kind: "eventWait", on: { go: { target: "missing" } } }] });
   assert.equal(edge.targetExists, false);
 });
+
+test('shared canvas projection keeps all correction steps and executable routes', async () => {
+  const { GRAPH, stepPosition, edgeGeometry } = await import('../src/flow/presentation.js');
+  const flow = normaliseWorkflowProfile(profile);
+  const positions = new Map(flow.steps.map((s, i) => [s.id, stepPosition(s, i)]));
+  assert.equal(new Set([...positions.values()].map(p => `${p.x}:${p.y}`)).size, flow.steps.length);
+  for (const edge of projectTransitions(flow)) {
+    const geometry = edgeGeometry(positions.get(edge.source), positions.get(edge.target), 0);
+    assert.match(geometry.d, /^M /);
+    assert.ok(positions.get(edge.source).x + GRAPH.nodeWidth <= GRAPH.width);
+  }
+});

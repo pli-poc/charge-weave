@@ -1009,3 +1009,13 @@ tr[hidden] { display: none; }
 .case-flow-symbol--decision { transform: rotate(45deg) scale(.78); border-radius: 2px; }
 .case-flow-symbol--decision > span { transform: rotate(-45deg); }
 .case-flow-symbol--end { border: 3px solid currentColor; border-radius: 50%; }
+.case-graph-details { margin: 12px 0; }
+.case-graph-scroll { max-height: 540px; overflow: auto; margin: 12px 0; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }
+.case-graph-scroll svg { display: block; width: 1400px; height: 1000px; }
+.case-graph-edges path { fill: none; stroke: var(--muted); stroke-width: 2; }
+.case-graph-scroll marker path { fill: var(--muted); }
+.case-graph-node > rect { fill: var(--surface); stroke: var(--line-soft); stroke-width: 2; }
+.case-graph-node.is-current > rect { stroke: var(--accent); stroke-width: 3; }
+.case-graph-marker path, .case-graph-marker circle, .case-graph-marker rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+.case-graph-marker text, .case-graph-label { fill: var(--text); font-size: 12px; }
+.case-graph-kind { fill: var(--muted); font-size: 11px; }
