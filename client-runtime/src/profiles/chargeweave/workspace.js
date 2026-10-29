@@ -91,7 +91,9 @@ export function createWorkspace({
     if (state.revision > 0) {
       const last = state.history.at(-1);
       const expected = rateReading(state.values.meterEnd, caseData);
-      if (state.status === "awaitingApproval") {
+      if (state.status === "waitingBillingEvidence") {
+        if (state.actor?.status !== "active" || state.actor?.value !== "awaitingAdditionalEvidence" || last.revision !== state.revision || JSON.stringify(last.input) !== JSON.stringify(state.values) || state.actor?.context?.rating || state.actor?.context?.credit) throw Error("Incoherent evidence checkpoint");
+      } else if (state.status === "awaitingApproval") {
         if (state.actor?.status !== "active" || state.actor?.value !== "awaitingApproval" || last.revision !== state.revision || JSON.stringify(last.input) !== JSON.stringify(state.values) || expected.amountEur !== state.actor?.context?.rating?.grossEur || !state.approvalDueAt) throw Error("Incoherent waiting checkpoint");
         const restored = createCorrectionWorkflowRuntime().createActor(pkg.flow, { snapshot: state.actor });
         restored.start();
@@ -141,6 +143,30 @@ export function createWorkspace({
     revision: state.revision,
     task: task(),
   });
+  function ratingRuntime(rating, original) {
+    return createCorrectionWorkflowRuntime({
+      activityOverrides: {
+        async reconcileMeterUsage() {
+          return {
+            originalEnergyKwh: Number(original.energyKwh),
+            correctedEnergyKwh: Number(rating.energyKwh),
+            energyDeltaKwh:
+              Number(formatFixed(fixed(original.energyKwh, 3) - fixed(rating.energyKwh, 3), 3)),
+          };
+        },
+        async calculateCorrectedRating() {
+          return {
+            correctedEnergyKwh: rating.energyKwh,
+            currency: "EUR",
+            grossEur: rating.amountEur,
+            grossDeltaEur:
+              Number(formatFixed(fixed(original.amountEur, 2) - fixed(rating.amountEur, 2), 2)),
+            ratingVersion: rating.calculationVersion,
+          };
+        },
+      },
+    });
+  }
   async function execute({ input, expectedRevision, idempotencyKey }, pauseForApproval = false) {
     const command = pkg.commands.commands.find(
       (c) => c.id === "submitCorrection",
@@ -202,28 +228,7 @@ export function createWorkspace({
     if (violations.length) return result(false, "REJECTED", violations);
     const rating = rateReading(input.meterEnd, caseData),
       original = rateReading(caseData.originalMeterEnd, caseData);
-    const runtime = createCorrectionWorkflowRuntime({
-      activityOverrides: {
-        async reconcileMeterUsage() {
-          return {
-            originalEnergyKwh: Number(original.energyKwh),
-            correctedEnergyKwh: Number(rating.energyKwh),
-            energyDeltaKwh:
-              Number(formatFixed(fixed(original.energyKwh, 3) - fixed(rating.energyKwh, 3), 3)),
-          };
-        },
-        async calculateCorrectedRating() {
-          return {
-            correctedEnergyKwh: rating.energyKwh,
-            currency: "EUR",
-            grossEur: rating.amountEur,
-            grossDeltaEur:
-              Number(formatFixed(fixed(original.amountEur, 2) - fixed(rating.amountEur, 2), 2)),
-            ratingVersion: rating.calculationVersion,
-          };
-        },
-      },
-    });
+    const runtime = ratingRuntime(rating, original);
     const observed = [];
     let actor;
     actor = runtime.createActor(pkg.flow, {
@@ -235,7 +240,7 @@ export function createWorkspace({
         originalGrossEur: Number(original.amountEur),
         unitPriceEur: caseData.tariffEurPerKwh,
         fixedFeeEur: 0,
-        billingInputsComplete: true,
+        billingInputsComplete: caseData.billingInputsComplete !== false,
         approvalThresholdKwh: pkg.flow.initialContext.approvalThresholdKwh,
         approvalTimeoutMs: 3600000,
       },
@@ -254,6 +259,13 @@ export function createWorkspace({
       });
       actor.send({ type: "evidence.validate" });
       let s = await settle(actor, pkg.flow);
+      if (s.value === "awaitingAdditionalEvidence" && pauseForApproval) {
+        const recordedAt = clock();
+        state = { ...state, revision: state.revision + 1, values: copy(input), status: "waitingBillingEvidence", currentStage: "evidence", outcome: null, actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(input), original, flowState: s.value }] };
+        const accepted = result(true, "WAITING_BILLING_EVIDENCE");
+        state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+        return accepted;
+      }
       if (s.value === "awaitingApproval" && pauseForApproval) {
         const recordedAt = clock();
         const at = Date.parse(recordedAt);
@@ -324,6 +336,30 @@ export function createWorkspace({
       actor.stop();
     }
   }
+  async function supplyEvidence({ evidence, expectedRevision, idempotencyKey }) {
+    if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
+    if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
+    const signature = identity({ operation: "billing-evidence", evidence, expectedRevision });
+    if (Object.hasOwn(state.receipts, idempotencyKey)) { const prior = state.receipts[idempotencyKey]; return prior.signature === signature ? copy(prior.result) : result(false, "KEY_REUSED"); }
+    if (expectedRevision !== state.revision) return result(false, "STALE_REVISION");
+    if (state.status !== "waitingBillingEvidence") return result(false, "NOT_WAITING_FOR_EVIDENCE");
+    if (typeof evidence !== "string" || evidence.trim().length < 8 || evidence.length > 120) return result(false, "REJECTED", [{ field: "evidence", message: "Provide a synthetic billing-evidence reference." }]);
+    const rating = rateReading(state.values.meterEnd, caseData), original = rateReading(caseData.originalMeterEnd, caseData), observed = [];
+    let actor;
+    actor = ratingRuntime(rating, original).createActor(pkg.flow, { snapshot: state.actor, inspect: observeTransitions(pkg.flow, () => actor, observed) });
+    actor.start();
+    try {
+      actor.send({ type: "evidence.supplemented", evidence: { reference: evidence } });
+      const s = await settle(actor, pkg.flow);
+      if (s.value !== "awaitingApproval") return result(false, "UNSUPPORTED_RESUMPTION", [{ message: `Resumption reached ${s.value}; no state was committed.` }]);
+      const recordedAt = clock(), at = Date.parse(recordedAt);
+      if (!Number.isFinite(at)) throw Error("Invalid virtual clock");
+      state = { ...state, revision: state.revision + 1, status: "awaitingApproval", currentStage: "review", approvalDueAt: new Date(at + s.context.approvalTimeoutMs).toISOString(), actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(state.values), original, rating, evidence, flowState: s.value }] };
+      const accepted = result(true, "AWAITING_APPROVAL");
+      state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+      return accepted;
+    } finally { actor.stop(); }
+  }
   async function decide({ outcome, note, expectedRevision, idempotencyKey }, advanceToDeadline = false) {
     if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
     if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
@@ -370,6 +406,7 @@ export function createWorkspace({
   return {
     task,
     prepare(args) { const submitted = copy(args); return enqueue(() => execute(submitted, true)); },
+    supplyEvidence(args) { const submitted = copy(args); return enqueue(() => supplyEvidence(submitted)); },
     decide(args) { const submitted = copy(args); return enqueue(() => decide(submitted)); },
     expireApproval({ expectedRevision, idempotencyKey }) {
       return enqueue(() => decide({ outcome: "approve", note: "Virtual deadline advanced for this demonstration.", expectedRevision, idempotencyKey }, true));

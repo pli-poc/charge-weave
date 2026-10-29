@@ -7,6 +7,7 @@ export function chargeweaveAdapters(getPackage) {
     ["correction.valid", "Accept verified correction"], ["correction.bad-evidence", "Reject mismatched evidence"],
     ["correction.reversed-meter", "Reject reversed reading"], ["correction.stale", "Reject stale revision"],
     ["correction.duplicate", "Replay command once"], ["correction.restore", "Restore a stable checkpoint"],
+    ["correction.missing-billing", "Resume after billing evidence"], ["correction.invalid-signature", "Reject invalid synthetic signature"], ["correction.wrong-epoch", "Reject a register epoch mismatch"],
     ["correction.no-change", "Close without a financial change"], ["correction.below-threshold", "Correct below the approval threshold"],
     ["correction.approval-restore", "Restore and approve a waiting correction"], ["correction.approval-reject", "Reject a waiting correction"], ["correction.approval-expiry", "Expire a waiting correction"],
   ];
@@ -21,6 +22,25 @@ export function chargeweaveAdapters(getPackage) {
       if (scenarioId === "correction.bad-evidence") input.evidenceReference = "EV-0000-0000";
       if (scenarioId === "correction.reversed-meter") input.meterEnd = "0";
       const args = { input, expectedRevision: scenarioId === "correction.stale" ? 99 : 0, idempotencyKey: `scenario-${seed}` };
+      if (["correction.missing-billing", "correction.invalid-signature", "correction.wrong-epoch"].includes(scenarioId)) {
+        const custom = structuredClone(pkg);
+        if (scenarioId === "correction.missing-billing") custom.task.case.billingInputsComplete = false;
+        if (scenarioId === "correction.invalid-signature") custom.task.case.evidence.signatureValid = false;
+        if (scenarioId === "correction.wrong-epoch") custom.task.case.evidence.sameRegisterEpoch = false;
+        let workspace = createWorkspace({ applicationPackage: custom, clock: () => startAt });
+        const prepared = await workspace.prepare(args), before = workspace.export();
+        if (scenarioId !== "correction.missing-billing") return { assertions: [
+          { id: "rejected-evidence", passed: !prepared.accepted && prepared.code === "WORKFLOW_REJECTED", detail: prepared.code },
+          { id: "no-financial-effects", passed: before.revision === 0 && !before.actor, detail: "No rating or correction committed" },
+        ], output: { prepared, snapshot: before }, trace: workspace.history(), unsupported: pkg.capabilities.unsupported };
+        workspace = createWorkspace({ applicationPackage: custom, snapshot: before, clock: () => startAt });
+        const resumed = await workspace.supplyEvidence({ evidence: "TAX-EVIDENCE-001", expectedRevision: 1, idempotencyKey: `supply-${seed}` });
+        return { assertions: [
+          { id: "billing-wait", passed: prepared.code === "WAITING_BILLING_EVIDENCE" && !before.actor.context.rating && !before.actor.context.credit, detail: "No rating before billing evidence" },
+          { id: "resumed-instance", passed: resumed.code === "AWAITING_APPROVAL" && resumed.task.flowState === "awaitingApproval", detail: "Restored instance resumes to approval" },
+          { id: "exact-rating", passed: workspace.export().actor.context.rating?.grossEur === "2.91", detail: "Pinned expected amount EUR 2.91" },
+        ], output: { prepared, resumed, snapshot: workspace.export() }, trace: workspace.history(), unsupported: pkg.capabilities.unsupported };
+      }
       if (["correction.no-change", "correction.below-threshold"].includes(scenarioId)) {
         const custom = structuredClone(pkg);
         const unchanged = scenarioId === "correction.no-change";

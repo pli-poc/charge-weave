@@ -305,3 +305,20 @@ test('only observed process routes are recorded and survive a checkpoint', async
   const damaged = restored.export(); damaged.trace[0].target = 'completed';
   assert.throws(() => createWorkspace({ applicationPackage: pkg, snapshot: damaged }), /workflow trace/);
 });
+
+test('missing billing evidence waits without a rating and resumes the same process after restore', async () => {
+  const custom = structuredClone(pkg); custom.task.case.billingInputsComplete = false;
+  const w = createWorkspace({ applicationPackage: custom });
+  const initial = await w.prepare(args);
+  assert.equal(initial.code, 'WAITING_BILLING_EVIDENCE');
+  assert.equal(initial.task.flowState, 'awaitingAdditionalEvidence');
+  assert.equal(w.export().actor.context.rating, undefined);
+  assert.equal(w.export().actor.context.credit, undefined);
+  const restored = createWorkspace({ applicationPackage: custom, snapshot: w.export() });
+  const command = { evidence: 'TAX-EVIDENCE-001', expectedRevision: 1, idempotencyKey: 'supply-evidence' };
+  const resumed = await restored.supplyEvidence(command);
+  assert.equal(resumed.code, 'AWAITING_APPROVAL');
+  assert.equal(resumed.task.flowState, 'awaitingApproval');
+  assert.deepEqual(await restored.supplyEvidence(command), resumed);
+  assert.equal(createWorkspace({ applicationPackage: custom, snapshot: restored.export() }).task().flowState, 'awaitingApproval');
+});
