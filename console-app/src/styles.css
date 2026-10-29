@@ -1058,3 +1058,27 @@ tr[hidden] { display: none; }
 .process-overview-status { position: absolute; left: 52px; bottom: 10px; color: var(--text-soft); font-size: 12px; letter-spacing: .03em; }
 .process-overview-step.is-current .process-overview-status { color: var(--accent); }
 @media (max-width: 1000px) { .process-overview-list { grid-template-columns: 1fr; gap: 18px; } .process-overview-step { min-height: 72px; } .process-overview-step:not(:last-child)::after { content: "↓"; right: auto; left: 19px; top: auto; bottom: -20px; } }
+
+/* Expandable groups expose the original executable steps and transitions. */
+.process-overview-step { display: block; padding: 0; min-height: 0; }
+.process-group > summary { display: flex; gap: 10px; min-height: 110px; padding: 14px; cursor: pointer; list-style: none; }
+.process-group > summary::-webkit-details-marker { display: none; }
+.process-group > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.process-overview-copy { padding-bottom: 22px; }
+.process-expand-label { position: absolute; top: 85px; left: 52px; font-size: 12px; color: var(--text-soft); }
+.process-group[open] .process-expand-label span { display: inline-block; transform: rotate(180deg); }
+.process-group-content { padding: 0 12px 14px; border-top: 1px solid var(--line-soft); }
+.process-group-content > p { font-size: 12px; color: var(--text-soft); margin: 12px 0; }
+.process-detail-list, .process-route-list { list-style: none; padding: 0; margin: 0; }
+.process-detail-step { border-left: 2px solid var(--line-soft); padding: 3px 0 12px 10px; margin: 0 0 4px; }
+.process-detail-step.is-current { border-color: var(--accent); }
+.process-detail-heading strong, .process-detail-heading span { display: block; overflow-wrap: anywhere; }
+.process-detail-heading strong { font-size: 13px; line-height: 1.35; }
+.process-detail-heading span, .process-detail-end { color: var(--text-soft); font-size: 12px; margin: 3px 0 5px; }
+.process-route { display: grid; grid-template-columns: 1fr auto; column-gap: 6px; padding: 7px 0; border-top: 1px solid var(--line-soft); font-size: 12px; line-height: 1.3; }
+.process-route-condition { color: var(--text-soft); grid-column: 1 / -1; overflow-wrap: anywhere; }
+.process-route-arrow { color: var(--text-soft); grid-column: 1; grid-row: 2; justify-self: start; }
+.process-route-target { grid-column: 1 / -1; grid-row: 2; padding-left: 18px; overflow-wrap: anywhere; }
+.process-route.is-taken .process-route-arrow, .process-route-observed { color: var(--accent); }
+.process-route-observed { grid-column: 1 / -1; font-size: 11px; padding-left: 18px; }
+@media (max-width: 1000px) { .process-group > summary { min-height: 78px; } .process-expand-label { top: auto; bottom: 10px; } }

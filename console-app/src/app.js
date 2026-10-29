@@ -276,6 +276,10 @@ function correctionProcessOverview(flow, current, trace = []) {
     { label: "Review", ids: ["awaitingApproval", "manualReview"] },
     { label: "Outcome", ids: ["issuingCredit", "issuingCorrectedCdr", "propagatingCorrection", "completed", "completedNoChange", "declined", "quarantined"] },
   ];
+  const groupedIds = new Set(groups.flatMap(group => group.ids));
+  const additional = flow.steps.filter(step => !groupedIds.has(step.id)).map(step => step.id);
+  if (additional.length) groups.push({ label: "Other steps", ids: additional });
+  const byId = new Map(flow.steps.map(step => [step.id, step]));
   const observed = new Set(trace.flatMap(item => [item.source, item.target]));
   const cards = groups.map((group, index) => {
     const active = group.ids.includes(current);
@@ -283,9 +287,18 @@ function correctionProcessOverview(flow, current, trace = []) {
     const selected = active ? flow.steps.find(step => step.id === current) : flow.steps.find(step => group.ids.includes(step.id) && observed.has(step.id));
     const detail = active ? (selected?.label ?? "Current step") : reached ? "Visited" : "Not reached";
     const state = active ? "current" : reached ? "visited" : "pending";
-    return `<li class="process-overview-step is-${state}"${active ? ' aria-current="step"' : ''}><span class="process-overview-number">${index + 1}</span><span class="process-overview-copy"><strong>${esc(group.label)}</strong><small>${esc(detail)}</small></span><span class="process-overview-status">${active ? "CURRENT" : reached ? "VISITED" : "NOT REACHED"}</span></li>`;
+    const steps = group.ids.map(id => byId.get(id)).filter(Boolean).map(step => {
+      const routes = outgoingTransitions(step).map(edge => {
+        const target = byId.get(edge.target);
+        const taken = trace.some(item => item.source === step.id && item.target === edge.target && item.event === edge.event);
+        return `<li class="process-route${taken ? " is-taken" : ""}"><span class="process-route-condition">${esc(transitionLabel(edge.event))}</span><span class="process-route-arrow" aria-hidden="true">→</span><span class="process-route-target">${esc(target?.label ?? `Unknown destination: ${edge.target}`)}</span>${taken ? '<span class="process-route-observed">Taken</span>' : ''}</li>`;
+      }).join("");
+      const kinds = {eventWait: "Event wait", serviceTask: "Automated task", decision: "Decision", humanTask: "Human task", end: "End"};
+      return `<li class="process-detail-step${step.id === current ? " is-current" : ""}"><div class="process-detail-heading"><strong>${esc(step.label)}</strong><span>${esc(kinds[step.kind] ?? step.kind)}${step.id === current ? " · Current" : ""}</span></div>${routes ? `<ul class="process-route-list" aria-label="Routes from ${esc(step.label)}">${routes}</ul>` : '<p class="process-detail-end">End of this route</p>'}</li>`;
+    }).join("");
+    return `<li class="process-overview-step is-${state}"${active ? ' aria-current="step"' : ''}><details class="process-group"><summary><span class="process-overview-number">${index + 1}</span><span class="process-overview-copy"><strong>${esc(group.label)}</strong><small>${esc(detail)}</small></span><span class="process-expand-label">Expand <span aria-hidden="true">⌄</span></span></summary><div class="process-group-content"><p>Steps and outgoing routes</p><ol class="process-detail-list">${steps}</ol></div></details></li>`;
   }).join("");
-  return `<div class="process-overview"><p class="process-overview-intro">A compact view of this case. The highlighted stage contains the current step; visited stages come from the recorded trace.</p><ol class="process-overview-list" aria-label="Correction process overview">${cards}</ol><p class="process-overview-note">Stages summarize the workflow, including exception paths. Open the detailed diagram below to inspect the actual routes.</p></div>`;
+  return `<div class="process-overview"><p class="process-overview-intro">Expand any group to inspect its steps and every outgoing route. The highlighted step is current; taken routes are based on the recorded trace.</p><ol class="process-overview-list" aria-label="Correction process overview">${cards}</ol><p class="process-overview-note">Groups are presentation only, not executable subprocesses. Untaken routes remain available for inspection.</p></div>`;
 }
 
 function correctionProcessCanvas(flow, current, trace = []) {
