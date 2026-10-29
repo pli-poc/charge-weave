@@ -70,6 +70,11 @@ export function createConsoleClient(provider, environment) {
       if (result.accepted) status = "Unsaved changes";
       return result;
     },
+    async expireApproval(expectedRevision, idempotencyKey) {
+      const result = await workspace.expireApproval({ expectedRevision, idempotencyKey });
+      if (result.accepted) status = "Unsaved changes";
+      return result;
+    },
     async decide(input, expectedRevision, idempotencyKey) {
       const result = await workspace.decide({ ...input, expectedRevision, idempotencyKey });
       if (result.accepted) status = "Unsaved changes";

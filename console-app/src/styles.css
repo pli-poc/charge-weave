@@ -997,3 +997,15 @@ tr[hidden] { display: none; }
 .workspace-storage { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin: 12px 0 20px; }
 .workspace-storage [role=status] { flex:1 1 180px; font-size:13px; }
 .workspace-storage label { cursor:pointer; }
+
+/* Definition-based process list; current execution status stays separate from type. */
+.case-flow-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; list-style: none; padding: 12px 0; }
+.case-flow-step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line-soft); border-radius: 8px; min-width: 0; }
+.case-flow-step.is-current { border-color: var(--accent); }
+.case-flow-step strong, .case-flow-step small { display: block; }
+.case-flow-step small { margin-top: 4px; color: var(--muted); }
+.case-flow-symbol { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid currentColor; border-radius: 7px; }
+.case-flow-symbol--eventWait { border: 3px double currentColor; border-radius: 50%; }
+.case-flow-symbol--decision { transform: rotate(45deg) scale(.78); border-radius: 2px; }
+.case-flow-symbol--decision > span { transform: rotate(-45deg); }
+.case-flow-symbol--end { border: 3px solid currentColor; border-radius: 50%; }

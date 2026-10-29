@@ -63,3 +63,28 @@ test("local command is validated, saved and resumed without business network cal
     fullPage: true,
   });
 });
+
+test('approval rejection and deadline escalation remain read-only after reload', async ({ page }) => {
+  async function prepare() {
+    await openTask(page);
+    await page.getByLabel('Decision note').fill('Synthetic evidence checked against the accepted register.');
+    await page.getByRole('button', { name: /Validate evidence/ }).click();
+    await expect(page.getByRole('heading', { name: 'Approve the billing correction' })).toBeVisible();
+  }
+  await prepare();
+  await page.getByLabel('Decision', { exact: true }).selectOption('reject');
+  await page.getByLabel('Decision note').fill('The proposed evidence does not support this correction.');
+  await page.getByRole('button', { name: /Record decision/ }).click();
+  await expect(page.getByRole('heading', { name: 'No correction issued' })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: /Review corrected meter reading/ }).click();
+  await expect(page.getByRole('heading', { name: 'No correction issued' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reset workspace' }).click();
+  await prepare();
+  await page.getByText('Demonstrate deadline escalation').click();
+  await page.getByRole('button', { name: 'Advance to deadline' }).click();
+  await expect(page.getByRole('heading', { name: 'Escalated to manual review' })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: /Review corrected meter reading/ }).click();
+  await expect(page.getByRole('heading', { name: 'Escalated to manual review' })).toBeVisible();
+});

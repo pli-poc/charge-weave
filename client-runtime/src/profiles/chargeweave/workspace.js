@@ -291,10 +291,10 @@ export function createWorkspace({
       actor.stop();
     }
   }
-  async function decide({ outcome, note, expectedRevision, idempotencyKey }) {
+  async function decide({ outcome, note, expectedRevision, idempotencyKey }, advanceToDeadline = false) {
     if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
     if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
-    const signature = identity({ operation: "decision", outcome, note, expectedRevision });
+    const signature = identity({ operation: advanceToDeadline ? "expire" : "decision", outcome, note, expectedRevision });
     if (Object.hasOwn(state.receipts, idempotencyKey)) {
       const prior = state.receipts[idempotencyKey];
       return prior.signature === signature ? copy(prior.result) : result(false, "KEY_REUSED");
@@ -302,7 +302,7 @@ export function createWorkspace({
     if (expectedRevision !== state.revision) return result(false, "STALE_REVISION");
     if (state.status !== "awaitingApproval") return result(false, "TASK_NOT_OPEN");
     if (!["approve", "reject"].includes(outcome) || typeof note !== "string" || note.trim().length < 20 || note.length > 500) return result(false, "REJECTED", [{ field: "note", message: "Select an outcome and provide a decision note of 20–500 characters." }]);
-    const now = clock();
+    const now = advanceToDeadline ? state.approvalDueAt : clock();
     if (!Number.isFinite(Date.parse(now))) throw Error("Invalid virtual clock");
     const expired = Date.parse(now) >= Date.parse(state.approvalDueAt);
     const runtime = createCorrectionWorkflowRuntime();
@@ -336,6 +336,9 @@ export function createWorkspace({
     task,
     prepare(args) { const submitted = copy(args); return enqueue(() => execute(submitted, true)); },
     decide(args) { const submitted = copy(args); return enqueue(() => decide(submitted)); },
+    expireApproval({ expectedRevision, idempotencyKey }) {
+      return enqueue(() => decide({ outcome: "approve", note: "Virtual deadline advanced for this demonstration.", expectedRevision, idempotencyKey }, true));
+    },
     history: () => copy(state.history),
     isBusy: () => busy || pending > 0,
     export: () => {

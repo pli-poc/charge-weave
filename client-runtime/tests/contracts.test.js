@@ -246,3 +246,15 @@ test('rejection and virtual deadline do not create financial effects and survive
   assert.match(result.violations.map(v => v.message).join(' '), /does not match/);
   assert.equal(w.export().revision, 0);
 });
+
+test('explicit virtual deadline advance is persisted and idempotent', async () => {
+  const w = workspace(); await w.prepare(args);
+  const command = { expectedRevision: 1, idempotencyKey: 'advance-clock' };
+  const result = await w.expireApproval(command);
+  assert.equal(result.code, 'APPROVAL_EXPIRED');
+  assert.equal(result.task.flowState, 'manualReview');
+  assert.deepEqual(await w.expireApproval(command), result);
+  const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
+  assert.equal(restored.task().status, 'expired');
+  assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and amount reviewed carefully.', expectedRevision: 2, idempotencyKey: 'late' })).code, 'TASK_NOT_OPEN');
+});
