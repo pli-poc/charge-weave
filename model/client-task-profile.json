@@ -199,7 +199,10 @@
             }
           }
         ]
-      }
+      },
+      "title": "Approve the billing correction",
+      "assignedRole": "BillingApprover",
+      "instructions": "Review the prepared evidence and accept or decline the correction."
     }
   ]
 }

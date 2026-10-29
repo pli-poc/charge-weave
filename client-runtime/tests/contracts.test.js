@@ -214,6 +214,8 @@ test('separate approval survives restore and applies a decision exactly once', a
   const pending = await w.prepare(args);
   assert.equal(pending.code, 'AWAITING_APPROVAL');
   assert.equal(pending.task.flowState, 'awaitingApproval');
+  assert.equal(pending.task.id, 'correction-approval');
+  assert.equal(pending.task.descriptor.form.id, pkg.flow.steps.find(s => s.id === 'awaitingApproval').taskFormProfile.id);
   assert.equal(w.export().actor.context.credit, undefined);
   const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
   const decision = { outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 1, idempotencyKey: 'approval-1' };

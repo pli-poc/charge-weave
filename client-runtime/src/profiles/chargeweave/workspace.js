@@ -94,11 +94,11 @@ export function createWorkspace({
   let busy = false;
   let pending = 0;
   const task = () => ({
-    id: model.task.id,
+    id: state.status === "awaitingApproval" ? model.additionalTasks[0].id : model.task.id,
     revision: state.revision,
     status: state.status,
     stage: state.currentStage,
-    descriptor: copy(model.task),
+    descriptor: copy(state.status === "awaitingApproval" ? model.additionalTasks[0] : model.task),
     values: copy(state.values),
     outcome: copy(state.outcome),
     flowState: state.actor?.value ?? pkg.flow.initialStep,
@@ -309,7 +309,7 @@ export function createWorkspace({
     const actor = runtime.createActor(pkg.flow, { snapshot: state.actor });
     actor.start();
     try {
-      actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.task.id, role: principal.role, note, outcome } });
+      actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.additionalTasks[0].id, role: principal.role, note, outcome } });
       const s = await settle(actor, pkg.flow);
       if (expired || outcome === "reject") {
         if (s.value !== (expired ? "manualReview" : "declined")) return result(false, "WORKFLOW_REJECTED");
