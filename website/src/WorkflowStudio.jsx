@@ -12,6 +12,10 @@ import {
   RotateCcw,
   Save,
   ShieldAlert,
+  Mail,
+  UserRound,
+  Settings,
+  CircleStop,
 } from "lucide-react";
 import {
   correctionWorkflowDefinition,
@@ -73,6 +77,8 @@ const kindLabels = {
   humanTask: "Human task",
   end: "End",
 };
+
+const kindIcons = { eventWait: Mail, serviceTask: Settings, decision: GitBranch, humanTask: UserRound, end: CircleStop };
 
 const GRAPH = {
   width: 1400,
@@ -471,6 +477,7 @@ export default function WorkflowStudio() {
               {definitionChanged && <button className="wf-reset-draft" onClick={resetGraphDraft} disabled={started}>Reset graph</button>}
             </div>
           </header>
+          <p className="wf-legend" aria-label="Workflow symbol legend"><span>◉ Event wait</span><span>⚙ Service task</span><span>◆ Decision</span><span>▣ Human task</span><span>● End</span></p>
           <p className={editing ? "wf-editor-note" : "wf-canvas-hint"}>
             {editing
               ? "Select a node, then change its label, description or route destination. The diagram and next test run use this browser draft."
@@ -489,8 +496,8 @@ export default function WorkflowStudio() {
                   </marker>
                 </defs>
                 {graphEdges.map((edge) => (
-                  <g className={`wf-edge ${state === edge.source.id ? "is-active" : ""}`} key={`${edge.source.id}:${edge.event}:${edge.target.id}`}>
-                    <path d={edge.geometry.d} markerEnd={`url(#${state === edge.source.id ? "wf-arrow-active" : "wf-arrow"})`} />
+                  <g className="wf-edge" key={`${edge.source.id}:${edge.event}:${edge.target.id}`}>
+                    <path d={edge.geometry.d} markerEnd="url(#wf-arrow)" />
                     <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{edge.event}</text>
                   </g>
                 ))}
@@ -503,6 +510,7 @@ export default function WorkflowStudio() {
               {graphNodes.map(({ step, index, position }) => {
               const active = state === step.id;
               const isVisited = visited.has(step.id);
+              const KindIcon = kindIcons[step.kind] ?? Activity;
               return (
                 <button
                   key={step.id}
@@ -513,8 +521,8 @@ export default function WorkflowStudio() {
                   aria-label={`${step.label}, ${kindLabels[step.kind]}`}
                   onClick={() => setSelectedStep(step.id)}
                 >
-                  <span className="wf-node-icon">{active ? <CircleDot size={16} /> : isVisited ? <Check size={16} /> : <span>{String(index + 1).padStart(2, "0")}</span>}</span>
-                  <span className="wf-node-copy"><strong>{step.label}</strong><small>{kindLabels[step.kind]}</small></span>
+                  <span className="wf-node-icon"><KindIcon size={16} aria-hidden="true" /></span>
+                  <span className="wf-node-copy"><strong>{step.label}</strong><small>{kindLabels[step.kind]}{active && started ? " · Current" : isVisited ? " · Visited" : ""}</small></span>
                   <ArrowRight className="wf-node-open" size={15} />
                 </button>
               );

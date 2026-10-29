@@ -591,3 +591,14 @@
   .wf-model-note { grid-template-columns: 22px minmax(0, 1fr); }
   .wf-model-note span { grid-column: 2; }
 }
+
+/* Distinguish executable step types without hiding their identity when active. */
+.wf-flow-canvas .wf-node--eventWait .wf-node-icon { border: 2px double #8cc8f2; border-radius: 50%; color: #a9d9fa; background: #162d41; }
+.wf-flow-canvas .wf-node--decision .wf-node-icon { transform: rotate(45deg) scale(.85); border: 1px solid #f0c77f; border-radius: 2px; }
+.wf-flow-canvas .wf-node--decision .wf-node-icon svg { transform: rotate(-45deg); }
+.wf-flow-canvas .wf-node--humanTask .wf-node-icon { border: 1px solid #b9a9ee; border-radius: 8px; }
+.wf-flow-canvas .wf-node--end .wf-node-icon { border: 3px solid #8ce0b1; border-radius: 50%; }
+.wf-node-copy strong { font-size: 12px; }
+.wf-node-copy small { font-size: 10px; letter-spacing: .35px; }
+.wf-edge text { font-size: 10px; }
+.wf-legend { display:flex; flex-wrap:wrap; gap:8px 18px; margin: 0 0 12px; color:#bdd2cf; font-size:12px; }
