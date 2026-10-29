@@ -1042,3 +1042,19 @@ tr[hidden] { display: none; }
 .case-graph-symbol { fill: var(--accent); font-size: 18px; font-weight: 700; }
 .case-graph-label { font-size: 12px; font-weight: 600; }
 .case-graph-route-label { fill: var(--text-soft); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+
+/* Compact process summary; detailed executable routes remain available below. */
+.process-overview { margin: 20px 0 12px; }
+.process-overview-intro, .process-overview-note { color: var(--text-soft); font-size: 14px; line-height: 1.5; }
+.process-overview-list { list-style: none; margin: 16px 0; padding: 0; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 24px; }
+.process-overview-step { position: relative; min-width: 0; min-height: 114px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); padding: 14px; display: flex; align-items: flex-start; gap: 10px; }
+.process-overview-step:not(:last-child)::after { content: "→"; position: absolute; right: -20px; top: 38px; color: var(--text-soft); font-size: 19px; }
+.process-overview-step.is-current { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.process-overview-number { flex: 0 0 28px; width: 28px; height: 28px; border: 1px solid var(--line-soft); border-radius: 50%; display: grid; place-items: center; color: var(--text-soft); font-size: 13px; }
+.process-overview-step.is-current .process-overview-number, .process-overview-step.is-visited .process-overview-number { color: var(--accent); border-color: var(--accent); }
+.process-overview-copy { min-width: 0; display: grid; gap: 8px; padding-bottom: 18px; }
+.process-overview-copy strong { font-size: 14px; line-height: 1.25; }
+.process-overview-copy small { color: var(--text-soft); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.process-overview-status { position: absolute; left: 52px; bottom: 10px; color: var(--text-soft); font-size: 12px; letter-spacing: .03em; }
+.process-overview-step.is-current .process-overview-status { color: var(--accent); }
+@media (max-width: 1000px) { .process-overview-list { grid-template-columns: 1fr; gap: 18px; } .process-overview-step { min-height: 72px; } .process-overview-step:not(:last-child)::after { content: "↓"; right: auto; left: 19px; top: auto; bottom: -20px; } }
