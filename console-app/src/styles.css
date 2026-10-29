@@ -99,7 +99,7 @@ svg { flex: none; }
   background: var(--topbar);
   border-bottom: 1px solid var(--line-soft);
 }
-.topbar-brand { flex: 0 0 250px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar-brand { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; min-width: max-content; }
 .brand { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 19px; font-weight: 760; letter-spacing: -.7px; }
 .brand-mark { width: 30px; height: 30px; color: var(--accent); }
 .brand-divider { width: 1px; height: 23px; margin: 0 3px 0 4px; background: var(--line); }
@@ -1030,3 +1030,5 @@ tr[hidden] { display: none; }
 .correction-filter-card strong { font-size: 24px; font-variant-numeric: tabular-nums; }
 .correction-filter-card small { color: var(--muted); }
 .correction-filter-card:hover { border-color: var(--accent); }
+.correction-operations .work-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .correction-operations .work-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
