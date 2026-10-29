@@ -81,7 +81,7 @@ test("the app presents a model-driven billing work item with business progress a
   await page.getByRole("button", { name: /Validate evidence/ }).click();
   await expect(page.getByRole("heading", { name: "Approve the billing correction" })).toBeVisible();
   await page.getByText("View process diagram").click();
-  await expect(page.getByRole("img", { name: /XFlow correction process definition; current step awaitingApproval/ })).toBeVisible();
+  await expect(page.getByRole("group", { name: /XFlow correction process definition; current step awaitingApproval/ })).toBeVisible();
   await expect(page.locator(".case-graph-node.is-current title")).toContainText("Approve the billing correction");
   await expect(page.locator(".case-graph-edges path.is-taken")).not.toHaveCount(0);
   await page.getByRole("button", { name: "Focus current step" }).click();

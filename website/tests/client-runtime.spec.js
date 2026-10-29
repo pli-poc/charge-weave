@@ -93,9 +93,9 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.goto('app/');
   const dashboard = page.getByRole('region', { name: 'Correction operations dashboard' });
   await expect(dashboard).toContainText('Awaiting corrected evidence');
-  const historicalPanel = page.locator('.dashboard-panel').first();
+  const historicalPanel = page.locator('[data-panel="energy"]');
   await expect(historicalPanel).toBeVisible();
-  const historicalBefore = await historicalPanel.innerText();
+  const historicalBefore = await historicalPanel.textContent();
   await page.screenshot({ path: info.outputPath('correction-dashboard-before.png'), fullPage: true });
   await dashboard.getByRole('button', { name: 'Start demonstration' }).click();
   await page.getByLabel('Decision note').fill('Synthetic evidence checked against the accepted register.');
@@ -118,7 +118,7 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   if (info.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
   await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(dashboard).toContainText('Correction completed');
-  await expect(historicalPanel).toHaveText(historicalBefore);
+  expect(await historicalPanel.textContent()).toBe(historicalBefore);
   await page.screenshot({ path: info.outputPath('correction-dashboard-after.png'), fullPage: true });
   await info.attach('scenario-provenance.json', { body: Buffer.from(JSON.stringify({ scenario: 'correction.approval-restore', case: 'CW-BILL-0471', clock: '2026-10-13T08:00:00.000Z', commit: process.env.EXACT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'local', checkpoints: ['initial', 'awaitingApproval', 'completed'], basis: 'synthetic CPO CDR; EUR 0.32/kWh tax-inclusive; no fees' }, null, 2)), contentType: 'application/json' });
 });
