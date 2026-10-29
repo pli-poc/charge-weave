@@ -1,5 +1,6 @@
+import { outgoingTransitions, GRAPH, layoutWorkflow, edgeGeometry, transitionLabel } from "../../client-runtime/src/flow/presentation.js";
+import { correctionOperationsProjection } from "../../client-runtime/src/profiles/chargeweave/operations-projection.js";
 import flowPackage from "../../client-runtime/generated/application.json" with { type: "json" };
-import approvalForm from "../../model/correction-approval-form.json" with { type: "json" };
 import { createConsoleClient } from "./local-client.js";
 import { createPlatformProvider } from "./provider.js";
 import { filterByCountry, findSite, formatEuro, formatNumber, getSiteMetrics } from "./data.js";
@@ -84,6 +85,8 @@ let dataTab = "Graph";
 let sidebarOpen = false;
 let selectedWorkItem = false;
 let workRun = makeMeterCorrectionRun();
+let correctionPreset = "operations";
+let correctionFilter = "all";
 let workReady = false;
 function projectTask(task) { workRun = { ...task, currentStage: task.stage }; }
 function storageControls() { return `<div class="workspace-storage"><span role="status">${esc(localClient.status())}</span><button type="button" class="secondary-button" data-action="save-work" ${!workReady ? "disabled" : ""}>Save workspace</button><button type="button" class="secondary-button" data-action="export-work">Export</button><button type="button" class="secondary-button" data-action="reset-work-demo">Reset workspace</button><label class="secondary-button">Import<input type="file" accept="application/json" data-import-work hidden /></label></div>`; }
@@ -136,7 +139,7 @@ function navHtml() {
   return nav.map((item) => {
     const heading = item.group !== group ? `<p class="nav-heading">${item.group}</p>` : "";
     group = item.group;
-    return `${heading}<button class="nav-item${currentView === item.id ? " is-active" : ""}" type="button" data-view="${item.id}"${currentView === item.id ? ' aria-current="page"' : ""}>${icon(item.icon)}<span>${item.label}</span>${item.id === "operations" ? '<span class="nav-count">10</span>' : item.id === "work" && workRun.status !== "completed" ? '<span class="nav-count">1</span>' : ""}</button>`;
+    return `${heading}<button class="nav-item${currentView === item.id ? " is-active" : ""}" type="button" data-view="${item.id}"${currentView === item.id ? ' aria-current="page"' : ""}>${icon(item.icon)}<span>${item.label}</span>${item.id === "operations" ? '<span class="nav-count">10</span>' : item.id === "work" && workRun.status === "awaitingApproval" ? '<span class="nav-count">1</span>' : ""}</button>`;
   }).join("");
 }
 function shell() {
@@ -188,9 +191,14 @@ function activityPanel() {
 }
 function correctionOverview() {
   const item = meterCorrectionModel.case;
-  const complete = workRun.status === "completed";
-  const stateText = { open: "Waiting for evidence validation", awaitingApproval: "Awaiting billing approval", completed: "Correction completed", declined: "Correction declined", expired: "Manual review required" }[workRun.status] ?? workRun.status;
-  return `<section class="panel" aria-label="Connected correction case"><header class="panel-heading"><div><span class="eyebrow">CORRECTION WORKSPACE · SYNTHETIC CASE</span><h2>${complete ? "Correction decision recorded" : "A charging correction needs your attention"}</h2></div><button class="primary-button" type="button" data-action="open-work-item">${complete ? "Inspect result" : "Review correction"} ${icon("arrow")}</button></header><div class="panel-content"><p>${esc(item.sessionId)} · ${esc(item.site)}</p><p>${complete ? "The accepted decision is available in this workspace." : "Review revised meter evidence and record a decision using the generated task form."}</p><p><strong>${esc(stateText)}</strong> · Local correction state; independent of the historical analytics below.</p></div></section>`;
+  const p = correctionOperationsProjection({ ...workRun, flowState: workRun.flowState ?? flowPackage.flow.initialStep }, item);
+  const labels = { open: "Awaiting corrected evidence", waitingBillingEvidence: "Waiting for billing evidence", awaitingApproval: "Awaiting billing approval", completed: "Correction completed", declined: "Correction declined", expired: "Manual review required" };
+  if (correctionPreset === "network") return `<section class="panel correction-operations" aria-label="Correction operations dashboard"><header class="panel-heading"><div><span class="eyebrow">HISTORICAL SYNTHETIC NETWORK</span><h2>Network performance</h2><p>Site/day analytics use a separate historical population from the correction case.</p></div><button class="secondary-button" type="button" data-view="analytics">Explore network analytics ${icon("arrow")}</button></header><div class="panel-content"><label class="correction-preset">View <select data-correction-preset aria-label="Correction dashboard view"><option value="operations">Operations</option><option value="billing">Billing and corrections</option><option value="network" selected>Network performance</option></select></label><p>The charts below reflect the selected historical period. This correction does not modify that population.</p></div></section>`;
+  const matchesFilter = correctionFilter === "all" || (correctionFilter === "open" && p.openCases > 0) || (correctionFilter === "approval" && p.actionableTasks > 0) || (correctionFilter === "evidence" && p.waitingEvidence > 0);
+  const queue = matchesFilter ? `<div class="work-inbox-toolbar"><div><span class="eyebrow">CURRENT CASE</span><h2>${esc(labels[p.state] ?? p.state)}</h2><p>${esc(item.id)} · ${esc(item.site)} · revision ${p.revision}</p></div><button class="secondary-button" type="button" data-action="open-work-item">${p.actionableTasks ? "Open approval task" : "Inspect case"}</button></div>` : `<p class="analytics-empty" role="status">No cases match this filter at the current checkpoint.</p>`;
+  const filterChip = correctionFilter === "all" ? "" : `<p>Active filter: ${esc(correctionFilter)} <button class="inline-link" type="button" data-action="correction-filter" data-filter="all">Clear filter</button></p>`;
+  const cards = correctionPreset === "billing" ? `<article><span>Original CPO record</span><strong>${formatEuro(Number(p.original.amountEur))}</strong><small>EUR · tax-inclusive</small></article><article><span>Replacement</span><strong>${workRun.outcome?.type === "correction.accepted" ? formatEuro(Number(workRun.outcome.amount)) : "—"}</strong><small>Accepted correction only</small></article><article><span>Net adjustment</span><strong>${p.approvedNetAdjustment === null ? "—" : formatEuro(Number(p.approvedNetAdjustment))}</strong><small>Replacement minus original · EUR</small></article><article><span>Partner acknowledgment</span><strong>Unavailable</strong><small>No acknowledgment adapter</small></article>` : `<button type="button" class="correction-filter-card" data-action="correction-filter" data-filter="open"><span>Open cases</span><strong>${p.openCases}</strong><small>Distinct correction cases</small></button><button type="button" class="correction-filter-card" data-action="correction-filter" data-filter="approval"><span>Awaiting approval</span><strong>${p.actionableTasks}</strong><small>Actionable tasks · billing approver</small></button><button type="button" class="correction-filter-card" data-action="correction-filter" data-filter="evidence"><span>Waiting for evidence</span><strong>${p.waitingEvidence}</strong><small>Cases at evidence wait</small></button><article><span>Approved net adjustment</span><strong>${p.approvedNetAdjustment === null ? "—" : formatEuro(Number(p.approvedNetAdjustment))}</strong><small>EUR · accepted correction only</small></article>`;
+  return `<section class="panel correction-operations" aria-label="Correction operations dashboard"><header class="panel-heading"><div><span class="eyebrow">SYNTHETIC CORRECTION · ONE CASE</span><h2>${correctionPreset === "billing" ? "Billing and corrections" : "Correction operations"}</h2><p>Current checkpoint · ${esc(item.sessionId)} · simulated roles</p></div><button class="primary-button" type="button" data-action="open-work-item">${p.state === "open" ? "Start demonstration" : "Open current case"} ${icon("arrow")}</button></header><div class="panel-content"><label class="correction-preset">View <select data-correction-preset aria-label="Correction dashboard view"><option value="operations" ${correctionPreset === "operations" ? "selected" : ""}>Operations</option><option value="billing" ${correctionPreset === "billing" ? "selected" : ""}>Billing and corrections</option><option value="network">Network performance</option></select></label><div class="work-summary-grid">${cards}</div>${filterChip}${queue}<details><summary>Metric scope and source</summary><p>One synthetic correction case at the current checkpoint. Counts are distinct cases or current actionable tasks, not daily totals. The net adjustment is replacement minus original in EUR. Partner acknowledgment is unavailable. Historical network analytics below use a separate population.</p></details></div></section>`;
 }
 function overviewPage() {
   let analytics;
@@ -226,7 +234,7 @@ function workInboxPage() {
   const caseData = meterCorrectionModel.case;
   const completed = workRun.status === "completed";
   const actionable = workRun.status === "awaitingApproval";
-  const status = { open: "Evidence validation", awaitingApproval: "Awaiting approval", completed: "Completed", declined: "Declined", expired: "Manual review" }[workRun.status] ?? workRun.status;
+  const status = { open: "Evidence validation", waitingBillingEvidence: "Waiting for billing evidence", awaitingApproval: "Awaiting approval", completed: "Completed", declined: "Declined", expired: "Manual review" }[workRun.status] ?? workRun.status;
   const amount = completed
     ? rateCorrectedReading(workRun.values.meterEnd).amountEur
     : rateCorrectedReading(caseData.proposedMeterEnd).amountEur;
@@ -259,10 +267,44 @@ function workProgress() {
   }).join("")}</ol>`;
 }
 
+function correctionProcessCanvas(flow, current, trace = []) {
+  const layout = layoutWorkflow(flow);
+  const nodes = flow.steps.map((step, index) => ({ step, index, position: layout.positions.get(step.id) }));
+  const positions = new Map(nodes.map(n => [n.step.id, n]));
+  const edges = nodes.flatMap(({ step, index, position }) => outgoingTransitions(step).flatMap((edge, edgeIndex) => {
+    const target = positions.get(edge.target);
+    if (!target) return [];
+    const geometry = edgeGeometry(position, target.position, index + edgeIndex, layout, step.kind, target.step.kind);
+    const taken = trace.some(item => item.source === step.id && item.target === edge.target && item.event === edge.event);
+    return [`<g><title>${esc(edge.event)}</title><path class="${taken ? "is-taken" : ""}" d="${esc(geometry.d)}" marker-end="url(#case-flow-arrow)" /><text class="case-graph-route-label" x="${geometry.labelX}" y="${geometry.labelY}">${esc(transitionLabel(edge.event))}</text></g>`];
+  })).join("");
+  const blocks = nodes.map(({ step, position }) => {
+    const active = step.id === current;
+    const words = step.label.split(/\s+/);
+    const lines = words.reduce((result, word) => {
+      const last = result.length - 1;
+      if (last >= 0 && `${result[last]} ${word}`.length <= 17) result[last] += ` ${word}`;
+      else result.push(word);
+      return result;
+    }, []);
+    const compact = ["decision", "eventWait", "end"].includes(step.kind);
+    const cx = position.x + 42, cy = position.y + 42;
+    const shape = step.kind === "decision" ? `<path class="case-graph-shape" d="M ${cx} ${cy - 40} l 40 40 -40 40 -40 -40 Z"/>` : step.kind === "eventWait" ? `<circle class="case-graph-shape" cx="${cx}" cy="${cy}" r="40"/><circle class="case-graph-inner" cx="${cx}" cy="${cy}" r="35"/>` : step.kind === "end" ? `<circle class="case-graph-shape case-graph-end" cx="${cx}" cy="${cy}" r="40"/>` : `<rect class="case-graph-shape" x="${position.x}" y="${position.y}" width="${GRAPH.nodeWidth}" height="${GRAPH.nodeHeight}" rx="10"/>`;
+    const symbol = ({ eventWait: "○", serviceTask: "⚙", decision: "?", humanTask: "♙", end: "•" })[step.kind] ?? "•";
+    const labelX = position.x + (compact ? 94 : 47);
+    return `<g data-graph-node="${esc(step.id)}" data-action="graph-select" data-step="${esc(step.id)}" role="button" tabindex="0" aria-label="${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}" class="case-graph-node${active ? " is-current" : ""}"><title>${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}</title>${shape}<text class="case-graph-symbol" x="${compact ? cx : position.x + 23}" y="${cy + 5}" text-anchor="middle">${symbol}</text><text class="case-graph-label" x="${labelX}" y="${position.y + (lines.length > 1 ? 22 : 38)}">${lines.map((line, i) => `<tspan x="${labelX}" dy="${i ? 15 : 0}">${esc(line)}</tspan>`).join("")}</text><text class="case-graph-kind" x="${labelX}" y="${position.y + 73}">${esc(step.kind)}${active ? " · CURRENT" : ""}</text></g>`;
+  }).join("");
+  return `<details class="case-graph-details"><summary>View process diagram</summary><p>Current step and observed routes are highlighted. Other routes remain neutral. Scroll to inspect the diagram; the step and route lists below are the readable alternative.</p><div class="case-graph-toolbar" role="group" aria-label="Process diagram controls"><button type="button" class="secondary-button" data-action="graph-zoom-out" aria-label="Zoom out">−</button><button type="button" class="secondary-button" data-action="graph-zoom-in" aria-label="Zoom in">+</button><button type="button" class="secondary-button" data-action="graph-fit">Fit diagram</button><button type="button" class="secondary-button" data-action="graph-reset">Reset view</button><button type="button" class="secondary-button" data-action="graph-focus">Focus current step</button></div><div class="case-graph-scroll" tabindex="0" aria-label="Scrollable process diagram"><svg viewBox="0 0 ${layout.width} ${layout.height}" role="group" style="width:${layout.width}px;height:${layout.height}px" aria-label="XFlow correction process definition; current step ${esc(current)}"><defs><marker id="case-flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z"/></marker></defs><g class="case-graph-edges">${edges}</g>${blocks}</svg></div><div class="case-graph-inspector" role="status" aria-live="polite">Select a step in the diagram or the step list to inspect its description.</div></details>`;
+}
+
+function formatMeterKwh(value) { return new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(value)); }
+
 function workCasePage() {
   const caseData = meterCorrectionModel.case;
   const completed = workRun.status === "completed";
+  const noChange = workRun.outcome?.type === "correction.noChange";
   const awaitingApproval = workRun.status === "awaitingApproval";
+  const waitingBillingEvidence = workRun.status === "waitingBillingEvidence";
   const closedWithoutChange = ["declined", "expired"].includes(workRun.status);
   const currentEnd = completed || awaitingApproval || closedWithoutChange ? Number(workRun.values.meterEnd) : Number(caseData.proposedMeterEnd);
   const currentRating = rateCorrectedReading(currentEnd, caseData);
@@ -270,21 +312,22 @@ function workCasePage() {
   const form = meterCorrectionModel.task.form;
   const task = meterCorrectionModel.task;
   const taskPanel = completed
-    ? `<section class="work-decision-complete" role="status"><span class="complete-mark">${icon("check")}</span><div><span class="eyebrow">DECISION RECORDED</span><h2>Billing adjustment prepared</h2><p>${esc(workRun.values.operatorNote)}</p><dl><div><dt>New usage</dt><dd>${formatNumber(currentRating.energyKwh)} kWh</dd></div><div><dt>Re-rated amount</dt><dd>${formatEuro(currentRating.amountEur)}</dd></div><div><dt>Correction record</dt><dd>${esc(workRun.outcome?.correctionId)}</dd></div><div><dt>Evidence</dt><dd>${esc(workRun.values.evidenceReference)}</dd></div><div><dt>Credit</dt><dd>${esc(workRun.records?.credit?.id ?? "Not issued")} · ${workRun.records?.credit ? formatEuro(workRun.records.credit.amountEur) : "—"}</dd></div><div><dt>Partner delivery</dt><dd>Not confirmed · acknowledgment unavailable</dd></div></dl></div></section>`
+    ? `<section class="work-decision-complete" role="status"><span class="complete-mark">${icon("check")}</span><div><span class="eyebrow">DECISION RECORDED</span><h2>${noChange ? "No financial change" : "Billing adjustment prepared"}</h2><p>${esc(workRun.values.operatorNote)}</p><dl><div><dt>New usage</dt><dd>${formatMeterKwh(currentRating.energyKwh)} kWh</dd></div><div><dt>Re-rated amount</dt><dd>${formatEuro(currentRating.amountEur)}</dd></div><div><dt>Correction record</dt><dd>${esc(workRun.outcome?.correctionId)}</dd></div><div><dt>Evidence</dt><dd>${esc(workRun.values.evidenceReference)}</dd></div><div><dt>Credit</dt><dd>${esc(workRun.records?.credit?.id ?? "Not issued")} · ${workRun.records?.credit ? formatEuro(workRun.records.credit.amountEur) : "—"}</dd></div><div><dt>Partner delivery</dt><dd>Not confirmed · acknowledgment unavailable</dd></div></dl></div></section>`
     : closedWithoutChange ? `<section class="work-decision-complete" role="status"><div><span class="eyebrow">${workRun.status === "expired" ? "DEADLINE EXPIRED" : "CORRECTION DECLINED"}</span><h2>${workRun.status === "expired" ? "Escalated to manual review" : "No correction issued"}</h2><p>${esc(workRun.outcome?.note ?? "The virtual approval deadline was reached. Manual review is required.")}</p></div></section>`
-    : awaitingApproval ? `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">SIMULATED BILLING APPROVER · HUMAN TASK</span><h2>Approve the billing correction</h2><p>Review the original and proposed amounts below. No financial record is created before approval.</p></div><span class="work-task-open"><i></i> Awaiting approval</span></div><form class="work-task-form" data-approval-task><div class="work-task-fields">${renderGeneratedTaskForm(approvalForm, {})}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Virtual deadline: ${esc(workRun.approvalDueAt)} · simulated role</span><button class="primary-button" type="submit">Record decision ${icon("arrow")}</button></div></form></section>`
+    : waitingBillingEvidence ? `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">BILLING EVIDENCE · SIMULATED</span><h2>Waiting for billing evidence</h2><p>Tax and commercial responsibility inputs are missing. No accepted rating or credit exists yet.</p></div></div><form class="work-task-form" data-billing-evidence><div class="work-task-fields">${renderGeneratedTaskForm(workRun.descriptor.form, {})}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Provide the synthetic evidence reference to resume the same case.</span><button class="primary-button" type="submit">Supply evidence ${icon("arrow")}</button></div></form></section>`
+    : awaitingApproval ? `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">SIMULATED BILLING APPROVER · HUMAN TASK</span><h2>Approve the billing correction</h2><p>Review the original and proposed amounts below. No financial record is created before approval.</p></div><span class="work-task-open"><i></i> Awaiting approval</span></div><form class="work-task-form" data-approval-task><div class="work-task-fields">${renderGeneratedTaskForm(workRun.descriptor.form, {})}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Virtual deadline: ${esc(workRun.approvalDueAt)} · simulated role</span><button class="primary-button" type="submit">Record decision ${icon("arrow")}</button></div></form><details><summary>Demonstrate deadline escalation</summary><p>Advances this scenario's virtual clock to the configured deadline. Browser closure does not run a background timer.</p><button type="button" class="secondary-button" data-action="expire-approval">Advance to deadline</button></details></section>`
     : `<section class="work-task-card"><div class="work-task-heading"><div><span class="eyebrow">${esc(caseData.assignedRole)} · HUMAN REVIEW</span><h2>${esc(task.title)}</h2><p>${esc(task.instructions)}</p></div><span class="work-task-open"><i></i> Action required</span></div>
       <form class="work-task-form" data-work-task="${esc(task.id)}"><div class="work-task-fields">${renderGeneratedTaskForm(form, workRun.values)}</div><div class="work-form-error" id="work-form-error" role="alert" hidden></div><div class="work-form-actions"><span>Validate the evidence and calculate the proposal before approval.</span><button class="primary-button" type="submit">Validate evidence ${icon("arrow")}</button></div></form>
       <p class="work-form-boundary">Allowed fields come from this task's versioned presentation profile. The local task service checks the simulated role, revision and business rules before the workflow resumes.</p></section>`;
 
   return `${heading("Work item", "Review the evidence, record your decision, and keep the correction linked to its original charge.", `<button type="button" class="secondary-button" data-action="back-to-work">${icon("arrow")} Back to work</button>`)}
-    ${storageControls()}<div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : awaitingApproval ? "Awaiting approval" : closedWithoutChange ? (workRun.status === "expired" ? "Manual review" : "Declined") : "Evidence review"}</span></div>
-    <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : awaitingApproval ? "Waiting for billing approval" : closedWithoutChange ? "Review closed" : "Waiting for evidence validation"}</strong></div><span>${completed ? "4 of 4 stages" : "Current case state"}</span></div>${workProgress()}</section>
-    <section class="panel" aria-label="Current correction process"><header class="panel-heading"><div><span class="eyebrow">CONNECTED PROCESS · SYNTHETIC</span><h2>Current process step</h2></div><span class="subtle-tag">${esc(workRun.flowState ?? flowPackage.flow.initialStep)}</span></header><div class="panel-content"><p><strong>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.label ?? "Unknown step")}</strong></p><p>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.description ?? "Process detail unavailable")}</p><p>Workflow ${esc(flowPackage.flow.id)} · case ${esc(caseData.id)} · revision ${workRun.revision}</p><details><summary>View process steps</summary><ol>${flowPackage.flow.steps.map(step => `<li>${esc(step.label)} · ${esc(step.kind)}${step.id === (workRun.flowState ?? flowPackage.flow.initialStep) ? " · Current" : ""}</li>`).join("")}</ol></details></div></section>
-    <div class="work-case-layout"><div class="work-case-main">${taskPanel}<section class="work-financial-impact"><div><span class="eyebrow">CALCULATED FROM METER EVIDENCE</span><h2>Billing impact</h2><p>Rate is € ${formatNumber(caseData.tariffEurPerKwh)} per kWh. The amount is recalculated from the register difference.</p></div><div class="work-impact-values"><div><span>Original</span><strong>${formatNumber(originalRating.energyKwh)} kWh · ${formatEuro(originalRating.amountEur)}</strong></div><div><span>${completed ? "Corrected" : "Proposed"}</span><strong>${formatNumber(currentRating.energyKwh)} kWh · ${formatEuro(currentRating.amountEur)}</strong></div><div class="work-impact-delta"><span>Adjustment</span><strong>${formatEuro(currentRating.amountEur - originalRating.amountEur)}</strong></div></div></section></div>
-      <aside class="work-case-aside"><section class="work-context-card"><div class="work-aside-title">${icon("plug")}<h3>Charging record</h3></div><dl><div><dt>Session</dt><dd>${esc(caseData.sessionId)}</dd></div><div><dt>Original CDR</dt><dd>${esc(caseData.cdrId)}</dd></div><div><dt>Site</dt><dd>${esc(caseData.site)}</dd></div><div><dt>Meter</dt><dd>${esc(caseData.meterId)}</dd></div><div><dt>Start reading</dt><dd>${formatNumber(caseData.meterStart)} kWh</dd></div><div><dt>Original end</dt><dd>${formatNumber(caseData.originalMeterEnd)} kWh</dd></div><div><dt>Partner proposal</dt><dd>${formatNumber(caseData.proposedMeterEnd)} kWh</dd></div><div><dt>Evidence ref</dt><dd>${esc(caseData.evidenceReference)}</dd></div></dl></section>
+    ${storageControls()}<div class="work-case-header"><div><span class="eyebrow">${esc(caseData.category.toUpperCase())} · ${esc(caseData.id)}</span><h2>${esc(caseData.title)}</h2><p>${esc(caseData.description)}</p></div><span class="work-state large ${completed ? "is-complete" : ""}"><i></i>${completed ? "Completed" : awaitingApproval ? "Awaiting approval" : waitingBillingEvidence ? "Waiting for billing evidence" : closedWithoutChange ? (workRun.status === "expired" ? "Manual review" : "Declined") : "Evidence review"}</span></div>
+    <section class="work-progress-card"><div class="work-progress-top"><div><span class="eyebrow">PROCESS PROGRESS</span><strong>${completed ? "Decision recorded" : awaitingApproval ? "Waiting for billing approval" : waitingBillingEvidence ? "Waiting for billing evidence" : closedWithoutChange ? "Review closed" : "Waiting for evidence validation"}</strong></div><span>${completed ? "4 of 4 stages" : "Current case state"}</span></div>${workProgress()}</section>
+    <div class="work-case-layout"><div class="work-case-main">${taskPanel}<section class="work-context-card"><div class="work-aside-title">${icon("overview")}<h3>Responsibilities and evidence</h3></div><p><strong>CPO:</strong> owns the meter evidence and charging record. <strong>Billing approver:</strong> reviews the proposed correction under a simulated role.</p><p><strong>Roaming intermediary:</strong> delivery is illustrative; no acknowledgment adapter is connected. <strong>eMSP and driver:</strong> a CPO record is not the driver's invoice; downstream tariffs, invoices and payments are outside this demo.</p><p>Signature and register-epoch checks use declared synthetic fixture outcomes. No live meter trust service is contacted.</p></section><section class="work-financial-impact"><div><span class="eyebrow">CALCULATED FROM METER EVIDENCE</span><h2>Billing impact</h2><p>Rate is € ${Number(caseData.tariffEurPerKwh).toFixed(2).replace(".", ",")} per kWh, tax-inclusive with no separate fees. Illustrative tariff; amount calculated from register difference.</p></div><div class="work-impact-values"><div><span>Original</span><strong>${formatMeterKwh(originalRating.energyKwh)} kWh · ${formatEuro(originalRating.amountEur)}</strong></div><div><span>${completed ? "Corrected" : "Proposed"}</span><strong>${formatMeterKwh(currentRating.energyKwh)} kWh · ${formatEuro(currentRating.amountEur)}</strong></div><div class="work-impact-delta"><span>Adjustment</span><strong>${formatEuro(currentRating.amountEur - originalRating.amountEur)}</strong></div></div></section></div>
+      <aside class="work-case-aside"><section class="work-context-card"><div class="work-aside-title">${icon("plug")}<h3>Charging record</h3></div><dl><div><dt>Session</dt><dd>${esc(caseData.sessionId)}</dd></div><div><dt>Original CDR</dt><dd>${esc(caseData.cdrId)}</dd></div><div><dt>Site</dt><dd>${esc(caseData.site)}</dd></div><div><dt>Meter</dt><dd>${esc(caseData.meterId)}</dd></div><div><dt>Register epoch</dt><dd>${esc(caseData.registerEpoch)}</dd></div><div><dt>Start reading</dt><dd>${formatMeterKwh(caseData.meterStart)} kWh</dd></div><div><dt>Original end</dt><dd>${formatMeterKwh(caseData.originalMeterEnd)} kWh</dd></div><div><dt>Partner proposal</dt><dd>${formatMeterKwh(caseData.proposedMeterEnd)} kWh</dd></div><div><dt>Evidence ref</dt><dd>${esc(caseData.evidenceReference)}</dd></div></dl></section>
       <section class="work-people-card"><div class="work-aside-title">${icon("overview")}<h3>People and responsibilities</h3></div><div class="work-person"><span class="profile-avatar">BO</span><span><strong>${esc(caseData.assignedRole)}</strong><small>${completed ? "Decision recorded by you" : "Responsible for reviewing the evidence"}</small></span></div><div class="work-person"><span class="profile-avatar partner-avatar">NP</span><span><strong>${esc(caseData.partner)}</strong><small>Submitted the revised meter evidence</small></span></div><div class="work-person"><span class="profile-avatar system-avatar">CW</span><span><strong>Billing service</strong><small>Re-rates after an accepted correction</small></span></div></section>
-      <section class="work-history-card"><div class="work-aside-title">${icon("clock")}<h3>Recent activity</h3></div><ol><li><i class="is-done"></i><span><strong>Mismatch detected</strong><small>${esc(caseData.openedAt)} · Reconciliation</small></span></li><li><i class="is-done"></i><span><strong>Partner evidence received</strong><small>Synthetic evidence fixture · ${esc(caseData.evidenceReference)}</small></span></li><li><i class="${completed ? "is-done" : "is-current"}"></i><span><strong>${completed ? "Decision recorded" : awaitingApproval ? "Awaiting approval" : closedWithoutChange ? "Review closed" : "Waiting for validation"}</strong><small>${completed ? "Correction linked to the original record" : awaitingApproval ? `Virtual deadline ${esc(workRun.approvalDueAt)}` : "Synthetic scenario"}</small></span></li></ol></section></aside></div>
+      <section class="work-history-card"><div class="work-aside-title">${icon("clock")}<h3>Case activity</h3></div><ol><li><i class="is-done"></i><span><strong>Completed session and original record</strong><small>Loaded synthetic fixture history · ${esc(caseData.cdrId)}</small></span></li>${(workRun.history ?? []).map(entry => `<li><i class="is-done"></i><span><strong>${esc(entry.decision ? ({ approve: "Approval recorded", reject: "Correction declined", expired: "Deadline escalated" }[entry.decision.outcome] ?? "Decision recorded") : entry.flowState === "awaitingApproval" ? "Evidence validated; approval requested" : entry.flowState === "completedNoChange" ? "No financial change" : entry.flowState === "awaitingAdditionalEvidence" ? "Waiting for billing evidence" : "Correction recorded")}</strong><small>Virtual time ${esc(entry.recordedAt)} · revision ${entry.revision}</small></span></li>`).join("")}</ol><p>Fixture history is loaded; later entries are recorded by this local workspace. Source event time is not available for this fixture.</p></section></aside></div>
+    <section class="panel" aria-label="Current correction process"><header class="panel-heading"><div><span class="eyebrow">CONNECTED PROCESS · SYNTHETIC</span><h2>Current process step</h2></div><span class="subtle-tag">${esc(workRun.flowState ?? flowPackage.flow.initialStep)}</span></header><div class="panel-content"><p><strong>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.label ?? "Unknown step")}</strong></p><p>${esc(flowPackage.flow.steps.find(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep))?.description ?? "Process detail unavailable")}</p><p>Process ${esc(workRun.instanceId ?? `correction:${caseData.sessionId}`)} · case ${esc(caseData.id)} · revision ${workRun.revision}</p>${correctionProcessCanvas(flowPackage.flow, workRun.flowState ?? flowPackage.flow.initialStep, workRun.trace ?? [])}<details><summary>View process steps and routes</summary><ol class="case-flow-list">${flowPackage.flow.steps.map(step => `<li class="case-flow-step ${step.id === (workRun.flowState ?? flowPackage.flow.initialStep) ? "is-current" : ""}"><span class="case-flow-symbol case-flow-symbol--${esc(step.kind)}" aria-hidden="true"><span>${({ eventWait: "○", serviceTask: "⚙", decision: "?", humanTask: "♙", end: "●" })[step.kind] ?? "•"}</span></span><span><button type="button" class="inline-link" data-action="graph-select" data-step="${esc(step.id)}">${esc(step.label)}</button><small>${esc(({ eventWait: "Event wait", serviceTask: "Automated service", decision: "Decision", humanTask: "Human task", end: "End" })[step.kind] ?? step.kind)}${step.id === (workRun.flowState ?? flowPackage.flow.initialStep) ? " · Current" : " · Execution status not shown"}</small></span></li>`).join("")}</ol><details><summary>Executable route list</summary><ul>${flowPackage.flow.steps.flatMap(step => outgoingTransitions(step).map(edge => `<li>${esc(step.label)} · ${esc(edge.event)} → ${esc(flowPackage.flow.steps.find(target => target.id === edge.target)?.label ?? edge.target)}</li>`)).join("")}</ul><p>Routes describe the definition; the diagram highlights only transitions observed in this workspace.</p></details></details></div></section>
     <div class="workspace-footnote">Synthetic task and records. This interaction updates browser demo state only; it does not issue a real credit, invoice change, or payment.</div>`;
 }
 
@@ -629,10 +672,50 @@ root.addEventListener("click", async (event) => {
   const action = event.target.closest("[data-action]");
   if (!action) return;
   switch (action.dataset.action) {
+    case "correction-filter": correctionFilter = ["all", "open", "approval", "evidence"].includes(action.dataset.filter) ? action.dataset.filter : "all"; render(); break;
     case "open-work-item": selectedWorkItem = true; currentView = "work"; location.hash = "work"; render(); break;
     case "back-to-work": selectedWorkItem = false; render(); break;
+    case "graph-select": {
+      const step = flowPackage.flow.steps.find(item => item.id === action.dataset.step);
+      const details = root.querySelector(".case-graph-details");
+      if (!step || !details) break;
+      details.open = true;
+      const inspector = details.querySelector(".case-graph-inspector");
+      inspector.textContent = `${step.label} · ${step.kind}. ${step.description || "No description available."}`;
+      details.querySelectorAll(".case-graph-node.is-selected").forEach(node => node.classList.remove("is-selected"));
+      details.querySelectorAll("[data-graph-node]").forEach(node => { if (node.dataset.graphNode === step.id) node.classList.add("is-selected"); });
+      break;
+    }
+    case "graph-zoom-out": case "graph-zoom-in": case "graph-fit": case "graph-reset": case "graph-focus": {
+      const scroll = root.querySelector(".case-graph-scroll"), svg = scroll?.querySelector("svg");
+      if (!scroll || !svg) break;
+      const layout = layoutWorkflow(flowPackage.flow);
+      let scale = Number(svg.dataset.scale || 1);
+      if (action.dataset.action === "graph-zoom-out") scale = Math.max(0.35, scale - 0.15);
+      if (action.dataset.action === "graph-zoom-in") scale = Math.min(2, scale + 0.15);
+      if (action.dataset.action === "graph-fit") scale = Math.max(0.2, Math.min(1, (scroll.clientWidth - 20) / layout.width));
+      if (action.dataset.action === "graph-reset") scale = 1;
+      svg.dataset.scale = scale;
+      svg.style.width = `${layout.width * scale}px`;
+      svg.style.height = `${layout.height * scale}px`;
+      if (action.dataset.action === "graph-focus") {
+        const index = flowPackage.flow.steps.findIndex(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep));
+        if (index >= 0) { const p = layoutWorkflow(flowPackage.flow).positions.get(flowPackage.flow.steps[index].id); scroll.scrollTo({ left: Math.max(0, (p.x + GRAPH.nodeWidth / 2) * scale - scroll.clientWidth / 2), top: Math.max(0, (p.y + GRAPH.nodeHeight / 2) * scale - scroll.clientHeight / 2), behavior: "auto" }); }
+      } else if (action.dataset.action === "graph-reset" || action.dataset.action === "graph-fit") scroll.scrollTo({ left: 0, top: 0, behavior: "auto" });
+      break;
+    }
     case "reset-work-demo": try { projectTask(await localClient.reset()); selectedWorkItem = false; currentView = "work"; } catch {} render(); break;
     case "save-work": try { await localClient.save(); } catch {} render(); break;
+    case "expire-approval": {
+      action.disabled = true;
+      try {
+        const result = await localClient.expireApproval(workRun.revision, crypto.randomUUID());
+        if (!result.accepted) throw new Error(result.code);
+        projectTask(await localClient.task());
+        render();
+      } catch (error) { action.disabled = false; const target = root.querySelector("#work-form-error"); if (target) { target.hidden = false; target.textContent = error.message; } }
+      break;
+    }
     case "export-work": { const url = URL.createObjectURL(new Blob([await localClient.export()], { type: "application/json" })); const link=document.createElement("a"); link.href=url; link.download="chargeweave-workspace.json"; link.click(); URL.revokeObjectURL(url); break; }
     case "theme": theme = theme === "dark" ? "light" : "dark"; save("chargeweave-console-theme", theme); render(); break;
     case "arrange": arrange = !arrange; save("chargeweave-console-arrange", String(arrange)); render(); break;
@@ -664,6 +747,8 @@ root.addEventListener("click", async (event) => {
   }
 });
 root.addEventListener("change", (event) => {
+  const preset = event.target.closest("[data-correction-preset]");
+  if (preset) { correctionPreset = ["operations", "billing", "network"].includes(preset.value) ? preset.value : "operations"; render(); root.querySelector("[data-correction-preset]")?.focus(); return; }
   const control = event.target.closest("[data-analytics-field]");
   if (control) {
     analyticsState[control.dataset.analyticsField] = control.value;
@@ -681,6 +766,26 @@ root.addEventListener("change", (event) => {
 });
 root.addEventListener("submit", async (event) => {
   if (event.target.matches(".analytics-controls")) { event.preventDefault(); return; }
+  const billingEvidence = event.target.closest("[data-billing-evidence]");
+  if (billingEvidence) {
+    event.preventDefault();
+    const button = billingEvidence.querySelector('button[type="submit"]'), error = billingEvidence.querySelector("#work-form-error");
+    button.disabled = true;
+    try {
+      const result = await localClient.supplyEvidence(Object.fromEntries(new FormData(billingEvidence).entries()), workRun.revision, crypto.randomUUID());
+      if (!result.accepted) {
+        for (const violation of result.violations ?? []) {
+          const field = violation.field && billingEvidence.elements.namedItem(violation.field);
+          if (field) { field.setAttribute("aria-invalid", "true"); field.setAttribute("aria-describedby", `${field.getAttribute("aria-describedby") ?? ""} work-form-error`.trim()); }
+        }
+        const first = result.violations?.find(v => v.field);
+        if (first) billingEvidence.elements.namedItem(first.field)?.focus();
+        throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
+      }
+      projectTask(await localClient.task()); render();
+    } catch (failure) { error.hidden = false; error.textContent = failure.message; button.disabled = false; }
+    return;
+  }
   const approvalTask = event.target.closest("[data-approval-task]");
   if (approvalTask) {
     event.preventDefault();
@@ -689,9 +794,16 @@ root.addEventListener("submit", async (event) => {
     button.disabled = true;
     try {
       const result = await localClient.decide(Object.fromEntries(new FormData(approvalTask).entries()), workRun.revision, crypto.randomUUID());
-      if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
-      projectTask(result.task);
-      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
+      if (!result.accepted) {
+        for (const violation of result.violations ?? []) {
+          const field = violation.field && approvalTask.elements.namedItem(violation.field);
+          if (field) { field.setAttribute("aria-invalid", "true"); field.setAttribute("aria-describedby", `${field.getAttribute("aria-describedby") ?? ""} work-form-error`.trim()); }
+        }
+        const first = result.violations?.find(v => v.field);
+        if (first) approvalTask.elements.namedItem(first.field)?.focus();
+        throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
+      }
+      projectTask(await localClient.task());
       render();
     } catch (failure) { error.hidden = false; error.textContent = failure.message; button.disabled = false; }
     return;
@@ -706,9 +818,16 @@ root.addEventListener("submit", async (event) => {
     try {
       if (!workReady) throw new Error("Workspace is still loading.");
       const result = await localClient.prepare(values, workRun.revision, crypto.randomUUID());
-      if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
-      projectTask(result.task);
-      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
+      if (!result.accepted) {
+        for (const violation of result.violations ?? []) {
+          const field = violation.field && taskForm.elements.namedItem(violation.field);
+          if (field) { field.setAttribute("aria-invalid", "true"); field.setAttribute("aria-describedby", `${field.getAttribute("aria-describedby") ?? ""} work-form-error`.trim()); }
+        }
+        const first = result.violations?.find(v => v.field);
+        if (first) taskForm.elements.namedItem(first.field)?.focus();
+        throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
+      }
+      projectTask(await localClient.task());
     } catch (failure) {
       if (error) { error.hidden = false; error.textContent = failure.message; }
       button.disabled = false;
@@ -762,10 +881,10 @@ root.addEventListener("input", (event) => {
 });
 window.addEventListener("hashchange", () => { currentView = viewFromHash(); search = ""; country = "all"; render(); });
 root.addEventListener("keydown", (event) => {
-  const marker = event.target.closest?.("[data-map-site], [data-map-roaming]");
+  const marker = event.target.closest?.("[data-map-site], [data-map-roaming], [data-graph-node]");
   if (!marker || (event.key !== "Enter" && event.key !== " ")) return;
   event.preventDefault();
-  marker.click();
+  marker.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 });
 window.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); root.querySelector("#global-search")?.focus(); }

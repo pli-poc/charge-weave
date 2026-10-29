@@ -153,3 +153,9 @@ The task host emits `{ type: eventType, taskSubmission }` for every workflow. Th
 6. Implement task-specific behavior in the workflow actions or registered service capabilities; keep authorization, SHACL validation, audit persistence and domain writes in a trusted host.
 
 The correction profile and simulated host are the first example. They exercise the reusable modules but do not yet provide a durable inbox, production authorization, API persistence, live reference resolution, or general record editing.
+
+### Connected correction approval
+
+The console's correction journey now obtains its approval form from the versioned `additionalTasks` in `model/client-task-profile.json`. The `prepareCorrection` and `decideCorrection` commands are generated into the local GraphQL contract and call the shared correction workspace. Preparation can stop at the XFlow `awaitingApproval` human task; the decision is a separate revision-checked, idempotent command. The console saves accepted changes to its browser checkpoint before reporting success. These are simulated roles and local records, not production identity or payment services. The standalone task-design example above is an independent form-engine demonstration, not the running console task.
+
+The correction service also supports a synthetic missing-billing-evidence wait for scenario tests. It checkpoints before rating, accepts a named supplemental-evidence reference, and resumes the same instance to approval. The current console fixture always includes billing inputs, and the supplemental command supports the existing approval, automatic correction and no-change routes.

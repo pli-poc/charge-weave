@@ -202,9 +202,10 @@ test("workflow graph edits change the routed path used by the next runtime run",
   await page.goto("developer/flows/");
   await expect(page.locator(".wf-flow-canvas")).toBeVisible();
   expect(await page.locator(".wf-edge-layer path").count()).toBeGreaterThan(20);
-  expect(await page.locator(".wf-edge text").allTextContents()).toContain("timer.expired");
+  expect(await page.locator(".wf-edge text").allTextContents()).toContain("Deadline expired");
   expect(await page.locator(".wf-edge text").allTextContents()).not.toContain("timeout");
-  expect(await page.locator(".wf-edge text").filter({ hasText: "timer.expired" }).count()).toBe(1);
+  expect(await page.locator(".wf-edge text").filter({ hasText: "Deadline expired" }).count()).toBe(1);
+  await expect(page.getByRole("list", { name: "Workflow transitions" })).toContainText("timer.expired");
 
   await page.getByRole("button", { name: "Edit flow" }).click();
   await page.locator(".wf-flow-canvas").getByRole("button", { name: /Approval required\?/ }).click();

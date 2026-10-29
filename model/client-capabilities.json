@@ -18,7 +18,10 @@
   "temporal": "published-tariff-fixture-read-only",
   "analytics": "existing-flat-projection-number-v1",
   "handlers": [
-    "submitCorrection"
+    "submitCorrection",
+    "prepareCorrection",
+    "decideCorrection",
+    "supplementBillingEvidence"
   ],
   "ruleSources": {
     "meter-order": [

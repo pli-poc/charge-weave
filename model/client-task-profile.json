@@ -40,21 +40,23 @@
     "partner": "Northline Charge Installations",
     "meterId": "NL-MTR-AMS-4481",
     "meterStart": 12840.5,
-    "originalMeterEnd": 12883.1,
-    "proposedMeterEnd": 12882.7,
-    "tariffEurPerKwh": 0.55,
+    "originalMeterEnd": 12851.1,
+    "proposedMeterEnd": 12849.6,
+    "tariffEurPerKwh": 0.32,
     "evidenceReference": "EV-2026-4481",
     "evidence": {
       "signatureValid": true,
       "sameRegisterEpoch": true,
       "verified": true
-    }
+    },
+    "registerEpoch": "EPOCH-NL-MTR-AMS-4481-1",
+    "pricingBasis": "Tax-inclusive illustrative tariff; no separate fees"
   },
   "task": {
     "id": "review-meter-correction",
     "version": 1,
     "title": "Review partner correction",
-    "instructions": "Compare the signed evidence with the original meter record. If it is valid, enter the corrected register value and explain your decision.",
+    "instructions": "Compare the synthetic meter evidence with the original record. Validate the proposed register value before the approval decision.",
     "submitLabel": "Record decision",
     "form": {
       "id": "meter-correction-decision",
@@ -70,7 +72,7 @@
           "min": 12840.5,
           "step": 0.001,
           "required": true,
-          "defaultValue": "12882.700",
+          "defaultValue": "12849.600",
           "help": "Must be greater than the accepted start reading. The platform recalculates the energy and amount.",
           "span": "wide",
           "binding": {
@@ -119,7 +121,7 @@
           "maxLength": 12,
           "required": true,
           "defaultValue": "EV-2026-4481",
-          "help": "Enter the reference of the signed partner evidence.",
+          "help": "Enter the reference of the synthetic partner evidence.",
           "binding": {
             "kind": "commandInput",
             "command": "submitCorrection",
@@ -146,5 +148,90 @@
         }
       ]
     }
-  }
+  },
+  "additionalTasks": [
+    {
+      "id": "correction-approval",
+      "version": 1,
+      "form": {
+        "id": "chargeweave.correction-approval",
+        "version": "1.0.0",
+        "fields": [
+          {
+            "id": "outcome",
+            "label": "Decision",
+            "concept": "RecordCorrection.correctionReason",
+            "datatype": "controlled-vocabulary",
+            "control": "select",
+            "required": true,
+            "options": [
+              {
+                "value": "approve",
+                "label": "Approve correction"
+              },
+              {
+                "value": "reject",
+                "label": "Reject correction"
+              }
+            ],
+            "help": "A rejection does not issue a credit or replacement record.",
+            "binding": {
+              "kind": "commandInput",
+              "command": "decideCorrection",
+              "field": "outcome"
+            }
+          },
+          {
+            "id": "note",
+            "label": "Decision note",
+            "concept": "RecordCorrection.correctionReason",
+            "datatype": "string",
+            "control": "textarea",
+            "minLength": 20,
+            "maxLength": 500,
+            "required": true,
+            "help": "Explain the evidence and your decision.",
+            "span": "wide",
+            "binding": {
+              "kind": "commandInput",
+              "command": "decideCorrection",
+              "field": "note"
+            }
+          }
+        ]
+      },
+      "title": "Approve the billing correction",
+      "assignedRole": "BillingApprover",
+      "instructions": "Review the prepared evidence and accept or decline the correction."
+    },
+    {
+      "id": "supply-billing-evidence",
+      "version": 1,
+      "title": "Supply missing billing evidence",
+      "assignedRole": "BillingApprover",
+      "instructions": "Provide the synthetic tax and commercial responsibility evidence reference.",
+      "form": {
+        "id": "chargeweave.billing-evidence",
+        "version": "1.0.0",
+        "fields": [
+          {
+            "id": "evidence",
+            "label": "Billing evidence reference",
+            "concept": "command:supplementBillingEvidence.evidence",
+            "datatype": "string",
+            "control": "text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 120,
+            "help": "Synthetic reference for the missing tax and commercial inputs.",
+            "binding": {
+              "kind": "commandInput",
+              "command": "supplementBillingEvidence",
+              "field": "evidence"
+            }
+          }
+        ]
+      }
+    }
+  ]
 }

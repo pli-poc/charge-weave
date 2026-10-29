@@ -13,7 +13,7 @@ const client = createLocalClient({
     sites: provider.getSites,
     sessions: provider.getLiveSessions,
     task: () => {},
-    submitCorrection: () => {},
+    submitCorrection: () => {}, prepareCorrection: () => {}, decideCorrection: () => {}, supplementBillingEvidence: () => {},
     analytics: provider.queryAnalytics,
     temporal: ({ validAt, knownAt }) => {
       const r = selectFixture(temporal, validAt, knownAt);

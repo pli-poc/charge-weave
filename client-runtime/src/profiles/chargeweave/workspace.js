@@ -1,3 +1,4 @@
+import { outgoingTransitions } from "../../flow/presentation.js";
 import { createCorrectionWorkflowRuntime } from "./correction-workflow.js";
 import { fixed, formatFixed } from "../../services/decimal.js";
 import { rateReading } from "./rating.js";
@@ -23,6 +24,21 @@ async function settle(actor, definition) {
   }
   throw Error("Workflow did not reach a stable boundary");
 }
+// Record only unambiguous executable transitions observed by the root XState actor.
+function observeTransitions(flow, getActor, output) {
+  return (event) => {
+    if (event.type !== "@xstate.microstep" || event.actorRef !== getActor()) return;
+    for (const transition of event._transitions ?? []) {
+      const source = transition.source?.key;
+      const target = transition.target?.length === 1 ? transition.target[0].key : null;
+      const step = flow.steps.find(item => item.id === source);
+      if (!step || !target) continue;
+      const candidates = outgoingTransitions(step).filter(edge => edge.target === target &&
+        (step.kind === "decision" || step.kind === "serviceTask" || edge.event === transition.eventType));
+      if (candidates.length) output.push({ source, target, event: candidates.length === 1 ? candidates[0].event : null });
+    }
+  };
+}
 export function createWorkspace({
   applicationPackage: pkg,
   principal = { role: "BillingApprover" },
@@ -42,6 +58,7 @@ export function createWorkspace({
         history: [],
         receipts: {},
         actor: null,
+        trace: [],
         status: "open",
         currentStage: "review",
         outcome: null,
@@ -61,10 +78,22 @@ export function createWorkspace({
       (state.status !== "open" || state.actor !== null)
     )
       throw Error("Invalid initial checkpoint");
+    if (state.trace !== undefined) {
+      if (!Array.isArray(state.trace)) throw Error("Invalid workflow trace");
+      let cursor = pkg.flow.initialStep;
+      for (const edge of state.trace) {
+        const step = pkg.flow.steps.find(item => item.id === cursor);
+        if (!step || edge.source !== cursor || !outgoingTransitions(step).some(item => (edge.event === null || item.event === edge.event) && item.target === edge.target)) throw Error("Invalid workflow trace");
+        cursor = edge.target;
+      }
+      if (state.actor && cursor !== state.actor.value) throw Error("Incoherent workflow trace");
+    }
     if (state.revision > 0) {
       const last = state.history.at(-1);
       const expected = rateReading(state.values.meterEnd, caseData);
-      if (state.status === "awaitingApproval") {
+      if (state.status === "waitingBillingEvidence") {
+        if (state.actor?.status !== "active" || state.actor?.value !== "awaitingAdditionalEvidence" || last.revision !== state.revision || JSON.stringify(last.input) !== JSON.stringify(state.values) || state.actor?.context?.rating || state.actor?.context?.credit) throw Error("Incoherent evidence checkpoint");
+      } else if (state.status === "awaitingApproval") {
         if (state.actor?.status !== "active" || state.actor?.value !== "awaitingApproval" || last.revision !== state.revision || JSON.stringify(last.input) !== JSON.stringify(state.values) || expected.amountEur !== state.actor?.context?.rating?.grossEur || !state.approvalDueAt) throw Error("Incoherent waiting checkpoint");
         const restored = createCorrectionWorkflowRuntime().createActor(pkg.flow, { snapshot: state.actor });
         restored.start();
@@ -94,28 +123,56 @@ export function createWorkspace({
   let busy = false;
   let pending = 0;
   const task = () => ({
-    id: model.task.id,
+    id: state.status === "awaitingApproval" ? model.additionalTasks[0].id : state.status === "waitingBillingEvidence" ? model.additionalTasks[1].id : model.task.id,
     revision: state.revision,
+    instanceId: `correction:${caseData.sessionId}`,
     status: state.status,
     stage: state.currentStage,
-    descriptor: copy(model.task),
+    descriptor: copy(state.status === "awaitingApproval" ? model.additionalTasks[0] : state.status === "waitingBillingEvidence" ? model.additionalTasks[1] : model.task),
     values: copy(state.values),
     outcome: copy(state.outcome),
     flowState: state.actor?.value ?? pkg.flow.initialStep,
     approvalDueAt: state.approvalDueAt ?? null,
     records: copy({ credit: state.actor?.context?.credit ?? null, correctedCdr: state.actor?.context?.correctedCdr ?? null }),
+    history: copy(state.history),
+    trace: copy(state.trace ?? []),
   });
   const result = (accepted, code, violations = []) => ({
     accepted,
     code,
-    violations,
+    violations: violations.map(v => ({ ruleId: v.ruleId ?? "validation", ...v })),
     revision: state.revision,
     task: task(),
   });
+  function ratingRuntime(rating, original) {
+    return createCorrectionWorkflowRuntime({
+      activityOverrides: {
+        async reconcileMeterUsage() {
+          return {
+            originalEnergyKwh: Number(original.energyKwh),
+            correctedEnergyKwh: Number(rating.energyKwh),
+            energyDeltaKwh:
+              Number(formatFixed(fixed(original.energyKwh, 3) - fixed(rating.energyKwh, 3), 3)),
+          };
+        },
+        async calculateCorrectedRating() {
+          return {
+            correctedEnergyKwh: rating.energyKwh,
+            currency: "EUR",
+            grossEur: rating.amountEur,
+            grossDeltaEur:
+              Number(formatFixed(fixed(original.amountEur, 2) - fixed(rating.amountEur, 2), 2)),
+            ratingVersion: rating.calculationVersion,
+          };
+        },
+      },
+    });
+  }
   async function execute({ input, expectedRevision, idempotencyKey }, pauseForApproval = false) {
     const command = pkg.commands.commands.find(
-      (c) => c.id === "submitCorrection",
+      (c) => c.id === (pauseForApproval ? "prepareCorrection" : "submitCorrection"),
     );
+    if (!command || !Array.isArray(command.requiredRules)) return result(false, "UNSUPPORTED_COMMAND");
     if (principal.role !== command.role)
       return result(false, "FORBIDDEN", [
         {
@@ -153,16 +210,13 @@ export function createWorkspace({
           return [{ field: "meterEnd", message: e.message }];
         }
       },
-      "evidence-match": () =>
-        input.evidenceReference === caseData.evidenceReference
-          ? []
-          : [
-              {
-                field: "evidenceReference",
-                message:
-                  "No verified synthetic evidence matches this reference",
-              },
-            ],
+      "evidence-match": () => {
+        if (input.evidenceReference !== caseData.evidenceReference) return [{ field: "evidenceReference", message: "No verified synthetic evidence matches this reference" }];
+        try {
+          if (fixed(input.meterEnd, 3) !== fixed(caseData.proposedMeterEnd, 3)) return [{ field: "meterEnd", message: "The reading does not match the referenced synthetic evidence" }];
+        } catch { return [{ field: "meterEnd", message: "Invalid evidence reading" }]; }
+        return [];
+      },
       "task-scope": () =>
         state.status === "open" ? [] : [{ message: "Task is no longer open" }],
       "expected-revision": () =>
@@ -176,29 +230,11 @@ export function createWorkspace({
     if (violations.length) return result(false, "REJECTED", violations);
     const rating = rateReading(input.meterEnd, caseData),
       original = rateReading(caseData.originalMeterEnd, caseData);
-    const runtime = createCorrectionWorkflowRuntime({
-      activityOverrides: {
-        async reconcileMeterUsage() {
-          return {
-            originalEnergyKwh: Number(original.energyKwh),
-            correctedEnergyKwh: Number(rating.energyKwh),
-            energyDeltaKwh:
-              Number(formatFixed(fixed(original.energyKwh, 3) - fixed(rating.energyKwh, 3), 3)),
-          };
-        },
-        async calculateCorrectedRating() {
-          return {
-            correctedEnergyKwh: rating.energyKwh,
-            currency: "EUR",
-            grossEur: rating.amountEur,
-            grossDeltaEur:
-              Number(formatFixed(fixed(original.amountEur, 2) - fixed(rating.amountEur, 2), 2)),
-            ratingVersion: rating.calculationVersion,
-          };
-        },
-      },
-    });
-    const actor = runtime.createActor(pkg.flow, {
+    const runtime = ratingRuntime(rating, original);
+    const observed = [];
+    let actor;
+    actor = runtime.createActor(pkg.flow, {
+      inspect: observeTransitions(pkg.flow, () => actor, observed),
       context: {
         sessionId: caseData.sessionId,
         originalCdrId: caseData.cdrId,
@@ -206,8 +242,8 @@ export function createWorkspace({
         originalGrossEur: Number(original.amountEur),
         unitPriceEur: caseData.tariffEurPerKwh,
         fixedFeeEur: 0,
-        billingInputsComplete: true,
-        approvalThresholdKwh: 0,
+        billingInputsComplete: caseData.billingInputsComplete !== false,
+        approvalThresholdKwh: pkg.flow.initialContext.approvalThresholdKwh,
         approvalTimeoutMs: 3600000,
       },
     });
@@ -225,6 +261,13 @@ export function createWorkspace({
       });
       actor.send({ type: "evidence.validate" });
       let s = await settle(actor, pkg.flow);
+      if (s.value === "awaitingAdditionalEvidence" && pauseForApproval) {
+        const recordedAt = clock();
+        state = { ...state, revision: state.revision + 1, values: copy(input), status: "waitingBillingEvidence", currentStage: "evidence", outcome: null, actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(input), original, flowState: s.value }] };
+        const accepted = result(true, "WAITING_BILLING_EVIDENCE");
+        state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+        return accepted;
+      }
       if (s.value === "awaitingApproval" && pauseForApproval) {
         const recordedAt = clock();
         const at = Date.parse(recordedAt);
@@ -233,7 +276,7 @@ export function createWorkspace({
           ...state, revision: state.revision + 1, values: copy(input),
           status: "awaitingApproval", currentStage: "review", outcome: null,
           approvalDueAt: new Date(at + s.context.approvalTimeoutMs).toISOString(),
-          actor: actor.getPersistedSnapshot(),
+          actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed],
           history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(input), rating, original, flowState: s.value }],
         };
         const accepted = result(true, "AWAITING_APPROVAL");
@@ -265,13 +308,14 @@ export function createWorkspace({
         status: "completed",
         currentStage: "adjustment",
         outcome: {
-          type: "correction.accepted",
+          type: s.value === "completedNoChange" ? "correction.noChange" : "correction.accepted",
           amount: rating.amountEur,
           correctionId: s.context.correctedCdr?.id ?? caseData.cdrId,
           energyKwh: rating.energyKwh,
           calculationVersion: rating.calculationVersion,
         },
         actor: actor.getPersistedSnapshot(),
+        trace: [...(state.trace ?? []), ...observed],
         history: [
           ...state.history,
           {
@@ -294,36 +338,78 @@ export function createWorkspace({
       actor.stop();
     }
   }
-  async function decide({ outcome, note, expectedRevision, idempotencyKey }) {
+  async function supplyEvidence({ evidence, expectedRevision, idempotencyKey }) {
     if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
     if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
-    const signature = identity({ operation: "decision", outcome, note, expectedRevision });
+    const signature = identity({ operation: "billing-evidence", evidence, expectedRevision });
+    if (Object.hasOwn(state.receipts, idempotencyKey)) { const prior = state.receipts[idempotencyKey]; return prior.signature === signature ? copy(prior.result) : result(false, "KEY_REUSED"); }
+    if (expectedRevision !== state.revision) return result(false, "STALE_REVISION");
+    if (state.status !== "waitingBillingEvidence") return result(false, "NOT_WAITING_FOR_EVIDENCE");
+    const command = pkg.commands.commands.find(c => c.id === "supplementBillingEvidence");
+    if (!command || !Array.isArray(command.requiredRules)) return result(false, "UNSUPPORTED_COMMAND");
+    if (principal.role !== command.role) return result(false, "FORBIDDEN");
+    const checks = evaluateRules(command.requiredRules, { "task-scope": () => [], "expected-revision": () => [] }, {});
+    if (checks.length) return result(false, "REJECTED", checks);
+    if (typeof evidence !== "string" || evidence.trim().length < 8 || evidence.length > 120) return result(false, "REJECTED", [{ field: "evidence", message: "Provide a synthetic billing-evidence reference." }]);
+    const rating = rateReading(state.values.meterEnd, caseData), original = rateReading(caseData.originalMeterEnd, caseData), observed = [];
+    let actor;
+    actor = ratingRuntime(rating, original).createActor(pkg.flow, { snapshot: state.actor, inspect: observeTransitions(pkg.flow, () => actor, observed) });
+    actor.start();
+    try {
+      actor.send({ type: "evidence.supplemented", evidence: { reference: evidence } });
+      const s = await settle(actor, pkg.flow);
+      const recordedAt = clock(), at = Date.parse(recordedAt);
+      if (!Number.isFinite(at)) throw Error("Invalid virtual clock");
+      const waiting = s.value === "awaitingApproval";
+      const finished = s.status === "done" && ["completed", "completedNoChange"].includes(s.value);
+      if (!waiting && !finished) return result(false, "WORKFLOW_REJECTED", [{ message: `Resumption reached ${s.value}; no state was committed.` }]);
+      const outcome = finished ? { type: s.value === "completedNoChange" ? "correction.noChange" : "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion } : null;
+      state = { ...state, revision: state.revision + 1, status: waiting ? "awaitingApproval" : "completed", currentStage: waiting ? "review" : "adjustment", approvalDueAt: waiting ? new Date(at + s.context.approvalTimeoutMs).toISOString() : null, outcome, actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(state.values), original, rating, evidence, flowState: s.value }] };
+      const accepted = result(true, waiting ? "AWAITING_APPROVAL" : "ACCEPTED");
+      state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
+      return accepted;
+    } finally { actor.stop(); }
+  }
+  async function decide({ outcome, note, expectedRevision, idempotencyKey }, advanceToDeadline = false) {
+    if (principal.role !== "BillingApprover") return result(false, "FORBIDDEN");
+    if (typeof idempotencyKey !== "string" || !idempotencyKey.trim() || idempotencyKey.length > 120) return result(false, "INVALID_KEY");
+    const signature = identity({ operation: advanceToDeadline ? "expire" : "decision", outcome, note, expectedRevision });
     if (Object.hasOwn(state.receipts, idempotencyKey)) {
       const prior = state.receipts[idempotencyKey];
       return prior.signature === signature ? copy(prior.result) : result(false, "KEY_REUSED");
     }
     if (expectedRevision !== state.revision) return result(false, "STALE_REVISION");
     if (state.status !== "awaitingApproval") return result(false, "TASK_NOT_OPEN");
+    const command = pkg.commands.commands.find(c => c.id === "decideCorrection");
+    if (!command || !Array.isArray(command.requiredRules)) return result(false, "UNSUPPORTED_COMMAND");
+    if (principal.role !== command.role) return result(false, "FORBIDDEN");
+    const checks = evaluateRules(command.requiredRules, {
+      "task-scope": () => state.status === "awaitingApproval" ? [] : [{ message: "Task is no longer open" }],
+      "expected-revision": () => expectedRevision === state.revision ? [] : [{ message: "Stale task revision" }],
+    }, {});
+    if (checks.length) return result(false, "REJECTED", checks);
     if (!["approve", "reject"].includes(outcome) || typeof note !== "string" || note.trim().length < 20 || note.length > 500) return result(false, "REJECTED", [{ field: "note", message: "Select an outcome and provide a decision note of 20–500 characters." }]);
-    const now = clock();
+    const now = advanceToDeadline ? state.approvalDueAt : clock();
     if (!Number.isFinite(Date.parse(now))) throw Error("Invalid virtual clock");
     const expired = Date.parse(now) >= Date.parse(state.approvalDueAt);
     const runtime = createCorrectionWorkflowRuntime();
-    const actor = runtime.createActor(pkg.flow, { snapshot: state.actor });
+    const observed = [];
+    let actor;
+    actor = runtime.createActor(pkg.flow, { snapshot: state.actor, inspect: observeTransitions(pkg.flow, () => actor, observed) });
     actor.start();
     try {
-      actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.task.id, role: principal.role, note, outcome } });
+      actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.additionalTasks[0].id, role: principal.role, note, outcome } });
       const s = await settle(actor, pkg.flow);
       if (expired || outcome === "reject") {
         if (s.value !== (expired ? "manualReview" : "declined")) return result(false, "WORKFLOW_REJECTED");
-        state = { ...state, revision: state.revision + 1, status: expired ? "expired" : "declined", currentStage: "review", actor: actor.getPersistedSnapshot(), outcome: { type: expired ? "approval.expired" : "correction.declined", note: expired ? null : note }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), flowState: s.value, decision: { outcome: expired ? "expired" : outcome, note: expired ? null : note } }] };
+        state = { ...state, revision: state.revision + 1, status: expired ? "expired" : "declined", currentStage: "review", actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], outcome: { type: expired ? "approval.expired" : "correction.declined", note: expired ? null : note }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), flowState: s.value, decision: { outcome: expired ? "expired" : outcome, note: expired ? null : note } }] };
         const accepted = result(true, expired ? "APPROVAL_EXPIRED" : "DECLINED");
         state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
         return accepted;
       }
       if (s.status !== "done" || s.value !== "completed") return result(false, "WORKFLOW_REJECTED");
       const rating = rateReading(state.values.meterEnd, caseData);
-      state = { ...state, revision: state.revision + 1, status: "completed", currentStage: "adjustment", actor: actor.getPersistedSnapshot(), outcome: { type: "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), rating, original: rateReading(caseData.originalMeterEnd, caseData), flowState: s.value, decision: { outcome, note } }] };
+      state = { ...state, revision: state.revision + 1, status: "completed", currentStage: "adjustment", actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], outcome: { type: "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), rating, original: rateReading(caseData.originalMeterEnd, caseData), flowState: s.value, decision: { outcome, note } }] };
       const accepted = result(true, "ACCEPTED");
       state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
       return accepted;
@@ -338,7 +424,11 @@ export function createWorkspace({
   return {
     task,
     prepare(args) { const submitted = copy(args); return enqueue(() => execute(submitted, true)); },
+    supplyEvidence(args) { const submitted = copy(args); return enqueue(() => supplyEvidence(submitted)); },
     decide(args) { const submitted = copy(args); return enqueue(() => decide(submitted)); },
+    expireApproval({ expectedRevision, idempotencyKey }) {
+      return enqueue(() => decide({ outcome: "approve", note: "Virtual deadline advanced for this demonstration.", expectedRevision, idempotencyKey }, true));
+    },
     history: () => copy(state.history),
     isBusy: () => busy || pending > 0,
     export: () => {

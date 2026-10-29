@@ -10,7 +10,7 @@ import { rateReading } from "../src/profiles/chargeweave/rating.js";
 import { evaluateRules } from "../src/services/validation.js";
 import { createFlowRuntime } from "../src/flow/engine.js";
 const input = {
-  meterEnd: "12882.700",
+  meterEnd: "12849.600",
   reason: "partner-correction",
   evidenceReference: "EV-2026-4481",
   operatorNote:
@@ -20,22 +20,22 @@ const args = { input, expectedRevision: 0, idempotencyKey: "test-1" };
 const workspace = () => createWorkspace({ applicationPackage: pkg });
 test("exact correction arithmetic and bounded precision", () => {
   assert.deepEqual(rateReading(input.meterEnd, pkg.task.case), {
-    energyKwh: "42.200",
-    amountEur: "23.21",
+    energyKwh: "9.100",
+    amountEur: "2.91",
     calculationVersion: "meter-fixed-v1",
   });
-  assert.throws(() => rateReading("12882.70001", pkg.task.case));
+  assert.throws(() => rateReading("12849.60001", pkg.task.case));
 });
 test("accepted command runs existing correction flow once; changed retry and stale revision rejected", async () => {
   const w = workspace();
   const r = await w.submit(args);
   assert.equal(r.accepted, true, JSON.stringify(r));
   assert.equal(r.task.flowState, "completed");
-  assert.equal(r.task.outcome.amount, "23.21");
+  assert.equal(r.task.outcome.amount, "2.91");
   assert.deepEqual(await w.submit(args), r);
   assert.equal(w.history().length, 1);
   assert.equal(
-    (await w.submit({ ...args, input: { ...input, meterEnd: "12882.8" } }))
+    (await w.submit({ ...args, input: { ...input, meterEnd: "12849.7" } }))
       .code,
     "KEY_REUSED",
   );
@@ -78,6 +78,9 @@ test("local GraphQL has typed validation and rejects multi-command aliases/fragm
       sessions: () => [],
       task: w.task,
       submitCorrection: w.submit,
+      prepareCorrection: w.prepare,
+      supplementBillingEvidence: ({ input, ...args }) => w.supplyEvidence({ ...input, ...args }),
+      decideCorrection: ({ input, ...args }) => w.decide({ ...input, ...args }),
       analytics: () => {},
       temporal: () => {},
     },
@@ -193,15 +196,16 @@ test('task reads and queued command inputs cannot mutate authoritative workspace
   submitted.input.meterEnd='0';
   assert.equal((await pending).accepted,true);
   const read=w.task();read.outcome.amount='999';read.descriptor.form.fields[0].required=false;
-  assert.equal(w.task().outcome.amount,'23.21');
+  assert.equal(w.task().outcome.amount,'2.91');
   assert.equal(w.task().descriptor.form.fields[0].required,true);
 });
 
 test('a one-cent correction is material and cannot disappear through binary subtraction', async () => {
-  const w=workspace();
-  const result=await w.submit({...args,input:{...input,meterEnd:'12883.080'}});
+  const custom = structuredClone(pkg); custom.task.case.proposedMeterEnd = 12851.070;
+  const w=createWorkspace({ applicationPackage: custom });
+  const result=await w.submit({...args,input:{...input,meterEnd:'12851.070'}});
   assert.equal(result.accepted,true);
-  assert.equal(result.task.outcome.amount,'23.42');
+  assert.equal(result.task.outcome.amount,'3.38');
   assert.equal(result.task.flowState,'completed');
   assert.equal(w.export().actor.context.rating.grossDeltaEur,0.01);
 });
@@ -211,12 +215,16 @@ test('separate approval survives restore and applies a decision exactly once', a
   const pending = await w.prepare(args);
   assert.equal(pending.code, 'AWAITING_APPROVAL');
   assert.equal(pending.task.flowState, 'awaitingApproval');
+  assert.equal(pending.task.id, 'correction-approval');
+  assert.equal(pending.task.instanceId, `correction:${pkg.task.case.sessionId}`);
+  assert.equal(pending.task.descriptor.form.id, pkg.flow.steps.find(s => s.id === 'awaitingApproval').taskFormProfile.id);
   assert.equal(w.export().actor.context.credit, undefined);
   const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
   const decision = { outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 1, idempotencyKey: 'approval-1' };
   const accepted = await restored.decide(decision);
   assert.equal(accepted.task.flowState, 'completed');
-  assert.equal(accepted.task.outcome.amount, '23.21');
+  assert.equal(accepted.task.instanceId, pending.task.instanceId);
+  assert.equal(accepted.task.outcome.amount, '2.91');
   assert.deepEqual(await restored.decide(decision), accepted);
   assert.equal((await restored.decide({ ...decision, idempotencyKey: 'stale' })).code, 'STALE_REVISION');
   assert.equal(restored.history().length, 2);
@@ -236,4 +244,131 @@ test('rejection and virtual deadline do not create financial effects and survive
     assert.equal(restored.task().flowState, expire ? 'manualReview' : 'declined');
     assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 2, idempotencyKey: 'again' })).code, 'TASK_NOT_OPEN');
   }
+});
+
+ test('a changed reading cannot be accepted under another evidence reference', async () => {
+  const w = workspace();
+  const result = await w.prepare({ ...args, input: { ...input, meterEnd: '12849.700' } });
+  assert.equal(result.accepted, false);
+  assert.match(result.violations.map(v => v.message).join(' '), /does not match/);
+  assert.equal(w.export().revision, 0);
+});
+
+test('explicit virtual deadline advance is persisted and idempotent', async () => {
+  const w = workspace(); await w.prepare(args);
+  const command = { expectedRevision: 1, idempotencyKey: 'advance-clock' };
+  const result = await w.expireApproval(command);
+  assert.equal(result.code, 'APPROVAL_EXPIRED');
+  assert.equal(result.task.flowState, 'manualReview');
+  assert.deepEqual(await w.expireApproval(command), result);
+  const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
+  assert.equal(restored.task().status, 'expired');
+  assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and amount reviewed carefully.', expectedRevision: 2, idempotencyKey: 'late' })).code, 'TASK_NOT_OPEN');
+});
+
+test('generated GraphQL commands preserve the approval boundary and reject stale decisions', async () => {
+  const w = workspace();
+  const client = createLocalClient({ applicationPackage: pkg, services: {
+    sites: () => [], sessions: () => [], task: w.task, analytics: () => {}, temporal: () => {},
+    submitCorrection: w.submit, prepareCorrection: w.prepare, supplementBillingEvidence: ({ input, ...args }) => w.supplyEvidence({ ...input, ...args }),
+    decideCorrection: ({ input, ...args }) => w.decide({ ...input, ...args }),
+  } });
+  const prepare = 'mutation($input:PrepareCorrectionInput!){prepareCorrection(input:$input,expectedRevision:0,idempotencyKey:"prepare"){accepted code task{flowState revision}}}';
+  const p = await client.execute({ query: prepare, variables: { input } });
+  assert.equal(p.data.prepareCorrection.task.flowState, 'awaitingApproval');
+  const decision = 'mutation($input:CorrectionDecisionInput!,$revision:Int!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:"decide"){accepted code task{flowState outcome}}}';
+  const result = await client.execute({ query: decision, variables: { input: { outcome: 'approve', note: 'The evidence and amount are reviewed carefully.' }, revision: 1 } });
+  assert.equal(result.data.decideCorrection.task.outcome.amount, '2.91');
+  const retry = await client.execute({ query: decision, variables: { input: { outcome: 'approve', note: 'The evidence and amount are reviewed carefully.' }, revision: 1 } });
+  assert.deepEqual(retry.data, result.data);
+});
+
+test('unchanged rating closes without presenting a financial correction', async () => {
+  const custom = structuredClone(pkg); custom.task.case.proposedMeterEnd = custom.task.case.originalMeterEnd;
+  const w = createWorkspace({ applicationPackage: custom });
+  const r = await w.prepare({ ...args, input: { ...input, meterEnd: String(custom.task.case.originalMeterEnd) } });
+  assert.equal(r.task.flowState, 'completedNoChange');
+  assert.equal(r.task.outcome.type, 'correction.noChange');
+  assert.equal(r.task.records.credit, null);
+  assert.equal(r.task.records.correctedCdr, null);
+});
+
+test('only observed process routes are recorded and survive a checkpoint', async () => {
+  const w = workspace();
+  await w.prepare(args);
+  const waiting = w.export();
+  assert.ok(waiting.trace.some(e => e.source === 'approvalDecision' && e.event === 'approvalRequired' && e.target === 'awaitingApproval'));
+  assert.ok(!waiting.trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.rejected'));
+  const restored = createWorkspace({ applicationPackage: pkg, snapshot: waiting });
+  await restored.decide({ outcome: 'approve', note: 'The evidence and proposed amount were reviewed.', expectedRevision: 1, idempotencyKey: 'trace-decision' });
+  const trace = restored.task().trace;
+  assert.ok(trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.granted'));
+  assert.ok(!trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.rejected'));
+  assert.deepEqual(createWorkspace({ applicationPackage: pkg, snapshot: restored.export() }).task().trace, trace);
+  const damaged = restored.export(); damaged.trace[0].target = 'completed';
+  assert.throws(() => createWorkspace({ applicationPackage: pkg, snapshot: damaged }), /workflow trace/);
+});
+
+test('missing billing evidence waits without a rating and resumes the same process after restore', async () => {
+  const custom = structuredClone(pkg); custom.task.case.billingInputsComplete = false;
+  const w = createWorkspace({ applicationPackage: custom });
+  const initial = await w.prepare(args);
+  assert.equal(initial.code, 'WAITING_BILLING_EVIDENCE');
+  assert.equal(initial.task.flowState, 'awaitingAdditionalEvidence');
+  assert.equal(w.export().actor.context.rating, undefined);
+  assert.equal(w.export().actor.context.credit, undefined);
+  const restored = createWorkspace({ applicationPackage: custom, snapshot: w.export() });
+  const command = { evidence: 'TAX-EVIDENCE-001', expectedRevision: 1, idempotencyKey: 'supply-evidence' };
+  const resumed = await restored.supplyEvidence(command);
+  assert.equal(resumed.code, 'AWAITING_APPROVAL');
+  assert.equal(resumed.task.flowState, 'awaitingApproval');
+  assert.deepEqual(await restored.supplyEvidence(command), resumed);
+  assert.equal(createWorkspace({ applicationPackage: custom, snapshot: restored.export() }).task().flowState, 'awaitingApproval');
+});
+
+test('approval blocks unavailable configured rules without changing the waiting task', async () => {
+  const custom = structuredClone(pkg);
+  custom.commands.commands.find(c => c.id === 'decideCorrection').requiredRules.push('missing-evaluator');
+  const w = createWorkspace({ applicationPackage: custom });
+  await w.prepare(args);
+  const before = w.export();
+  const result = await w.decide({ outcome: 'approve', note: 'Evidence and proposed amount reviewed carefully.', expectedRevision: 1, idempotencyKey: 'unsupported' });
+  assert.equal(result.accepted, false);
+  assert.equal(result.violations[0].ruleId, 'missing-evaluator');
+  assert.deepEqual(w.export(), before);
+});
+
+test('supplemental evidence also resumes automatic and no-change routes', async () => {
+  for (const noChange of [false, true]) {
+    const custom = structuredClone(pkg);
+    custom.task.case.billingInputsComplete = false;
+    custom.task.case.proposedMeterEnd = noChange ? 12851.100 : 12851.070;
+    const w = createWorkspace({ applicationPackage: custom });
+    const inputValue = { ...input, meterEnd: noChange ? '12851.100' : '12851.070' };
+    assert.equal((await w.prepare({ ...args, input: inputValue })).code, 'WAITING_BILLING_EVIDENCE');
+    const result = await w.supplyEvidence({ evidence: 'TAX-EVIDENCE-001', expectedRevision: 1, idempotencyKey: 'supplement' });
+    assert.equal(result.task.flowState, noChange ? 'completedNoChange' : 'completed');
+    assert.equal(result.task.outcome.type, noChange ? 'correction.noChange' : 'correction.accepted');
+    assert.equal(result.task.records.credit === null, noChange);
+    assert.equal(createWorkspace({ applicationPackage: custom, snapshot: w.export() }).task().flowState, result.task.flowState);
+  }
+});
+
+test('supplemental billing evidence uses generated GraphQL and rejects invalid input without losing the wait', async () => {
+  const custom = structuredClone(pkg); custom.task.case.billingInputsComplete = false;
+  const w = createWorkspace({ applicationPackage: custom });
+  await w.prepare(args);
+  const c = createLocalClient({ applicationPackage: custom, services: {
+    sites: () => [], sessions: () => [], task: w.task, analytics: () => {}, temporal: () => {},
+    submitCorrection: w.submit, prepareCorrection: w.prepare,
+    decideCorrection: ({ input, ...rest }) => w.decide({ ...input, ...rest }),
+    supplementBillingEvidence: ({ input, ...rest }) => w.supplyEvidence({ ...input, ...rest }),
+  } });
+  const query = 'mutation($input:BillingEvidenceInput!){supplementBillingEvidence(input:$input,expectedRevision:1,idempotencyKey:"additional"){accepted code violations{ruleId field message} task{id flowState}}}';
+  const invalid = await c.execute({ query, variables: { input: { evidence: 'short' } } });
+  assert.equal(invalid.data.supplementBillingEvidence.accepted, false);
+  assert.equal(invalid.data.supplementBillingEvidence.violations[0].field, 'evidence');
+  assert.equal(w.task().flowState, 'awaitingAdditionalEvidence');
+  const resumed = await c.execute({ query, variables: { input: { evidence: 'BILLING-EVIDENCE-001' } } });
+  assert.equal(resumed.data.supplementBillingEvidence.task.flowState, 'awaitingApproval');
 });

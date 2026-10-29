@@ -99,7 +99,7 @@ svg { flex: none; }
   background: var(--topbar);
   border-bottom: 1px solid var(--line-soft);
 }
-.topbar-brand { flex: 0 0 250px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar-brand { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; min-width: max-content; }
 .brand { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 19px; font-weight: 760; letter-spacing: -.7px; }
 .brand-mark { width: 30px; height: 30px; color: var(--accent); }
 .brand-divider { width: 1px; height: 23px; margin: 0 3px 0 4px; background: var(--line); }
@@ -997,3 +997,48 @@ tr[hidden] { display: none; }
 .workspace-storage { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin: 12px 0 20px; }
 .workspace-storage [role=status] { flex:1 1 180px; font-size:13px; }
 .workspace-storage label { cursor:pointer; }
+
+/* Definition-based process list; current execution status stays separate from type. */
+.case-flow-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; list-style: none; padding: 12px 0; }
+.case-flow-step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line-soft); border-radius: 8px; min-width: 0; }
+.case-flow-step.is-current { border-color: var(--accent); }
+.case-flow-step strong, .case-flow-step small { display: block; }
+.case-flow-step small { margin-top: 4px; color: var(--muted); }
+.case-flow-symbol { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid currentColor; border-radius: 7px; }
+.case-flow-symbol--eventWait { border: 3px double currentColor; border-radius: 50%; }
+.case-flow-symbol--decision { transform: rotate(45deg) scale(.78); border-radius: 2px; }
+.case-flow-symbol--decision > span { transform: rotate(-45deg); }
+.case-flow-symbol--end { border: 3px solid currentColor; border-radius: 50%; }
+.case-graph-details { margin: 12px 0; }
+.case-graph-scroll { max-height: 540px; overflow: auto; margin: 12px 0; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }
+.case-graph-scroll svg { display: block; width: 1400px; height: 1000px; }
+.case-graph-edges path { fill: none; stroke: var(--muted); stroke-width: 2; }
+.case-graph-scroll marker path { fill: var(--muted); }
+.case-graph-node > rect { fill: var(--surface); stroke: var(--line-soft); stroke-width: 2; }
+.case-graph-node.is-current > rect { stroke: var(--accent); stroke-width: 3; }
+.case-graph-marker path, .case-graph-marker circle, .case-graph-marker rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+.case-graph-marker text, .case-graph-label { fill: var(--text); font-size: 12px; }
+.case-graph-kind { fill: var(--muted); font-size: 11px; }
+.case-graph-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.case-graph-edges path.is-taken { stroke: var(--accent-strong); stroke-width: 3; }
+.correction-preset { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--text-soft); }
+.correction-preset select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--text); background: var(--surface-strong); }
+.case-graph-node[data-action] { cursor: pointer; }
+.case-graph-node:focus-visible > rect { stroke: var(--blue); stroke-width: 4; }
+.case-graph-node.is-selected > rect { stroke: var(--blue); stroke-width: 3; }
+.case-graph-inspector { margin: 12px 0; padding: 12px; background: var(--surface-strong); border-radius: 6px; color: var(--text-soft); }
+.work-summary-grid .correction-filter-card { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; padding: 16px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }
+.correction-filter-card strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+.correction-filter-card small { color: var(--muted); }
+.correction-filter-card:hover { border-color: var(--accent); }
+.correction-operations .work-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .correction-operations .work-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* XFlow symbols retain their type independently of selection and execution state. */
+.case-graph-node > .case-graph-shape { fill: var(--surface); stroke: var(--line-soft); stroke-width: 2; }
+.case-graph-node > .case-graph-inner { fill: none; stroke: var(--line-soft); stroke-width: 2; }
+.case-graph-node > .case-graph-end { stroke-width: 5; }
+.case-graph-node.is-current > .case-graph-shape { stroke: var(--accent); stroke-width: 3; }
+.case-graph-node.is-selected > .case-graph-shape, .case-graph-node:focus-visible > .case-graph-shape { stroke: var(--blue); stroke-width: 4; }
+.case-graph-symbol { fill: var(--accent); font-size: 18px; font-weight: 700; }
+.case-graph-label { font-size: 12px; font-weight: 600; }
+.case-graph-route-label { fill: var(--text-soft); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }

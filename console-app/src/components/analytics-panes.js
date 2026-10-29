@@ -9,8 +9,8 @@ export function formatMeasure(value, measure, operator = "Value") {
 }
 
 export function renderResultTable(result, { drill = true } = {}) {
-  const e = escapeHtml, dim = result.dimension?.label ?? "Population";
-  return `<div class="table-wrap analytics-result-table"><table aria-label="${e(result.measure.label)} results"><thead><tr><th>${e(dim)}</th><th>Measured value</th><th>Comparison</th><th>Change</th><th>Change %</th><th>Site-days</th></tr></thead><tbody>${result.rows.map((row) => `<tr><td>${drill && ["site", "country", "setting"].includes(result.dimension?.id) ? `<button class="table-primary" data-analytics-drill="${result.dimension.id}" data-key="${e(row.key)}" type="button">${e(row.label)}</button>` : e(row.label)}</td><td>${e(formatMeasure(row.value, result.measure))}</td><td>${e(formatMeasure(row.reference, result.measure))}</td><td>${e(formatMeasure(row.change, result.measure, "Change"))}</td><td>${e(formatMeasure(row.percentChange, result.measure, "PercentChange"))}</td><td>${row.count}</td></tr>`).join("") || `<tr><td colspan="6">No matching measured population.</td></tr>`}</tbody></table></div>`;
+  const e = escapeHtml, dim = result.dimension?.label ?? "Population", countLabel = result.subject?.countLabel ?? "site-days";
+  return `<div class="table-wrap analytics-result-table"><table aria-label="${e(result.measure.label)} results"><thead><tr><th>${e(dim)}</th><th>Measured value</th><th>Comparison</th><th>Change</th><th>Change %</th><th>${e(countLabel)}</th></tr></thead><tbody>${result.rows.map((row) => `<tr><td>${drill && ["site", "country", "setting"].includes(result.dimension?.id) ? `<button class="table-primary" data-analytics-drill="${result.dimension.id}" data-key="${e(row.key)}" type="button">${e(row.label)}</button>` : e(row.label)}</td><td>${e(formatMeasure(row.value, result.measure))}</td><td>${e(formatMeasure(row.reference, result.measure))}</td><td>${e(formatMeasure(row.change, result.measure, "Change"))}</td><td>${e(formatMeasure(row.percentChange, result.measure, "PercentChange"))}</td><td>${row.count}</td></tr>`).join("") || `<tr><td colspan="6">No matching measured population.</td></tr>`}</tbody></table></div>`;
 }
 
 /** Shared result renderer. Geometry comes only from the executed result. */
@@ -29,7 +29,7 @@ export function renderChart(result, { kind = "bar", id = "chart", drill = true }
       const number = value(row), width = Number.isFinite(number) ? Math.abs(number) / span * 100 : 0;
       const left = number < 0 ? zero - width : zero;
       const canDrill = drill && ["site", "country", "setting"].includes(result.dimension?.id);
-      return `<${canDrill ? "button" : "div"} ${canDrill ? `type="button" data-analytics-drill="${result.dimension.id}" data-key="${e(row.key)}"` : ""} class="analytics-bar-row" title="${e(`${row.label}: ${format(number)}; ${row.count} site-days`)}"><span>${e(row.label)}</span><span class="analytics-bar-track"><i class="analytics-zero" style="left:${zero}%"></i><i class="analytics-bar-fill${number < 0 ? " is-negative" : ""}" style="left:${left}%;width:${width}%"></i></span><strong>${e(format(number))}</strong></${canDrill ? "button" : "div"}>`;
+      return `<${canDrill ? "button" : "div"} ${canDrill ? `type="button" data-analytics-drill="${result.dimension.id}" data-key="${e(row.key)}"` : ""} class="analytics-bar-row" title="${e(`${row.label}: ${format(number)}; ${row.count} ${result.subject?.countLabel ?? "site-days"}`)}"><span>${e(row.label)}</span><span class="analytics-bar-track"><i class="analytics-zero" style="left:${zero}%"></i><i class="analytics-bar-fill${number < 0 ? " is-negative" : ""}" style="left:${left}%;width:${width}%"></i></span><strong>${e(format(number))}</strong></${canDrill ? "button" : "div"}>`;
     }).join("")}</div>`;
   }
   const showReference = result.query.operator === "Value" && result.query.comparison.kind !== "None";
@@ -52,7 +52,7 @@ export function renderKpi(result) {
   const total = result.total;
   const change = total.percentChange;
   const beneficial = change == null ? "" : (change >= 0) === (result.measure.better === "higher") ? "delta-positive" : "delta-warn";
-  return `<article class="kpi-card" data-measure="${result.measure.id}"><div class="kpi-top"><span>${escapeHtml(result.measure.label)}</span></div><strong class="kpi-value">${escapeHtml(formatMeasure(total.value, result.measure))}</strong><div class="kpi-caption">${change == null ? "No comparable baseline" : `<span class="${beneficial}">${change >= 0 ? "+" : ""}${escapeHtml(formatMeasure(change, result.measure, "PercentChange"))}</span> vs comparison`}<br>${total.count} measured site-days</div></article>`;
+  return `<article class="kpi-card" data-measure="${result.measure.id}"><div class="kpi-top"><span>${escapeHtml(result.measure.label)}</span></div><strong class="kpi-value">${escapeHtml(formatMeasure(total.value, result.measure))}</strong><div class="kpi-caption">${change == null ? "No comparable baseline" : `<span class="${beneficial}">${change >= 0 ? "+" : ""}${escapeHtml(formatMeasure(change, result.measure, "PercentChange"))}</span> vs comparison`}<br>${total.count} measured ${escapeHtml(result.subject?.countLabel ?? "site-days")}</div></article>`;
 }
 
 /** Descriptors own pane composition; custom operational views register by renderer key. */

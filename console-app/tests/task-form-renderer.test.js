@@ -29,7 +29,7 @@ test("the generic renderer escapes model labels, hints, values and options", () 
 test("meter corrections retain the original model values and calculate the adjustment from the corrected reading", () => {
   const run = makeMeterCorrectionRun();
   assert.equal(run.status, "open");
-  assert.equal(rateCorrectedReading(meterCorrectionModel.case.originalMeterEnd).amountEur, 23.43);
-  assert.equal(rateCorrectedReading(meterCorrectionModel.case.proposedMeterEnd).amountEur, 23.21);
-  assert.equal(rateCorrectedReading(12882.9).amountEur, 23.32);
+  assert.equal(rateCorrectedReading(meterCorrectionModel.case.originalMeterEnd).amountEur, 3.39);
+  assert.equal(rateCorrectedReading(meterCorrectionModel.case.proposedMeterEnd).amountEur, 2.91);
+  assert.equal(rateCorrectedReading(12849.8).amountEur, 2.98);
 });

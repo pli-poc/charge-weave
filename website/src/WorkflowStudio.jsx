@@ -21,7 +21,7 @@ import {
   correctionWorkflowDefinition,
   createCorrectionWorkflowRuntime,
 } from "./simulation/correction-workflow.js";
-import { outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
+import { GRAPH, layoutWorkflow, edgeGeometry, transitionLabel, outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
 import "./workflows.css";
 
 function makeVirtualClock() {
@@ -65,106 +65,8 @@ const kindLabels = {
 
 const kindIcons = { eventWait: Mail, serviceTask: Settings, decision: GitBranch, humanTask: UserRound, end: CircleStop };
 
-const GRAPH = {
-  width: 1400,
-  height: 1000,
-  nodeWidth: 220,
-  nodeHeight: 84,
-  bottomLane: 950,
-  positions: {
-    awaitingEvidence: { x: 55, y: 60 },
-    evidenceReceived: { x: 55, y: 180 },
-    verifyingEvidence: { x: 55, y: 300 },
-    reconcilingUsage: { x: 55, y: 420 },
-    assessingReadiness: { x: 55, y: 540 },
-    readinessDecision: { x: 55, y: 660 },
-    quarantined: { x: 405, y: 60 },
-    awaitingApproval: { x: 405, y: 180 },
-    approvalDecision: { x: 405, y: 300 },
-    ratingDecision: { x: 405, y: 420 },
-    recalculatingRating: { x: 405, y: 540 },
-    awaitingAdditionalEvidence: { x: 405, y: 780 },
-    manualReview: { x: 755, y: 60 },
-    declined: { x: 755, y: 180 },
-    completedNoChange: { x: 755, y: 300 },
-    issuingCredit: { x: 755, y: 540 },
-    issuingCorrectedCdr: { x: 1105, y: 540 },
-    propagatingCorrection: { x: 1105, y: 660 },
-    completed: { x: 1105, y: 780 },
-  },
-};
-
 function cloneSteps(steps) {
   return JSON.parse(JSON.stringify(steps));
-}
-
-function stepPosition(step, index) {
-  return GRAPH.positions[step.id] ?? {
-    x: 55 + (Math.floor(index / 7) * 350),
-    y: 60 + ((index % 7) * 120),
-  };
-}
-
-function edgeGeometry(source, target, index) {
-  const { nodeWidth, nodeHeight, bottomLane } = GRAPH;
-  const sx = source.x;
-  const sy = source.y;
-  const tx = target.x;
-  const ty = target.y;
-  const sourceCenter = sy + nodeHeight / 2;
-  const targetCenter = ty + nodeHeight / 2;
-  if (sx === tx && sy === ty) {
-    const startY = sourceCenter - 11;
-    const endY = sourceCenter + 13;
-    const loopX = sx + nodeWidth + 42;
-    return {
-      d: `M ${sx + nodeWidth} ${startY} C ${loopX} ${startY - 25}, ${loopX} ${endY + 25}, ${sx + nodeWidth} ${endY}`,
-      labelX: loopX + 4,
-      labelY: sourceCenter + ((index % 3) - 1) * 11,
-    };
-  }
-  if (sx === tx) {
-    if (Math.abs(sy - ty) <= nodeHeight + 40) {
-      const downward = ty > sy;
-      const startY = downward ? sy + nodeHeight : sy;
-      const endY = downward ? ty : ty + nodeHeight;
-      return {
-        d: `M ${sx + nodeWidth / 2} ${startY} V ${endY}`,
-        labelX: sx + nodeWidth / 2,
-        labelY: (startY + endY) / 2 + 3,
-      };
-    }
-    const useRightGutter = sx + nodeWidth + 35 < GRAPH.width;
-    const laneX = useRightGutter ? sx + nodeWidth + 35 : sx - 35;
-    const startX = useRightGutter ? sx + nodeWidth : sx;
-    const endX = useRightGutter ? tx + nodeWidth : tx;
-    return {
-      d: `M ${startX} ${sourceCenter} H ${laneX} V ${targetCenter} H ${endX}`,
-      labelX: laneX,
-      labelY: (sourceCenter + targetCenter) / 2 + ((index % 3) - 1) * 11,
-    };
-  }
-  const forward = tx > sx;
-  const adjacentColumn = Math.abs(tx - sx) <= nodeWidth + 150;
-  if (forward && adjacentColumn) {
-    const startX = sx + nodeWidth;
-    const endX = tx;
-    const laneX = (startX + endX) / 2;
-    return {
-      d: `M ${startX} ${sourceCenter} H ${laneX} V ${targetCenter} H ${endX}`,
-      labelX: laneX,
-      labelY: (sourceCenter + targetCenter) / 2 + ((index % 3) - 1) * 11,
-    };
-  }
-  const startGutter = sx + nodeWidth + 35;
-  const targetGutter = tx + nodeWidth + 35;
-  const startX = sx + nodeWidth;
-  const endX = tx + nodeWidth;
-  return {
-    d: `M ${startX} ${sourceCenter} H ${startGutter} V ${bottomLane} H ${targetGutter} V ${targetCenter} H ${endX}`,
-    labelX: (startGutter + targetGutter) / 2,
-    labelY: bottomLane - 8 - (index % 3) * 12,
-  };
 }
 
 function asRecords(snapshot) {
@@ -316,7 +218,8 @@ export default function WorkflowStudio() {
   const visited = new Set(timeline.filter((entry) => entry.kind === "state").map((entry) => entry.stepId).filter(Boolean));
   const checkpointIsCurrent = checkpoint?.definitionKey === definitionKey;
   const records = asRecords(snapshot);
-  const graphNodes = definition.steps.map((step, index) => ({ step, index, position: stepPosition(step, index) }));
+  const graphLayout = layoutWorkflow(definition);
+  const graphNodes = definition.steps.map((step, index) => ({ step, index, position: graphLayout.positions.get(step.id) }));
   const graphNodeById = new Map(graphNodes.map((node) => [node.step.id, node]));
   const graphEdges = graphNodes.flatMap(({ step, index, position }) => outgoing(step).flatMap((edge, edgeIndex) => {
     const target = graphNodeById.get(edge.target);
@@ -325,7 +228,7 @@ export default function WorkflowStudio() {
       ...edge,
       source: step,
       target: target.step,
-      geometry: edgeGeometry(position, target.position, index + edgeIndex),
+      geometry: edgeGeometry(position, target.position, index + edgeIndex, graphLayout, step.kind, target.step.kind),
     }];
   }));
 
@@ -470,8 +373,8 @@ export default function WorkflowStudio() {
           </p>
           {definitionErrors.length > 0 && <p className="wf-definition-error" role="alert">Fix the workflow definition before starting a run: {definitionErrors.join(" ")}</p>}
           <div className={`wf-graph wf-canvas-scroll ${editing ? "is-editing" : ""}`} aria-label="XFlow visual workflow">
-            <div className="wf-flow-canvas" style={{ width: GRAPH.width, height: GRAPH.height }}>
-              <svg className="wf-edge-layer" viewBox={`0 0 ${GRAPH.width} ${GRAPH.height}`} aria-hidden="true">
+            <div className="wf-flow-canvas" style={{ width: graphLayout.width, height: graphLayout.height }}>
+              <svg className="wf-edge-layer" viewBox={`0 0 ${graphLayout.width} ${graphLayout.height}`} aria-hidden="true">
                 <defs>
                   <marker id="wf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
@@ -483,7 +386,7 @@ export default function WorkflowStudio() {
                 {graphEdges.map((edge) => (
                   <g className="wf-edge" key={`${edge.source.id}:${edge.event}:${edge.target.id}`}>
                     <path d={edge.geometry.d} markerEnd="url(#wf-arrow)" />
-                    <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{edge.event}</text>
+                    <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{transitionLabel(edge.event)}</text>
                   </g>
                 ))}
               </svg>

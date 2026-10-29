@@ -21,6 +21,9 @@ export function createConsoleClient(provider, environment) {
       sessions: provider.getLiveSessions,
       task: () => workspace.task(),
       submitCorrection: (args) => workspace.submit(args),
+      prepareCorrection: (args) => workspace.prepare(args),
+      supplementBillingEvidence: ({ input, ...args }) => workspace.supplyEvidence({ ...input, ...args }),
+      decideCorrection: ({ input, ...args }) => workspace.decide({ ...input, ...args }),
       analytics: provider.queryAnalytics,
       temporal: ({ validAt, knownAt }) => {
         const r = selectFixture(temporalExample, validAt, knownAt);
@@ -31,15 +34,37 @@ export function createConsoleClient(provider, environment) {
   async function task() {
     const r = await client.execute({
       query:
-        "{ task { id revision status stage values outcome descriptor flowState } }",
+        "{ task { id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace } }",
     });
     if (r.errors) throw Error(r.errors[0].message);
-    return { ...r.data.task, approvalDueAt: workspace.task().approvalDueAt, records: workspace.task().records };
+    return r.data.task;
   }
   const report = (error) => {
     status = `Not saved: ${error.message}`;
     throw error;
   };
+  let transactionQueue = Promise.resolve();
+  function commitCommand(action) {
+    const run = transactionQueue.then(async () => {
+      if (blockedCheckpoint) throw Error("Export and reset the incompatible checkpoint first");
+      const before = workspace.export();
+      try {
+        const result = await action();
+        if (result.accepted && JSON.stringify(before) !== JSON.stringify(workspace.export())) {
+          const saved = await store.save(id, workspace.export(), applicationPackage, storageRevision);
+          storageRevision = saved.storageRevision;
+          status = "Saved on this device";
+        }
+        return result;
+      } catch (error) {
+        workspace = createWorkspace({ applicationPackage, snapshot: before });
+        status = `Not saved: ${error.message}. Reload the workspace before retrying.`;
+        throw error;
+      }
+    });
+    transactionQueue = run.catch(() => {});
+    return run;
+  }
   return {
     execute: client.execute,
     task,
@@ -65,20 +90,34 @@ export function createConsoleClient(provider, environment) {
         return task();
       }
     },
-    async prepare(input, expectedRevision, idempotencyKey) {
-      const result = await workspace.prepare({ input, expectedRevision, idempotencyKey });
-      if (result.accepted) status = "Unsaved changes";
-      return result;
+    prepare(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.prepareCorrection;
+      });
     },
-    async decide(input, expectedRevision, idempotencyKey) {
-      const result = await workspace.decide({ ...input, expectedRevision, idempotencyKey });
-      if (result.accepted) status = "Unsaved changes";
-      return result;
+    supplyEvidence(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:BillingEvidenceInput!,$revision:Int!,$key:String!){supplementBillingEvidence(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.supplementBillingEvidence;
+      });
+    },
+    expireApproval(expectedRevision, idempotencyKey) {
+      return commitCommand(() => workspace.expireApproval({ expectedRevision, idempotencyKey }));
+    },
+    decide(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.decideCorrection;
+      });
     },
     async submit(input, expectedRevision, idempotencyKey) {
       const r = await client.execute({
         query:
-          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState}}}",
+          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}",
         variables: { input, revision: expectedRevision, key: idempotencyKey },
       });
       if (r.errors) throw Error(r.errors[0].message);
