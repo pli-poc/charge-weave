@@ -28,7 +28,7 @@ test("local command is validated, saved and resumed without business network cal
   await page.reload();
   await page.getByRole("button", { name: /Review corrected meter reading/ }).click();
   await expect(page.getByRole("heading", { name: "Approve the billing correction" })).toBeVisible();
-  await page.getByLabel("Decision", { exact: true }).selectOption("approve");
+  await page.getByRole("combobox", { name: "Decision", exact: true }).selectOption("approve");
   await page.getByLabel("Decision note").fill("The evidence and calculated amount have been reviewed.");
   await page.getByRole("button", { name: /Record decision/ }).click();
   await expect(page.getByRole("heading", { name: "Billing adjustment prepared" })).toBeVisible();
@@ -72,7 +72,7 @@ test('approval rejection and deadline escalation remain read-only after reload',
     await expect(page.getByRole('heading', { name: 'Approve the billing correction' })).toBeVisible();
   }
   await prepare();
-  await page.getByLabel('Decision', { exact: true }).selectOption('reject');
+  await page.getByRole('combobox', { name: 'Decision', exact: true }).selectOption('reject');
   await page.getByLabel('Decision note').fill('The proposed evidence does not support this correction.');
   await page.getByRole('button', { name: /Record decision/ }).click();
   await expect(page.getByRole('heading', { name: 'No correction issued' })).toBeVisible();

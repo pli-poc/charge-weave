@@ -88,7 +88,7 @@ test("the app presents a model-driven billing work item with business progress a
   await page.getByRole("button", { name: "Zoom in" }).click();
   await expect(page.locator(".case-graph-scroll svg")).toHaveAttribute("data-scale", "1.15");
   await page.getByRole("button", { name: "Reset view" }).click();
-  await page.getByLabel("Decision", { exact: true }).selectOption("approve");
+  await page.getByRole("combobox", { name: "Decision", exact: true }).selectOption("approve");
   await page.getByLabel("Decision note").fill("The evidence and calculated amount have been reviewed.");
   await page.getByRole("button", { name: /Record decision/ }).click();
   await expect(page.getByRole("heading", { name: "Billing adjustment prepared" })).toBeVisible();
