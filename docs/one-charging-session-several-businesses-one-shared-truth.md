@@ -395,3 +395,147 @@ External notation reference: [OMG BPMN 2.0.2](https://www.omg.org/spec/BPMN/2.0.
 Preserved decisions: client-first synthetic product demo; XFlow/XState execution; generated task forms and shared services; explicit supported-capability limits; fixed-point correction amounts; independent reference verification; canonical GitHub source and existing pipeline; no Syntriq migration or production service dependency needed for this release.
 
 **Next action after plan review:** Begin P0, verify the deployed baseline, then implement P1–P6 in order with the acceptance gates above.
+
+
+## 14. Dashboard components and the connected operational overview
+
+**Plan extension, 29 October 2026:** Include the dashboard as the entry and closing screen for the demonstration. This extends P0–P6; it is not a separate dashboard project or permission to start product implementation.
+
+### 14.1 Reuse the existing dashboard foundation
+
+Source inspection confirms:
+
+- `console-app/src/components/analytics-panes.js` already supplies `renderKpi`, `renderChart`, `renderResultTable` and `renderPane`.
+- `console-app/src/analytics/dashboard.js` assembles profile-defined KPI/pane descriptors, filters, chart/table selection, drill-down and pane preferences.
+- `model/analytics-profile.json` defines the current site/day subject, approved measures/dimensions and overview composition.
+- `docs/analytics-contract.md` defines weighted aggregation, revision selection, knowledge cutoff, scope, unavailable values and calculation evidence.
+- Existing analytical results and operational custom panes intentionally have different source populations.
+
+Preserve those components and the analytical contract. Generalize the assumptions that prevent their reuse for a correction/case/task subject. For example, table/KPI captions currently say “site-days”, drill targets are hard-coded to site/country/setting, and some custom renderers are callbacks with no typed data/evidence contract. Those assumptions must move into supported subject/result metadata, not be copied into another dashboard.
+
+### 14.2 Three coherent dashboard presets
+
+| Preset | Main audience and question | Components |
+| --- | --- | --- |
+| Operations | What is blocked and who should act? | Case counts, waiting-state distribution, actionable work queue, aging and process activity. |
+| Billing and corrections | What changed financially and what remains pending? | Approved adjustment summary, original/replacement comparison, approval queue and simulated delivery status. |
+| Network performance | How is the synthetic owned network performing over time? | Existing energy, completed sessions, estimated net value, weighted availability and trends. |
+
+The first two use a declared shared operational projection over the connected scenario records. Network performance retains its existing historical subject until a separately verified projection connects that population. Switching preset must display its scope clearly; the correction must not change an unrelated full-year chart.
+
+Role-oriented presets are presentation choices over simulated roles. Real authorization remains a service responsibility.
+
+### 14.3 S00 — Dashboard entry and closing view
+
+Extend the screen sequence in section 4 with **S00: Operations dashboard**.
+
+**Layout:**
+
+- Top bar: preset, declared population, time/virtual-clock context and scenario/reset controls.
+- First row: at most four meaningful KPI cards.
+- Main row: waiting-state breakdown beside an actionable work queue.
+- Lower row: aging or state-history chart and recent business activity; financial result pane on the corrections preset.
+- Expandable source/calculation evidence and a compact “Open current case” action.
+
+Start at the initial dashboard, open the case, execute S01–S06 and return to the same dashboard. On return, show the accepted case/task/status and financial changes actually recorded. Preserve filters and navigation context. A single scenario may have only one case; that is valid and must not be disguised as a large network.
+
+A separate small seeded multi-case population may demonstrate grouping, filtering and queues. Pin its case IDs, status distribution and clock, label it explicitly, and let one selected case be the interactive article journey. Reset restores the complete scenario projection consistently.
+
+### 14.4 Metric definitions before visual design
+
+| Metric | Definition and source | Presentation rule |
+| --- | --- | --- |
+| Open correction cases | Distinct case IDs in the selected scope with a declared nonterminal status at the selected checkpoint | Snapshot stock; do not sum daily backlog snapshots. |
+| Awaiting operator action | Distinct open work items currently actionable by the selected simulated role | Distinguish tasks from cases; one case can have multiple tasks over its lifetime. |
+| Waiting for external evidence | Distinct cases whose actual active state is the declared evidence wait | Do not infer waiting from a label or combine it with active human approval. |
+| Oldest open wait | Selected virtual time minus the start of the current waiting interval among open waits | Show duration and case link; no eligible case means unavailable, not zero. |
+| Approved net adjustment | Sum of accepted, deduplicated correction differences for the chosen currency and declared document basis | Exact minor units/decimal strings; distinguish net change, full credit and replacement value. |
+| Pending partner delivery | Distinct supported handoffs lacking a successful simulated acknowledgment | Only available when the acknowledgment adapter is implemented; unavailable is not “0 pending”. |
+| Completed corrections | Distinct cases reaching the declared successful outcome in the selected half-open interval | Do not count every event, retry or historical revision as another completion. |
+
+Use the existing network metric definitions for the historical preset. In particular, estimated net charging value is not accounting revenue and must not be combined with the article's illustrative tax-inclusive charge-record adjustment.
+
+Every KPI must disclose subject, grain, unit/currency, aggregation, time basis, source scope and empty/unavailable policy. Define whether comparisons are between reporting intervals, knowledge cutoffs or replay checkpoints. A “before/after scenario” comparison is not automatically a supported previous-period query; add a supported projection/adapter and acceptance evidence before exposing it.
+
+Avoid a decorative success-rate gauge. If a rate is later useful, define the numerator, denominator, cohort/window and unavailable conditions first.
+
+### 14.5 Reusable components to extend
+
+| Component | Planned behavior |
+| --- | --- |
+| KPI card | Label, value/unit, supported comparison, source caption and declared drill target; no hard-coded site/day wording. |
+| Pane shell | Shared title, scope/status line, chart/table toggle where applicable, evidence disclosure and optional allowed actions. |
+| Category/status chart | Reuse the bar renderer for waiting/action/outcome distribution; exact result table accompanies it. |
+| Trend/aging pane | Reuse line/bar primitives over supported buckets; distinguish duration distributions, event counts and snapshot backlog. |
+| Work queue | Typed table with case/task identity, reason, owner, age/due state and “Open task/case”; same work-item contract as My work. |
+| Activity timeline | Business events with time basis and case links; use accepted receipts, not invented animation events. |
+| Correction comparison | Original, linked credit/adjustment, replacement and net change; exact financial formatting shared with S05. |
+| Shared filter bar | Allowed filters per subject; explicit reset, active scope and filter chips; unsupported combinations rejected. |
+| Empty/error state | Distinguish loading, no matches, unavailable, unsupported capability and source failure. |
+
+The diagram itself can be a focus/preview pane through the shared P1 graph component. It must navigate to S03 for detailed inspection rather than duplicate its implementation.
+
+Dashboard arrangement uses the existing reorder/show-hide preferences. Add explicit supported widths and reset-to-preset where needed; preserve accessible keyboard alternatives. Full arbitrary drag-resize authoring is not a prerequisite for this release.
+
+### 14.6 Profile-driven composition and data contracts
+
+Extend the current descriptor approach through versioned source profiles and a bounded renderer registry.
+
+A pane descriptor identifies its stable ID, title, renderer key, subject/query binding, allowed size, supported filters, empty-state policy and named drill target. A query references approved measures/dimensions and a provider capability; it is not executable JavaScript or arbitrary GraphQL supplied by a layout file.
+
+The shared result contract supplies typed values, row/group identities, units, total semantics, subject grain, calculation/source evidence and supported navigation keys. Custom operational panes receive validated results/services through the same host boundary rather than fetching unrelated fixtures inside their renderer.
+
+Keep layout preference state separate from business checkpoints. Bind scenario, case and instance navigation to the current package. Unknown renderers, missing measures and incompatible versions produce a visible diagnostic rather than a blank panel.
+
+Do not force every subject into the existing site/day fact schema. Extend profile validation and query dispatch to explicit supported subjects/adapters while preserving current historical behavior. If new canonical measures or concepts are necessary, add them through the existing model/generator ownership chain and reference checks.
+
+### 14.7 Interaction and consistency contract
+
+- Clicking a KPI applies its declared filter or opens its scoped queue; it must not silently change the population.
+- Selecting a chart bucket filters the corresponding queue and shows removable filter chips.
+- Opening a queue item navigates to S02/S04 with the same case/task/revision; returning restores dashboard state.
+- Opening an active process selects the same instance in S03 and focuses the current step.
+- Accepted commands invalidate/recompute the affected operational projection from committed state; no timer-based fake increments.
+- Rejected commands and idempotent retries do not change dashboard totals.
+- Save/reload restores business state first and then derives the dashboard; saved card numbers are not the source of truth.
+- Query/evidence versions and virtual time are pinned for reproducible screenshots.
+- Corrections update historical network reporting only after an explicit subject mapping, grain policy and parity test exists.
+
+### 14.8 Delivery and verification additions
+
+Add these responsibilities to the existing phases:
+
+| Phase | Dashboard addition |
+| --- | --- |
+| P0 | Inventory component reuse; define operational subjects, metric semantics, drill targets and baseline populations. |
+| P1 | Make shared flow preview embeddable without another diagram engine. |
+| P2 | Expose task/wait/deadline state required by the operational projection. |
+| P3 | Implement S00, shared pane extensions, operational projection, preset composition and connected drill-through. |
+| P4 | Verify aggregation, metric boundaries, retries, projection invalidation and save/reload parity. |
+| P5 | Capture S00 before/after with identical filters and declared checkpoint/time differences; review desktop/mobile. |
+| P6 | Include dashboard evidence and explanation in article layouts. |
+
+Additional acceptance cases:
+
+- **C15 — Reconciliation:** KPI totals equal independently enumerated cases/tasks and linked accepted records for the selected scope.
+- **C16 — Population boundary:** Correcting the interactive case changes its operational projection while the unrelated yearly network population remains unchanged.
+- **C17 — Drill-through:** Card → filtered queue → generated task → flow → return preserves case, instance and filters.
+- **C18 — Counting and precision:** Duplicate events/retries, multi-task cases, signed financial changes, no-data states and mixed-currency rejection behave as defined.
+- **C19 — Restore:** Dashboard values derived after reload match committed state and the saved virtual time; layout preference changes do not alter business records.
+- **C20 — Presentation reuse:** Existing network panes continue working after subject generalization; narrow screens, keyboard operation and readable tables remain supported.
+
+The final readiness checklist also requires S00, metric definitions, projection evidence, drill-through and C15–C20. No dashboard is called live unless its data is actually updated through the connected scenario services.
+
+### 14.9 Article layout additions
+
+Use the dashboard to make the product story tangible:
+
+1. **Opening/hero:** S00 focused on “One correction needs attention”, with the real actionable queue visible.
+2. **Middle:** S03/S04 show why it is waiting and how the generated task resolves it.
+3. **Closing result:** return to S00, using the same filters, with the case outcome and supported financial effect; pair with S05/S06 for evidence.
+
+For LinkedIn, keep one readable dashboard image in the main article. The optional five-image sequence can use S00 as the frame for the first and last images. Do not add every chart to the article; each figure must explain a business point.
+
+Suggested paragraph theme: “A useful dashboard connects a number to the work behind it. From the outstanding correction, I can open the evidence, see why the process is waiting, complete the task and inspect the result.”
+
+Final copy must reflect the implemented counts and outcomes. With one case, closing it may make open cases zero; with seeded background cases, the correct change is only the affected case. Never reset all visible counters to create a cleaner ending.
