@@ -262,7 +262,7 @@ export function createWorkspace({
         status: "completed",
         currentStage: "adjustment",
         outcome: {
-          type: "correction.accepted",
+          type: s.value === "completedNoChange" ? "correction.noChange" : "correction.accepted",
           amount: rating.amountEur,
           correctionId: s.context.correctedCdr?.id ?? caseData.cdrId,
           energyKwh: rating.energyKwh,

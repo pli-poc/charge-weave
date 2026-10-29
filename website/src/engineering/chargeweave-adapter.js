@@ -7,6 +7,7 @@ export function chargeweaveAdapters(getPackage) {
     ["correction.valid", "Accept verified correction"], ["correction.bad-evidence", "Reject mismatched evidence"],
     ["correction.reversed-meter", "Reject reversed reading"], ["correction.stale", "Reject stale revision"],
     ["correction.duplicate", "Replay command once"], ["correction.restore", "Restore a stable checkpoint"],
+    ["correction.no-change", "Close without a financial change"], ["correction.below-threshold", "Correct below the approval threshold"],
     ["correction.approval-restore", "Restore and approve a waiting correction"], ["correction.approval-reject", "Reject a waiting correction"], ["correction.approval-expiry", "Expire a waiting correction"],
   ];
   return [{
@@ -20,6 +21,21 @@ export function chargeweaveAdapters(getPackage) {
       if (scenarioId === "correction.bad-evidence") input.evidenceReference = "EV-0000-0000";
       if (scenarioId === "correction.reversed-meter") input.meterEnd = "0";
       const args = { input, expectedRevision: scenarioId === "correction.stale" ? 99 : 0, idempotencyKey: `scenario-${seed}` };
+      if (["correction.no-change", "correction.below-threshold"].includes(scenarioId)) {
+        const custom = structuredClone(pkg);
+        const unchanged = scenarioId === "correction.no-change";
+        custom.task.case.proposedMeterEnd = unchanged ? 12851.100 : 12851.070;
+        const scenarioInput = { ...input, meterEnd: unchanged ? "12851.100" : "12851.070" };
+        const workspace = createWorkspace({ applicationPackage: custom, clock: () => startAt });
+        const result = await workspace.prepare({ ...args, input: scenarioInput });
+        const snapshot = workspace.export();
+        const expectedState = unchanged ? "completedNoChange" : "completed";
+        return { assertions: [
+          { id: "configured-route", passed: result.accepted && result.task.flowState === expectedState, detail: result.task.flowState },
+          { id: "no-approval-task", passed: result.task.status === "completed", detail: "The guard does not create an approval wait" },
+          { id: "exact-effects", passed: unchanged ? result.task.outcome.type === "correction.noChange" && !snapshot.actor.context.credit : result.task.outcome.amount === "3.38" && snapshot.actor.context.credit?.amountEur === -3.39, detail: "Independent original EUR 3.39 and replacement EUR 3.38; no credit for unchanged rating" },
+        ], output: { result, snapshot }, trace: workspace.history(), unsupported: pkg.capabilities.unsupported };
+      }
       if (scenarioId.startsWith("correction.approval-")) {
         let now = startAt;
         let actor = createWorkspace({ applicationPackage: pkg, clock: () => now });

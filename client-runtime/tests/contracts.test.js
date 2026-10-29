@@ -277,3 +277,13 @@ test('generated GraphQL commands preserve the approval boundary and reject stale
   const retry = await client.execute({ query: decision, variables: { input: { outcome: 'approve', note: 'The evidence and amount are reviewed carefully.' }, revision: 1 } });
   assert.deepEqual(retry.data, result.data);
 });
+
+test('unchanged rating closes without presenting a financial correction', async () => {
+  const custom = structuredClone(pkg); custom.task.case.proposedMeterEnd = custom.task.case.originalMeterEnd;
+  const w = createWorkspace({ applicationPackage: custom });
+  const r = await w.prepare({ ...args, input: { ...input, meterEnd: String(custom.task.case.originalMeterEnd) } });
+  assert.equal(r.task.flowState, 'completedNoChange');
+  assert.equal(r.task.outcome.type, 'correction.noChange');
+  assert.equal(r.task.records.credit, null);
+  assert.equal(r.task.records.correctedCdr, null);
+});
