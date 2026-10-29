@@ -602,3 +602,16 @@
 .wf-node-copy small { font-size: 10px; letter-spacing: .35px; }
 .wf-edge text { font-size: 10px; }
 .wf-legend { display:flex; flex-wrap:wrap; gap:8px 18px; margin: 0 0 12px; color:#bdd2cf; font-size:12px; }
+/* Compact XFlow types use a standalone symbol with the label alongside. */
+.wf-flow-canvas .wf-node--eventWait, .wf-flow-canvas .wf-node--decision, .wf-flow-canvas .wf-node--end {
+  padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important;
+}
+.wf-flow-canvas .wf-node--eventWait .wf-node-icon, .wf-flow-canvas .wf-node--decision .wf-node-icon, .wf-flow-canvas .wf-node--end .wf-node-icon {
+  width: 84px; height: 84px; margin-right: 10px; flex: 0 0 84px; box-sizing: border-box;
+}
+.wf-flow-canvas .wf-node--eventWait .wf-node-icon { border: 6px double #8cc8f2; }
+.wf-flow-canvas .wf-node--decision .wf-node-icon { width: 60px; height: 60px; flex-basis: 60px; margin: 0 22px 0 12px; transform: rotate(45deg); }
+.wf-flow-canvas .wf-node--end .wf-node-icon { border-width: 5px; }
+.wf-flow-canvas .wf-node--eventWait.is-active .wf-node-icon, .wf-flow-canvas .wf-node--decision.is-active .wf-node-icon, .wf-flow-canvas .wf-node--end.is-active .wf-node-icon { outline: 3px solid var(--mint); outline-offset: 3px; }
+.wf-flow-canvas .wf-node--eventWait.is-selected .wf-node-icon, .wf-flow-canvas .wf-node--decision.is-selected .wf-node-icon, .wf-flow-canvas .wf-node--end.is-selected .wf-node-icon { box-shadow: 0 0 0 3px #82a8ba; }
+.wf-flow-canvas .wf-node--eventWait .wf-node-open, .wf-flow-canvas .wf-node--decision .wf-node-open, .wf-flow-canvas .wf-node--end .wf-node-open { display: none; }

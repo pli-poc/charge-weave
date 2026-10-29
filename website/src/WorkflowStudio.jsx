@@ -21,7 +21,7 @@ import {
   correctionWorkflowDefinition,
   createCorrectionWorkflowRuntime,
 } from "./simulation/correction-workflow.js";
-import { GRAPH, layoutWorkflow, edgeGeometry, outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
+import { GRAPH, layoutWorkflow, edgeGeometry, transitionLabel, outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
 import "./workflows.css";
 
 function makeVirtualClock() {
@@ -228,7 +228,7 @@ export default function WorkflowStudio() {
       ...edge,
       source: step,
       target: target.step,
-      geometry: edgeGeometry(position, target.position, index + edgeIndex, graphLayout),
+      geometry: edgeGeometry(position, target.position, index + edgeIndex, graphLayout, step.kind, target.step.kind),
     }];
   }));
 
@@ -386,7 +386,7 @@ export default function WorkflowStudio() {
                 {graphEdges.map((edge) => (
                   <g className="wf-edge" key={`${edge.source.id}:${edge.event}:${edge.target.id}`}>
                     <path d={edge.geometry.d} markerEnd="url(#wf-arrow)" />
-                    <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{edge.event}</text>
+                    <text x={edge.geometry.labelX} y={edge.geometry.labelY} textAnchor="middle">{transitionLabel(edge.event)}</text>
                   </g>
                 ))}
               </svg>

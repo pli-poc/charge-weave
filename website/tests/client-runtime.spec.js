@@ -104,6 +104,10 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.screenshot({ path: info.outputPath('correction-approval.png'), fullPage: true });
   await page.getByText('View process diagram').click();
   await expect(page.locator('.case-graph-node.is-current title')).toContainText('Approve the billing correction');
+  await expect(page.locator('[data-graph-node="awaitingEvidence"] > circle.case-graph-shape')).toHaveCount(1);
+  await expect(page.locator('[data-graph-node="readinessDecision"] > path.case-graph-shape')).toHaveCount(1);
+  await expect(page.locator('[data-graph-node="completed"] > circle.case-graph-end')).toHaveCount(1);
+  await expect(page.locator('.case-graph-route-label').filter({ hasText: 'Deadline expired' })).toHaveCount(1);
   await page.getByRole('button', { name: 'Focus current step' }).click();
   const currentNode = page.locator('.case-graph-node.is-current');
   await currentNode.focus();

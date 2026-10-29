@@ -12,40 +12,26 @@ export function projectTransitions(definition) {
   return definition.steps.flatMap((step) => outgoingTransitions(step).map((edge, index) => ({ id: `${step.id}:${index}`, source: step.id, ...edge, targetExists: ids.has(edge.target) })));
 }
 
+// Stable positions for the featured flow; unknown steps are placed separately below.
 export const GRAPH = {
-  width: 1400,
-  height: 1000,
-  nodeWidth: 220,
-  nodeHeight: 84,
-  bottomLane: 950,
-  positions: {
-    awaitingEvidence: { x: 55, y: 60 },
-    evidenceReceived: { x: 55, y: 180 },
-    verifyingEvidence: { x: 55, y: 300 },
-    reconcilingUsage: { x: 55, y: 420 },
-    assessingReadiness: { x: 55, y: 540 },
-    readinessDecision: { x: 55, y: 660 },
-    quarantined: { x: 405, y: 60 },
-    awaitingApproval: { x: 405, y: 180 },
-    approvalDecision: { x: 405, y: 300 },
-    ratingDecision: { x: 405, y: 420 },
-    recalculatingRating: { x: 405, y: 540 },
-    awaitingAdditionalEvidence: { x: 405, y: 780 },
-    manualReview: { x: 755, y: 60 },
-    declined: { x: 755, y: 180 },
-    completedNoChange: { x: 755, y: 300 },
-    issuingCredit: { x: 755, y: 540 },
-    issuingCorrectedCdr: { x: 1105, y: 540 },
-    propagatingCorrection: { x: 1105, y: 660 },
-    completed: { x: 1105, y: 780 },
-  },
+  width: 1450, height: 2150, nodeWidth: 220, nodeHeight: 84, bottomLane: 2100,
+  positions: Object.fromEntries([
+    ['awaitingEvidence', 0], ['evidenceReceived', 1], ['verifyingEvidence', 2],
+    ['reconcilingUsage', 3], ['assessingReadiness', 4], ['readinessDecision', 5],
+    ['recalculatingRating', 6], ['ratingDecision', 7], ['approvalDecision', 8],
+    ['awaitingApproval', 9], ['issuingCredit', 10], ['issuingCorrectedCdr', 11],
+    ['propagatingCorrection', 12], ['completed', 13],
+  ].map(([id, row]) => [id, { x: 600, y: 55 + row * 145 }]).concat([
+    ['quarantined', { x: 135, y: 345 }],
+    ['manualReview', { x: 135, y: 1360 }],
+    ['awaitingAdditionalEvidence', { x: 1040, y: 780 }],
+    ['completedNoChange', { x: 1040, y: 1070 }],
+    ['declined', { x: 1040, y: 1360 }],
+  ])),
 };
 
 export function stepPosition(step, index) {
-  return GRAPH.positions[step.id] ?? {
-    x: 55 + (Math.floor(index / 7) * 350),
-    y: 60 + ((index % 7) * 120),
-  };
+  return GRAPH.positions[step.id] ?? { x: 55 + (Math.floor(index / 14) * 350), y: 55 + ((index % 14) * 145) };
 }
 
 /** Preserve the known presentation while placing added nodes without collisions. */
@@ -59,7 +45,7 @@ export function layoutWorkflow(definition) {
   for (const step of definition.steps) {
     if (positions.has(step.id)) continue;
     let p;
-    do { p = { x: 55 + (Math.floor(next / 7) * 350), y: 60 + ((next % 7) * 120) }; next++; } while (occupied.has(`${p.x}:${p.y}`));
+    do { p = { x: GRAPH.width + 55 + (Math.floor(next / 14) * 350), y: 55 + ((next % 14) * 145) }; next++; } while (occupied.has(`${p.x}:${p.y}`));
     positions.set(step.id, p); occupied.add(`${p.x}:${p.y}`);
   }
   const xs = [...positions.values()].map(p => p.x), ys = [...positions.values()].map(p => p.y);
@@ -68,66 +54,33 @@ export function layoutWorkflow(definition) {
   return { positions, width, height, bottomLane: height - 50 };
 }
 
-export function edgeGeometry(source, target, index, canvas = GRAPH) {
-  const { nodeWidth, nodeHeight } = GRAPH;
-  const { bottomLane } = canvas;
-  const sx = source.x;
-  const sy = source.y;
-  const tx = target.x;
-  const ty = target.y;
-  const sourceCenter = sy + nodeHeight / 2;
-  const targetCenter = ty + nodeHeight / 2;
-  if (sx === tx && sy === ty) {
-    const startY = sourceCenter - 11;
-    const endY = sourceCenter + 13;
-    const loopX = sx + nodeWidth + 42;
-    return {
-      d: `M ${sx + nodeWidth} ${startY} C ${loopX} ${startY - 25}, ${loopX} ${endY + 25}, ${sx + nodeWidth} ${endY}`,
-      labelX: loopX + 4,
-      labelY: sourceCenter + ((index % 3) - 1) * 11,
-    };
-  }
-  if (sx === tx) {
-    if (Math.abs(sy - ty) <= nodeHeight + 40) {
-      const downward = ty > sy;
-      const startY = downward ? sy + nodeHeight : sy;
-      const endY = downward ? ty : ty + nodeHeight;
-      return {
-        d: `M ${sx + nodeWidth / 2} ${startY} V ${endY}`,
-        labelX: sx + nodeWidth / 2,
-        labelY: (startY + endY) / 2 + 3,
-      };
-    }
-    const useRightGutter = sx + nodeWidth + 35 < canvas.width;
-    const laneX = useRightGutter ? sx + nodeWidth + 35 : sx - 35;
-    const startX = useRightGutter ? sx + nodeWidth : sx;
-    const endX = useRightGutter ? tx + nodeWidth : tx;
-    return {
-      d: `M ${startX} ${sourceCenter} H ${laneX} V ${targetCenter} H ${endX}`,
-      labelX: laneX,
-      labelY: (sourceCenter + targetCenter) / 2 + ((index % 3) - 1) * 11,
-    };
-  }
-  const forward = tx > sx;
-  const adjacentColumn = Math.abs(tx - sx) <= nodeWidth + 150;
-  if (forward && adjacentColumn) {
-    const startX = sx + nodeWidth;
-    const endX = tx;
-    const laneX = (startX + endX) / 2;
-    return {
-      d: `M ${startX} ${sourceCenter} H ${laneX} V ${targetCenter} H ${endX}`,
-      labelX: laneX,
-      labelY: (sourceCenter + targetCenter) / 2 + ((index % 3) - 1) * 11,
-    };
-  }
-  const startGutter = sx + nodeWidth + 35;
-  const targetGutter = tx + nodeWidth + 35;
-  const startX = sx + nodeWidth;
-  const endX = tx + nodeWidth;
-  return {
-    d: `M ${startX} ${sourceCenter} H ${startGutter} V ${bottomLane} H ${targetGutter} V ${targetCenter} H ${endX}`,
-    labelX: (startGutter + targetGutter) / 2,
-    labelY: bottomLane - 8 - (index % 3) * 12,
-  };
+/** Business labels preserve the original event identifier for inspection. */
+export function transitionLabel(event) {
+  return ({ 'success': 'Success', 'error': 'Service failure', 'otherwise': 'Default',
+    'timer.expired': 'Deadline expired', 'approval.granted': 'Approved',
+    'approval.rejected': 'Rejected', 'billingReady': 'Billing ready',
+    'approvalRequired': 'Approval required', 'noMaterialChange': 'No material change' })[event] ?? event.replaceAll('.', ' ');
 }
 
+/** Orthogonal connections use the actual symbol's top/bottom ports. */
+export function nodePort(position, kind, side) {
+  const compact = ['eventWait', 'decision', 'end'].includes(kind);
+  const x = position.x + (compact ? 42 : GRAPH.nodeWidth / 2);
+  return { x, y: position.y + (side === 'bottom' ? GRAPH.nodeHeight : 0) };
+}
+
+export function edgeGeometry(source, target, index, canvas = GRAPH, sourceKind = 'serviceTask', targetKind = 'serviceTask') {
+  const down = target.y > source.y;
+  const a = nodePort(source, sourceKind, down ? 'bottom' : 'top');
+  const b = nodePort(target, targetKind, down ? 'top' : 'bottom');
+  if (source.x === target.x && Math.abs(target.y - source.y) <= 150) {
+    const lane = (a.y + b.y) / 2;
+    return { d: `M ${a.x} ${a.y} V ${lane} H ${b.x} V ${b.y}`, labelX: (a.x + b.x) / 2, labelY: lane - 5 };
+  }
+  // Move into the gutter before changing rows, keeping long recovery paths off nodes.
+  const direction = target.x < source.x ? -1 : 1;
+  const laneX = direction < 0 ? Math.min(source.x, target.x) - 35 - (index % 3) * 12 : Math.max(source.x, target.x) + GRAPH.nodeWidth + 35 + (index % 3) * 12;
+  const startY = a.y + (down ? 22 : -22);
+  const endY = b.y + (down ? -22 : 22);
+  return { d: `M ${a.x} ${a.y} V ${startY} H ${laneX} V ${endY} H ${b.x} V ${b.y}`, labelX: laneX, labelY: (startY + endY) / 2 };
+}

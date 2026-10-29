@@ -41,3 +41,15 @@ test('additional workflow steps are visible without overlapping existing placeme
   assert.equal(new Set([...layout.positions.values()].map(p => `${p.x}:${p.y}`)).size, flow.steps.length);
   assert.ok([...layout.positions.values()].every(p => p.x + 220 <= layout.width && p.y + 84 <= layout.height));
 });
+
+test('semantic ports and route captions reflect the projected types and events', async () => {
+  const { nodePort, edgeGeometry, transitionLabel } = await import('../src/flow/presentation.js');
+  const a = { x: 100, y: 100 }, b = { x: 100, y: 245 };
+  assert.deepEqual(nodePort(a, 'eventWait', 'bottom'), { x: 142, y: 184 });
+  assert.deepEqual(nodePort(b, 'serviceTask', 'top'), { x: 210, y: 245 });
+  const route = edgeGeometry(a, b, 0, undefined, 'eventWait', 'serviceTask');
+  assert.match(route.d, /^M 142 184 /);
+  assert.match(route.d, /V 245$/);
+  assert.equal(transitionLabel('timer.expired'), 'Deadline expired');
+  assert.equal(transitionLabel('error'), 'Service failure');
+});

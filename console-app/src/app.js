@@ -1,4 +1,4 @@
-import { outgoingTransitions, GRAPH, layoutWorkflow, edgeGeometry } from "../../client-runtime/src/flow/presentation.js";
+import { outgoingTransitions, GRAPH, layoutWorkflow, edgeGeometry, transitionLabel } from "../../client-runtime/src/flow/presentation.js";
 import { correctionOperationsProjection } from "../../client-runtime/src/profiles/chargeweave/operations-projection.js";
 import flowPackage from "../../client-runtime/generated/application.json" with { type: "json" };
 import { createConsoleClient } from "./local-client.js";
@@ -270,29 +270,31 @@ function workProgress() {
 function correctionProcessCanvas(flow, current, trace = []) {
   const layout = layoutWorkflow(flow);
   const nodes = flow.steps.map((step, index) => ({ step, index, position: layout.positions.get(step.id) }));
-  const positions = new Map(nodes.map(n => [n.step.id, n.position]));
+  const positions = new Map(nodes.map(n => [n.step.id, n]));
   const edges = nodes.flatMap(({ step, index, position }) => outgoingTransitions(step).flatMap((edge, edgeIndex) => {
     const target = positions.get(edge.target);
     if (!target) return [];
-    const geometry = edgeGeometry(position, target, index + edgeIndex, layout);
+    const geometry = edgeGeometry(position, target.position, index + edgeIndex, layout, step.kind, target.step.kind);
     const taken = trace.some(item => item.source === step.id && item.target === edge.target && item.event === edge.event);
-    return [`<path class="${taken ? "is-taken" : ""}" d="${esc(geometry.d)}" marker-end="url(#case-flow-arrow)" />`];
+    return [`<g><title>${esc(edge.event)}</title><path class="${taken ? "is-taken" : ""}" d="${esc(geometry.d)}" marker-end="url(#case-flow-arrow)" /><text class="case-graph-route-label" x="${geometry.labelX}" y="${geometry.labelY}">${esc(transitionLabel(edge.event))}</text></g>`];
   })).join("");
   const blocks = nodes.map(({ step, position }) => {
     const active = step.id === current;
     const words = step.label.split(/\s+/);
     const lines = words.reduce((result, word) => {
       const last = result.length - 1;
-      if (last >= 0 && `${result[last]} ${word}`.length <= 24) result[last] += ` ${word}`;
+      if (last >= 0 && `${result[last]} ${word}`.length <= 17) result[last] += ` ${word}`;
       else result.push(word);
       return result;
     }, []);
-    const cx = position.x + 25, cy = position.y + 42;
-    const marker = step.kind === "decision" ? `<path d="M ${cx} ${cy - 13} l 13 13 -13 13 -13 -13 Z"/>` : step.kind === "eventWait" ? `<circle cx="${cx}" cy="${cy}" r="13"/><circle cx="${cx}" cy="${cy}" r="10"/>` : step.kind === "end" ? `<circle cx="${cx}" cy="${cy}" r="13" stroke-width="3"/>` : `<rect x="${cx - 13}" y="${cy - 13}" width="26" height="26" rx="5"/>`;
+    const compact = ["decision", "eventWait", "end"].includes(step.kind);
+    const cx = position.x + 42, cy = position.y + 42;
+    const shape = step.kind === "decision" ? `<path class="case-graph-shape" d="M ${cx} ${cy - 40} l 40 40 -40 40 -40 -40 Z"/>` : step.kind === "eventWait" ? `<circle class="case-graph-shape" cx="${cx}" cy="${cy}" r="40"/><circle class="case-graph-inner" cx="${cx}" cy="${cy}" r="35"/>` : step.kind === "end" ? `<circle class="case-graph-shape case-graph-end" cx="${cx}" cy="${cy}" r="40"/>` : `<rect class="case-graph-shape" x="${position.x}" y="${position.y}" width="${GRAPH.nodeWidth}" height="${GRAPH.nodeHeight}" rx="10"/>`;
     const symbol = ({ eventWait: "○", serviceTask: "⚙", decision: "?", humanTask: "♙", end: "•" })[step.kind] ?? "•";
-    return `<g data-graph-node="${esc(step.id)}" data-action="graph-select" data-step="${esc(step.id)}" role="button" tabindex="0" aria-label="${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}" class="case-graph-node${active ? " is-current" : ""}"><title>${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}</title><rect x="${position.x}" y="${position.y}" width="${GRAPH.nodeWidth}" height="${GRAPH.nodeHeight}" rx="8"/><g class="case-graph-marker">${marker}<text x="${cx}" y="${cy + 4}" text-anchor="middle">${symbol}</text></g><text class="case-graph-label" x="${position.x + 47}" y="${position.y + (lines.length > 1 ? 27 : 38)}">${lines.map((line, i) => `<tspan x="${position.x + 47}" dy="${i ? 15 : 0}">${esc(line)}</tspan>`).join("")}</text><text class="case-graph-kind" x="${position.x + 47}" y="${position.y + 68}">${esc(step.kind)}${active ? " · CURRENT" : ""}</text></g>`;
+    const labelX = position.x + (compact ? 94 : 47);
+    return `<g data-graph-node="${esc(step.id)}" data-action="graph-select" data-step="${esc(step.id)}" role="button" tabindex="0" aria-label="${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}" class="case-graph-node${active ? " is-current" : ""}"><title>${esc(step.label)} · ${esc(step.kind)}${active ? " · Current step" : ""}</title>${shape}<text class="case-graph-symbol" x="${compact ? cx : position.x + 23}" y="${cy + 5}" text-anchor="middle">${symbol}</text><text class="case-graph-label" x="${labelX}" y="${position.y + (lines.length > 1 ? 22 : 38)}">${lines.map((line, i) => `<tspan x="${labelX}" dy="${i ? 15 : 0}">${esc(line)}</tspan>`).join("")}</text><text class="case-graph-kind" x="${labelX}" y="${position.y + 73}">${esc(step.kind)}${active ? " · CURRENT" : ""}</text></g>`;
   }).join("");
-  return `<details class="case-graph-details"><summary>View process diagram</summary><p>Current step and observed routes are highlighted. Other routes remain neutral. Scroll to inspect the diagram; the step and route lists below are the readable alternative.</p><div class="case-graph-toolbar" role="group" aria-label="Process diagram controls"><button type="button" class="secondary-button" data-action="graph-zoom-out" aria-label="Zoom out">−</button><button type="button" class="secondary-button" data-action="graph-zoom-in" aria-label="Zoom in">+</button><button type="button" class="secondary-button" data-action="graph-fit">Fit diagram</button><button type="button" class="secondary-button" data-action="graph-reset">Reset view</button><button type="button" class="secondary-button" data-action="graph-focus">Focus current step</button></div><div class="case-graph-scroll" tabindex="0" aria-label="Scrollable process diagram"><svg viewBox="0 0 ${layout.width} ${layout.height}" role="group" aria-label="XFlow correction process definition; current step ${esc(current)}"><defs><marker id="case-flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z"/></marker></defs><g class="case-graph-edges">${edges}</g>${blocks}</svg></div><div class="case-graph-inspector" role="status" aria-live="polite">Select a step in the diagram or the step list to inspect its description.</div></details>`;
+  return `<details class="case-graph-details"><summary>View process diagram</summary><p>Current step and observed routes are highlighted. Other routes remain neutral. Scroll to inspect the diagram; the step and route lists below are the readable alternative.</p><div class="case-graph-toolbar" role="group" aria-label="Process diagram controls"><button type="button" class="secondary-button" data-action="graph-zoom-out" aria-label="Zoom out">−</button><button type="button" class="secondary-button" data-action="graph-zoom-in" aria-label="Zoom in">+</button><button type="button" class="secondary-button" data-action="graph-fit">Fit diagram</button><button type="button" class="secondary-button" data-action="graph-reset">Reset view</button><button type="button" class="secondary-button" data-action="graph-focus">Focus current step</button></div><div class="case-graph-scroll" tabindex="0" aria-label="Scrollable process diagram"><svg viewBox="0 0 ${layout.width} ${layout.height}" role="group" style="width:${layout.width}px;height:${layout.height}px" aria-label="XFlow correction process definition; current step ${esc(current)}"><defs><marker id="case-flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z"/></marker></defs><g class="case-graph-edges">${edges}</g>${blocks}</svg></div><div class="case-graph-inspector" role="status" aria-live="polite">Select a step in the diagram or the step list to inspect its description.</div></details>`;
 }
 
 function formatMeterKwh(value) { return new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(value)); }
@@ -687,14 +689,15 @@ root.addEventListener("click", async (event) => {
     case "graph-zoom-out": case "graph-zoom-in": case "graph-fit": case "graph-reset": case "graph-focus": {
       const scroll = root.querySelector(".case-graph-scroll"), svg = scroll?.querySelector("svg");
       if (!scroll || !svg) break;
+      const layout = layoutWorkflow(flowPackage.flow);
       let scale = Number(svg.dataset.scale || 1);
       if (action.dataset.action === "graph-zoom-out") scale = Math.max(0.35, scale - 0.15);
       if (action.dataset.action === "graph-zoom-in") scale = Math.min(2, scale + 0.15);
-      if (action.dataset.action === "graph-fit") scale = Math.max(0.2, Math.min(1, (scroll.clientWidth - 20) / GRAPH.width));
+      if (action.dataset.action === "graph-fit") scale = Math.max(0.2, Math.min(1, (scroll.clientWidth - 20) / layout.width));
       if (action.dataset.action === "graph-reset") scale = 1;
       svg.dataset.scale = scale;
-      svg.style.width = `${GRAPH.width * scale}px`;
-      svg.style.height = `${GRAPH.height * scale}px`;
+      svg.style.width = `${layout.width * scale}px`;
+      svg.style.height = `${layout.height * scale}px`;
       if (action.dataset.action === "graph-focus") {
         const index = flowPackage.flow.steps.findIndex(step => step.id === (workRun.flowState ?? flowPackage.flow.initialStep));
         if (index >= 0) { const p = layoutWorkflow(flowPackage.flow).positions.get(flowPackage.flow.steps[index].id); scroll.scrollTo({ left: Math.max(0, (p.x + GRAPH.nodeWidth / 2) * scale - scroll.clientWidth / 2), top: Math.max(0, (p.y + GRAPH.nodeHeight / 2) * scale - scroll.clientHeight / 2), behavior: "auto" }); }
