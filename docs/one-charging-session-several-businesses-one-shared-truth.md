@@ -539,3 +539,90 @@ For LinkedIn, keep one readable dashboard image in the main article. The optiona
 Suggested paragraph theme: “A useful dashboard connects a number to the work behind it. From the outstanding correction, I can open the evidence, see why the process is waiting, complete the task and inspect the result.”
 
 Final copy must reflect the implemented counts and outcomes. With one case, closing it may make open cases zero; with seeded background cases, the correct change is only the affected case. Never reset all visible counters to create a cleaner ending.
+
+
+## 15. Professional visual quality and demonstration readiness
+
+**Quality decision, 29 October 2026:** The domain and platform information is sufficient to proceed. Professional presentation is an explicit delivery requirement, and is not established by a plan, a successful build or a passing functional test alone. The product must pass a separate visual and interaction review before article assets or public claims are finalized.
+
+### 15.1 Art direction grounded in the existing product
+
+Retain the ChargeWeave console's existing visual identity: deep navy surfaces, mint/teal accent, restrained blue/violet supporting colors and clear semantic amber/red/green states. Use the existing light theme coherently rather than styling each new screen independently.
+
+The inspected `console-app/src/styles.css` already defines shared tokens. The new workspace must reuse and consolidate those tokens across dashboard, task, evidence and process screens. Avoid a second visual system in the workflow studio.
+
+The current font declaration resolves Manrope/Inter from the user's machine rather than guaranteeing the same font file everywhere. Before final layout approval, package an appropriately licensed font locally with pinned weights and a documented fallback, or choose a deterministic available bundled font. Test both loaded and fallback states. Do not base screenshot alignment on a font that exists only on the capture machine.
+
+### 15.2 Proposed measurable presentation baseline
+
+These are project design targets, to validate with real rendered screens; they are not claims of current conformance.
+
+| Area | Quality target |
+| --- | --- |
+| Typography | Clear hierarchy: approximately 28–32 px page title, 18–20 px section title, 14–16 px body/important table content and at least 12 px secondary metadata at normal zoom. Avoid tiny 10–11 px labels for essential information. |
+| Numbers | Tabular numerals for amounts, durations and counts; consistent decimal precision, currency basis, signed differences and right alignment. |
+| Spacing | Shared 4/8 px spacing scale; consistent control heights, card padding, section gaps and aligned panel headings. |
+| Density | First viewport identifies the case/problem, present status and next action. Secondary technical evidence is expandable. Do not shrink type to fit extra panels. |
+| Surface treatment | Restrained borders, shadows and radius tokens; semantic emphasis follows task importance rather than decorating every card. |
+| Controls | One clear primary action per task; predictable disabled/loading/completed behavior; no icons without an accessible name or explanation where meaning is ambiguous. |
+| Charts | Readable axes/units, consistent comparison colors, meaningful scales, explicit missing values and exact-value access. No decorative geometry or invented trends. |
+| Flow | Distinct silhouettes, readable labels, unobstructed arrows, stable status markers, no overlapping connectors/labels and a useful focus-current view. |
+| Motion | Short purposeful transitions, no distracting perpetual glow/pulse; reduced-motion alternative. Never slow business execution solely to animate it. |
+| Responsive behavior | Deliberately composed layouts at 1440 × 900, 1920 × 1080, 1024 × 768 and 390 × 844 CSS pixels. Also inspect 200% browser zoom on desktop. |
+| Accessibility | Keyboard-complete main journey, visible focus, associated labels/errors, contrast review, understandable status announcements and no color-only meaning. |
+
+Fit the first meaningful action at normal browser zoom; do not require the presenter to zoom out. Horizontal scrolling is reserved for intentionally navigable graphs and genuinely wide tables, with an accessible alternative. Avoid full-page overflow.
+
+### 15.3 Design checkpoint before expanding implementation
+
+During P0/P1, produce and render three representative compositions using real components and the pinned synthetic case:
+
+1. **S00 dashboard:** the attention state, compact KPI row, actionable queue and waiting-state pane.
+2. **S03 process:** the same instance waiting for approval, meaningful node shapes and a focused inspector.
+3. **S04 task:** the generated form, evidence comparison and clear approval/rejection actions.
+
+Inspect these together at desktop and mobile sizes before rolling the styling across S01–S07. Iterate internally until their typography, spacing, density and interactions form a consistent product. This is a working design checkpoint, not an additional mandatory permission round.
+
+Screenshots of mockups cannot substitute for later captures of the implemented journey. Any exploratory visual must be identified as a design proposal.
+
+### 15.4 Interaction and presentation completeness
+
+The main demo needs a reliable presentation mode:
+
+- A clear entry point, short explanation of the scenario and “Start demonstration” action.
+- A reproducible reset that restores all connected case/task/process/projection state.
+- Optional guidance that identifies the next meaningful action without covering the content.
+- Stable navigation and a visible path back to the case/dashboard.
+- Informative pending, empty, error, conflict, expired and success states.
+- Immediate feedback when an action begins; bounded failure handling and recovery instead of endless spinners.
+- No dead buttons, broken links, inaccessible drawers or controls with silently unsupported behavior in the featured journey.
+- No layout jump when a value changes, a chart loads or a validation message appears.
+- Clean opening, evidence arrival, approval wait, decision and closing scenes that can also be captured for the article.
+- Package/schema/trace details available on demand, while ordinary screens retain business language.
+
+Measure loading and key interaction timings on a documented browser/device profile during P5. Record cold and warm behavior; fix visible stalls and large main-thread blocking before release. Performance claims in the article require measurements rather than animation or a faster capture machine.
+
+### 15.5 Visual review matrix and release blockers
+
+Capture the assembled protected build, not only development components. Review S00–S06 in the chosen article theme, and verify the corresponding layouts in the other supported theme. Review the main path at the target viewport sizes and inspect the form's invalid/submitting/completed states.
+
+Required review questions:
+
+- Does the same product identity carry through dashboard, forms, records and flow?
+- Can a first-time viewer identify what happened and what to do without technical narration?
+- Are every important label, amount, unit, deadline and route readable at normal zoom?
+- Do the process, task and dashboard agree on the current state?
+- Is evidence legible without taking the viewer out of the journey?
+- Are screen and article images clear at their final displayed size?
+
+**Publication blockers:** clipped or overlapping content; unreadable essential text; broken main-path navigation/actions; contradictory case or financial information; incorrect flow status; missing recovery for a featured failure; article captures that do not match the published build.
+
+Use visual regression captures to detect unintended changes, and human visual inspection to judge composition and clarity. A pixel comparison alone cannot establish professional design. Fix release blockers and record any remaining minor issues honestly.
+
+### 15.6 Article asset quality
+
+Choose the article's principal theme after reviewing actual screens. Keep that theme consistent through the captured journey. Use clean, high-resolution native captures and purpose-selected crops; never upscale illegible text and call it a high-resolution result.
+
+Each figure should communicate one point with at most a few restrained annotations. Ensure captions, arrows and editorial frames follow the same typographic/palette system. Show real interfaces prominently; do not bury them in decorative device mockups.
+
+The final acceptance extends section 12: passing functional/semantic CI, reviewed visual states, coherent interaction, readable article assets and verified deployment are all required. The goal is an exceptionally polished, convincing demonstration. “Perfect” must not be promised before the rendered product has been inspected and corrected.
