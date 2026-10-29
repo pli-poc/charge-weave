@@ -153,16 +153,13 @@ export function createWorkspace({
           return [{ field: "meterEnd", message: e.message }];
         }
       },
-      "evidence-match": () =>
-        input.evidenceReference === caseData.evidenceReference
-          ? []
-          : [
-              {
-                field: "evidenceReference",
-                message:
-                  "No verified synthetic evidence matches this reference",
-              },
-            ],
+      "evidence-match": () => {
+        if (input.evidenceReference !== caseData.evidenceReference) return [{ field: "evidenceReference", message: "No verified synthetic evidence matches this reference" }];
+        try {
+          if (fixed(input.meterEnd, 3) !== fixed(caseData.proposedMeterEnd, 3)) return [{ field: "meterEnd", message: "The reading does not match the referenced synthetic evidence" }];
+        } catch { return [{ field: "meterEnd", message: "Invalid evidence reading" }]; }
+        return [];
+      },
       "task-scope": () =>
         state.status === "open" ? [] : [{ message: "Task is no longer open" }],
       "expected-revision": () =>
@@ -207,7 +204,7 @@ export function createWorkspace({
         unitPriceEur: caseData.tariffEurPerKwh,
         fixedFeeEur: 0,
         billingInputsComplete: true,
-        approvalThresholdKwh: 0,
+        approvalThresholdKwh: pkg.flow.initialContext.approvalThresholdKwh,
         approvalTimeoutMs: 3600000,
       },
     });

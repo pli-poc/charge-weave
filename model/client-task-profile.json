@@ -40,15 +40,17 @@
     "partner": "Northline Charge Installations",
     "meterId": "NL-MTR-AMS-4481",
     "meterStart": 12840.5,
-    "originalMeterEnd": 12883.1,
-    "proposedMeterEnd": 12882.7,
-    "tariffEurPerKwh": 0.55,
+    "originalMeterEnd": 12851.1,
+    "proposedMeterEnd": 12849.6,
+    "tariffEurPerKwh": 0.32,
     "evidenceReference": "EV-2026-4481",
     "evidence": {
       "signatureValid": true,
       "sameRegisterEpoch": true,
       "verified": true
-    }
+    },
+    "registerEpoch": "EPOCH-NL-MTR-AMS-4481-1",
+    "pricingBasis": "Tax-inclusive illustrative tariff; no separate fees"
   },
   "task": {
     "id": "review-meter-correction",
@@ -70,7 +72,7 @@
           "min": 12840.5,
           "step": 0.001,
           "required": true,
-          "defaultValue": "12882.700",
+          "defaultValue": "12849.600",
           "help": "Must be greater than the accepted start reading. The platform recalculates the energy and amount.",
           "span": "wide",
           "binding": {

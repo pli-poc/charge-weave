@@ -10,7 +10,7 @@ import { rateReading } from "../src/profiles/chargeweave/rating.js";
 import { evaluateRules } from "../src/services/validation.js";
 import { createFlowRuntime } from "../src/flow/engine.js";
 const input = {
-  meterEnd: "12882.700",
+  meterEnd: "12849.600",
   reason: "partner-correction",
   evidenceReference: "EV-2026-4481",
   operatorNote:
@@ -20,22 +20,22 @@ const args = { input, expectedRevision: 0, idempotencyKey: "test-1" };
 const workspace = () => createWorkspace({ applicationPackage: pkg });
 test("exact correction arithmetic and bounded precision", () => {
   assert.deepEqual(rateReading(input.meterEnd, pkg.task.case), {
-    energyKwh: "42.200",
-    amountEur: "23.21",
+    energyKwh: "9.100",
+    amountEur: "2.91",
     calculationVersion: "meter-fixed-v1",
   });
-  assert.throws(() => rateReading("12882.70001", pkg.task.case));
+  assert.throws(() => rateReading("12849.60001", pkg.task.case));
 });
 test("accepted command runs existing correction flow once; changed retry and stale revision rejected", async () => {
   const w = workspace();
   const r = await w.submit(args);
   assert.equal(r.accepted, true, JSON.stringify(r));
   assert.equal(r.task.flowState, "completed");
-  assert.equal(r.task.outcome.amount, "23.21");
+  assert.equal(r.task.outcome.amount, "2.91");
   assert.deepEqual(await w.submit(args), r);
   assert.equal(w.history().length, 1);
   assert.equal(
-    (await w.submit({ ...args, input: { ...input, meterEnd: "12882.8" } }))
+    (await w.submit({ ...args, input: { ...input, meterEnd: "12849.7" } }))
       .code,
     "KEY_REUSED",
   );
@@ -193,15 +193,16 @@ test('task reads and queued command inputs cannot mutate authoritative workspace
   submitted.input.meterEnd='0';
   assert.equal((await pending).accepted,true);
   const read=w.task();read.outcome.amount='999';read.descriptor.form.fields[0].required=false;
-  assert.equal(w.task().outcome.amount,'23.21');
+  assert.equal(w.task().outcome.amount,'2.91');
   assert.equal(w.task().descriptor.form.fields[0].required,true);
 });
 
 test('a one-cent correction is material and cannot disappear through binary subtraction', async () => {
-  const w=workspace();
-  const result=await w.submit({...args,input:{...input,meterEnd:'12883.080'}});
+  const custom = structuredClone(pkg); custom.task.case.proposedMeterEnd = 12851.070;
+  const w=createWorkspace({ applicationPackage: custom });
+  const result=await w.submit({...args,input:{...input,meterEnd:'12851.070'}});
   assert.equal(result.accepted,true);
-  assert.equal(result.task.outcome.amount,'23.42');
+  assert.equal(result.task.outcome.amount,'3.38');
   assert.equal(result.task.flowState,'completed');
   assert.equal(w.export().actor.context.rating.grossDeltaEur,0.01);
 });
@@ -216,7 +217,7 @@ test('separate approval survives restore and applies a decision exactly once', a
   const decision = { outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 1, idempotencyKey: 'approval-1' };
   const accepted = await restored.decide(decision);
   assert.equal(accepted.task.flowState, 'completed');
-  assert.equal(accepted.task.outcome.amount, '23.21');
+  assert.equal(accepted.task.outcome.amount, '2.91');
   assert.deepEqual(await restored.decide(decision), accepted);
   assert.equal((await restored.decide({ ...decision, idempotencyKey: 'stale' })).code, 'STALE_REVISION');
   assert.equal(restored.history().length, 2);
@@ -236,4 +237,12 @@ test('rejection and virtual deadline do not create financial effects and survive
     assert.equal(restored.task().flowState, expire ? 'manualReview' : 'declined');
     assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and calculated amount checked carefully.', expectedRevision: 2, idempotencyKey: 'again' })).code, 'TASK_NOT_OPEN');
   }
+});
+
+ test('a changed reading cannot be accepted under another evidence reference', async () => {
+  const w = workspace();
+  const result = await w.prepare({ ...args, input: { ...input, meterEnd: '12849.700' } });
+  assert.equal(result.accepted, false);
+  assert.match(result.violations.map(v => v.message).join(' '), /does not match/);
+  assert.equal(w.export().revision, 0);
 });
