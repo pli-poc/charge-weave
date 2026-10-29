@@ -104,7 +104,7 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.screenshot({ path: info.outputPath('correction-approval.png'), fullPage: true });
   await expect(page.locator('.process-overview-step.is-current')).toContainText('Approve the billing correction');
   await page.locator('.process-overview').screenshot({ path: info.outputPath('correction-compact-overview.png') });
-  const reviewGroup = page.locator('.process-overview-step').filter({ hasText: 'Review' });
+  const reviewGroup = page.locator('.process-overview-step.is-current');
   await reviewGroup.locator('summary').click();
   await expect(reviewGroup.getByRole('list', { name: 'Routes from Approve the billing correction' })).toContainText('Deadline expired');
   await expect(reviewGroup.getByRole('list', { name: 'Routes from Approve the billing correction' })).toContainText('Correction declined');
