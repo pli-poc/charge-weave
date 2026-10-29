@@ -1,8 +1,0 @@
-{
-  "id": "chargeweave.correction-approval",
-  "version": "1.0.0",
-  "fields": [
-    { "id": "outcome", "label": "Decision", "concept": "RecordCorrection.correctionReason", "datatype": "controlled-vocabulary", "control": "select", "required": true, "options": [{ "value": "approve", "label": "Approve correction" }, { "value": "reject", "label": "Reject correction" }], "help": "A rejection does not issue a credit or replacement record." },
-    { "id": "note", "label": "Decision note", "concept": "RecordCorrection.correctionReason", "datatype": "string", "control": "textarea", "minLength": 20, "maxLength": 500, "required": true, "help": "Explain the evidence and your decision.", "span": "wide" }
-  ]
-}

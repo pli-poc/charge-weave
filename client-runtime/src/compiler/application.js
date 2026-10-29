@@ -25,7 +25,7 @@ export function compileApplicationBody({
   const normalizedFlow = normaliseWorkflowProfile(flow);
   const cycleErrors = decisionCycleErrors(normalizedFlow);
   if (cycleErrors.length) throw Error(cycleErrors[0]);
-  const taskList = tasks ?? [task.task];
+  const taskList = tasks ?? [task.task, ...(task.additionalTasks ?? [])];
   if (!Array.isArray(taskList) || !taskList.length || new Set(taskList.map(t => t.id)).size !== taskList.length) throw Error("Unique application tasks required");
   const taskFields = taskList.flatMap(t => t.form.fields);
   const names = new Set();
@@ -70,11 +70,17 @@ export function compileApplicationBody({
     }
   }
   for (const command of commands.commands) {
-    for (const required of command.requiredInputs ?? []) {
+    const inputCommand = command.inputFrom ?? command.id;
+    if (command.inputFrom) {
+      const source = commands.commands.find(c => c.id === inputCommand);
+      if (!source || source === command || source.inputFrom) throw Error(`Unknown input source ${inputCommand}`);
+      if (command.inputs !== undefined || command.requiredInputs !== undefined) throw Error(`Inherited input source ${inputCommand} must not be overridden`);
+    }
+    for (const required of (command.inputFrom ? commands.commands.find(c => c.id === inputCommand).requiredInputs : command.requiredInputs) ?? []) {
       if (
         !taskFields.some(
           (f) =>
-            f.id === required && f.required && f.binding.command === command.id,
+            f.id === required && f.required && f.binding.command === inputCommand,
         )
       )
         throw Error(`Weakened required input ${required}`);
@@ -82,13 +88,13 @@ export function compileApplicationBody({
   }
   const schema = `scalar JSON\nscalar Decimal\nscalar DateTime\nscalar IRI\nscalar BigInteger\n${api.types.map((t) => `type ${t.name} { ${t.fields.map((f) => `${f.name}: ${f.type}`).join("\n")} }`).join("\n")}
  type Violation { ruleId: String!, field: String, message: String! }
- type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String! }
+ type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON }
  type CommandResult { accepted: Boolean!, code: String!, revision: Int!, violations: [Violation!]!, task: Task! }
  ${commands.commands
    .map(
      (c) =>
        `input ${c.inputType} { ${taskFields
-         .filter((f) => f.binding.command === c.id)
+         .filter((f) => f.binding.command === (c.inputFrom ?? c.id))
          .map(
            (f) =>
              `${f.id}: ${f.datatype === "decimal" ? "Decimal" : "String"}${f.required ? "!" : ""}`,

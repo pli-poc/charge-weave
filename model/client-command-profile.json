@@ -26,6 +26,40 @@
         "evidenceReference",
         "operatorNote"
       ]
+    },
+    {
+      "id": "prepareCorrection",
+      "handler": "prepareCorrection",
+      "class": "RecordCorrection",
+      "requiredRules": [
+        "task-fields",
+        "meter-order",
+        "evidence-match",
+        "task-scope",
+        "expected-revision"
+      ],
+      "role": "BillingApprover",
+      "inputType": "PrepareCorrectionInput",
+      "inputFrom": "submitCorrection"
+    },
+    {
+      "id": "decideCorrection",
+      "handler": "decideCorrection",
+      "class": "RecordCorrection",
+      "requiredRules": [
+        "task-scope",
+        "expected-revision"
+      ],
+      "role": "BillingApprover",
+      "inputs": [
+        "outcome",
+        "note"
+      ],
+      "inputType": "CorrectionDecisionInput",
+      "requiredInputs": [
+        "outcome",
+        "note"
+      ]
     }
   ]
 }

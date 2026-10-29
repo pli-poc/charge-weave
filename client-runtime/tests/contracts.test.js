@@ -78,6 +78,8 @@ test("local GraphQL has typed validation and rejects multi-command aliases/fragm
       sessions: () => [],
       task: w.task,
       submitCorrection: w.submit,
+      prepareCorrection: w.prepare,
+      decideCorrection: ({ input, ...args }) => w.decide({ ...input, ...args }),
       analytics: () => {},
       temporal: () => {},
     },
@@ -257,4 +259,21 @@ test('explicit virtual deadline advance is persisted and idempotent', async () =
   const restored = createWorkspace({ applicationPackage: pkg, snapshot: w.export() });
   assert.equal(restored.task().status, 'expired');
   assert.equal((await restored.decide({ outcome: 'approve', note: 'Evidence and amount reviewed carefully.', expectedRevision: 2, idempotencyKey: 'late' })).code, 'TASK_NOT_OPEN');
+});
+
+test('generated GraphQL commands preserve the approval boundary and reject stale decisions', async () => {
+  const w = workspace();
+  const client = createLocalClient({ applicationPackage: pkg, services: {
+    sites: () => [], sessions: () => [], task: w.task, analytics: () => {}, temporal: () => {},
+    submitCorrection: w.submit, prepareCorrection: w.prepare,
+    decideCorrection: ({ input, ...args }) => w.decide({ ...input, ...args }),
+  } });
+  const prepare = 'mutation($input:PrepareCorrectionInput!){prepareCorrection(input:$input,expectedRevision:0,idempotencyKey:"prepare"){accepted code task{flowState revision}}}';
+  const p = await client.execute({ query: prepare, variables: { input } });
+  assert.equal(p.data.prepareCorrection.task.flowState, 'awaitingApproval');
+  const decision = 'mutation($input:CorrectionDecisionInput!,$revision:Int!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:"decide"){accepted code task{flowState outcome}}}';
+  const result = await client.execute({ query: decision, variables: { input: { outcome: 'approve', note: 'The evidence and amount are reviewed carefully.' }, revision: 1 } });
+  assert.equal(result.data.decideCorrection.task.outcome.amount, '2.91');
+  const retry = await client.execute({ query: decision, variables: { input: { outcome: 'approve', note: 'The evidence and amount are reviewed carefully.' }, revision: 1 } });
+  assert.deepEqual(retry.data, result.data);
 });

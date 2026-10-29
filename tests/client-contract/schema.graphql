@@ -8,12 +8,18 @@ name: String!
 country: String }
 type Session { id: ID! }
  type Violation { ruleId: String!, field: String, message: String! }
- type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String! }
+ type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON }
  type CommandResult { accepted: Boolean!, code: String!, revision: Int!, violations: [Violation!]!, task: Task! }
  input CorrectionInput { meterEnd: Decimal!
 reason: String!
 evidenceReference: String!
 operatorNote: String! }
+input PrepareCorrectionInput { meterEnd: Decimal!
+reason: String!
+evidenceReference: String!
+operatorNote: String! }
+input CorrectionDecisionInput { outcome: String!
+note: String! }
  input FilterInput { dimension: String!, operator: String!, values: [String!]!, stage: String!, datatype: String! }
  input TimeInput { start: DateTime!, end: DateTime!, knownAt: DateTime!, timezone: String!, bucket: String! }
  input WindowInput { start: DateTime!, end: DateTime! }
@@ -26,5 +32,7 @@ operatorNote: String! }
  type TemporalResult { state: String!, price: Decimal, commit: JSON, slice: JSON }
  type Query { sites: [Site!]!
 sessions: [Session!]! task: Task!, metadata: JSON!, analytics(input: AnalyticsInput!): AnalyticsResult!, temporal(validAt: String!, knownAt: String!): TemporalResult! }
- type Mutation { submitCorrection(input: CorrectionInput!, expectedRevision: Int!, idempotencyKey: String!): CommandResult! }
+ type Mutation { submitCorrection(input: CorrectionInput!, expectedRevision: Int!, idempotencyKey: String!): CommandResult!
+prepareCorrection(input: PrepareCorrectionInput!, expectedRevision: Int!, idempotencyKey: String!): CommandResult!
+decideCorrection(input: CorrectionDecisionInput!, expectedRevision: Int!, idempotencyKey: String!): CommandResult! }
  

@@ -21,6 +21,8 @@ export function createConsoleClient(provider, environment) {
       sessions: provider.getLiveSessions,
       task: () => workspace.task(),
       submitCorrection: (args) => workspace.submit(args),
+      prepareCorrection: (args) => workspace.prepare(args),
+      decideCorrection: ({ input, ...args }) => workspace.decide({ ...input, ...args }),
       analytics: provider.queryAnalytics,
       temporal: ({ validAt, knownAt }) => {
         const r = selectFixture(temporalExample, validAt, knownAt);
@@ -31,10 +33,10 @@ export function createConsoleClient(provider, environment) {
   async function task() {
     const r = await client.execute({
       query:
-        "{ task { id revision status stage values outcome descriptor flowState } }",
+        "{ task { id revision status stage values outcome descriptor flowState approvalDueAt records } }",
     });
     if (r.errors) throw Error(r.errors[0].message);
-    return { ...r.data.task, approvalDueAt: workspace.task().approvalDueAt, records: workspace.task().records };
+    return r.data.task;
   }
   const report = (error) => {
     status = `Not saved: ${error.message}`;
@@ -66,7 +68,9 @@ export function createConsoleClient(provider, environment) {
       }
     },
     async prepare(input, expectedRevision, idempotencyKey) {
-      const result = await workspace.prepare({ input, expectedRevision, idempotencyKey });
+      const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+      if (response.errors) throw Error(response.errors[0].message);
+      const result = response.data.prepareCorrection;
       if (result.accepted) status = "Unsaved changes";
       return result;
     },
@@ -76,14 +80,16 @@ export function createConsoleClient(provider, environment) {
       return result;
     },
     async decide(input, expectedRevision, idempotencyKey) {
-      const result = await workspace.decide({ ...input, expectedRevision, idempotencyKey });
+      const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+      if (response.errors) throw Error(response.errors[0].message);
+      const result = response.data.decideCorrection;
       if (result.accepted) status = "Unsaved changes";
       return result;
     },
     async submit(input, expectedRevision, idempotencyKey) {
       const r = await client.execute({
         query:
-          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState}}}",
+          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}",
         variables: { input, revision: expectedRevision, key: idempotencyKey },
       });
       if (r.errors) throw Error(r.errors[0].message);
