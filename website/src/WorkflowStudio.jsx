@@ -21,6 +21,7 @@ import {
   correctionWorkflowDefinition,
   createCorrectionWorkflowRuntime,
 } from "./simulation/correction-workflow.js";
+import { outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
 import "./workflows.css";
 
 function makeVirtualClock() {
@@ -53,22 +54,6 @@ function currentState(snapshot) {
   return typeof snapshot?.value === "string" ? snapshot.value : "unknown";
 }
 
-function outgoing(step) {
-  if (step.kind === "eventWait" || step.kind === "humanTask") {
-    // A timeout is already represented by its event in `on`; keep one edge per
-    // executable transition and let the timeout metadata describe the timer.
-    return Object.entries(step.on ?? {}).map(([event, transition]) => ({ event, target: transition.target }));
-  }
-  if (step.kind === "serviceTask") return [
-    { event: "success", target: step.onDone.target },
-    { event: "error", target: step.onError.target },
-  ];
-  if (step.kind === "decision") return [
-    ...step.routes.map((route) => ({ event: route.guard, target: route.target })),
-    { event: "otherwise", target: step.defaultTarget },
-  ];
-  return [];
-}
 
 const kindLabels = {
   eventWait: "Event wait",
