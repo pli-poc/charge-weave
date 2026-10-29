@@ -104,6 +104,7 @@ export function createWorkspace({
     flowState: state.actor?.value ?? pkg.flow.initialStep,
     approvalDueAt: state.approvalDueAt ?? null,
     records: copy({ credit: state.actor?.context?.credit ?? null, correctedCdr: state.actor?.context?.correctedCdr ?? null }),
+    history: copy(state.history),
   });
   const result = (accepted, code, violations = []) => ({
     accepted,

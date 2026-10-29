@@ -1019,3 +1019,4 @@ tr[hidden] { display: none; }
 .case-graph-marker path, .case-graph-marker circle, .case-graph-marker rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
 .case-graph-marker text, .case-graph-label { fill: var(--text); font-size: 12px; }
 .case-graph-kind { fill: var(--muted); font-size: 11px; }
+.case-graph-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }

@@ -8,7 +8,7 @@ name: String!
 country: String }
 type Session { id: ID! }
  type Violation { ruleId: String!, field: String, message: String! }
- type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON }
+ type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON, history: JSON }
  type CommandResult { accepted: Boolean!, code: String!, revision: Int!, violations: [Violation!]!, task: Task! }
  input CorrectionInput { meterEnd: Decimal!
 reason: String!
