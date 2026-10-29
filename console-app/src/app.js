@@ -640,7 +640,6 @@ root.addEventListener("click", async (event) => {
         const result = await localClient.expireApproval(workRun.revision, crypto.randomUUID());
         if (!result.accepted) throw new Error(result.code);
         projectTask(result.task);
-        try { await localClient.save(); } catch {}
         render();
       } catch (error) { action.disabled = false; const target = root.querySelector("#work-form-error"); if (target) { target.hidden = false; target.textContent = error.message; } }
       break;
@@ -703,7 +702,6 @@ root.addEventListener("submit", async (event) => {
       const result = await localClient.decide(Object.fromEntries(new FormData(approvalTask).entries()), workRun.revision, crypto.randomUUID());
       if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
       projectTask(result.task);
-      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
       render();
     } catch (failure) { error.hidden = false; error.textContent = failure.message; button.disabled = false; }
     return;
@@ -720,7 +718,6 @@ root.addEventListener("submit", async (event) => {
       const result = await localClient.prepare(values, workRun.revision, crypto.randomUUID());
       if (!result.accepted) throw new Error(result.violations.map(v => v.message).join("; ") || result.code);
       projectTask(result.task);
-      try { await localClient.save(); } catch { /* The storage status exposes recovery guidance. */ }
     } catch (failure) {
       if (error) { error.hidden = false; error.textContent = failure.message; }
       button.disabled = false;

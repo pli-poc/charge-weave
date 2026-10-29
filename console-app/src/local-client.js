@@ -42,6 +42,28 @@ export function createConsoleClient(provider, environment) {
     status = `Not saved: ${error.message}`;
     throw error;
   };
+  let transactionQueue = Promise.resolve();
+  function commitCommand(action) {
+    const run = transactionQueue.then(async () => {
+      if (blockedCheckpoint) throw Error("Export and reset the incompatible checkpoint first");
+      const before = workspace.export();
+      try {
+        const result = await action();
+        if (result.accepted && JSON.stringify(before) !== JSON.stringify(workspace.export())) {
+          const saved = await store.save(id, workspace.export(), applicationPackage, storageRevision);
+          storageRevision = saved.storageRevision;
+          status = "Saved on this device";
+        }
+        return result;
+      } catch (error) {
+        workspace = createWorkspace({ applicationPackage, snapshot: before });
+        status = `Not saved: ${error.message}. Reload the workspace before retrying.`;
+        throw error;
+      }
+    });
+    transactionQueue = run.catch(() => {});
+    return run;
+  }
   return {
     execute: client.execute,
     task,
@@ -67,24 +89,22 @@ export function createConsoleClient(provider, environment) {
         return task();
       }
     },
-    async prepare(input, expectedRevision, idempotencyKey) {
-      const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
-      if (response.errors) throw Error(response.errors[0].message);
-      const result = response.data.prepareCorrection;
-      if (result.accepted) status = "Unsaved changes";
-      return result;
+    prepare(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.prepareCorrection;
+      });
     },
-    async expireApproval(expectedRevision, idempotencyKey) {
-      const result = await workspace.expireApproval({ expectedRevision, idempotencyKey });
-      if (result.accepted) status = "Unsaved changes";
-      return result;
+    expireApproval(expectedRevision, idempotencyKey) {
+      return commitCommand(() => workspace.expireApproval({ expectedRevision, idempotencyKey }));
     },
-    async decide(input, expectedRevision, idempotencyKey) {
-      const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
-      if (response.errors) throw Error(response.errors[0].message);
-      const result = response.data.decideCorrection;
-      if (result.accepted) status = "Unsaved changes";
-      return result;
+    decide(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.decideCorrection;
+      });
     },
     async submit(input, expectedRevision, idempotencyKey) {
       const r = await client.execute({
