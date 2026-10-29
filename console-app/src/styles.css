@@ -1082,3 +1082,5 @@ tr[hidden] { display: none; }
 .process-route.is-taken .process-route-arrow, .process-route-observed { color: var(--accent); }
 .process-route-observed { grid-column: 1 / -1; font-size: 11px; padding-left: 18px; }
 @media (max-width: 1000px) { .process-group > summary { min-height: 78px; } .process-expand-label { top: auto; bottom: 10px; } }
+
+.process-overview-list { align-items: start; }
