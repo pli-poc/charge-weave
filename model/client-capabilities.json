@@ -20,7 +20,8 @@
   "handlers": [
     "submitCorrection",
     "prepareCorrection",
-    "decideCorrection"
+    "decideCorrection",
+    "supplementBillingEvidence"
   ],
   "ruleSources": {
     "meter-order": [

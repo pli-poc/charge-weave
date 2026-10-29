@@ -22,6 +22,7 @@ export function createConsoleClient(provider, environment) {
       task: () => workspace.task(),
       submitCorrection: (args) => workspace.submit(args),
       prepareCorrection: (args) => workspace.prepare(args),
+      supplementBillingEvidence: ({ input, ...args }) => workspace.supplyEvidence({ ...input, ...args }),
       decideCorrection: ({ input, ...args }) => workspace.decide({ ...input, ...args }),
       analytics: provider.queryAnalytics,
       temporal: ({ validAt, knownAt }) => {
@@ -33,7 +34,7 @@ export function createConsoleClient(provider, environment) {
   async function task() {
     const r = await client.execute({
       query:
-        "{ task { id revision status stage values outcome descriptor flowState approvalDueAt records history trace } }",
+        "{ task { id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace } }",
     });
     if (r.errors) throw Error(r.errors[0].message);
     return r.data.task;
@@ -91,9 +92,16 @@ export function createConsoleClient(provider, environment) {
     },
     prepare(input, expectedRevision, idempotencyKey) {
       return commitCommand(async () => {
-        const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        const response = await client.execute({ query: "mutation($input:PrepareCorrectionInput!,$revision:Int!,$key:String!){prepareCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
         if (response.errors) throw Error(response.errors[0].message);
         return response.data.prepareCorrection;
+      });
+    },
+    supplyEvidence(input, expectedRevision, idempotencyKey) {
+      return commitCommand(async () => {
+        const response = await client.execute({ query: "mutation($input:BillingEvidenceInput!,$revision:Int!,$key:String!){supplementBillingEvidence(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        if (response.errors) throw Error(response.errors[0].message);
+        return response.data.supplementBillingEvidence;
       });
     },
     expireApproval(expectedRevision, idempotencyKey) {
@@ -101,7 +109,7 @@ export function createConsoleClient(provider, environment) {
     },
     decide(input, expectedRevision, idempotencyKey) {
       return commitCommand(async () => {
-        const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
+        const response = await client.execute({ query: "mutation($input:CorrectionDecisionInput!,$revision:Int!,$key:String!){decideCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}", variables: { input, revision: expectedRevision, key: idempotencyKey } });
         if (response.errors) throw Error(response.errors[0].message);
         return response.data.decideCorrection;
       });
@@ -109,7 +117,7 @@ export function createConsoleClient(provider, environment) {
     async submit(input, expectedRevision, idempotencyKey) {
       const r = await client.execute({
         query:
-          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision status stage values outcome descriptor flowState approvalDueAt records history trace}}}",
+          "mutation Submit($input:CorrectionInput!,$revision:Int!,$key:String!){submitCorrection(input:$input,expectedRevision:$revision,idempotencyKey:$key){accepted code revision violations{ruleId field message} task{id revision instanceId status stage values outcome descriptor flowState approvalDueAt records history trace}}}",
         variables: { input, revision: expectedRevision, key: idempotencyKey },
       });
       if (r.errors) throw Error(r.errors[0].message);

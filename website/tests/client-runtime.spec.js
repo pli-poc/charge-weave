@@ -88,3 +88,52 @@ test('approval rejection and deadline escalation remain read-only after reload',
   await page.getByRole('button', { name: /Review corrected meter reading/ }).click();
   await expect(page.getByRole('heading', { name: 'Escalated to manual review' })).toBeVisible();
 });
+
+test('capture the connected correction journey with checkpoint provenance', async ({ page }, info) => {
+  await page.goto('app/');
+  const dashboard = page.getByRole('region', { name: 'Correction operations dashboard' });
+  await expect(dashboard).toContainText('Awaiting corrected evidence');
+  await page.screenshot({ path: info.outputPath('correction-dashboard-before.png'), fullPage: true });
+  await dashboard.getByRole('button', { name: 'Start demonstration' }).click();
+  await page.getByLabel('Decision note').fill('Synthetic evidence checked against the accepted register.');
+  await page.getByRole('button', { name: /Validate evidence/ }).click();
+  await expect(page.getByRole('heading', { name: 'Approve the billing correction' })).toBeVisible();
+  await page.screenshot({ path: info.outputPath('correction-approval.png'), fullPage: true });
+  await page.getByText('View process diagram').click();
+  await expect(page.locator('.case-graph-node.is-current title')).toContainText('Approve the billing correction');
+  await page.getByRole('button', { name: 'Focus current step' }).click();
+  await page.screenshot({ path: info.outputPath('correction-process.png'), fullPage: true });
+  await page.getByRole('combobox', { name: 'Decision', exact: true }).selectOption('approve');
+  await page.getByLabel('Decision note').fill('The evidence and calculated amount have been reviewed.');
+  await page.getByRole('button', { name: /Record decision/ }).click();
+  await expect(page.getByRole('heading', { name: 'Billing adjustment prepared' })).toBeVisible();
+  await page.screenshot({ path: info.outputPath('correction-result.png'), fullPage: true });
+  if (info.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await expect(dashboard).toContainText('Correction completed');
+  await page.screenshot({ path: info.outputPath('correction-dashboard-after.png'), fullPage: true });
+  await info.attach('scenario-provenance.json', { body: Buffer.from(JSON.stringify({ scenario: 'correction.approval-restore', case: 'CW-BILL-0471', clock: '2026-10-13T08:00:00.000Z', commit: process.env.GITHUB_SHA ?? 'local', checkpoints: ['initial', 'awaitingApproval', 'completed'], basis: 'synthetic CPO CDR; EUR 0.32/kWh tax-inclusive; no fees' }, null, 2)), contentType: 'application/json' });
+});
+
+test('dashboard filter opens the same case and preserves scope after approval', async ({ page }, info) => {
+  await page.goto('app/');
+  const dashboard = page.getByRole('region', { name: 'Correction operations dashboard' });
+  await dashboard.getByRole('button', { name: /Waiting for evidence/ }).click();
+  await expect(dashboard).toContainText('Active filter: evidence');
+  await dashboard.getByRole('button', { name: 'Inspect case' }).click();
+  await expect(page.getByText('CW-BILL-0471', { exact: false }).first()).toBeVisible();
+  await page.getByLabel('Decision note').fill('Synthetic meter evidence and register have been checked.');
+  await page.getByRole('button', { name: /Validate evidence/ }).click();
+  await page.getByRole('combobox', { name: 'Decision', exact: true }).selectOption('approve');
+  await page.getByLabel('Decision note').fill('Evidence and the correction have been reviewed carefully.');
+  await page.getByRole('button', { name: /Record decision/ }).click();
+  await expect(page.getByRole('heading', { name: 'Billing adjustment prepared' })).toBeVisible();
+  if (info.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await expect(dashboard).toContainText('Active filter: evidence');
+  await expect(dashboard).toContainText('No cases match this filter');
+  await dashboard.getByRole('button', { name: 'Clear filter' }).click();
+  await expect(dashboard).toContainText('Correction completed');
+  await page.getByLabel('Correction dashboard view').selectOption('network');
+  await expect(dashboard).toContainText('separate historical population');
+});

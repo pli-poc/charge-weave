@@ -60,6 +60,23 @@
         "outcome",
         "note"
       ]
+    },
+    {
+      "id": "supplementBillingEvidence",
+      "handler": "supplementBillingEvidence",
+      "class": "RecordCorrection",
+      "requiredRules": [
+        "task-scope",
+        "expected-revision"
+      ],
+      "role": "BillingApprover",
+      "inputs": [
+        "evidence"
+      ],
+      "inputType": "BillingEvidenceInput",
+      "requiredInputs": [
+        "evidence"
+      ]
     }
   ]
 }

@@ -88,7 +88,7 @@ export function compileApplicationBody({
   }
   const schema = `scalar JSON\nscalar Decimal\nscalar DateTime\nscalar IRI\nscalar BigInteger\n${api.types.map((t) => `type ${t.name} { ${t.fields.map((f) => `${f.name}: ${f.type}`).join("\n")} }`).join("\n")}
  type Violation { ruleId: String!, field: String, message: String! }
- type Task { id: ID!, revision: Int!, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON, history: JSON, trace: JSON }
+ type Task { id: ID!, revision: Int!, instanceId: ID, status: String!, stage: String!, descriptor: JSON!, values: JSON!, outcome: JSON, flowState: String!, approvalDueAt: DateTime, records: JSON, history: JSON, trace: JSON }
  type CommandResult { accepted: Boolean!, code: String!, revision: Int!, violations: [Violation!]!, task: Task! }
  ${commands.commands
    .map(

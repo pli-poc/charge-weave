@@ -31,3 +31,13 @@ test('shared canvas projection keeps all correction steps and executable routes'
     assert.ok(positions.get(edge.source).x + GRAPH.nodeWidth <= GRAPH.width);
   }
 });
+
+test('additional workflow steps are visible without overlapping existing placements', async () => {
+  const { layoutWorkflow } = await import('../src/flow/presentation.js');
+  const flow = normaliseWorkflowProfile(profile);
+  flow.steps.push(...Array.from({ length: 12 }, (_, i) => ({ id: `new-${i}`, kind: 'end' })));
+  const layout = layoutWorkflow(flow);
+  assert.equal(layout.positions.size, flow.steps.length);
+  assert.equal(new Set([...layout.positions.values()].map(p => `${p.x}:${p.y}`)).size, flow.steps.length);
+  assert.ok([...layout.positions.values()].every(p => p.x + 220 <= layout.width && p.y + 84 <= layout.height));
+});

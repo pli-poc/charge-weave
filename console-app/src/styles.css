@@ -1021,3 +1021,12 @@ tr[hidden] { display: none; }
 .case-graph-kind { fill: var(--muted); font-size: 11px; }
 .case-graph-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .case-graph-edges path.is-taken { stroke: var(--accent-strong); stroke-width: 3; }
+.correction-preset { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; color: var(--text-soft); }
+.correction-preset select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--text); background: var(--surface-strong); }
+.case-graph-node[data-action] { cursor: pointer; }
+.case-graph-node.is-selected > rect { stroke: var(--blue); stroke-width: 3; }
+.case-graph-inspector { margin: 12px 0; padding: 12px; background: var(--surface-strong); border-radius: 6px; color: var(--text-soft); }
+.work-summary-grid .correction-filter-card { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; text-align: left; padding: 16px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--surface); }
+.correction-filter-card strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+.correction-filter-card small { color: var(--muted); }
+.correction-filter-card:hover { border-color: var(--accent); }

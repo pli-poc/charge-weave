@@ -56,7 +56,7 @@
     "id": "review-meter-correction",
     "version": 1,
     "title": "Review partner correction",
-    "instructions": "Compare the signed evidence with the original meter record. If it is valid, enter the corrected register value and explain your decision.",
+    "instructions": "Compare the synthetic meter evidence with the original record. Validate the proposed register value before the approval decision.",
     "submitLabel": "Record decision",
     "form": {
       "id": "meter-correction-decision",
@@ -121,7 +121,7 @@
           "maxLength": 12,
           "required": true,
           "defaultValue": "EV-2026-4481",
-          "help": "Enter the reference of the signed partner evidence.",
+          "help": "Enter the reference of the synthetic partner evidence.",
           "binding": {
             "kind": "commandInput",
             "command": "submitCorrection",
@@ -203,6 +203,35 @@
       "title": "Approve the billing correction",
       "assignedRole": "BillingApprover",
       "instructions": "Review the prepared evidence and accept or decline the correction."
+    },
+    {
+      "id": "supply-billing-evidence",
+      "version": 1,
+      "title": "Supply missing billing evidence",
+      "assignedRole": "BillingApprover",
+      "instructions": "Provide the synthetic tax and commercial responsibility evidence reference.",
+      "form": {
+        "id": "chargeweave.billing-evidence",
+        "version": "1.0.0",
+        "fields": [
+          {
+            "id": "evidence",
+            "label": "Billing evidence reference",
+            "concept": "command:supplementBillingEvidence.evidence",
+            "datatype": "string",
+            "control": "text",
+            "required": true,
+            "minLength": 8,
+            "maxLength": 120,
+            "help": "Synthetic reference for the missing tax and commercial inputs.",
+            "binding": {
+              "kind": "commandInput",
+              "command": "supplementBillingEvidence",
+              "field": "evidence"
+            }
+          }
+        ]
+      }
     }
   ]
 }

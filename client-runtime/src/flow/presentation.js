@@ -48,8 +48,29 @@ export function stepPosition(step, index) {
   };
 }
 
-export function edgeGeometry(source, target, index) {
-  const { nodeWidth, nodeHeight, bottomLane } = GRAPH;
+/** Preserve the known presentation while placing added nodes without collisions. */
+export function layoutWorkflow(definition) {
+  const occupied = new Set();
+  const positions = new Map();
+  let next = 0;
+  for (const step of definition.steps) {
+    if (GRAPH.positions[step.id]) { const p = GRAPH.positions[step.id]; positions.set(step.id, p); occupied.add(`${p.x}:${p.y}`); }
+  }
+  for (const step of definition.steps) {
+    if (positions.has(step.id)) continue;
+    let p;
+    do { p = { x: 55 + (Math.floor(next / 7) * 350), y: 60 + ((next % 7) * 120) }; next++; } while (occupied.has(`${p.x}:${p.y}`));
+    positions.set(step.id, p); occupied.add(`${p.x}:${p.y}`);
+  }
+  const xs = [...positions.values()].map(p => p.x), ys = [...positions.values()].map(p => p.y);
+  const width = Math.max(GRAPH.width, ...xs.map(x => x + GRAPH.nodeWidth + 75));
+  const height = Math.max(GRAPH.height, ...ys.map(y => y + GRAPH.nodeHeight + 100));
+  return { positions, width, height, bottomLane: height - 50 };
+}
+
+export function edgeGeometry(source, target, index, canvas = GRAPH) {
+  const { nodeWidth, nodeHeight } = GRAPH;
+  const { bottomLane } = canvas;
   const sx = source.x;
   const sy = source.y;
   const tx = target.x;
@@ -77,7 +98,7 @@ export function edgeGeometry(source, target, index) {
         labelY: (startY + endY) / 2 + 3,
       };
     }
-    const useRightGutter = sx + nodeWidth + 35 < GRAPH.width;
+    const useRightGutter = sx + nodeWidth + 35 < canvas.width;
     const laneX = useRightGutter ? sx + nodeWidth + 35 : sx - 35;
     const startX = useRightGutter ? sx + nodeWidth : sx;
     const endX = useRightGutter ? tx + nodeWidth : tx;

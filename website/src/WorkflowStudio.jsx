@@ -21,7 +21,7 @@ import {
   correctionWorkflowDefinition,
   createCorrectionWorkflowRuntime,
 } from "./simulation/correction-workflow.js";
-import { GRAPH, stepPosition, edgeGeometry, outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
+import { GRAPH, layoutWorkflow, edgeGeometry, outgoingTransitions as outgoing } from "../../client-runtime/src/flow/presentation.js";
 import "./workflows.css";
 
 function makeVirtualClock() {
@@ -218,7 +218,8 @@ export default function WorkflowStudio() {
   const visited = new Set(timeline.filter((entry) => entry.kind === "state").map((entry) => entry.stepId).filter(Boolean));
   const checkpointIsCurrent = checkpoint?.definitionKey === definitionKey;
   const records = asRecords(snapshot);
-  const graphNodes = definition.steps.map((step, index) => ({ step, index, position: stepPosition(step, index) }));
+  const graphLayout = layoutWorkflow(definition);
+  const graphNodes = definition.steps.map((step, index) => ({ step, index, position: graphLayout.positions.get(step.id) }));
   const graphNodeById = new Map(graphNodes.map((node) => [node.step.id, node]));
   const graphEdges = graphNodes.flatMap(({ step, index, position }) => outgoing(step).flatMap((edge, edgeIndex) => {
     const target = graphNodeById.get(edge.target);
@@ -227,7 +228,7 @@ export default function WorkflowStudio() {
       ...edge,
       source: step,
       target: target.step,
-      geometry: edgeGeometry(position, target.position, index + edgeIndex),
+      geometry: edgeGeometry(position, target.position, index + edgeIndex, graphLayout),
     }];
   }));
 
@@ -372,8 +373,8 @@ export default function WorkflowStudio() {
           </p>
           {definitionErrors.length > 0 && <p className="wf-definition-error" role="alert">Fix the workflow definition before starting a run: {definitionErrors.join(" ")}</p>}
           <div className={`wf-graph wf-canvas-scroll ${editing ? "is-editing" : ""}`} aria-label="XFlow visual workflow">
-            <div className="wf-flow-canvas" style={{ width: GRAPH.width, height: GRAPH.height }}>
-              <svg className="wf-edge-layer" viewBox={`0 0 ${GRAPH.width} ${GRAPH.height}`} aria-hidden="true">
+            <div className="wf-flow-canvas" style={{ width: graphLayout.width, height: graphLayout.height }}>
+              <svg className="wf-edge-layer" viewBox={`0 0 ${graphLayout.width} ${graphLayout.height}`} aria-hidden="true">
                 <defs>
                   <marker id="wf-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
                     <path d="M 0 0 L 10 5 L 0 10 z" />
