@@ -1,3 +1,5 @@
+import darkPowerMark from "./assets/power-mark-dark.svg";
+import lightPowerMark from "./assets/power-mark-light.svg";
 import { outgoingTransitions, GRAPH, layoutWorkflow, edgeGeometry, transitionLabel } from "../../client-runtime/src/flow/presentation.js";
 import { correctionOperationsProjection } from "../../client-runtime/src/profiles/chargeweave/operations-projection.js";
 import flowPackage from "../../client-runtime/generated/application.json" with { type: "json" };
@@ -132,7 +134,7 @@ function dateTime(value) {
   return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Amsterdam" }).format(new Date(value));
 }
 function mark() {
-  return '<svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M7 8h14L7 32h14M19 8h14L19 32h14" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return `<img class="brand-mark" src="${theme === "light" ? lightPowerMark : darkPowerMark}" alt="" aria-hidden="true">`;
 }
 function navHtml() {
   let group = "";
