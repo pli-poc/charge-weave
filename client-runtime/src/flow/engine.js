@@ -371,11 +371,12 @@ export function createFlowRuntime(registry = {}) {
 
   return {
     compile,
-    createActor(definition, { context = {}, snapshot, clock } = {}) {
+    createActor(definition, { context = {}, snapshot, clock, inspect } = {}) {
       const machine = compile(definition);
       const options = { input: { context } };
       if (snapshot !== undefined) options.snapshot = snapshot;
       if (clock !== undefined) options.clock = clock;
+      if (inspect !== undefined) options.inspect = inspect;
       return createActor(machine, options);
     },
     resolveDelay(id, context = {}) {

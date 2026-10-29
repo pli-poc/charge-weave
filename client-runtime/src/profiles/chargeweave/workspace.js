@@ -1,3 +1,4 @@
+import { outgoingTransitions } from "../../flow/presentation.js";
 import { createCorrectionWorkflowRuntime } from "./correction-workflow.js";
 import { fixed, formatFixed } from "../../services/decimal.js";
 import { rateReading } from "./rating.js";
@@ -23,6 +24,21 @@ async function settle(actor, definition) {
   }
   throw Error("Workflow did not reach a stable boundary");
 }
+// Record only unambiguous executable transitions observed by the root XState actor.
+function observeTransitions(flow, getActor, output) {
+  return (event) => {
+    if (event.type !== "@xstate.microstep" || event.actorRef !== getActor()) return;
+    for (const transition of event._transitions ?? []) {
+      const source = transition.source?.key;
+      const target = transition.target?.length === 1 ? transition.target[0].key : null;
+      const step = flow.steps.find(item => item.id === source);
+      if (!step || !target) continue;
+      const candidates = outgoingTransitions(step).filter(edge => edge.target === target &&
+        (step.kind === "decision" || step.kind === "serviceTask" || edge.event === transition.eventType));
+      if (candidates.length === 1) output.push({ source, target, event: candidates[0].event });
+    }
+  };
+}
 export function createWorkspace({
   applicationPackage: pkg,
   principal = { role: "BillingApprover" },
@@ -42,6 +58,7 @@ export function createWorkspace({
         history: [],
         receipts: {},
         actor: null,
+        trace: [],
         status: "open",
         currentStage: "review",
         outcome: null,
@@ -61,6 +78,16 @@ export function createWorkspace({
       (state.status !== "open" || state.actor !== null)
     )
       throw Error("Invalid initial checkpoint");
+    if (state.trace !== undefined) {
+      if (!Array.isArray(state.trace)) throw Error("Invalid workflow trace");
+      let cursor = pkg.flow.initialStep;
+      for (const edge of state.trace) {
+        const step = pkg.flow.steps.find(item => item.id === cursor);
+        if (!step || edge.source !== cursor || !outgoingTransitions(step).some(item => item.event === edge.event && item.target === edge.target)) throw Error("Invalid workflow trace");
+        cursor = edge.target;
+      }
+      if (state.actor && cursor !== state.actor.value) throw Error("Incoherent workflow trace");
+    }
     if (state.revision > 0) {
       const last = state.history.at(-1);
       const expected = rateReading(state.values.meterEnd, caseData);
@@ -105,6 +132,7 @@ export function createWorkspace({
     approvalDueAt: state.approvalDueAt ?? null,
     records: copy({ credit: state.actor?.context?.credit ?? null, correctedCdr: state.actor?.context?.correctedCdr ?? null }),
     history: copy(state.history),
+    trace: copy(state.trace ?? []),
   });
   const result = (accepted, code, violations = []) => ({
     accepted,
@@ -196,7 +224,10 @@ export function createWorkspace({
         },
       },
     });
-    const actor = runtime.createActor(pkg.flow, {
+    const observed = [];
+    let actor;
+    actor = runtime.createActor(pkg.flow, {
+      inspect: observeTransitions(pkg.flow, () => actor, observed),
       context: {
         sessionId: caseData.sessionId,
         originalCdrId: caseData.cdrId,
@@ -231,7 +262,7 @@ export function createWorkspace({
           ...state, revision: state.revision + 1, values: copy(input),
           status: "awaitingApproval", currentStage: "review", outcome: null,
           approvalDueAt: new Date(at + s.context.approvalTimeoutMs).toISOString(),
-          actor: actor.getPersistedSnapshot(),
+          actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed],
           history: [...state.history, { revision: state.revision + 1, recordedAt, input: copy(input), rating, original, flowState: s.value }],
         };
         const accepted = result(true, "AWAITING_APPROVAL");
@@ -270,6 +301,7 @@ export function createWorkspace({
           calculationVersion: rating.calculationVersion,
         },
         actor: actor.getPersistedSnapshot(),
+        trace: [...(state.trace ?? []), ...observed],
         history: [
           ...state.history,
           {
@@ -307,21 +339,23 @@ export function createWorkspace({
     if (!Number.isFinite(Date.parse(now))) throw Error("Invalid virtual clock");
     const expired = Date.parse(now) >= Date.parse(state.approvalDueAt);
     const runtime = createCorrectionWorkflowRuntime();
-    const actor = runtime.createActor(pkg.flow, { snapshot: state.actor });
+    const observed = [];
+    let actor;
+    actor = runtime.createActor(pkg.flow, { snapshot: state.actor, inspect: observeTransitions(pkg.flow, () => actor, observed) });
     actor.start();
     try {
       actor.send(expired ? { type: "timer.expired" } : { type: outcome === "approve" ? "approval.granted" : "approval.rejected", taskSubmission: { taskId: model.additionalTasks[0].id, role: principal.role, note, outcome } });
       const s = await settle(actor, pkg.flow);
       if (expired || outcome === "reject") {
         if (s.value !== (expired ? "manualReview" : "declined")) return result(false, "WORKFLOW_REJECTED");
-        state = { ...state, revision: state.revision + 1, status: expired ? "expired" : "declined", currentStage: "review", actor: actor.getPersistedSnapshot(), outcome: { type: expired ? "approval.expired" : "correction.declined", note: expired ? null : note }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), flowState: s.value, decision: { outcome: expired ? "expired" : outcome, note: expired ? null : note } }] };
+        state = { ...state, revision: state.revision + 1, status: expired ? "expired" : "declined", currentStage: "review", actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], outcome: { type: expired ? "approval.expired" : "correction.declined", note: expired ? null : note }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), flowState: s.value, decision: { outcome: expired ? "expired" : outcome, note: expired ? null : note } }] };
         const accepted = result(true, expired ? "APPROVAL_EXPIRED" : "DECLINED");
         state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
         return accepted;
       }
       if (s.status !== "done" || s.value !== "completed") return result(false, "WORKFLOW_REJECTED");
       const rating = rateReading(state.values.meterEnd, caseData);
-      state = { ...state, revision: state.revision + 1, status: "completed", currentStage: "adjustment", actor: actor.getPersistedSnapshot(), outcome: { type: "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), rating, original: rateReading(caseData.originalMeterEnd, caseData), flowState: s.value, decision: { outcome, note } }] };
+      state = { ...state, revision: state.revision + 1, status: "completed", currentStage: "adjustment", actor: actor.getPersistedSnapshot(), trace: [...(state.trace ?? []), ...observed], outcome: { type: "correction.accepted", amount: rating.amountEur, correctionId: s.context.correctedCdr?.id ?? caseData.cdrId, energyKwh: rating.energyKwh, calculationVersion: rating.calculationVersion }, history: [...state.history, { revision: state.revision + 1, recordedAt: now, input: copy(state.values), rating, original: rateReading(caseData.originalMeterEnd, caseData), flowState: s.value, decision: { outcome, note } }] };
       const accepted = result(true, "ACCEPTED");
       state.receipts = { ...state.receipts, [idempotencyKey]: { signature, result: copy(accepted) } };
       return accepted;

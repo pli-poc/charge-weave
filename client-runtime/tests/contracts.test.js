@@ -289,3 +289,19 @@ test('unchanged rating closes without presenting a financial correction', async 
   assert.equal(r.task.records.credit, null);
   assert.equal(r.task.records.correctedCdr, null);
 });
+
+test('only observed process routes are recorded and survive a checkpoint', async () => {
+  const w = workspace();
+  await w.prepare(args);
+  const waiting = w.export();
+  assert.ok(waiting.trace.some(e => e.source === 'approvalDecision' && e.event === 'approvalRequired' && e.target === 'awaitingApproval'));
+  assert.ok(!waiting.trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.rejected'));
+  const restored = createWorkspace({ applicationPackage: pkg, snapshot: waiting });
+  await restored.decide({ outcome: 'approve', note: 'The evidence and proposed amount were reviewed.', expectedRevision: 1, idempotencyKey: 'trace-decision' });
+  const trace = restored.task().trace;
+  assert.ok(trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.granted'));
+  assert.ok(!trace.some(e => e.source === 'awaitingApproval' && e.event === 'approval.rejected'));
+  assert.deepEqual(createWorkspace({ applicationPackage: pkg, snapshot: restored.export() }).task().trace, trace);
+  const damaged = restored.export(); damaged.trace[0].target = 'completed';
+  assert.throws(() => createWorkspace({ applicationPackage: pkg, snapshot: damaged }), /workflow trace/);
+});
