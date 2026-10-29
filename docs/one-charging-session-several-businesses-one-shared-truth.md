@@ -626,3 +626,26 @@ Choose the article's principal theme after reviewing actual screens. Keep that t
 Each figure should communicate one point with at most a few restrained annotations. Ensure captions, arrows and editorial frames follow the same typographic/palette system. Show real interfaces prominently; do not bury them in decorative device mockups.
 
 The final acceptance extends section 12: passing functional/semantic CI, reviewed visual states, coherent interaction, readable article assets and verified deployment are all required. The goal is an exceptionally polished, convincing demonstration. “Perfect” must not be promised before the rendered product has been inspected and corrected.
+
+
+## 16. Walkthrough production and Bradford narration
+
+Use ElevenLabs voice **Bradford - British Narrator, Storyteller** (voice ID `NNl6r8mD7vthiJatiJt1`). Deliver in clear, measured British English: warm, confident and conversational, with natural pauses around scene changes and figures. Avoid sales hype. Pronounce ChargeWeave as “charge weave”, CPO as individual letters and eMSP as “E M S P”. Read 10.600 and 9.100 kWh as “ten point six” and “nine point one kilowatt-hours”; read EUR 3.39, EUR 2.91 and EUR 0.48 as “three euros and thirty-nine cents”, “two euros and ninety-one cents”, and “forty-eight cents”. Keep the script and actual captured state aligned.
+
+Produce a roughly three-minute, 16:9 walkthrough using actual recorded application screens. Capture the synthetic label, the dashboard, case, evidence, process, approval, result and return to the dashboard. Use readable crops and captions; do not substitute generated interface imagery or imply live partners, settlement or a bank refund. Partner acknowledgment is unavailable. The original record is synthetic fixture history, and the charge record is not the driver's invoice. Record the source commit, capture date and tool versions. Add captions and review the final render before publishing.
+
+### Narration script
+
+**Opening / dashboard:** One charging session can cross several businesses, systems and responsibilities. What happens when the evidence changes after a charge record has already been issued? This is a synthetic demonstration of how ChargeWeave makes that correction visible, traceable and actionable.
+
+**Case and evidence:** We begin with a completed charging session and its original charge record, loaded as demonstration history. A later meter reading indicates that the session delivered nine point one kilowatt-hours, rather than ten point six. The case brings the original and corrected evidence together so an operator can understand what changed and why.
+
+**Business boundaries:** The charge point operator owns the session and meter evidence. Roaming and the mobility provider introduce additional responsibilities, but this demonstration does not contact a real partner. The charge record shown here is not the driver's final invoice.
+
+**Validation and process:** ChargeWeave checks the evidence and the information needed for the calculation. The process view shows automated checks, decisions and the point where human input is required. The highlighted route reflects the steps actually recorded by this process instance.
+
+**Approval:** The correction is now waiting for a billing approver. The task presents the evidence and the proposed result, with a decision and reason. The waiting state can be restored after a reload, so the work does not depend on keeping this screen open. Here, the operator approves the proposed correction.
+
+**Result:** With an illustrative tax-inclusive price of thirty-two cents per kilowatt-hour and no separate fees, the original amount is three euros and thirty-nine cents. The corrected amount is two euros and ninety-one cents: a net reduction of forty-eight cents. The linked records preserve the original and the correction; this is not a claim that money has been refunded.
+
+**Dashboard and close:** Returning to the dashboard, the case and its recorded adjustment are reflected in the operational view. The separate historical network figures remain a different population. Partner acknowledgment is not implemented in this demonstration. The point is simple: connect the evidence, the work, the process and the outcome, so a correction can be understood from beginning to end.
