@@ -102,6 +102,14 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.getByRole('button', { name: /Validate evidence/ }).click();
   await expect(page.getByRole('heading', { name: 'Approve the billing correction' })).toBeVisible();
   await page.screenshot({ path: info.outputPath('correction-approval.png'), fullPage: true });
+  await expect(page.locator('.process-overview-step.is-current')).toContainText('Approve the billing correction');
+  await page.locator('.process-overview').screenshot({ path: info.outputPath('correction-compact-overview.png') });
+  const reviewGroup = page.locator('.process-overview-step.is-current');
+  await reviewGroup.locator('summary').click();
+  await expect(reviewGroup.getByRole('list', { name: 'Routes from Approve the billing correction' })).toContainText('Deadline expired');
+  await expect(reviewGroup.getByRole('list', { name: 'Routes from Approve the billing correction' })).toContainText('Correction declined');
+  await page.locator('.process-overview').screenshot({ path: info.outputPath('correction-expanded-overview.png') });
+  await reviewGroup.locator('summary').click();
   await page.getByText('View process diagram').click();
   await expect(page.locator('.case-graph-node.is-current title')).toContainText('Approve the billing correction');
   await expect(page.locator('[data-graph-node="awaitingEvidence"] > circle.case-graph-shape')).toHaveCount(1);
