@@ -184,6 +184,11 @@ function roamingPanel() {
 function activityPanel() {
   return `<div class="activity-list">${recentActivity.map((item) => `<div class="activity-item"><span class="activity-mark tone-${item.tone}">${item.tone === "warn" ? icon("alert") : item.tone === "good" ? icon("check") : icon("plug")}</span><div><strong>${esc(item.title)}</strong><small>${esc(item.detail)}</small></div><time>${esc(item.time)}</time></div>`).join("")}</div><button class="panel-footer-link" type="button" data-view="operations">Open event timeline ${icon("arrow")}</button>`;
 }
+function correctionOverview() {
+  const item = meterCorrectionModel.case;
+  const complete = workRun.status === "completed";
+  return `<section class="panel" aria-label="Connected correction case"><header class="panel-heading"><div><span class="eyebrow">CORRECTION WORKSPACE · SYNTHETIC CASE</span><h2>${complete ? "Correction decision recorded" : "A charging correction needs your attention"}</h2></div><button class="primary-button" type="button" data-action="open-work-item">${complete ? "Inspect result" : "Review correction"} ${icon("arrow")}</button></header><div class="panel-content"><p>${esc(item.sessionId)} · ${esc(item.site)}</p><p>${complete ? "The accepted decision is available in this workspace." : "Review revised meter evidence and record a decision using the generated task form."}</p><p><strong>${complete ? "Completed" : "1 task awaiting review"}</strong> · Local correction state; independent of the historical analytics below.</p></div></section>`;
+}
 function overviewPage() {
   let analytics;
   try {
@@ -192,7 +197,7 @@ function overviewPage() {
   } catch (error) { analytics = `<div class="analytics-empty" role="status">${esc(error.message)}</div>`; }
   return `${heading("Network overview", "Owned charging operations in the Netherlands and Belgium, with Chargecard roaming across Europe.", '<button class="secondary-button" type="button" data-view="analytics">Explore analytics</button>')}
     <div class="overview-scope"><span class="scope-icon">${icon("pin")}</span><span><strong>Owned network</strong><small>${metrics.sites} sites · ${metrics.chargePoints} charge points · ${formatNumber(metrics.parkingSpaces)} parking spaces</small></span><div class="owned-country-summary"><span><b>NL</b> 4 sites</span><span><b>BE</b> 4 sites</span></div><span class="scope-meta">Snapshot: ${metrics.online}/${metrics.chargePoints} online</span></div>
-    ${analyticsControls(analyticsState, ownSites, { compact: true })}${analytics}${renderPanePreferences(hiddenPanes)}
+    ${correctionOverview()}${analyticsControls(analyticsState, ownSites, { compact: true })}${analytics}${renderPanePreferences(hiddenPanes)}
     <div class="workspace-footnote">${icon("check")} Deterministic synthetic year · historical analytics use the selected period; site inventory and live operations show the separate demo snapshot.</div>`;
 }
 function journeyPage() {
