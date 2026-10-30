@@ -93,6 +93,9 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.goto('app/');
   const dashboard = page.getByRole('region', { name: 'Correction operations dashboard' });
   await expect(dashboard).toContainText('Awaiting corrected evidence');
+  await expect(dashboard.getByRole('img', { name: /Case status:/ })).toBeVisible();
+  await expect(dashboard.getByRole('img', { name: /Fixture cases received:/ })).toBeVisible();
+  await expect(dashboard).toContainText('13 CASES');
   const historicalPanel = page.locator('[data-panel="energy"]');
   await expect(historicalPanel).toBeVisible();
   const historicalBefore = await historicalPanel.textContent();
@@ -143,7 +146,7 @@ test('dashboard filter opens the same case and preserves scope after approval', 
   if (info.project.name === 'mobile') await page.getByRole('button', { name: 'Open navigation' }).click();
   await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(dashboard).toContainText('Active filter: evidence');
-  await expect(dashboard).toContainText('No cases match this filter');
+  await expect(dashboard).toContainText('The interactive case does not match this filter');
   await dashboard.getByRole('button', { name: 'Clear filter' }).click();
   await expect(dashboard).toContainText('Correction completed');
   await page.getByLabel('Correction dashboard view').selectOption('network');
