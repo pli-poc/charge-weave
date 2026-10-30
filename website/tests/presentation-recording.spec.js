@@ -29,7 +29,7 @@ test('record guided correction presentation', async ({ browser }, info) => {
     await expect(page.getByRole('heading',{name:'Approve the billing correction'})).toBeVisible();
     await smoothTo(page.locator('.process-overview'));
     await page.waitForTimeout(3000);
-    const review=page.locator('.process-overview-step').filter({hasText:'Review'});
+    const review=page.locator('.process-overview-step.is-current');
     await moveClick(review.locator('summary'));
     await expect(review.getByRole('list',{name:'Routes from Approve the billing correction'})).toContainText('Deadline expired');
     await page.waitForTimeout(4500);
