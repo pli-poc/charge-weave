@@ -35,7 +35,7 @@ test('record guided correction presentation', async ({ browser }, info) => {
     await page.waitForTimeout(4500);
     await moveClick(review.locator('summary'));
     await smoothTo(page.getByText('Billing impact',{exact:true}));
-    await expect(page.getByText('Billing impact',{exact:true}).locator('..')).toContainText('3,39');
+    await expect(page.locator('.work-financial-impact')).toContainText('3,39');
     await page.waitForTimeout(6500);
     await page.getByRole('combobox',{name:'Decision',exact:true}).selectOption('approve');
     await page.getByLabel('Decision note').fill('Evidence and calculated amount reviewed.');
