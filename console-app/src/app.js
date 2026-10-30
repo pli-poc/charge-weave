@@ -1,3 +1,4 @@
+import "./process-overview.css";
 import darkPowerMark from "./assets/power-mark-dark.svg";
 import lightPowerMark from "./assets/power-mark-light.svg";
 import { outgoingTransitions, GRAPH, layoutWorkflow, edgeGeometry, transitionLabel } from "../../client-runtime/src/flow/presentation.js";
