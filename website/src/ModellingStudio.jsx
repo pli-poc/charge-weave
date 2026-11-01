@@ -105,7 +105,15 @@ export default function ModellingStudio() {
     if (!connection || !snapshot || !selected) { setGraph(null); return undefined; }
     const abort = new AbortController();
     call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_get', arguments: { workspaceId: connection.workspaceId, root: selected.name } }, abort.signal)
-      .then(response => setGraph(response.structuredContent))
+      .then(response => {
+        const value = response.structuredContent;
+        setGraph(value);
+        const refreshed = value.nodes.find(item => item.name === value.root);
+        if (refreshed) {
+          setSelected(previous => previous?.name === refreshed.name ? refreshed : previous);
+          setDefinition(draft => draft === selected.definition ? refreshed.definition : draft);
+        }
+      })
       .catch(problem => { if (!abort.signal.aborted) setError(problem.message); });
     return () => abort.abort();
   }, [connection, snapshot?.revision, selected?.name]);
