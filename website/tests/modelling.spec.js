@@ -40,7 +40,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
   const paths = ['model/audit-rules.json', 'model/domain.schema', 'model/temporal-policy.json', 'model/temporal-queries.json', 'requirements/business-requirements.json', 'requirements/journeys.json', 'tools/authoring_adapter.py', 'tools/domain_schema.py'];
   const manifest = paths.map(path => ({ path, sha256: createHash('sha256').update(show(path)).digest('hex') }));
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Temporal browser test', baselineCommit: commit, schema: show('model/domain.schema').toString('utf8'), sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': show('requirements/business-requirements.json').toString('utf8') } });
+  const workspace = store.create({ title: 'Temporal browser test', baselineCommit: commit, schema: show('model/domain.schema').toString('utf8'), sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': show('requirements/business-requirements.json').toString('utf8'), 'model/temporal-policy.json': show('model/temporal-policy.json').toString('utf8') } });
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode: 'synthetic-pairing-code-'.repeat(2), workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
@@ -83,6 +83,15 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByRole('status')).toContainText('revision 3');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await page.getByLabel('Set explicit temporal policy').selectOption('immutable-aggregate');
+    await page.getByRole('button', { name: 'Save temporal policy' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 4');
+    await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await expect(page.getByText('Class policy: immutable-aggregate')).toBeVisible();
+    await expect(page.getByText(/draft policy from baseline/)).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    await expect(page.getByText('Source patch: model/temporal-policy.json')).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
 

@@ -12,8 +12,10 @@ const sourceDigest = (schema, baselineCommit, version, manifest, overlays = {}) 
   ? { adapter: 'domain-schema-v1', sources: { 'model/domain.schema': hash(schema) } }
   : version === 2 ? { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }
     : { adapter: version === 4 ? 'domain-schema-v4' : 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema, overlays) }));
-const editableSourcePaths = new Set(['requirements/business-requirements.json']);
+const editableSourcePaths = new Set(['requirements/business-requirements.json', 'model/temporal-policy.json']);
 const requirementsPath = 'requirements/business-requirements.json';
+const temporalPolicyPath = 'model/temporal-policy.json';
+const temporalPolicies = new Set(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']);
 const canonicalJson = value => JSON.stringify(value, null, 2).replace(/[\u007f-\uffff]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`) + '\n';
 const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
 const cardBounds = { '!': [1, 1], '?': [0, 1], '+': [1, Infinity], '*': [0, Infinity] };
@@ -227,8 +229,9 @@ export class WorkspaceStore {
   get(id) {
     const row = this.db.prepare('SELECT * FROM workspaces WHERE id = ?').get(id);
     if (!row) throw new Error('Workspace not found');
-    const overlays = Object.fromEntries(this.db.prepare('SELECT path, content FROM workspace_sources WHERE workspace = ? AND content <> baseline_content').all(id).map(source => [source.path, source.content]));
-    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema, overlays) : null, sourceOverlays: overlays, schema: row.schema };
+    const sources = this.db.prepare('SELECT path, content, baseline_content FROM workspace_sources WHERE workspace = ? ORDER BY path').all(id);
+    const overlays = Object.fromEntries(sources.filter(source => source.content !== source.baseline_content).map(source => [source.path, source.content]));
+    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema, overlays) : null, editableSources: sources.map(source => source.path), sourceOverlays: overlays, schema: row.schema };
   }
   snapshot(id) {
     // Synchronous reads share the event loop with mutations, so identity and cursor
@@ -323,7 +326,8 @@ export class WorkspaceStore {
     if (workspace.digestVersion < 3 || !repository) throw new Error('Temporal policy requires a pinned source manifest and repository');
     const expected = workspace.sourceManifest.find(item => item.path === 'model/temporal-policy.json')?.sha256;
     if (!expected) throw new Error('Temporal policy is not in the pinned source manifest');
-    const bytes = execFileSync('git', ['show', `${workspace.baselineCommit}:model/temporal-policy.json`], { cwd: repository, timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
+    const draftPolicy = Object.hasOwn(workspace.sourceOverlays, temporalPolicyPath);
+    const bytes = draftPolicy ? Buffer.from(workspace.sourceOverlays[temporalPolicyPath], 'utf8') : execFileSync('git', ['show', `${workspace.baselineCommit}:model/temporal-policy.json`], { cwd: repository, timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
     if (hash(bytes) !== expected) throw new Error('Pinned temporal policy does not match the source manifest');
     const policy = JSON.parse(bytes.toString('utf8'));
     const entity = this.entity(id, root, expectedRevision).entity;
@@ -331,7 +335,7 @@ export class WorkspaceStore {
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, baselineCommit: workspace.baselineCommit,
       viewpoint: 'temporal', root, iri: entity.iri, fields,
       policy: policy.classPolicies?.[root] ?? null,
-      policySource: { path: 'model/temporal-policy.json', baselineCommit: workspace.baselineCommit, sha256: expected },
+      policySource: { path: temporalPolicyPath, baselineCommit: workspace.baselineCommit, sha256: expected, scope: draftPolicy ? 'draft' : 'baseline' },
       timeConvention: { interval: policy.intervalConvention ?? null, precision: policy.timePrecision ?? null, recordedTimeOwner: policy.recordedTimeOwner ?? null },
     };
   }
@@ -369,8 +373,24 @@ export class WorkspaceStore {
       const overlays = { ...current.sourceOverlays };
       const flush = () => { if (pending.length) { schema = apply(schema, pending); pending = []; } };
       for (const command of commands) {
-        if (command?.type !== 'requirement.link') { pending.push(command); continue; }
+        if (!['requirement.link', 'temporal.policy_set'].includes(command?.type)) { pending.push(command); continue; }
         flush();
+        if (command.type === 'temporal.policy_set') {
+          if (current.digestVersion !== 4 || Object.keys(command).sort().join(',') !== 'className,expectedPolicy,policy,type' || !identifier.test(command.className ?? '') || !parse(schema).classes.has(command.className) || !(command.expectedPolicy === null || temporalPolicies.has(command.expectedPolicy)) || !temporalPolicies.has(command.policy)) throw new Error('Invalid temporal policy command');
+          const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, temporalPolicyPath);
+          if (!source) throw new Error('Temporal policy source is unavailable in this workspace');
+          const policy = JSON.parse(source.content);
+          if (!policy || typeof policy !== 'object' || Array.isArray(policy) || !policy.classPolicies || typeof policy.classPolicies !== 'object' || Array.isArray(policy.classPolicies) || canonicalJson(policy) !== source.content.replace(/\r\n/g, '\n')) throw new Error('Temporal policy source format is not supported for editing');
+          const previous = Object.hasOwn(policy.classPolicies, command.className) ? policy.classPolicies[command.className] : null;
+          if (previous !== command.expectedPolicy) throw new Error('Temporal policy precondition does not match');
+          if (previous === command.policy) throw new Error('Temporal policy is unchanged');
+          policy.classPolicies[command.className] = command.policy;
+          const content = canonicalJson(policy);
+          if (Buffer.byteLength(content) > 2_000_000) throw new Error('Temporal policy source exceeds limit');
+          this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, temporalPolicyPath);
+          overlays[temporalPolicyPath] = content;
+          continue;
+        }
         if (current.digestVersion !== 4 || Object.keys(command).sort().join(',') !== 'className,expectedClasses,requirementId,type' || !/^BR-[0-9]+$/.test(command.requirementId ?? '') || !identifier.test(command.className ?? '') || !Array.isArray(command.expectedClasses) || command.expectedClasses.length > 200 || command.expectedClasses.some(name => typeof name !== 'string' || !identifier.test(name)) || !parse(schema).classes.has(command.className)) throw new Error('Invalid requirement link');
         const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, requirementsPath);
         if (!source) throw new Error('Requirements source is unavailable');

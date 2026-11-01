@@ -15,7 +15,7 @@ if (process.argv.includes('--create-workspace')) {
   // Import committed bytes, not a potentially dirty checkout.
   const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8', maxBuffer: 2_000_000 });
   const sourceManifest = importSourceManifest(repository, commit);
-  const sourceBlobs = { 'requirements/business-requirements.json': execFileSync('git', ['show', `${commit}:requirements/business-requirements.json`], { cwd: repository, encoding: 'utf8', maxBuffer: 2_000_000 }) };
+  const sourceBlobs = Object.fromEntries(['requirements/business-requirements.json', 'model/temporal-policy.json'].map(path => [path, execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository, encoding: 'utf8', maxBuffer: 2_000_000 })]));
   const workspace = store.create({ title: 'ChargeWeave draft', baselineCommit: commit, schema, sourceManifest, sourceBlobs });
   console.log(JSON.stringify({ id: workspace.id, baselineCommit: workspace.baselineCommit, revision: workspace.revision }));
   store.close();

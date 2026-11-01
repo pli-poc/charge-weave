@@ -43,7 +43,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
     await exec('git', ['reset', '--quiet', '--mixed', workspace.baselineCommit], gitOptions);
     await writeFile(join(directory, 'model', 'domain.schema'), workspace.schema, 'utf8');
     for (const [path, content] of Object.entries(workspace.sourceOverlays || {})) {
-      if (workspace.digestVersion !== 4 || path !== 'requirements/business-requirements.json' || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid candidate source overlay');
+      if (workspace.digestVersion !== 4 || !['requirements/business-requirements.json', 'model/temporal-policy.json'].includes(path) || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid candidate source overlay');
       await writeFile(join(directory, ...path.split('/')), content, 'utf8');
     }
     const tracked = await exec('git', ['ls-tree', '-r', '-z', '--name-only', workspace.baselineCommit, '--', 'model', 'benchmark', 'requirements', 'tests', 'tools', 'requirements.txt'], { cwd: repository, timeout: 30000, maxBuffer: 4 * 1024 * 1024 });

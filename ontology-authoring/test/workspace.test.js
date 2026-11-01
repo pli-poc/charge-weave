@@ -17,18 +17,19 @@ test('version-four drafts atomically link an existing requirement and undo both 
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository, encoding: 'utf8' });
-  const baselineSchema = show('model/domain.schema'), requirements = show('requirements/business-requirements.json');
+  const baselineSchema = show('model/domain.schema'), requirements = show('requirements/business-requirements.json'), policy = show('model/temporal-policy.json');
   const manifest = importSourceManifest(repository, commit);
   const store = new WorkspaceStore(':memory:');
   assert.throws(() => store.create({ title: 'Bad source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': '{}\n' } }), /Invalid editable source blob/);
   assert.throws(() => store.create({ title: 'Unsafe source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { '../outside.json': '{}' } }), /Invalid editable source blob/);
-  const workspace = store.create({ title: 'Multi-source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+  const workspace = store.create({ title: 'Multi-source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements, 'model/temporal-policy.json': policy } });
   assert.equal(workspace.digestVersion, 4);
   assert.deepEqual(workspace.sourceOverlays, {});
   const requirement = store.requirementsSearch(workspace.id, 'BR-001', 20, 0).results.find(item => item.id === 'BR-001');
   const request = { workspaceId: workspace.id, actor: 'test', operationId: 'link', expectedRevision: 0, commands: [
     { type: 'class.add', name: 'NewDomainConcept', module: 'foundation', parent: 'Record', definition: 'A new domain concept.' },
     { type: 'requirement.link', requirementId: requirement.id, className: 'NewDomainConcept', expectedClasses: requirement.classes },
+    { type: 'temporal.policy_set', className: 'NewDomainConcept', expectedPolicy: null, policy: 'snapshot-versioned' },
   ] };
   assert.throws(() => store.apply({ ...request, operationId: 'rollback', commands: [...request.commands, { type: 'class.add', name: 'Record', module: 'foundation', parent: 'Record', definition: 'Duplicate.' }] }), /Invalid/);
   assert.deepEqual(store.get(workspace.id).sourceOverlays, {});
@@ -40,10 +41,15 @@ test('version-four drafts atomically link an existing requirement and undo both 
   const source = changed.sourceOverlays['requirements/business-requirements.json'];
   assert.ok(JSON.parse(source).find(item => item.id === requirement.id).classes.includes('NewDomainConcept'));
   const diff = store.diff(workspace.id);
-  assert.equal(diff.additionalSources.length, 1);
-  assert.equal(applyPatch(requirements, diff.additionalSources[0].patch), source);
+  assert.equal(diff.additionalSources.length, 2);
+  assert.equal(applyPatch(requirements, diff.additionalSources.find(item => item.path === 'requirements/business-requirements.json').patch), source);
+  assert.equal(applyPatch(policy, diff.additionalSources.find(item => item.path === 'model/temporal-policy.json').patch), changed.sourceOverlays['model/temporal-policy.json']);
+  const temporal = store.temporalView(workspace.id, 'NewDomainConcept', 1, repository);
+  assert.equal(temporal.policy, 'snapshot-versioned');
+  assert.equal(temporal.policySource.scope, 'draft');
   assert.ok(changeImpact(changed, diff.changes, repository).references.some(item => item.kind === 'requirement' && item.id === 'BR-001' && item.terms.includes('NewDomainConcept')));
   assert.throws(() => store.apply({ ...request, operationId: 'bad', expectedRevision: 1, commands: [{ ...request.commands[1], expectedClasses: [] }] }), /precondition/);
+  assert.throws(() => store.apply({ ...request, operationId: 'bad-policy', expectedRevision: 1, commands: [{ ...request.commands[2], policy: 'abstract' }] }), /precondition/);
   assert.equal(store.get(workspace.id).sourceDigest, changed.sourceDigest);
   store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 });
   assert.deepEqual(store.get(workspace.id).sourceOverlays, {});
