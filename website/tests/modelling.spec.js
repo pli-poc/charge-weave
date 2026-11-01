@@ -191,6 +191,70 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('interactive graph preserves view positions and supports keyboard selection', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    const node = canvas.locator('.react-flow__node[data-id="Device"]');
+    await expect(node).toBeVisible();
+    const initial = await node.getAttribute('style');
+    const box = await node.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 65, box.y + box.height / 2 + 55, { steps: 6 }); await page.mouse.up();
+    await expect(node).not.toHaveAttribute('style', initial);
+    const moved = await node.getAttribute('style');
+    expect(store.get(workspace.id).revision).toBe(0);
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A remotely updated device.' }] });
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(node).toHaveAttribute('style', moved);
+    await page.reload();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const restored = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(restored.locator('.react-flow__node[data-id="Device"]')).toHaveAttribute('style', moved);
+    const parent = restored.locator('.react-flow__node[data-id="Record"]');
+    await parent.focus(); await page.keyboard.press('Enter');
+    await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(1);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('mobile relationship list remains usable without horizontal page scrolling', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'This checks the compact layout.');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Compact graph', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const relationship = page.locator('.studio-graph li').filter({ hasText: 'subClassOf' });
+    await relationship.getByRole('button', { name: 'Record' }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(overflows).toBe(false);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('browser inspects the pinned temporal policy and explicit time fields', async ({ page }) => {
   test.setTimeout(90000);
   const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -296,7 +360,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'MaintenanceWindow', exact: true }).click();
     await expect(page.getByText(/recordName: string.*inherited from Record/)).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.getByText('subClassOf →')).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await page.getByText('Add a field or relationship').click();
