@@ -31,7 +31,7 @@ function NeighbourhoodDiagram({ graph }) {
 }
 
 export default function ModellingStudio() {
-  const [endpoint, setEndpoint] = useState('http://127.0.0.1:4317');
+  const [endpoint, setEndpoint] = useState(() => window.location.hostname === '127.0.0.1' && !['4173', '5173'].includes(window.location.port) ? window.location.origin : 'http://127.0.0.1:4317');
   const [token, setToken] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
   const [connection, setConnection] = useState(null);

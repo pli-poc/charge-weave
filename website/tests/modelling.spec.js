@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
@@ -7,10 +8,10 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
   const token = 'test-token-'.repeat(4);
-  const service = createHttpService({ store, token, workspaceId: workspace.id, allowedOrigin: 'http://127.0.0.1:4173', repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); target.updateJob(job.id, 'passed'); } });
+  const service = createHttpService({ store, token, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
-    await page.goto('modelling/');
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Local service').fill(`http://127.0.0.1:${service.address().port}`);
     await page.getByLabel('Workspace ID').fill(workspace.id);
     await page.getByLabel('Draft token').fill(token);

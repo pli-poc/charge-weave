@@ -28,6 +28,8 @@ export async function diagnose(env = process.env) {
   const database = resolve(env.CHARGEWEAVE_WORKSPACE_DB ?? 'workspaces.sqlite');
   try { await access(dirname(database), constants.W_OK); add('Workspace directory', true, 'Database directory is writable.'); }
   catch { add('Workspace directory', false, 'Set CHARGEWEAVE_WORKSPACE_DB to a path in a writable private directory.'); }
+  try { await access(resolve(env.CHARGEWEAVE_WEB_DIST ?? '../website/dist', 'index.html'), constants.R_OK); add('Studio build', true, 'Local studio files are available.'); }
+  catch { add('Studio build', false, 'Install website dependencies and run npm run build --prefix ../website.'); }
   add('Workspace grant', /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(env.CHARGEWEAVE_WORKSPACE_ID ?? ''), 'Create a workspace and set CHARGEWEAVE_WORKSPACE_ID.');
   add('Draft credential', typeof env.CHARGEWEAVE_DRAFT_TOKEN === 'string' && Buffer.byteLength(env.CHARGEWEAVE_DRAFT_TOKEN) >= 32, 'Set CHARGEWEAVE_DRAFT_TOKEN to a random secret of at least 32 bytes.');
   const port = Number(env.CHARGEWEAVE_PORT ?? 4317);
