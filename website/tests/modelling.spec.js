@@ -205,7 +205,7 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
-    await page.getByLabel('Follow new suggestions').check();
+    await page.getByLabel('Follow new changes and suggestions').check();
     suggest('first-suggestion', 'Device');
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     await page.getByLabel('Search model').focus();
@@ -216,11 +216,20 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByRole('button', { name: 'Resume following' }).click();
     suggest('resumed-suggestion', 'Record');
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
-    await page.getByLabel('Follow new suggestions').uncheck();
+    await page.getByLabel('Follow new changes and suggestions').uncheck();
     suggest('disabled-suggestion', 'Device');
     await expect(page.getByText('disabled-suggestion', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
+    await page.getByLabel('Follow new changes and suggestions').check();
+    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'add-planned-window', expectedRevision: 0, commands: [{ type: 'class.add', name: 'PlannedWindow', module: 'foundation', parent: 'Record', definition: 'A planned window.' }] });
+    await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
+    await expect(page.getByText(/Latest change: codex updated PlannedWindow/)).toBeVisible();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Show latest change' }).click();
+    await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -464,6 +473,9 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    await page.getByLabel('Search model').fill('NoMatchingConcept');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page.getByText(/No matching concepts/)).toBeVisible();
     const cookies = await page.context().cookies();
     expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
     await page.reload();
