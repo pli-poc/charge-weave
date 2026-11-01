@@ -17,7 +17,11 @@ async function call(endpoint, token, method, params, signal) {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...authHeaders(token), 'MCP-Protocol-Version': '2025-06-18' },
     body: JSON.stringify({ jsonrpc: '2.0', id: crypto.randomUUID(), method, params }),
   });
-  if (!response.ok) throw new Error(`Service returned ${response.status}`);
+  if (!response.ok) {
+    const error = new Error(response.status === 401 || response.status === 403 ? 'Authorization expired or was rejected. Reconnect or pair again.' : `Service returned ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   const message = await response.json();
   if (message.error) throw new Error(message.error.message);
   if (message.result?.isError) throw new Error(message.result.content?.[0]?.text || 'Tool failed');
@@ -135,6 +139,9 @@ export default function ModellingStudio() {
     if (!connection) return undefined;
     setOnline(false);
     const abort = new AbortController();
+    let streamAbort = null;
+    const refreshOnVisible = () => { if (document.visibilityState === 'visible' && streamAbort) { setOnline(false); streamAbort.abort(); } };
+    document.addEventListener('visibilitychange', refreshOnVisible);
     const { endpoint: url, token: credential, workspaceId: id } = connection;
     const tool = async (name, args) => (await call(url, credential, 'tools/call', { name, arguments: args }, abort.signal)).structuredContent;
     async function refresh() {
@@ -152,6 +159,7 @@ export default function ModellingStudio() {
     async function run() {
       try {
         const initialization = await call(url, credential, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'chargeweave-browser', version: '0.1.0' } }, abort.signal);
+        if (initialization.protocolVersion !== '2025-06-18') throw new Error(`Unsupported MCP protocol ${initialization.protocolVersion ?? 'unknown'}; update the local service or studio.`);
         setServerInfo({ name: initialization.serverInfo?.name ?? 'unknown', version: initialization.serverInfo?.version ?? 'unknown', protocolVersion: initialization.protocolVersion ?? 'unknown' });
         await refresh();
         setStatus('Connected');
@@ -160,7 +168,9 @@ export default function ModellingStudio() {
         while (!abort.signal.aborted) {
           try {
             if (needsRefresh) { await refresh(); needsRefresh = false; }
-            const response = await fetch(`${url}/events?workspaceId=${encodeURIComponent(id)}&after=${cursor.current}`, { headers: authHeaders(credential), credentials: 'same-origin', signal: abort.signal });
+            streamAbort = new AbortController();
+            const response = await fetch(`${url}/events?workspaceId=${encodeURIComponent(id)}&after=${cursor.current}`, { headers: authHeaders(credential), credentials: 'same-origin', signal: AbortSignal.any([abort.signal, streamAbort.signal]) });
+            if (response.status === 401 || response.status === 403) { setOnline(false); setStatus('Authorization expired; reconnect'); setError('Authorization expired or was rejected. Reconnect or pair again.'); return; }
             if (!response.ok || !response.body) throw new Error(`Event feed returned ${response.status}`);
             setStatus('Connected');
             setOnline(true);
@@ -168,9 +178,14 @@ export default function ModellingStudio() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let heartbeatTimeout;
+            const resetHeartbeat = () => { clearTimeout(heartbeatTimeout); heartbeatTimeout = setTimeout(() => streamAbort?.abort(), 45000); };
+            resetHeartbeat();
+            try {
             while (!abort.signal.aborted) {
               const { value, done } = await reader.read();
               if (done) throw new Error('Event stream closed');
+              resetHeartbeat();
               buffer += decoder.decode(value, { stream: true });
               if (buffer.length > 1024 * 1024) throw new Error('Event buffer exceeded; reload snapshot');
               let boundary;
@@ -183,9 +198,11 @@ export default function ModellingStudio() {
                 }
               }
             }
+            } finally { clearTimeout(heartbeatTimeout); }
           } catch (problem) {
             if (abort.signal.aborted) break;
             setOnline(false);
+            if (problem.status === 401 || problem.status === 403) { setStatus('Authorization expired; reconnect'); setError(problem.message); return; }
             setStatus('Reconnecting');
             needsRefresh = true;
             await new Promise(resolve => setTimeout(resolve, delay + Math.random() * delay * 0.2));
@@ -197,7 +214,7 @@ export default function ModellingStudio() {
       }
     }
     run();
-    return () => abort.abort();
+    return () => { document.removeEventListener('visibilitychange', refreshOnVisible); streamAbort?.abort(); abort.abort(); };
   }, [connection]);
 
   useEffect(() => {

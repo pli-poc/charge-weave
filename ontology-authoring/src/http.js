@@ -78,7 +78,9 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
     const expectedCsrf = session ? Buffer.from(session.csrf) : null;
     const csrfValid = expectedCsrf && csrfBytes.length === expectedCsrf.length && timingSafeEqual(csrfBytes, expectedCsrf);
     const cookieAuthorized = session && (!origin || origin === localOrigin) && csrfValid && (req.method !== 'POST' || origin === localOrigin);
-    const role = matches(secret) ? 'draft' : matches(reviewerSecret) ? 'reviewer' : cookieAuthorized ? 'reviewer' : null;
+    const draftAuthorized = matches(secret), reviewerAuthorized = matches(reviewerSecret);
+    const sessionAuthorized = !draftAuthorized && !reviewerAuthorized && cookieAuthorized;
+    const role = draftAuthorized ? 'draft' : reviewerAuthorized || sessionAuthorized ? 'reviewer' : null;
     if (!role) { res.writeHead(401).end('Unauthorized'); return; }
     if (url.pathname === '/session' && req.method === 'DELETE' && cookieAuthorized) {
       pairing.revoke(sessionId); res.writeHead(204, { 'Set-Cookie': 'cw_studio=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0', 'Cache-Control': 'no-store' }).end(); return;
@@ -95,6 +97,7 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       res.flushHeaders();
       const send = () => {
         try {
+          if (sessionAuthorized && !pairing.get(sessionId)) { res.end(); return; }
           const events = store.events(workspaceId, sequence);
           for (const event of events) {
             sequence = event.sequence;

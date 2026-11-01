@@ -545,6 +545,28 @@ test('failed validation can be inspected, corrected and retried on the current d
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+for (const denied of ['events', 'mcp']) test(`browser stops reconnecting when ${denied} authorization expires`, async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Reconnect', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByRole('status')).toContainText('Connected');
+    await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
+    let attempts = 0;
+    await page.route(denied === 'events' ? '**/events?**' : '**/mcp', route => { attempts += 1; return route.fulfill({ status: 401, body: 'Unauthorized' }); });
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(page.getByRole('status')).toContainText('Authorization expired; reconnect');
+    await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeDisabled();
+    await page.waitForTimeout(1300);
+    expect(attempts).toBe(1);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });

@@ -44,7 +44,11 @@ test('same-origin pairing creates an HttpOnly session with CSRF enforcement and 
     const resumed = await fetch(`${origin}/session`, { headers: { cookie, 'sec-fetch-site': 'same-origin' } });
     assert.equal((await resumed.json()).csrf, csrf);
     assert.equal((await fetch(`${origin}/session`, { headers: { cookie, 'sec-fetch-site': 'cross-site' } })).status, 403);
+    const feed = await fetch(`${origin}/events?workspaceId=${workspace.id}`, { headers: { cookie, 'x-csrf-token': csrf }, signal: AbortSignal.timeout(5000) });
+    assert.equal(feed.status, 200);
+    const reader = feed.body.getReader();
     assert.equal((await fetch(`${origin}/session`, { method: 'DELETE', headers: { origin, cookie, 'x-csrf-token': csrf } })).status, 204);
+    assert.equal((await reader.read()).done, true);
     assert.equal((await fetch(`${origin}/mcp`, { method: 'POST', headers: { ...mcpHeaders, 'x-csrf-token': csrf }, body })).status, 401);
   } finally { await service.shutdown(); store.close(); }
 });
