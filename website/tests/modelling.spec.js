@@ -5,7 +5,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
   const token = 'test-token-'.repeat(4);
   const service = createHttpService({ store, token, workspaceId: workspace.id, allowedOrigin: 'http://127.0.0.1:4173', repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -36,6 +36,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByLabel('Search model').fill('MaintenanceWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'MaintenanceWindow', exact: true }).click();
+    await expect(page.getByText(/recordName: string.*inherited from Record/)).toBeVisible();
     await expect(page.getByRole('img', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.getByText('subClassOf →')).toBeVisible();
     await page.getByText('Add a field or relationship').click();

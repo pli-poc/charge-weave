@@ -19,6 +19,9 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   }
   const [codex, browser] = clients;
   assert.ok((await codex.listTools()).tools.some(tool => tool.name === 'ontology_changeset_apply'));
+  const inspected = await codex.callTool({ name: 'ontology_entity_get', arguments: { workspaceId: workspace.id, iri: 'https://example.org/charge-domain#Record', expectedRevision: 0 } });
+  assert.equal(inspected.structuredContent.entity.iri, 'https://example.org/charge-domain#Record');
+  assert.equal((await codex.callTool({ name: 'ontology_entity_get', arguments: { workspaceId: workspace.id, iri: 'https://other.example/#Record' } })).isError, true);
   const args = { workspaceId: workspace.id, operationId: 'add', expectedRevision: 0, commands: [{ type: 'class.add', name: 'Example', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
   assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
   assert.equal((await browser.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'Example' } })).structuredContent.results[0].name, 'Example');

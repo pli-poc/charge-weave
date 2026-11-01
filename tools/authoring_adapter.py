@@ -57,10 +57,34 @@ def apply_commands(schema, commands):
     return candidate
 
 
+def inspect_entity(schema, name):
+    if not isinstance(schema, str) or len(schema.encode('utf8')) > 2_000_000 or not isinstance(name, str) or not IDENTIFIER.fullmatch(name):
+        raise ValueError('Invalid entity request')
+    classes, _, _, _ = parse_schema(schema, DATATYPES - {'IRI'})
+    if name not in classes:
+        raise ValueError('Class not found')
+    positions = {line.split('|', 1)[0]: index for index, line in enumerate(schema.splitlines(), 1) if '|' in line and not line.startswith(('MODULE|', '#'))}
+    fields, seen, current = [], set(), name
+    while current is not None:
+        if current in seen or current not in classes:
+            raise ValueError('Invalid inheritance chain')
+        seen.add(current)
+        item = classes[current]
+        fields.extend({**field, 'owner': current, 'inherited': current != name, 'source': {'path': 'model/domain.schema', 'line': positions[current]}} for field in item['fields'])
+        current = item['parent']
+    item = classes[name]
+    return {'name': name, 'iri': 'https://example.org/charge-domain#' + name, 'module': item['module'], 'parent': item['parent'], 'definition': item['definition'], 'fields': fields, 'source': {'path': 'model/domain.schema', 'line': positions[name]}}
+
+
 def main():
     try:
         request = json.load(sys.stdin)
-        result = {'schema': apply_commands(request['schema'], request['commands'])}
+        if request.get('action', 'apply') == 'apply':
+            result = {'schema': apply_commands(request['schema'], request['commands'])}
+        elif request['action'] == 'inspect':
+            result = {'entity': inspect_entity(request['schema'], request['name'])}
+        else:
+            raise ValueError('Unsupported adapter action')
     except (ValueError, TypeError, KeyError, AssertionError, StopIteration) as error:
         result = {'error': str(error) or 'Invalid schema command'}
     json.dump(result, sys.stdout, ensure_ascii=True)

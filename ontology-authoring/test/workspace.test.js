@@ -51,6 +51,8 @@ test('atomic edits, durable receipts and stale revisions', () => {
   const result = store.apply(request);
   assert.deepEqual(store.apply(request), result);
   assert.equal(store.search(workspace.id, 'example').results[0].name, 'Example');
+  assert.equal(store.entity(workspace.id, 'Example', 1).entity.source.path, 'model/domain.schema');
+  assert.throws(() => store.entity(workspace.id, 'Example', 0), /Revision conflict/);
   assert.throws(() => store.view(workspace.id, 'Example', 0), /Revision conflict/);
   assert.throws(() => store.search(workspace.id, 'example', 25, 0), /Revision conflict/);
   assert.throws(() => store.apply({ ...request, commands: [] }), /reused/);

@@ -24,14 +24,18 @@ function parse(schema) {
   return { modules, classes };
 }
 
-function apply(schema, commands) {
+function adapterCall(request) {
   const adapter = fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url));
   const output = execFileSync(process.env.CHARGEWEAVE_PYTHON || 'python', [adapter], {
-    input: JSON.stringify({ schema, commands }), encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024,
+    input: JSON.stringify(request), encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024,
     env: { ...process.env, PYTHONUTF8: '1' },
   });
   const result = JSON.parse(output);
   if (result.error) throw new Error(result.error);
+  return result;
+}
+function apply(schema, commands) {
+  const result = adapterCall({ schema, commands });
   if (typeof result.schema !== 'string' || Buffer.byteLength(result.schema) > 2_000_000) throw new Error('Invalid adapter result');
   return result.schema;
 }
@@ -159,6 +163,12 @@ export class WorkspaceStore {
     const workspace = this.get(id), needle = query.toLowerCase();
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
+  }
+  entity(id, name, expectedRevision) {
+    const workspace = this.get(id);
+    if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    const result = adapterCall({ action: 'inspect', schema: workspace.schema, name });
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, entity: result.entity };
   }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);
