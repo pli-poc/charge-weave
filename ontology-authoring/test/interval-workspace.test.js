@@ -9,6 +9,7 @@ import { editableSourcePaths, importSourceManifest } from '../src/source-manifes
 import { WorkspaceStore } from '../src/workspace.js';
 import { createServer } from '../src/mcp.js';
 import { runGenerator } from '../src/validation.js';
+import { preparePublicationCandidate } from '../src/publication-candidate.js';
 
 function intervalFixture() {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -87,7 +88,7 @@ test('reviewer-authored interval cases are separate, bounded and revisioned', as
   } finally { for (const client of clients) await client.close(); store.close(); }
 });
 
-test('real interval candidate passes reference and focused business decisions', { skip: !process.env.CHARGEWEAVE_TEST_RULE_TEMPLATE, timeout: 900000 }, async () => {
+test('real interval candidate passes reference and focused business decisions', { skip: !process.env.CHARGEWEAVE_TEST_RULE_TEMPLATE, timeout: 1200000 }, async () => {
   const { repository, sourceBlobs, store, workspace, commands } = intervalFixture();
   try {
     store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'interval', expectedRevision: 0, commands });
@@ -111,11 +112,25 @@ test('real interval candidate passes reference and focused business decisions', 
     store.applyReviewerCase({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'independent-positive', expectedRevision: 1, command: { ...base, caseId: 'BR-012-B900-REVIEW-PASS', end: '2026-10-01T12:00:00Z', expectedConformance: true, scenario: 'A service window ending after it starts is accepted.' } });
     store.applyReviewerCase({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'independent-negative', expectedRevision: 2, command: { ...base, caseId: 'BR-012-B900-REVIEW-FAIL', end: '2026-10-01T09:00:00Z', expectedConformance: false, scenario: 'A service window ending before it starts is rejected.' } });
     const reviewed = store.get(workspace.id);
+    let reference;
     for (const profile of ['audit', 'reference']) {
       const reviewedJob = store.createJob(workspace.id, 3, reviewed.sourceDigest, 'reviewer', `reviewed-${profile}`, profile).job;
       await runGenerator(store, reviewed, reviewedJob, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
       const checked = store.job(workspace.id, reviewedJob.id);
       assert.equal(checked.status, 'passed', checked.output);
+      if (profile === 'reference') reference = checked;
     }
+    // The complete release profile is tested separately; use the real reference
+    // artifact hashes here to exercise isolated staging without rerunning it.
+    for (const profile of ['structural', 'acceptance']) {
+      const synthetic = store.createJob(workspace.id, 3, reviewed.sourceDigest, 'test', `staging-${profile}`, profile).job;
+      if (profile === 'acceptance') store.saveJobArtifacts(synthetic.id, reference.artifactSummary);
+      store.updateJob(synthetic.id, 'passed');
+    }
+    const accepted = store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'accept-staging', expectedRevision: 3, sourceDigest: reviewed.sourceDigest, decision: 'accept', reason: 'Synthetic review for isolated staging integration.' });
+    const preview = await preparePublicationCandidate(store, workspace.id, accepted.id, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    assert.ok(preview.files.some(item => item.path === 'model/domain.schema'));
+    assert.ok(preview.files.some(item => item.path === 'tests/business-acceptance.json'));
+    assert.ok(preview.files.some(item => item.path.startsWith('ontology/')));
   } finally { store.close(); }
 });

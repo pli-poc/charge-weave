@@ -4,6 +4,7 @@ import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
 import { publicationPreflight } from './publication-preflight.js';
 import { githubCommitWorkflows } from './github-ci.js';
+import { runPublicationPreview } from './publication-candidate.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -53,6 +54,14 @@ export function createServer(store, actor, options = {}) {
   }
   if (options.repository) {
     if (options.role === 'reviewer') server.registerTool('ontology_publication_preflight', { description: 'Inspect the configured target head, draft source files and available evidence. Does not accept or publish.', inputSchema: { workspaceId, expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(await publicationPreflight(store, args.workspaceId, args.expectedRevision, options.repository, options.publicationFixture)));
+    if (options.role === 'reviewer') server.registerTool('ontology_publication_prepare', { description: 'Prepare an accepted exact draft in a disposable checkout and return a job for its staged file manifest. This does not commit, push or check the remote.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), reviewId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
+      const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, 'publication-preview', args.reviewId);
+      if (created) {
+        if (options.startPublication) options.startPublication(args.workspaceId, args.reviewId, job);
+        else void runPublicationPreview(store, args.workspaceId, args.reviewId, job, options.repository, options.python);
+      }
+      return result(job);
+    });
     server.registerTool('ontology_change_impact_get', { description: 'Find bounded explicit references in pinned requirements, journeys, rules and temporal queries; coverage is partial.', inputSchema: { workspaceId, expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => {
       const workspace = store.get(args.workspaceId);
       if (args.expectedRevision !== undefined && args.expectedRevision !== workspace.revision) throw new Error('Revision conflict');

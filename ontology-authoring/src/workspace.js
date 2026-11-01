@@ -102,10 +102,10 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS review_evidence (review TEXT NOT NULL, profile TEXT NOT NULL, job TEXT NOT NULL, PRIMARY KEY(review, profile), FOREIGN KEY(review) REFERENCES review_decisions(id), FOREIGN KEY(job) REFERENCES jobs(id))');
   }
   close() { this.db.close(); }
-  createJob(id, revision, digest, actor, operationId, profile = 'structural') {
+  createJob(id, revision, digest, actor, operationId, profile = 'structural', subject = null) {
     if (!actor || !operationId) throw new Error('Invalid validation identity');
-    if (!['structural', 'reference', 'audit', 'acceptance'].includes(profile)) throw new Error('Invalid validation profile');
-    const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile }));
+    if (!['structural', 'reference', 'audit', 'acceptance', 'publication-preview'].includes(profile) || (profile === 'publication-preview' && !/^[0-9a-f-]{36}$/i.test(subject ?? '')) || (profile !== 'publication-preview' && subject !== null)) throw new Error('Invalid validation profile');
+    const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile, ...(subject === null ? {} : { subject }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(id, actor, operationId);
@@ -155,7 +155,7 @@ export class WorkspaceStore {
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
-    const scope = job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
+    const scope = job.profile === 'publication-preview' ? 'Isolated staged-file preview; no commit, push or remote verification' : job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
     return { ...job, scope, completeAcceptanceEvidence: false };
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }

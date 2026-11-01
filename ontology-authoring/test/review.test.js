@@ -26,6 +26,8 @@ test('only reviewers can record durable digest-bound decisions; edits make them 
     const [draft, reviewer] = clients;
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_changeset_review'), false);
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_preflight'), false);
+    assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_prepare'), false);
+    assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_publication_prepare'), true);
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_github_commit_workflows'), false);
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_github_commit_workflows'), true);
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_publication_preflight'), true);

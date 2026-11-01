@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from './mcp.js';
 import { runGenerator } from './validation.js';
+import { runPublicationPreview } from './publication-candidate.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
 
@@ -113,7 +114,13 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
     const cancelValidation = jobId => activeJobs.get(jobId)?.controller.abort();
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, cancelValidation, publicationFixture, ciFetch });
+    const startPublication = (id, reviewId, job) => {
+      const controller = new AbortController();
+      const task = runPublicationPreview(store, id, reviewId, job, repository, python, controller.signal);
+      activeJobs.set(job.id, { task, controller });
+      void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
+    };
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, cancelValidation, publicationFixture, ciFetch });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

@@ -31,7 +31,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
     store.updateJob(job.id, 'running');
     directory = await mkdtemp(join(tmpdir(), 'chargeweave-validation-'));
     const archive = join(directory, 'baseline.tar');
-    await exec('git', ['archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
+    await exec('git', ['-c', 'core.autocrlf=false', 'archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
     await exec('tar', ['-xf', archive, '-C', directory], { timeout: 30000 });
     await rm(archive);
     // Several release checks record `git rev-parse HEAD`. Give the isolated
