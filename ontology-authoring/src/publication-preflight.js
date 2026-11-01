@@ -1,10 +1,36 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 
 const exec = promisify(execFile);
 const canonicalRemote = 'https://github.com/pli-poc/charge-weave.git';
 const canonicalAliases = new Set([canonicalRemote, 'https://github.com/pli-poc/charge-weave', 'git@github.com:pli-poc/charge-weave.git', 'git@github.com:pli-poc/charge-weave']);
+
+// Compare a pinned remote head in a disposable repository. File-level disjointness
+// is useful to a reviewer but is not proof of semantic compatibility or a rebase.
+async function compareRemoteBase(repository, target, branch, baseline, head, sourceFiles, fixture) {
+  let directory;
+  try {
+    directory = await mkdtemp(join(tmpdir(), 'chargeweave-compare-'));
+    const options = { cwd: directory, timeout: 60000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null', GIT_ALLOW_PROTOCOL: fixture ? 'file' : 'file:https' } };
+    await exec('git', ['init', '--quiet', '--bare', '--template=', directory], options);
+    await exec('git', ['-c', 'protocol.file.allow=always', 'fetch', '--quiet', '--no-tags', '--', resolve(repository), baseline], options);
+    await exec('git', ['fetch', '--quiet', '--no-tags', '--', target, `refs/heads/${branch}`], options);
+    const fetched = (await exec('git', ['rev-parse', 'FETCH_HEAD'], options)).stdout.trim();
+    if (fetched !== head) return { status: 'remote-moved', overlap: [], changedFiles: [] };
+    try { await exec('git', ['merge-base', '--is-ancestor', baseline, head], options); }
+    catch (error) { if (error.code === 1) return { status: 'diverged', overlap: [], changedFiles: [] }; throw error; }
+    const listing = (await exec('git', ['diff', '--no-renames', '--name-only', '-z', baseline, head, '--'], options)).stdout;
+    const changedFiles = listing.split('\0').filter(Boolean).sort();
+    if (changedFiles.length > 10000) throw new Error('Comparison is too large');
+    const overlap = sourceFiles.filter(path => changedFiles.includes(path));
+    return { status: overlap.length ? 'overlap' : 'disjoint-paths', overlap, changedFiles, note: 'Path comparison only; combined changes require semantic review and fresh validation.' };
+  } catch {
+    return { status: 'unavailable', overlap: [], changedFiles: [] };
+  } finally { if (directory) await rm(directory, { recursive: true, force: true }); }
+}
 
 // The fixture override is supplied by the host, never by an MCP client.
 export async function publicationPreflight(store, workspaceId, expectedRevision, repository, fixture = null) {
@@ -26,6 +52,9 @@ export async function publicationPreflight(store, workspaceId, expectedRevision,
       remote = { status: match[1] === workspace.baselineCommit ? 'matches-baseline' : 'changed', head: match[1] };
     }
   } catch { /* Do not expose Git output, URLs or credentials to clients. */ }
+  const preliminaryDiff = store.diff(workspaceId);
+  const preliminarySourceFiles = [...(preliminaryDiff.source.before !== preliminaryDiff.source.after ? [preliminaryDiff.source.path] : []), ...preliminaryDiff.additionalSources.map(item => item.path)];
+  const comparison = remote.status === 'changed' ? await compareRemoteBase(repository, target, branch, workspace.baselineCommit, remote.head, preliminarySourceFiles, fixture) : null;
   const current = store.get(workspaceId);
   const stale = current.revision !== workspace.revision || current.sourceDigest !== workspace.sourceDigest;
   if (stale) return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, stale: true,
@@ -36,8 +65,8 @@ export async function publicationPreflight(store, workspaceId, expectedRevision,
   const artifacts = checked ? store.job(workspaceId, checked.job.id).artifactSummary : null;
   const sourceFiles = [...(diff.source.before !== diff.source.after ? [diff.source.path] : []), ...diff.additionalSources.map(item => item.path)];
   return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, stale,
-    target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, sourceFiles,
+    target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, comparison, sourceFiles,
     generatedEvidence: artifacts ? { jobId: checked.job.id, profile: checked.profile, summary: artifacts } : null,
     readiness, canPublish: false,
-    limitations: ['Publication is not implemented.', 'Remote changes require a three-way comparison and revalidation.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
+    limitations: ['Publication is not implemented.', 'Remote changes require semantic review and revalidation even when paths do not overlap.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
 }

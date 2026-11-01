@@ -11,12 +11,14 @@ test('publication preflight reads the actual allowlisted head without publishing
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-publish-'));
   const repository = join(directory, 'checkout'), remote = join(directory, 'remote.git');
   mkdirSync(repository);
+    mkdirSync(join(repository, 'model'));
   const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   let store;
   try {
     git(directory, ['init', '--bare', remote]);
     git(repository, ['init']);
     writeFileSync(join(repository, 'README.md'), 'baseline\n');
+    writeFileSync(join(repository, 'model', 'domain.schema'), 'MODULE|foundation\nRecord|root|A record.|\n');
     git(repository, ['add', '.']);
     git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
     git(repository, ['remote', 'add', 'origin', remote]);
@@ -41,6 +43,20 @@ test('publication preflight reads the actual allowlisted head without publishing
     const advanced = await publicationPreflight(store, workspace.id, 1, repository, fixture);
     assert.equal(advanced.target.status, 'changed');
     assert.notEqual(advanced.target.head, commit);
+    assert.equal(advanced.comparison.status, 'disjoint-paths');
+    assert.deepEqual(advanced.comparison.changedFiles, ['README.md']);
+    writeFileSync(join(repository, 'model', 'domain.schema'), 'MODULE|foundation\nRecord|root|Remote change.|\n');
+    git(repository, ['add', '.']);
+    git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'overlapping change']);
+    git(repository, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const overlap = await publicationPreflight(store, workspace.id, 1, repository, fixture);
+    assert.equal(overlap.comparison.status, 'overlap');
+    assert.deepEqual(overlap.comparison.overlap, ['model/domain.schema']);
+    git(repository, ['checkout', '--orphan', 'unrelated']);
+    git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'unrelated root']);
+    git(repository, ['push', 'origin', 'HEAD:refs/heads/unrelated']);
+    const diverged = await publicationPreflight(store, workspace.id, 1, repository, { remote, branch: 'unrelated' });
+    assert.equal(diverged.comparison.status, 'diverged');
     const pending = publicationPreflight(store, workspace.id, 1, repository, fixture);
     store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'again', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Changed again.' }] });
     const stale = await pending;
