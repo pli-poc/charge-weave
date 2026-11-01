@@ -10,7 +10,7 @@ An optional distinct `CHARGEWEAVE_REVIEWER_TOKEN` (at least 32 bytes) exposes re
 
 MCP request bodies are limited to 512 KiB. A slow event consumer is disconnected and should reconnect using its last event cursor. On a normal shutdown the service closes event streams and waits for active validation jobs before closing the database; an abrupt process termination leaves interrupted jobs for inspection on restart.
 
-The authenticated `GET /events?workspaceId=<id>&after=<sequence>` endpoint streams committed changes as server-sent events. Reconnect with the last event ID to replay later events. This feed is read-only; semantic changes still use MCP. Clients must deduplicate events by sequence and recover from a snapshot if they cannot apply a delta.
+The authenticated `GET /events?workspaceId=<id>&after=<sequence>` endpoint streams committed changes as server-sent events. Reconnect with the last event ID to replay later events. Each event includes the previous sequence for the same workspace; global sequence numbers may skip because other workspaces share the store. An unknown cursor returns 409 and requires a new snapshot. This feed is read-only; semantic changes still use MCP. Clients must deduplicate events and recover from a snapshot if they detect a gap or cannot apply a delta.
 
 Run `npm test` to exercise the store and MCP transport. Workspace creation is currently a local command, not an MCP tool. Pairing, change-set lifecycle, comprehensive validation, browser integration, review and publication are not yet implemented.
 

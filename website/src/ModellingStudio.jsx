@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { classifyEvent } from './model/event-cursor.js';
 import './modelling-studio.css';
 
 // Stateless MCP Streamable HTTP requests; the token stays in component memory.
@@ -75,12 +76,16 @@ export default function ModellingStudio() {
         await call(url, credential, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'chargeweave-browser', version: '0.1.0' } }, abort.signal);
         await refresh();
         setStatus('Connected');
+        let delay = 500;
+        let needsRefresh = false;
         while (!abort.signal.aborted) {
           try {
+            if (needsRefresh) { await refresh(); needsRefresh = false; }
             const response = await fetch(`${url}/events?workspaceId=${encodeURIComponent(id)}&after=${cursor.current}`, { headers: { Authorization: `Bearer ${credential}` }, signal: abort.signal });
             if (!response.ok || !response.body) throw new Error(`Event feed returned ${response.status}`);
             setStatus('Connected');
             setOnline(true);
+            delay = 500;
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
@@ -88,18 +93,24 @@ export default function ModellingStudio() {
               const { value, done } = await reader.read();
               if (done) throw new Error('Event stream closed');
               buffer += decoder.decode(value, { stream: true });
+              if (buffer.length > 1024 * 1024) throw new Error('Event buffer exceeded; reload snapshot');
               let boundary;
               while ((boundary = buffer.indexOf('\n\n')) !== -1) {
                 const event = buffer.slice(0, boundary); buffer = buffer.slice(boundary + 2);
-                if (event.includes('event: workspace-change')) { setOnline(false); await refresh(); setOnline(true); }
+                if (event.includes('event: workspace-change')) {
+                  const data = event.split('\n').find(line => line.startsWith('data: '));
+                  const disposition = classifyEvent(data ? JSON.parse(data.slice(6)) : null, cursor.current);
+                  if (disposition !== 'duplicate') { setOnline(false); await refresh(); setOnline(true); }
+                }
               }
             }
           } catch (problem) {
             if (abort.signal.aborted) break;
             setOnline(false);
             setStatus('Reconnecting');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            await refresh();
+            needsRefresh = true;
+            await new Promise(resolve => setTimeout(resolve, delay + Math.random() * delay * 0.2));
+            delay = Math.min(delay * 2, 10000);
           }
         }
       } catch (problem) {

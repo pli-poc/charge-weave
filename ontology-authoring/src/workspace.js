@@ -201,7 +201,11 @@ export class WorkspaceStore {
   events(id, after = 0) {
     this.get(id);
     if (!Number.isSafeInteger(after) || after < 0) throw new Error('Invalid cursor');
-    return this.db.prepare('SELECT sequence, actor, revision, payload FROM events WHERE workspace = ? AND sequence > ? ORDER BY sequence LIMIT 100').all(id, after).map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+    return this.db.prepare('SELECT e.sequence, e.actor, e.revision, e.payload, COALESCE((SELECT MAX(p.sequence) FROM events p WHERE p.workspace = e.workspace AND p.sequence < e.sequence), 0) AS previousSequence FROM events e WHERE e.workspace = ? AND e.sequence > ? ORDER BY e.sequence LIMIT 100').all(id, after).map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+  }
+  hasCursor(id, sequence) {
+    this.get(id);
+    return sequence === 0 || Boolean(this.db.prepare('SELECT 1 FROM events WHERE workspace = ? AND sequence = ?').get(id, sequence));
   }
   recentEvents(id) {
     this.get(id);

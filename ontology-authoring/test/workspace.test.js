@@ -57,6 +57,20 @@ test('undo restores the latest group as an idempotent new revision', () => {
   store.close();
 });
 
+test('event predecessors are workspace-specific despite interleaved global sequences', () => {
+  const store = new WorkspaceStore(':memory:');
+  const first = store.create({ title: 'First', baselineCommit: 'a'.repeat(40), schema });
+  const second = store.create({ title: 'Second', baselineCommit: 'a'.repeat(40), schema });
+  const edit = (workspaceId, expectedRevision, operationId) => store.apply({ workspaceId, actor: 'test', operationId, expectedRevision, commands: [{ type: 'class.describe', name: 'Record', definition: operationId }] });
+  const a = edit(first.id, 0, 'one');
+  const b = edit(second.id, 0, 'other');
+  const c = edit(first.id, 1, 'two');
+  assert.equal(store.events(first.id, a.eventSequence)[0].previousSequence, a.eventSequence);
+  assert.equal(store.hasCursor(first.id, b.eventSequence), false);
+  assert.equal(store.hasCursor(first.id, c.eventSequence), true);
+  store.close();
+});
+
 test('real repository schema is searchable and receipts survive restart', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-workspace-'));
   try {

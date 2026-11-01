@@ -51,6 +51,7 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
       if (requestedWorkspace !== workspaceId) { res.writeHead(403).end('Workspace not authorized'); return; }
       let sequence = Number(cursor);
       try { store.get(workspaceId); } catch { res.writeHead(404).end('Workspace not found'); return; }
+      if (!store.hasCursor(workspaceId, sequence)) { res.writeHead(409).end('Event cursor unavailable; reload workspace snapshot'); return; }
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
       res.flushHeaders();
       const send = () => {

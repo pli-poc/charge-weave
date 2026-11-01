@@ -38,6 +38,8 @@ jobs:
       - run: npm ci --prefix client-runtime
       - run: npm ci --prefix website
       - run: npm run build --prefix website
+      - run: node --test src/model/event-cursor.test.js
+        working-directory: website
       - run: npx playwright install --with-deps chromium
         working-directory: website
       - run: npx playwright test tests/modelling.spec.js --project=desktop

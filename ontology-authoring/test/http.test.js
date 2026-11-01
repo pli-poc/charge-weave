@@ -29,6 +29,7 @@ test('loopback MCP transport authenticates and shares state', async () => {
     assert.equal((await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: other.id } })).isError, true);
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: other.id, operationId: 'denied', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Forbidden.' }] } })).isError, true);
     assert.equal((await fetch(new URL(`/events?workspaceId=${other.id}`, url), { headers: { authorization: `Bearer ${token}` } })).status, 403);
+    assert.equal((await fetch(new URL(`/events?workspaceId=${workspace.id}&after=999`, url), { headers: { authorization: `Bearer ${token}` } })).status, 409);
     assert.equal(store.get(other.id).revision, 0);
     assert.equal((await first.listTools()).tools.some(tool => tool.name === 'ontology_review_readiness'), false);
     const reviewer = new Client({ name: 'reviewer', version: '1' });
@@ -46,6 +47,7 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const reader = feed.body.getReader();
     const chunk = new TextDecoder().decode((await reader.read()).value);
     assert.match(chunk, /event: workspace-change/);
+    assert.match(chunk, /"previousSequence":0/);
     assert.match(chunk, /NetworkExample/);
     controller.abort();
     await reviewer.close();
