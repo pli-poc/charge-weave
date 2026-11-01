@@ -166,6 +166,32 @@ test('reference generation records bounded artifact evidence with its job', { sk
   } finally { rmSync(repository, { recursive: true, force: true }); }
 });
 
+test('validation materializes the exact multi-source candidate without rewriting the checkout', { skip: !process.env.CHARGEWEAVE_TEST_PYTHON }, async () => {
+  const repository = mkdtempSync(join(tmpdir(), 'chargeweave-multi-source-'));
+  try {
+    mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools')); mkdirSync(join(repository, 'requirements'));
+    writeFileSync(join(repository, '.gitattributes'), '* -text\n');
+    const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+    const requirements = JSON.stringify([{ id: 'BR-001', statement: 'A requirement', classes: ['Record'] }], null, 2) + '\n';
+    writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    writeFileSync(join(repository, 'requirements', 'business-requirements.json'), requirements);
+    for (const name of ['authoring_adapter.py', 'domain_schema.py']) writeFileSync(join(repository, 'tools', name), readFileSync(new URL(`../../tools/${name}`, import.meta.url)));
+    writeFileSync(join(repository, 'tools', 'build.py'), "import json, subprocess\nfrom pathlib import Path\nassert json.loads(Path('requirements/business-requirements.json').read_text())[0]['classes'] == ['Record', 'Example']\nassert 'Example|Record|' in Path('model/domain.schema').read_text()\nassert set(subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()) == {'model/domain.schema', 'requirements/business-requirements.json'}\n");
+    const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
+    git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+    const store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Multi-source validation', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'Example', module: 'foundation', parent: 'Record', definition: 'An example.' }, { type: 'requirement.link', requirementId: 'BR-001', className: 'Example', expectedClasses: ['Record'] }] });
+    const candidate = store.get(workspace.id), job = store.createJob(workspace.id, 1, candidate.sourceDigest, 'test', 'validate').job;
+    await runGenerator(store, candidate, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    assert.equal(store.job(workspace.id, job.id).status, 'passed', store.job(workspace.id, job.id).output);
+    assert.equal(readFileSync(join(repository, 'requirements', 'business-requirements.json'), 'utf8'), requirements);
+    assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: repository, encoding: 'utf8' }).trim(), '');
+    store.close();
+  } finally { rmSync(repository, { recursive: true, force: true }); }
+});
+
 test('reference profile runs generated model and fixture checks', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
@@ -181,5 +207,23 @@ test('reference profile runs generated model and fixture checks', { skip: !proce
   assert.ok(result.artifactSummary.candidateFiles > 0);
   assert.equal(result.artifactSummary.comparison, 'exact-bytes');
   assert.deepEqual(store.evidence(workspace.id, job.id).artifactSummary, result.artifactSummary);
+  store.close();
+});
+
+test('reference profile generates evidence from a linked requirement overlay', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository, encoding: 'utf8' });
+  const schema = show('model/domain.schema'), requirements = show('requirements/business-requirements.json');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Reference overlay', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+  const item = store.requirementsSearch(workspace.id, 'BR-001').results.find(entry => entry.id === 'BR-001');
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'link', expectedRevision: 0, commands: [{ type: 'requirement.link', requirementId: item.id, className: 'ChargingStation', expectedClasses: item.classes }] });
+  const candidate = store.get(workspace.id), job = store.createJob(workspace.id, 1, candidate.sourceDigest, 'test', 'reference-overlay', 'reference').job;
+  await runGenerator(store, candidate, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+  const result = store.job(workspace.id, job.id);
+  assert.equal(result.status, 'passed', result.output);
+  assert.ok(result.artifactSummary.changes.some(change => change.path === 'docs/business-requirements.md'));
+  assert.equal(result.stale, false);
   store.close();
 });

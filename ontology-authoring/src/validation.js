@@ -42,13 +42,22 @@ export async function runGenerator(store, workspace, job, repository, python = '
     await exec('git', ['update-ref', 'HEAD', workspace.baselineCommit], gitOptions);
     await exec('git', ['reset', '--quiet', '--mixed', workspace.baselineCommit], gitOptions);
     await writeFile(join(directory, 'model', 'domain.schema'), workspace.schema, 'utf8');
+    for (const [path, content] of Object.entries(workspace.sourceOverlays || {})) {
+      if (workspace.digestVersion !== 4 || path !== 'requirements/business-requirements.json' || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid candidate source overlay');
+      await writeFile(join(directory, ...path.split('/')), content, 'utf8');
+    }
     const tracked = await exec('git', ['ls-tree', '-r', '-z', '--name-only', workspace.baselineCommit, '--', 'model', 'benchmark', 'requirements', 'tests', 'tools', 'requirements.txt'], { cwd: repository, timeout: 30000, maxBuffer: 4 * 1024 * 1024 });
     const sourcePaths = tracked.stdout.split('\0').filter(path => path && !generatedInputs.has(path));
     const sourceBytes = new Map();
     for (const path of sourcePaths) sourceBytes.set(path, await readFile(join(directory, path)));
-    if (workspace.digestVersion === 3) {
+    if (workspace.digestVersion >= 3) {
       const actual = [...sourceBytes].map(([path, bytes]) => ({ path, sha256: sha256(bytes) })).sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
-      if (JSON.stringify(actual) !== JSON.stringify(workspace.sourceManifest)) throw new Error('Candidate source manifest does not match materialized inputs');
+      if (JSON.stringify(actual) !== JSON.stringify(workspace.sourceManifest)) {
+        const expected = new Map(workspace.sourceManifest.map(entry => [entry.path, entry.sha256]));
+        const observed = new Map(actual.map(entry => [entry.path, entry.sha256]));
+        const mismatch = [...new Set([...expected.keys(), ...observed.keys()])].sort().find(path => expected.get(path) !== observed.get(path));
+        throw new Error(`Candidate source manifest does not match materialized inputs${mismatch ? `: ${mismatch}` : ''}`);
+      }
     }
     if (job.profile === 'acceptance') {
       const verifier = await readFile(join(directory, 'tools', 'verify_all.py'), 'utf8');

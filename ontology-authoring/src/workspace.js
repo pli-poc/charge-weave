@@ -7,11 +7,14 @@ import { createPatch } from 'diff';
 import { responsibilityMappings, responsibilityMappingVersion } from './responsibility-mapping.js';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
-const candidateManifest = (manifest, schema) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : entry);
-const sourceDigest = (schema, baselineCommit, version, manifest) => hash(JSON.stringify(version === 1
+const candidateManifest = (manifest, schema, overlays = {}) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : Object.hasOwn(overlays, entry.path) ? { ...entry, sha256: hash(overlays[entry.path]) } : entry);
+const sourceDigest = (schema, baselineCommit, version, manifest, overlays = {}) => hash(JSON.stringify(version === 1
   ? { adapter: 'domain-schema-v1', sources: { 'model/domain.schema': hash(schema) } }
   : version === 2 ? { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }
-    : { adapter: 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema) }));
+    : { adapter: version === 4 ? 'domain-schema-v4' : 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema, overlays) }));
+const editableSourcePaths = new Set(['requirements/business-requirements.json']);
+const requirementsPath = 'requirements/business-requirements.json';
+const canonicalJson = value => JSON.stringify(value, null, 2).replace(/[\u007f-\uffff]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`) + '\n';
 const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
 const cardBounds = { '!': [1, 1], '?': [0, 1], '+': [1, Infinity], '*': [0, Infinity] };
 function fieldContracts(entity) {
@@ -67,7 +70,7 @@ function apply(schema, commands) {
   return result.schema;
 }
 function verifyAdapter(workspace) {
-  if (workspace.digestVersion !== 3) return;
+  if (workspace.digestVersion < 3) return;
   for (const name of ['tools/authoring_adapter.py', 'tools/domain_schema.py']) {
     const expected = workspace.sourceManifest.find(entry => entry.path === name)?.sha256;
     const path = fileURLToPath(new URL(`../../${name}`, import.meta.url));
@@ -87,10 +90,12 @@ export class WorkspaceStore {
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS job_steps (job TEXT NOT NULL, ordinal INTEGER NOT NULL, check_name TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, output TEXT NOT NULL, PRIMARY KEY(job, ordinal), FOREIGN KEY(job) REFERENCES jobs(id)); UPDATE job_steps SET status = 'interrupted', finished_at = datetime('now') WHERE status = 'running';`);
     this.db.exec('CREATE TABLE IF NOT EXISTS job_artifacts (job TEXT PRIMARY KEY, summary TEXT NOT NULL, FOREIGN KEY(job) REFERENCES jobs(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS workspace_sources (workspace TEXT NOT NULL, path TEXT NOT NULL, baseline_content TEXT NOT NULL, content TEXT NOT NULL, PRIMARY KEY(workspace, path), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'before_overlays')) this.db.exec('ALTER TABLE command_groups ADD COLUMN before_overlays TEXT');
     this.db.exec('CREATE TABLE IF NOT EXISTS review_decisions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, actor TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
   close() { this.db.close(); }
@@ -196,21 +201,34 @@ export class WorkspaceStore {
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
-  create({ title, baselineCommit, schema, sourceManifest }) {
+  create({ title, baselineCommit, schema, sourceManifest, sourceBlobs }) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');
     parse(schema);
     if (sourceManifest !== undefined) {
       if (!Array.isArray(sourceManifest) || !sourceManifest.length || sourceManifest.length > 10000 || sourceManifest.some((entry, index) => !entry || typeof entry.path !== 'string' || !(entry.path === 'requirements.txt' || /^(model|benchmark|requirements|tests|tools)\/[A-Za-z0-9._/-]+$/.test(entry.path)) || entry.path.split('/').some(part => part === '.' || part === '..' || !part) || Object.keys(entry).sort().join(',') !== 'path,sha256' || !/^[a-f0-9]{64}$/.test(entry.sha256 ?? '') || (index > 0 && sourceManifest[index - 1].path >= entry.path)) || sourceManifest.find(entry => entry.path === 'model/domain.schema')?.sha256 !== hash(schema)) throw new Error('Invalid source manifest');
     }
+    if (sourceBlobs !== undefined) {
+      if (!sourceManifest || !sourceBlobs || typeof sourceBlobs !== 'object' || Array.isArray(sourceBlobs) || !Object.keys(sourceBlobs).length) throw new Error('Invalid editable source blobs');
+      for (const [path, content] of Object.entries(sourceBlobs)) {
+        if (!editableSourcePaths.has(path) || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000 || sourceManifest.find(entry => entry.path === path)?.sha256 !== hash(content)) throw new Error('Invalid editable source blob');
+        try { JSON.parse(content); } catch { throw new Error('Invalid editable source JSON'); }
+      }
+    }
     const id = randomUUID();
-    const version = sourceManifest ? 3 : 2;
-    this.db.prepare('INSERT INTO workspaces (id, title, baseline_commit, baseline_schema, schema, revision, digest, digest_version, source_manifest) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)').run(id, title, baselineCommit, schema, schema, sourceDigest(schema, baselineCommit, version, sourceManifest), version, sourceManifest ? JSON.stringify(sourceManifest) : null);
-    return this.get(id);
+    const version = sourceBlobs ? 4 : sourceManifest ? 3 : 2;
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.db.prepare('INSERT INTO workspaces (id, title, baseline_commit, baseline_schema, schema, revision, digest, digest_version, source_manifest) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)').run(id, title, baselineCommit, schema, schema, sourceDigest(schema, baselineCommit, version, sourceManifest), version, sourceManifest ? JSON.stringify(sourceManifest) : null);
+      for (const [path, content] of Object.entries(sourceBlobs || {})) this.db.prepare('INSERT INTO workspace_sources VALUES (?, ?, ?, ?)').run(id, path, content, content);
+      const workspace = this.get(id);
+      this.db.exec('COMMIT'); return workspace;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   get(id) {
     const row = this.db.prepare('SELECT * FROM workspaces WHERE id = ?').get(id);
     if (!row) throw new Error('Workspace not found');
-    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema) : null, schema: row.schema };
+    const overlays = Object.fromEntries(this.db.prepare('SELECT path, content FROM workspace_sources WHERE workspace = ? AND content <> baseline_content').all(id).map(source => [source.path, source.content]));
+    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema, overlays) : null, sourceOverlays: overlays, schema: row.schema };
   }
   snapshot(id) {
     // Synchronous reads share the event loop with mutations, so identity and cursor
@@ -230,7 +248,8 @@ export class WorkspaceStore {
       else if (JSON.stringify(previous) !== JSON.stringify(entity)) changes.push({ kind: 'changed', name, before: previous, after: entity, fieldChanges: fieldChanges(previous, entity) });
     }
     for (const [name, entity] of before) if (!after.has(name)) changes.push({ kind: 'removed', name, before: entity, fieldChanges: fieldChanges(entity, null) });
-    return { workspaceId: id, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, changes, source: { path: 'model/domain.schema', before: row.baseline_schema, after: row.schema, patch: createPatch('model/domain.schema', row.baseline_schema, row.schema, 'baseline', 'draft', { context: 3 }) } };
+    const additionalSources = this.db.prepare('SELECT path, baseline_content, content FROM workspace_sources WHERE workspace = ? AND content <> baseline_content ORDER BY path').all(id).map(source => ({ path: source.path, patch: createPatch(source.path, source.baseline_content, source.content, 'baseline', 'draft', { context: 3 }) }));
+    return { workspaceId: id, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, changes, source: { path: 'model/domain.schema', before: row.baseline_schema, after: row.schema, patch: createPatch('model/domain.schema', row.baseline_schema, row.schema, 'baseline', 'draft', { context: 3 }) }, additionalSources };
   }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
@@ -249,6 +268,16 @@ export class WorkspaceStore {
     const workspace = this.get(id);
     verifyAdapter(workspace);
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, templates: adapterCall({ action: 'templates' }).templates };
+  }
+  requirementsSearch(id, query, limit = 20, expectedRevision) {
+    const workspace = this.get(id);
+    if (workspace.digestVersion !== 4 || typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Requirements search needs a version-four workspace and bounded query');
+    if (expectedRevision !== undefined && expectedRevision !== workspace.revision) throw new Error('Revision conflict');
+    const row = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(id, requirementsPath);
+    if (!row) throw new Error('Requirements source is unavailable');
+    const needle = query.toLowerCase(), entries = JSON.parse(row.content);
+    if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, source: requirementsPath })) };
   }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);
@@ -291,7 +320,7 @@ export class WorkspaceStore {
   temporalView(id, root, expectedRevision, repository) {
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    if (workspace.digestVersion !== 3 || !repository) throw new Error('Temporal policy requires a pinned source manifest and repository');
+    if (workspace.digestVersion < 3 || !repository) throw new Error('Temporal policy requires a pinned source manifest and repository');
     const expected = workspace.sourceManifest.find(item => item.path === 'model/temporal-policy.json')?.sha256;
     if (!expected) throw new Error('Temporal policy is not in the pinned source manifest');
     const bytes = execFileSync('git', ['show', `${workspace.baselineCommit}:model/temporal-policy.json`], { cwd: repository, timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
@@ -334,9 +363,32 @@ export class WorkspaceStore {
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
       verifyAdapter(current);
-      const schema = apply(current.schema, commands), revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, current.sourceManifest);
+      if (!Array.isArray(commands) || !commands.length || commands.length > 100) throw new Error('Invalid command group');
+      const baselineManifest = JSON.parse(this.db.prepare('SELECT source_manifest FROM workspaces WHERE id = ?').get(workspaceId).source_manifest || 'null');
+      let schema = current.schema, pending = [];
+      const overlays = { ...current.sourceOverlays };
+      const flush = () => { if (pending.length) { schema = apply(schema, pending); pending = []; } };
+      for (const command of commands) {
+        if (command?.type !== 'requirement.link') { pending.push(command); continue; }
+        flush();
+        if (current.digestVersion !== 4 || Object.keys(command).sort().join(',') !== 'className,expectedClasses,requirementId,type' || !/^BR-[0-9]+$/.test(command.requirementId ?? '') || !identifier.test(command.className ?? '') || !Array.isArray(command.expectedClasses) || command.expectedClasses.length > 200 || command.expectedClasses.some(name => typeof name !== 'string' || !identifier.test(name)) || !parse(schema).classes.has(command.className)) throw new Error('Invalid requirement link');
+        const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, requirementsPath);
+        if (!source) throw new Error('Requirements source is unavailable');
+        const requirements = JSON.parse(source.content);
+        if (!Array.isArray(requirements) || canonicalJson(requirements) !== source.content.replace(/\r\n/g, '\n')) throw new Error('Requirements source format is not supported for editing');
+        const matches = requirements.filter(item => item.id === command.requirementId);
+        if (matches.length !== 1 || !Array.isArray(matches[0].classes) || JSON.stringify(matches[0].classes) !== JSON.stringify(command.expectedClasses)) throw new Error('Requirement precondition does not match');
+        if (matches[0].classes.includes(command.className)) throw new Error('Requirement already links this class');
+        matches[0].classes.push(command.className);
+        const content = canonicalJson(requirements);
+        if (Buffer.byteLength(content) > 2_000_000) throw new Error('Requirements source exceeds limit');
+        this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, requirementsPath);
+        overlays[requirementsPath] = content;
+      }
+      flush();
+      const revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, baselineManifest, overlays);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
-      this.db.prepare('INSERT INTO command_groups VALUES (?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest);
+      this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays) VALUES (?, ?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest, current.digestVersion === 4 ? JSON.stringify(current.sourceOverlays) : null);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, sourceDigest: digest }));
       const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
@@ -357,7 +409,15 @@ export class WorkspaceStore {
       if (current.revision !== expectedRevision || targetRevision !== current.revision) throw new Error('Undo requires the latest revision');
       const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(workspaceId, targetRevision);
       if (!group || group.after_digest !== current.sourceDigest) throw new Error('Command group cannot be undone');
-      const revision = current.revision + 1, digest = sourceDigest(group.before_schema, current.baselineCommit, current.digestVersion, current.sourceManifest);
+      const overlays = current.digestVersion === 4 ? JSON.parse(group.before_overlays || '{}') : {};
+      if (current.digestVersion === 4) {
+        this.db.prepare('UPDATE workspace_sources SET content = baseline_content WHERE workspace = ?').run(workspaceId);
+        for (const [path, content] of Object.entries(overlays)) {
+          if (!editableSourcePaths.has(path) || this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, path).changes !== 1) throw new Error('Invalid saved source overlay');
+        }
+      }
+      const baselineManifest = JSON.parse(this.db.prepare('SELECT source_manifest FROM workspaces WHERE id = ?').get(workspaceId).source_manifest || 'null');
+      const revision = current.revision + 1, digest = sourceDigest(group.before_schema, current.baselineCommit, current.digestVersion, baselineManifest, overlays);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(group.before_schema, revision, digest, workspaceId);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ type: 'undo', targetRevision, sourceDigest: digest }));
       const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };

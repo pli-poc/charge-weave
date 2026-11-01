@@ -8,12 +8,12 @@ const references = text => [...String(text || '').matchAll(/\bcd:([A-Za-z][A-Za-
 
 // This is a bounded index of explicit baseline references, not dependency proof.
 export function changeImpact(workspace, changes, repository) {
-  if (workspace.digestVersion !== 3 || !repository) throw new Error('Impact index requires a pinned source manifest and repository');
+  if (workspace.digestVersion < 3 || !repository) throw new Error('Impact index requires a pinned source manifest and repository');
   const sources = new Map();
   for (const path of paths) {
     const expected = workspace.sourceManifest.find(item => item.path === path)?.sha256;
     if (!expected) throw new Error(`Impact source is not in the pinned source manifest: ${path}`);
-    const bytes = execFileSync('git', ['show', `${workspace.baselineCommit}:${path}`], { cwd: repository, timeout: 15000, maxBuffer: 8 * 1024 * 1024 });
+    const bytes = Object.hasOwn(workspace.sourceOverlays || {}, path) ? Buffer.from(workspace.sourceOverlays[path], 'utf8') : execFileSync('git', ['show', `${workspace.baselineCommit}:${path}`], { cwd: repository, timeout: 15000, maxBuffer: 8 * 1024 * 1024 });
     if (digest(bytes) !== expected) throw new Error(`Pinned impact source does not match its manifest: ${path}`);
     sources.set(path, JSON.parse(bytes.toString('utf8')));
   }
@@ -45,5 +45,5 @@ export function changeImpact(workspace, changes, repository) {
   return { workspaceId: workspace.id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, baselineCommit: workspace.baselineCommit,
     mappingVersion: 'chargeweave-explicit-impact-v1', changedClasses: [...classes].sort(), changedProperties: [...properties].sort(),
     references: results.slice(0, 200), omitted: Math.max(0, results.length - 200),
-    coverage: 'partial', note: 'Only explicit references in four pinned baseline sources are indexed. Other sources, dynamic dependencies and new requirements may be missing; this is not acceptance evidence.' };
+    coverage: 'partial', note: 'Only explicit references in four pinned sources and supported draft overlays are indexed. Other sources, dynamic dependencies and new requirements may be missing; this is not acceptance evidence.' };
 }

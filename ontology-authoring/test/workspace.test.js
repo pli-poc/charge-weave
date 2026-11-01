@@ -9,8 +9,77 @@ import { createHash, randomUUID } from 'node:crypto';
 import { applyPatch } from 'diff';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { importSourceManifest } from '../src/source-manifest.js';
+import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('version-four drafts atomically link an existing requirement and undo both sources', () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository, encoding: 'utf8' });
+  const baselineSchema = show('model/domain.schema'), requirements = show('requirements/business-requirements.json');
+  const manifest = importSourceManifest(repository, commit);
+  const store = new WorkspaceStore(':memory:');
+  assert.throws(() => store.create({ title: 'Bad source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': '{}\n' } }), /Invalid editable source blob/);
+  assert.throws(() => store.create({ title: 'Unsafe source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { '../outside.json': '{}' } }), /Invalid editable source blob/);
+  const workspace = store.create({ title: 'Multi-source', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+  assert.equal(workspace.digestVersion, 4);
+  assert.deepEqual(workspace.sourceOverlays, {});
+  const requirement = store.requirementsSearch(workspace.id, 'BR-001', 20, 0).results.find(item => item.id === 'BR-001');
+  const request = { workspaceId: workspace.id, actor: 'test', operationId: 'link', expectedRevision: 0, commands: [
+    { type: 'class.add', name: 'NewDomainConcept', module: 'foundation', parent: 'Record', definition: 'A new domain concept.' },
+    { type: 'requirement.link', requirementId: requirement.id, className: 'NewDomainConcept', expectedClasses: requirement.classes },
+  ] };
+  assert.throws(() => store.apply({ ...request, operationId: 'rollback', commands: [...request.commands, { type: 'class.add', name: 'Record', module: 'foundation', parent: 'Record', definition: 'Duplicate.' }] }), /Invalid/);
+  assert.deepEqual(store.get(workspace.id).sourceOverlays, {});
+  assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
+  const result = store.apply(request);
+  assert.equal(store.apply(request).revision, result.revision);
+  const changed = store.get(workspace.id);
+  assert.notEqual(changed.sourceDigest, workspace.sourceDigest);
+  const source = changed.sourceOverlays['requirements/business-requirements.json'];
+  assert.ok(JSON.parse(source).find(item => item.id === requirement.id).classes.includes('NewDomainConcept'));
+  const diff = store.diff(workspace.id);
+  assert.equal(diff.additionalSources.length, 1);
+  assert.equal(applyPatch(requirements, diff.additionalSources[0].patch), source);
+  assert.ok(changeImpact(changed, diff.changes, repository).references.some(item => item.kind === 'requirement' && item.id === 'BR-001' && item.terms.includes('NewDomainConcept')));
+  assert.throws(() => store.apply({ ...request, operationId: 'bad', expectedRevision: 1, commands: [{ ...request.commands[1], expectedClasses: [] }] }), /precondition/);
+  assert.equal(store.get(workspace.id).sourceDigest, changed.sourceDigest);
+  store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 });
+  assert.deepEqual(store.get(workspace.id).sourceOverlays, {});
+  assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
+  assert.equal(store.get(workspace.id).schema, workspace.schema);
+  store.close();
+});
+test('version-four source overlays and receipts survive restart', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-sources-'));
+  let store;
+  try {
+    const path = join(directory, 'workspace.sqlite');
+    const baselineSchema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nOther|Record|Another record.|\n';
+    const requirements = JSON.stringify([{ id: 'BR-001', statement: 'A requirement', classes: ['Record'] }], null, 2) + '\n';
+    const hash = value => createHash('sha256').update(value).digest('hex');
+    const manifest = [
+      { path: 'model/domain.schema', sha256: hash(baselineSchema) },
+      { path: 'requirements/business-requirements.json', sha256: hash(requirements) },
+      { path: 'tools/authoring_adapter.py', sha256: hash(readFileSync(new URL('../../tools/authoring_adapter.py', import.meta.url))) },
+      { path: 'tools/domain_schema.py', sha256: hash(readFileSync(new URL('../../tools/domain_schema.py', import.meta.url))) },
+    ];
+    store = new WorkspaceStore(path);
+    const workspace = store.create({ title: 'Restart', baselineCommit: 'a'.repeat(40), schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+    const request = { workspaceId: workspace.id, actor: 'test', operationId: 'link', expectedRevision: 0, commands: [{ type: 'requirement.link', requirementId: 'BR-001', className: 'Device', expectedClasses: ['Record'] }] };
+    const result = store.apply(request);
+    store.close(); store = new WorkspaceStore(path);
+    assert.equal(store.apply(request).revision, result.revision);
+    assert.equal(store.get(workspace.id).sourceDigest, result.sourceDigest);
+    assert.deepEqual(store.requirementsSearch(workspace.id, 'BR-001').results[0].classes, ['Record', 'Device']);
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'second', expectedRevision: 1, commands: [{ type: 'requirement.link', requirementId: 'BR-001', className: 'Other', expectedClasses: ['Record', 'Device'] }] });
+    assert.deepEqual(store.requirementsSearch(workspace.id, 'BR-001').results[0].classes, ['Record', 'Device', 'Other']);
+    store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 2, targetRevision: 2 });
+    assert.equal(store.get(workspace.id).sourceDigest, result.sourceDigest);
+    assert.deepEqual(store.requirementsSearch(workspace.id, 'BR-001').results[0].classes, ['Record', 'Device']);
+  } finally { store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 test('field updates enforce old contracts and classify compatibility in review', () => {
   const store = new WorkspaceStore(':memory:');
   const source = 'MODULE|foundation\nRecord|root|A record.|label:string?\n';
