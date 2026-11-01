@@ -1042,3 +1042,22 @@ tr[hidden] { display: none; }
 .case-graph-symbol { fill: var(--accent); font-size: 18px; font-weight: 700; }
 .case-graph-label { font-size: 12px; font-weight: 600; }
 .case-graph-route-label { fill: var(--text-soft); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.correction-charts { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin:20px 0; }
+.correction-chart { padding:18px; border:1px solid var(--line-soft); border-radius:9px; background:var(--surface); min-width:0; }
+.correction-chart h3 { margin:0; font-size:16px; }
+.correction-chart p { margin:5px 0 16px; color:var(--text-soft); font-size:13px; }
+.correction-bars { display:grid; gap:11px; }
+.correction-bar-row { display:grid; grid-template-columns:minmax(110px,155px) 1fr 25px; gap:10px; align-items:center; font-size:13px; }
+.correction-bar-row strong { text-align:right; font-variant-numeric:tabular-nums; }
+.correction-bar-track { height:10px; border-radius:9px; background:var(--surface-strong); overflow:hidden; }
+.correction-bar { display:block; height:100%; border-radius:9px; background:#63caaa; }
+.correction-bar--approval { background:#f2b95c; } .correction-bar--evidence { background:#65b4d8; } .correction-bar--review { background:#df8b6d; } .correction-bar--declined { background:#a393ae; }
+.correction-arrivals { display:flex; align-items:end; gap:12px; height:145px; }
+.correction-arrival-column { flex:1; display:grid; grid-template-rows:20px 1fr 20px; height:145px; text-align:center; font-size:12px; color:var(--text-soft); }
+.correction-arrival-column strong { color:var(--text); }
+.correction-arrival-well { display:flex; align-items:end; justify-content:center; border-bottom:1px solid var(--line-soft); }
+.correction-arrival-well i { display:block; width:min(70%,36px); min-height:2px; background:var(--accent); border-radius:4px 4px 0 0; }
+.correction-fixture-list { display:grid; gap:6px; padding:12px 0; }
+.correction-fixture-list > div { display:grid; grid-template-columns: 140px 1fr 160px 105px; gap:12px; padding:9px; border-bottom:1px solid var(--line-soft); font-size:13px; }
+.correction-fixture-list small { color:var(--text-soft); }
+@media(max-width:900px) { .correction-charts { grid-template-columns:1fr; } .correction-fixture-list > div { grid-template-columns:1fr 1fr; } }
