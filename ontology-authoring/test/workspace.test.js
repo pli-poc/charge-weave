@@ -11,6 +11,24 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('responsibility view shows only exact mapped declarations and preserves source provenance', () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const baselineSchema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Responsibility', baselineCommit: commit, schema: baselineSchema });
+  const view = store.responsibilityView(workspace.id, 'ChargingStation', 0);
+  assert.equal(view.coverage, 'partial');
+  const owner = view.bindings.find(binding => binding.property === 'assetOwner');
+  assert.equal(owner.category, 'ownership');
+  assert.equal(owner.predicateIri, 'https://example.org/charge-domain#assetOwner');
+  assert.equal(owner.targetIri, 'https://example.org/charge-domain#LegalEntity');
+  assert.equal(owner.source.path, 'model/domain.schema');
+  assert.equal(owner.mappingVersion, view.mappingVersion);
+  assert.deepEqual(store.responsibilityView(workspace.id, 'TimeWindow', 0).bindings, []);
+  assert.throws(() => store.responsibilityView(workspace.id, 'ChargingStation', 1), /Revision conflict/);
+  store.close();
+});
 test('temporal view binds policy to the baseline and exposes only explicit time fields', () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

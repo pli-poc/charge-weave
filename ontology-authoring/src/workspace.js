@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { createPatch } from 'diff';
+import { responsibilityMappings, responsibilityMappingVersion } from './responsibility-mapping.js';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const candidateManifest = (manifest, schema) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : entry);
@@ -239,6 +240,21 @@ export class WorkspaceStore {
       policySource: { path: 'model/temporal-policy.json', baselineCommit: workspace.baselineCommit, sha256: expected },
       timeConvention: { interval: policy.intervalConvention ?? null, precision: policy.timePrecision ?? null, recordedTimeOwner: policy.recordedTimeOwner ?? null },
     };
+  }
+  responsibilityView(id, root, expectedRevision) {
+    const inspected = this.entity(id, root, expectedRevision);
+    const entity = inspected.entity;
+    const prefix = 'https://example.org/charge-domain#';
+    const bindings = entity.fields.flatMap(field => {
+      const mapping = responsibilityMappings.find(item => item.owner === field.owner && item.property === field.property && item.range === field.range);
+      if (!mapping) return [];
+      return [{ ...mapping, predicateIri: prefix + field.property, targetIri: prefix + field.range,
+        cardinality: field.cardinality, inherited: field.inherited, source: field.source,
+        mappingVersion: responsibilityMappingVersion }];
+    });
+    return { workspaceId: id, revision: inspected.revision, sourceDigest: inspected.sourceDigest, root, iri: entity.iri,
+      viewpoint: 'responsibility', mappingVersion: responsibilityMappingVersion, bindings,
+      coverage: 'partial', note: 'Only explicitly curated mappings are shown; absence does not prove that no other responsibility relationship exists.' };
   }
   apply({ workspaceId, actor, operationId, expectedRevision, commands }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');

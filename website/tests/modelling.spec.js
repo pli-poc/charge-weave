@@ -28,6 +28,14 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByText(/Policy source: model\/temporal-policy\.json/)).toBeVisible();
     await expect(page.getByText(/Model revision 0; policy from baseline/)).toContainText(commit);
     await expect(page.getByRole('heading', { name: 'Explicit time fields and window references' })).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
+    await expect(page.getByText('No responsibility binding defined in this mapping.')).toBeVisible();
+    await page.getByLabel('Search model').fill('ChargingStation');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'ChargingStation', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
+    await expect(page.getByText('Asset owner', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Asset owner: assetOwner → LegalEntity/)).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
 
