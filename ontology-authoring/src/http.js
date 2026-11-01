@@ -24,7 +24,7 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
       };
     },
   });
-  const activeJobs = new Set();
+  const activeJobs = new Map();
   let stopping = false;
   const service = createHttpServer(async (req, res) => {
     if (stopping) { res.writeHead(503).end('Service is stopping'); return; }
@@ -72,11 +72,13 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
     if (req.url !== '/mcp' || req.method !== 'POST') { res.writeHead(404).end('Not found'); return; }
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true, maxRequestBodySize: 512 * 1024 });
     const startValidation = (workspace, job) => {
-      const task = validationRunner(store, workspace, job, repository, python);
-      activeJobs.add(task);
-      void task.then(() => activeJobs.delete(task), () => activeJobs.delete(task));
+      const controller = new AbortController();
+      const task = validationRunner(store, workspace, job, repository, python, controller.signal);
+      activeJobs.set(job.id, { task, controller });
+      void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation });
+    const cancelValidation = jobId => activeJobs.get(jobId)?.controller.abort();
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, cancelValidation });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
@@ -91,7 +93,7 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
     const closed = new Promise(resolve => service.close(resolve));
     service.closeAllConnections();
     await closed;
-    await Promise.allSettled([...activeJobs]);
+    await Promise.allSettled([...activeJobs.values()].map(item => item.task));
   };
   return service;
 }

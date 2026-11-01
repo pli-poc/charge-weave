@@ -12,7 +12,7 @@ const generatedInputs = new Set([
 
 // Run fixed repository checks in an isolated copy of the pinned baseline.
 // Neither profile alone establishes all independent acceptance evidence.
-export async function runGenerator(store, workspace, job, repository, python = 'python') {
+export async function runGenerator(store, workspace, job, repository, python = 'python', signal) {
   let directory;
   let output = '';
   try {
@@ -30,6 +30,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
       ? [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']]
       : [['tools/build.py']];
     for (const args of commands) {
+      if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
       store.updateJob(job.id, 'running', `${output}\nRunning: ${args.join(' ')}`);
       const result = await exec(python, args, { cwd: directory, timeout: 600000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, PYTHONUTF8: '1' } });
       output += `$ ${args.join(' ')}\n${result.stdout}\n${result.stderr}\n`;
@@ -39,9 +40,10 @@ export async function runGenerator(store, workspace, job, repository, python = '
         if (!equal) throw new Error(`Generator rewrote source ${path}; reconcile changes before review`);
       }
     }
+    if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
     store.updateJob(job.id, 'passed', output);
   } catch (error) {
-    store.updateJob(job.id, 'failed', `${output}\n${error.message}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`);
+    store.updateJob(job.id, signal?.aborted ? 'cancelled' : 'failed', `${output}\n${error.message}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`);
   } finally {
     if (directory) await rm(directory, { recursive: true, force: true });
   }

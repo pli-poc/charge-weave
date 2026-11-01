@@ -33,6 +33,11 @@ export function createServer(store, actor, options = {}) {
       return result(job);
     });
     server.registerTool('ontology_job_get', { description: 'Read generator job status and freshness.', inputSchema: { workspaceId, jobId: z.string().uuid() }, annotations: { readOnlyHint: true } }, async args => result(store.job(args.workspaceId, args.jobId)));
+    if (options.cancelValidation) server.registerTool('ontology_job_cancel', { description: 'Request cooperative cancellation after the current fixed check finishes.', inputSchema: { workspaceId, jobId: z.string().uuid(), operationId }, annotations: { idempotentHint: true } }, async args => {
+      const outcome = store.requestJobCancel(args.workspaceId, args.jobId, actor, args.operationId);
+      if (outcome.requested) options.cancelValidation(args.jobId);
+      return result(outcome.job);
+    });
   }
   server.registerTool('ontology_changeset_apply', { description: 'Atomically apply supported draft class commands at an expected revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, commands: z.array(command).min(1).max(100) }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(store.apply({ ...args, actor })));
   server.registerTool('ontology_changeset_undo', { description: 'Undo the latest supported command group as a new revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, targetRevision: revision }, annotations: { idempotentHint: true } }, async args => result(store.undo({ ...args, actor })));

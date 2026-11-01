@@ -58,7 +58,7 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
-    this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running');`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
@@ -77,12 +77,31 @@ export class WorkspaceStore {
       }
       const workspace = this.get(id);
       if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
-      if (this.db.prepare("SELECT 1 FROM jobs WHERE workspace = ? AND status IN ('queued', 'running') LIMIT 1").get(id)) throw new Error('A validation job is already active for this workspace');
+      if (this.db.prepare("SELECT 1 FROM jobs WHERE workspace = ? AND status IN ('queued', 'running', 'cancelling') LIMIT 1").get(id)) throw new Error('A validation job is already active for this workspace');
       const jobId = randomUUID();
       this.db.prepare('INSERT INTO jobs (id, workspace, revision, digest, status, output, profile) VALUES (?, ?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '', profile);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(id, actor, operationId, requestHash, JSON.stringify({ jobId }));
       const job = this.job(id, jobId);
       this.db.exec('COMMIT'); return { job, created: true };
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+  requestJobCancel(workspaceId, jobId, actor, operationId) {
+    if (!actor || !operationId) throw new Error('Invalid cancellation identity');
+    const requestHash = hash(JSON.stringify({ type: 'validation.cancel', jobId }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        const job = this.job(workspaceId, jobId);
+        this.db.exec('COMMIT'); return { job, requested: false };
+      }
+      const job = this.job(workspaceId, jobId);
+      const requested = ['queued', 'running'].includes(job.status);
+      if (requested) this.db.prepare("UPDATE jobs SET status = 'cancelling' WHERE id = ?").run(jobId);
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ jobId }));
+      const result = this.job(workspaceId, jobId);
+      this.db.exec('COMMIT'); return { job: result, requested };
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   job(workspaceId, jobId) {

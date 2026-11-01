@@ -51,6 +51,19 @@ test('validation retry survives restart without starting another job', () => {
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
+test('a cancelled generator never reports passing evidence', async () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const schema = readFileSync(new URL('../../model/domain.schema', import.meta.url), 'utf8');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Cancel', baselineCommit: commit, schema });
+  const { job } = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'start');
+  const controller = new AbortController(); controller.abort();
+  await runGenerator(store, workspace, job, repository, process.execPath, controller.signal);
+  assert.equal(store.job(workspace.id, job.id).status, 'cancelled');
+  store.close();
+});
+
 test('generator changes to another tracked source fail validation', { skip: !process.env.CHARGEWEAVE_TEST_PYTHON }, async () => {
   const repository = mkdtempSync(join(tmpdir(), 'chargeweave-drift-'));
   try {

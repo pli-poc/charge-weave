@@ -85,3 +85,26 @@ test('shutdown waits for active validation before the store is closed', async ()
   assert.equal(store.job(workspace.id, result.structuredContent.id).status, 'passed');
   await client.close(); store.close();
 });
+
+test('cancellation is scoped, idempotent and waits for the active step', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Cancel', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const token = 'a'.repeat(32);
+  const service = createHttpService({ store, token, workspaceId: workspace.id, repository: '.', validationRunner: async (target, input, job, repository, python, signal) => { target.updateJob(job.id, 'running'); await pending; target.updateJob(job.id, signal.aborted ? 'cancelled' : 'passed'); } });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const client = new Client({ name: 'test', version: '1' });
+  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+  try {
+    const started = await client.callTool({ name: 'ontology_validation_start', arguments: { workspaceId: workspace.id, operationId: 'start', expectedRevision: 0, sourceDigest: workspace.sourceDigest } });
+    const request = { workspaceId: workspace.id, jobId: started.structuredContent.id, operationId: 'cancel' };
+    const cancelled = await client.callTool({ name: 'ontology_job_cancel', arguments: request });
+    assert.equal(cancelled.structuredContent.status, 'cancelling');
+    assert.equal((await client.callTool({ name: 'ontology_job_cancel', arguments: request })).structuredContent.status, 'cancelling');
+    assert.throws(() => store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'another'), /already active/);
+    release();
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(store.job(workspace.id, request.jobId).status, 'cancelled');
+  } finally { release(); await client.close(); await service.shutdown(); store.close(); }
+});
