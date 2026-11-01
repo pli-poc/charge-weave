@@ -81,7 +81,13 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     store = new WorkspaceStore(':memory:');
     const workspace = store.create({ title: 'Publication preflight', baselineCommit: commit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
     const pairingCode = 'synthetic-pairing-code-'.repeat(2);
-    const ciFetch = async () => ({ ok: true, json: async () => ({ workflow_runs: [{ id: 123, name: 'Synthetic check', status: 'completed', conclusion: 'success', head_sha: commit }] }) });
+    const ciFetch = async url => ({ ok: true, json: async () => {
+      if (url.includes('/protection/')) return { contexts: ['Synthetic required'] };
+      if (url.includes('/rules/')) return [];
+      if (url.includes('/check-runs?')) return { total_count: 1, check_runs: [{ name: 'Synthetic required', head_sha: commit, status: 'completed', conclusion: 'success' }] };
+      if (url.includes('/status?')) return { sha: commit, total_count: 0, statuses: [] };
+      return { workflow_runs: [{ id: 123, name: 'Synthetic check', status: 'completed', conclusion: 'success', head_sha: commit }] };
+    } });
     service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository, publicationFixture: { remote, branch: 'main' }, ciFetch });
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
@@ -96,6 +102,8 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.getByRole('button', { name: 'Check commit workflows' }).click();
     await expect(page.getByRole('link', { name: 'Synthetic check' })).toBeVisible();
     await expect(page.getByText(/branch-protection requirements and deployment are not checked/)).toBeVisible();
+    await page.getByRole('button', { name: 'Check required status checks' }).click();
+    await expect(page.getByText('Synthetic required: passed')).toBeVisible();
     expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });

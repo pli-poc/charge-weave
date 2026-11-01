@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
 import { publicationPreflight } from './publication-preflight.js';
-import { githubCommitWorkflows } from './github-ci.js';
+import { githubCommitWorkflows, githubRequiredChecks } from './github-ci.js';
 import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
 import { runPublicationPush } from './publication-push.js';
 import { runPublicationPullRequest } from './publication-pr.js';
@@ -48,6 +48,10 @@ export function createServer(store, actor, options = {}) {
     server.registerTool('ontology_github_commit_workflows', { description: 'Look up public GitHub Actions runs for an exact ChargeWeave commit. Required branch-protection checks and deployment are not verified.', inputSchema: { workspaceId, commitSha: z.string().regex(/^[a-f0-9]{40}$/) }, annotations: { readOnlyHint: true } }, async args => {
       store.get(args.workspaceId);
       return result(await githubCommitWorkflows(args.commitSha, options.ciFetch));
+    });
+    server.registerTool('ontology_github_required_checks', { description: 'Inspect available main-branch required status checks against an exact commit. Missing policy access and incomplete or ambiguous results remain unknown.', inputSchema: { workspaceId, commitSha: z.string().regex(/^[a-f0-9]{40}$/) }, annotations: { readOnlyHint: true } }, async args => {
+      store.get(args.workspaceId);
+      return result(await githubRequiredChecks(args.commitSha, options.githubToken, options.ciFetch));
     });
     server.registerTool('ontology_reviewer_interval_case_add', { description: 'Record one reviewer-authored synthetic interval case and its expected decision; later checks evaluate it. Review independence and business relevance.', inputSchema: { workspaceId, operationId, expectedRevision: revision, requirementId: z.string().regex(/^BR-[0-9]+$/).max(32), ruleId: z.string().regex(/^B[0-9]{3,6}$/), caseId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,127}$/), start: z.string().max(20), end: z.string().max(20), expectedConformance: z.boolean(), scenario: z.string().min(12).max(1000) }, annotations: { idempotentHint: true } }, async args => {
       const { workspaceId: id, operationId: op, expectedRevision: rev, ...values } = args;

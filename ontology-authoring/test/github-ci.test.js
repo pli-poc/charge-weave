@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { githubCommitWorkflows } from '../src/github-ci.js';
+import { githubCommitWorkflows, githubRequiredChecks } from '../src/github-ci.js';
 
 const sha = 'a'.repeat(40);
 const run = (id, status, conclusion, head_sha = sha) => ({ id, name: `workflow ${id}`, status, conclusion, head_sha });
@@ -21,6 +21,29 @@ test('workflow lookup uses the exact SHA and distinguishes completed, pending an
   assert.equal((await githubCommitWorkflows(sha, response([run(1, 'completed', 'success', 'b'.repeat(40))]))).status, 'unavailable');
   assert.equal((await githubCommitWorkflows(sha, async () => ({ ok: false, status: 403 }))).status, 'unavailable');
   await assert.rejects(() => githubCommitWorkflows('main', response([])), /full lowercase commit SHA/);
+});
+
+test('required checks bind policy, app and exact SHA without treating unavailable or skipped as passing', async () => {
+  const data = {
+    classic: { contexts: ['build'], checks: [{ context: 'build', app_id: 12 }] },
+    rules: [{ type: 'required_status_checks', parameters: { required_status_checks: [{ context: 'lint' }] } }],
+    runs: { total_count: 1, check_runs: [{ name: 'build', head_sha: sha, app: { id: 12 }, status: 'completed', conclusion: 'success' }] },
+    statuses: { sha, total_count: 1, statuses: [{ context: 'lint', state: 'success' }] },
+  };
+  const fetcher = async url => ({ ok: true, json: async () => url.includes('/protection/') ? data.classic : url.includes('/rules/') ? data.rules : url.includes('/check-runs?') ? data.runs : data.statuses });
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'passed');
+  data.runs.check_runs[0].conclusion = 'skipped';
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'incomplete');
+  data.runs.check_runs[0].conclusion = 'failure';
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'failed');
+  data.runs.check_runs[0].conclusion = 'success'; data.runs.check_runs[0].app.id = 99;
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'pending');
+  data.runs.check_runs[0].app.id = 12; data.rules.push({ type: 'workflows' });
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'unknown');
+  data.rules.pop(); data.runs.total_count = 2;
+  assert.equal((await githubRequiredChecks(sha, null, fetcher)).status, 'unknown');
+  assert.equal((await githubRequiredChecks(sha, null, async () => ({ ok: false, status: 403 }))).status, 'unknown');
+  await assert.rejects(() => githubRequiredChecks('main', null, fetcher), /full lowercase commit SHA/);
 });
 
 test('workflow lookup paginates and refuses to call a truncated list complete', async () => {
