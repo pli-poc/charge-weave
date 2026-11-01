@@ -5,8 +5,39 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 test.use({ actionTimeout: 10000 });
+
+test('reviewer can inspect a publication target without publishing', async ({ page }) => {
+  test.setTimeout(45000);
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-browser-publish-'));
+  const repository = join(directory, 'checkout'), remote = join(directory, 'remote.git');
+  mkdirSync(repository);
+  const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  let store, service;
+  try {
+    git(directory, ['init', '--bare', remote]); git(repository, ['init']);
+    writeFileSync(join(repository, 'README.md'), 'baseline\n');
+    git(repository, ['add', '.']); git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
+    git(repository, ['remote', 'add', 'origin', remote]); git(repository, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const commit = git(repository, ['rev-parse', 'HEAD']);
+    store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Publication preflight', baselineCommit: commit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+    const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+    service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository, publicationFixture: { remote, branch: 'main' } });
+    service.listen(0, '127.0.0.1'); await once(service, 'listening');
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Check publication target' }).click();
+    await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
+    await expect(page.getByText(/Acceptance and publication are not implemented/)).toBeVisible();
+    expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
+  } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 
 test('browser updates a field with a visible compatibility warning', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');

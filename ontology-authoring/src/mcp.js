@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
+import { publicationPreflight } from './publication-preflight.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -41,6 +42,7 @@ export function createServer(store, actor, options = {}) {
     server.registerTool('ontology_changeset_review', { description: 'Record a digest-bound request for changes or rejection; rejection does not erase the draft. Acceptance is not yet available.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), decision: z.enum(['request_changes', 'reject']), reason: z.string().min(1).max(4000) }, annotations: { idempotentHint: true } }, async args => result(store.recordReview(args.workspaceId, { ...args, actor })));
   }
   if (options.repository) {
+    if (options.role === 'reviewer') server.registerTool('ontology_publication_preflight', { description: 'Inspect the configured target head, draft source files and available evidence. Does not accept or publish.', inputSchema: { workspaceId, expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(await publicationPreflight(store, args.workspaceId, args.expectedRevision, options.repository, options.publicationFixture)));
     server.registerTool('ontology_change_impact_get', { description: 'Find bounded explicit references in pinned requirements, journeys, rules and temporal queries; coverage is partial.', inputSchema: { workspaceId, expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => {
       const workspace = store.get(args.workspaceId);
       if (args.expectedRevision !== undefined && args.expectedRevision !== workspace.revision) throw new Error('Revision conflict');

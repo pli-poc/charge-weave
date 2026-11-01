@@ -1,0 +1,54 @@
+import { test } from 'node:test';
+import { strict as assert } from 'node:assert';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { WorkspaceStore } from '../src/workspace.js';
+import { publicationPreflight } from '../src/publication-preflight.js';
+
+test('publication preflight reads the actual allowlisted head without publishing', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-publish-'));
+  const repository = join(directory, 'checkout'), remote = join(directory, 'remote.git');
+  mkdirSync(repository);
+  const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  let store;
+  try {
+    git(directory, ['init', '--bare', remote]);
+    git(repository, ['init']);
+    writeFileSync(join(repository, 'README.md'), 'baseline\n');
+    git(repository, ['add', '.']);
+    git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
+    git(repository, ['remote', 'add', 'origin', remote]);
+    git(repository, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const commit = git(repository, ['rev-parse', 'HEAD']);
+    store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Preflight', baselineCommit: commit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+    const fixture = { remote, branch: 'main' };
+    const initial = await publicationPreflight(store, workspace.id, 0, repository, fixture);
+    assert.equal(initial.target.status, 'matches-baseline');
+    assert.equal(initial.target.head, commit);
+    assert.equal(initial.canPublish, false);
+    assert.deepEqual(initial.sourceFiles, []);
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Changed.' }] });
+    const draft = await publicationPreflight(store, workspace.id, 1, repository, fixture);
+    assert.deepEqual(draft.sourceFiles, ['model/domain.schema']);
+    assert.equal(draft.readiness.canAccept, false);
+    writeFileSync(join(repository, 'README.md'), 'advanced\n');
+    git(repository, ['add', '.']);
+    git(repository, ['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'advance']);
+    git(repository, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const advanced = await publicationPreflight(store, workspace.id, 1, repository, fixture);
+    assert.equal(advanced.target.status, 'changed');
+    assert.notEqual(advanced.target.head, commit);
+    const pending = publicationPreflight(store, workspace.id, 1, repository, fixture);
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'again', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Changed again.' }] });
+    const stale = await pending;
+    assert.equal(stale.stale, true);
+    assert.deepEqual(stale.sourceFiles, []);
+    git(repository, ['remote', 'set-url', 'origin', 'https://user:secret@example.invalid/repository.git']);
+    const denied = await publicationPreflight(store, workspace.id, 2, repository, fixture);
+    assert.equal(denied.target.status, 'repository-not-allowlisted');
+    assert.equal(JSON.stringify(denied).includes('secret'), false);
+  } finally { store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
