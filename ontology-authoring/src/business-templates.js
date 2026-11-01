@@ -50,3 +50,30 @@ export function buildIntervalSources(owner, command, contents) {
   }
   return Object.fromEntries(intervalSourcePaths.map(path => [path, canonicalJson(data[path])]));
 }
+
+// A reviewer supplies both the example and expected decision. Only fixed Turtle
+// syntax is emitted; rule success is checked later, never inferred here.
+export function buildReviewerIntervalCase(command, contents) {
+  const keys = ['caseId', 'end', 'expectedConformance', 'requirementId', 'ruleId', 'scenario', 'start', 'type'].sort().join(',');
+  const timestamp = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString() === value.replace('Z', '.000Z');
+  if (!command || Object.keys(command).sort().join(',') !== keys || command.type !== 'reviewer.interval_case_add' || !/^BR-[0-9]+$/.test(command.requirementId ?? '') || !/^B[0-9]{3,6}$/.test(command.ruleId ?? '') || !/^[A-Za-z0-9][A-Za-z0-9-]{0,127}$/.test(command.caseId ?? '') || !timestamp(command.start) || !timestamp(command.end) || typeof command.expectedConformance !== 'boolean' || typeof command.scenario !== 'string' || command.scenario.trim().length < 12 || command.scenario.length > 1000) throw new Error('Invalid reviewer interval case');
+  const paths = ['model/audit-rules.json', 'requirements/business-requirements.json', 'tests/business-acceptance.json'];
+  const data = paths.map(path => {
+    if (typeof contents[path] !== 'string') throw new Error('Reviewer case source is unavailable');
+    const value = JSON.parse(contents[path]);
+    if (!Array.isArray(value) || canonicalJson(value) !== contents[path].replace(/\r\n/g, '\n')) throw new Error('Reviewer case source format is unsupported');
+    return value;
+  });
+  const [rules, requirements, cases] = data;
+  const matches = rules.filter(item => item.id === command.ruleId && item.requirement === command.requirementId && item.provenance === 'template-derived');
+  const requirement = requirements.filter(item => item.id === command.requirementId);
+  if (matches.length !== 1 || requirement.length !== 1 || !Array.isArray(requirement[0].scenarios) || !Array.isArray(requirement[0].rules) || !requirement[0].rules.includes(command.ruleId)) throw new Error('Reviewer case rule or requirement is unavailable');
+  const rule = matches[0];
+  const body = /^\$this cd:([A-Za-z][A-Za-z0-9]*) \?start; cd:([A-Za-z][A-Za-z0-9]*) \?end\. FILTER\(\?end <= \?start\)$/.exec(rule.body);
+  if (!body || !identifier.test(rule.target ?? '')) throw new Error('Unsupported interval rule');
+  const given = `ex:this cd:${body[1]} "${command.start}"^^xsd:dateTime; cd:${body[2]} "${command.end}"^^xsd:dateTime.`;
+  if (cases.some(item => item.id === command.caseId || item.rule === command.ruleId && item.given === given) || requirement[0].scenarios.includes(command.caseId)) throw new Error('Reviewer case duplicates an existing ID or example');
+  cases.push({ id: command.caseId, requirement: command.requirementId, rule: command.ruleId, focusClass: rule.target, expectedConformance: command.expectedConformance, given, when: 'Validate the declared interval constraint.', then: command.scenario.trim(), scope: 'Reviewer-authored synthetic business case; review its independence and relevance.', provenance: 'independent' });
+  requirement[0].scenarios.push(command.caseId);
+  return Object.fromEntries([[paths[1], canonicalJson(requirements)], [paths[2], canonicalJson(cases)]]);
+}

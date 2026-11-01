@@ -22,7 +22,7 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       const member = target[property];
       if (typeof member !== 'function') return member;
       return (...args) => {
-        const requested = ['apply', 'undo'].includes(property) ? args[0]?.workspaceId : args[0];
+        const requested = ['apply', 'applyReviewerCase', 'undo'].includes(property) ? args[0]?.workspaceId : args[0];
         if (requested !== workspaceId) throw new Error('Workspace not authorized');
         return member.apply(target, args);
       };

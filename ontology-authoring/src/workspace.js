@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createPatch } from 'diff';
 import { responsibilityMappings, responsibilityMappingVersion } from './responsibility-mapping.js';
 import { editableSourcePaths } from './source-manifest.js';
-import { buildIntervalSources, canonicalJson, intervalSourcePaths } from './business-templates.js';
+import { buildIntervalSources, buildReviewerIntervalCase, canonicalJson, intervalSourcePaths } from './business-templates.js';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const candidateManifest = (manifest, schema, overlays = {}) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : Object.hasOwn(overlays, entry.path) ? { ...entry, sha256: hash(overlays[entry.path]) } : entry);
@@ -381,7 +381,10 @@ export class WorkspaceStore {
       viewpoint: 'responsibility', mappingVersion: responsibilityMappingVersion, bindings,
       coverage: 'partial', note: 'Only explicitly curated mappings are shown; absence does not prove that no other responsibility relationship exists.' };
   }
-  apply({ workspaceId, actor, operationId, expectedRevision, commands }) {
+  applyReviewerCase({ workspaceId, actor, operationId, expectedRevision, command }) {
+    return this.apply({ workspaceId, actor, operationId, expectedRevision, commands: [command], reviewerCase: true });
+  }
+  apply({ workspaceId, actor, operationId, expectedRevision, commands, reviewerCase = false }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
     const requestHash = hash(JSON.stringify({ expectedRevision, commands }));
     this.db.exec('BEGIN IMMEDIATE');
@@ -400,6 +403,17 @@ export class WorkspaceStore {
       const overlays = { ...current.sourceOverlays };
       const flush = () => { if (pending.length) { schema = apply(schema, pending); pending = []; } };
       for (const command of commands) {
+        if (command?.type === 'reviewer.interval_case_add') {
+          if (!reviewerCase || commands.length !== 1 || current.digestVersion !== 4) throw new Error('Reviewer interval case is not authorized');
+          flush();
+          const contents = Object.fromEntries(this.db.prepare('SELECT path, content FROM workspace_sources WHERE workspace = ?').all(workspaceId).map(source => [source.path, source.content]));
+          const updated = buildReviewerIntervalCase(command, contents);
+          for (const [path, content] of Object.entries(updated)) {
+            if (!editableSourcePaths.has(path) || Buffer.byteLength(content) > 2_000_000 || this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, path).changes !== 1) throw new Error('Invalid reviewer case source update');
+            overlays[path] = content;
+          }
+          continue;
+        }
         const interval = command?.type === 'constraint.add' && command.template === 'valid-interval';
         if (!interval && !['requirement.link', 'temporal.policy_set'].includes(command?.type)) { pending.push(command); continue; }
         flush();

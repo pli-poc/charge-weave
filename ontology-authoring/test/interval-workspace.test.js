@@ -55,6 +55,38 @@ test('interval template creates and undoes the complete multi-source draft', asy
   } finally { await client.close(); store.close(); }
 });
 
+test('reviewer-authored interval cases are separate, bounded and revisioned', async () => {
+  const { store, workspace, commands } = intervalFixture();
+  const clients = [];
+  try {
+    store.apply({ workspaceId: workspace.id, actor: 'draft', operationId: 'interval', expectedRevision: 0, commands });
+    for (const role of ['draft', 'reviewer']) {
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+      const server = createServer(store, role, { role });
+      const client = new Client({ name: role, version: '1' });
+      await server.connect(serverTransport); await client.connect(clientTransport); clients.push(client);
+    }
+    const [draft, reviewer] = clients;
+    assert.equal((await draft.listTools()).tools.some(item => item.name === 'ontology_reviewer_interval_case_add'), false);
+    const base = { workspaceId: workspace.id, operationId: 'case-positive', expectedRevision: 1, requirementId: 'BR-012', ruleId: 'B900', caseId: 'BR-012-B900-REVIEW-PASS', start: '2026-10-01T10:00:00Z', end: '2026-10-01T12:00:00Z', expectedConformance: true, scenario: 'A service window that ends after it starts is accepted.' };
+    assert.equal((await draft.callTool({ name: 'ontology_reviewer_interval_case_add', arguments: base })).isError, true);
+    const first = await reviewer.callTool({ name: 'ontology_reviewer_interval_case_add', arguments: base });
+    assert.equal(first.structuredContent.revision, 2, JSON.stringify(first));
+    assert.equal((await reviewer.callTool({ name: 'ontology_reviewer_interval_case_add', arguments: base })).structuredContent.revision, 2);
+    const candidate = store.get(workspace.id);
+    const example = JSON.parse(candidate.sourceOverlays['tests/business-acceptance.json']).find(item => item.id === base.caseId);
+    assert.equal(example.provenance, 'independent');
+    assert.equal(example.expectedConformance, true);
+    assert.ok(JSON.parse(candidate.sourceOverlays['requirements/business-requirements.json']).find(item => item.id === base.requirementId).scenarios.includes(base.caseId));
+    const duplicate = { ...base, operationId: 'duplicate', expectedRevision: 2, caseId: 'BR-012-B900-OTHER' };
+    assert.equal((await reviewer.callTool({ name: 'ontology_reviewer_interval_case_add', arguments: duplicate })).isError, true);
+    const negative = { ...base, operationId: 'case-negative', expectedRevision: 2, caseId: 'BR-012-B900-REVIEW-FAIL', end: '2026-10-01T09:00:00Z', expectedConformance: false, scenario: 'A service window ending before it starts is rejected.' };
+    assert.equal((await reviewer.callTool({ name: 'ontology_reviewer_interval_case_add', arguments: negative })).structuredContent.revision, 3);
+    store.undo({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'undo-case', expectedRevision: 3, targetRevision: 3 });
+    assert.equal(store.get(workspace.id).sourceDigest, candidate.sourceDigest);
+  } finally { for (const client of clients) await client.close(); store.close(); }
+});
+
 test('real interval candidate passes reference and focused business decisions', { skip: !process.env.CHARGEWEAVE_TEST_RULE_TEMPLATE, timeout: 900000 }, async () => {
   const { repository, sourceBlobs, store, workspace, commands } = intervalFixture();
   try {
@@ -75,5 +107,15 @@ test('real interval candidate passes reference and focused business decisions', 
     const auditResult = store.job(workspace.id, audit.id);
     assert.equal(auditResult.status, 'failed', auditResult.output);
     assert.match(auditResult.output, /B900:independent-positive-and-negative/);
+    const base = { type: 'reviewer.interval_case_add', requirementId: 'BR-012', ruleId: 'B900', start: '2026-10-01T10:00:00Z' };
+    store.applyReviewerCase({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'independent-positive', expectedRevision: 1, command: { ...base, caseId: 'BR-012-B900-REVIEW-PASS', end: '2026-10-01T12:00:00Z', expectedConformance: true, scenario: 'A service window ending after it starts is accepted.' } });
+    store.applyReviewerCase({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'independent-negative', expectedRevision: 2, command: { ...base, caseId: 'BR-012-B900-REVIEW-FAIL', end: '2026-10-01T09:00:00Z', expectedConformance: false, scenario: 'A service window ending before it starts is rejected.' } });
+    const reviewed = store.get(workspace.id);
+    for (const profile of ['audit', 'reference']) {
+      const reviewedJob = store.createJob(workspace.id, 3, reviewed.sourceDigest, 'reviewer', `reviewed-${profile}`, profile).job;
+      await runGenerator(store, reviewed, reviewedJob, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+      const checked = store.job(workspace.id, reviewedJob.id);
+      assert.equal(checked.status, 'passed', checked.output);
+    }
   } finally { store.close(); }
 });
