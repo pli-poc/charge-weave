@@ -45,6 +45,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(page.getByText(/recordName: string.*inherited from Record/)).toBeVisible();
     await expect(page.getByRole('img', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.getByText('subClassOf →')).toBeVisible();
+    await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await page.getByText('Add a field or relationship').click();
     await page.getByLabel('Field name').fill('windowNote');
     await page.getByRole('button', { name: 'Add field' }).click();

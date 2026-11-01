@@ -190,16 +190,37 @@ export class WorkspaceStore {
     const classes = parse(workspace.schema).classes;
     const entity = classes.get(root);
     if (!entity) throw new Error('Class not found');
-    const edges = [];
-    const parent = entity.parent === '-' ? 'Record' : entity.parent;
-    if (classes.has(parent)) edges.push({ source: root, target: parent, predicate: 'subClassOf', sourcePath: 'model/domain.schema' });
-    for (const token of entity.fields.split(/\s+/).filter(Boolean)) {
-      const match = /^([A-Za-z][A-Za-z0-9]*):([A-Za-z][A-Za-z0-9]*)[!?+*]$/.exec(token);
-      if (match && classes.has(match[2])) edges.push({ source: root, target: match[2], predicate: match[1], sourcePath: 'model/domain.schema' });
-    }
+    const baseline = parse(this.db.prepare('SELECT baseline_schema FROM workspaces WHERE id = ?').get(id).baseline_schema).classes;
+    const prefix = 'https://example.org/charge-domain#';
+    const lines = new Map(workspace.schema.split(/\r?\n/).map((line, index) => [line.split('|', 1)[0], index + 1]));
+    const relationKeys = (item, classSet) => {
+      if (!item) return [];
+      const result = [];
+      const parent = item.parent === '-' ? 'Record' : item.parent;
+      if (classSet.has(parent)) result.push(['subClassOf', parent, null]);
+      for (const token of item.fields.split(/\s+/).filter(Boolean)) {
+        const match = /^([A-Za-z][A-Za-z0-9]*):([A-Za-z][A-Za-z0-9]*)([!?+*])$/.exec(token);
+        if (match && classSet.has(match[2])) result.push([match[1], match[2], match[3]]);
+      }
+      return result;
+    };
+    const previousRelations = new Set(relationKeys(baseline.get(root), baseline).map(parts => JSON.stringify(parts)));
+    const edges = relationKeys(entity, classes).map(([predicate, target, cardinality]) => ({
+      id: JSON.stringify([prefix + root, predicate === 'subClassOf' ? 'http://www.w3.org/2000/01/rdf-schema#subClassOf' : prefix + predicate, prefix + target]),
+      source: root, target, predicate, cardinality,
+      predicateIri: predicate === 'subClassOf' ? 'http://www.w3.org/2000/01/rdf-schema#subClassOf' : prefix + predicate,
+      sourcePath: 'model/domain.schema', sourceRef: { path: 'model/domain.schema', line: lines.get(root) },
+      mappingVersion: 'chargeweave-authoring-v1', changeStatus: previousRelations.has(JSON.stringify([predicate, target, cardinality])) ? 'unchanged' : 'added',
+    }));
     const visible = edges.slice(0, 50);
     const names = [...new Set([root, ...visible.map(edge => edge.target)])];
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, nodes: names.map(name => classes.get(name)), edges: visible, omitted: edges.length - visible.length };
+    const nodes = names.map(name => {
+      const item = classes.get(name), before = baseline.get(name);
+      return { ...item, id: prefix + name, iri: prefix + name, kind: 'class', label: name,
+        sourceRef: { path: 'model/domain.schema', line: lines.get(name) },
+        changeStatus: !before ? 'added' : JSON.stringify(before) === JSON.stringify(item) ? 'unchanged' : 'changed' };
+    });
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, viewpoint: 'information', mappingVersion: 'chargeweave-authoring-v1', root, nodes, edges: visible, omitted: edges.length - visible.length };
   }
   apply({ workspaceId, actor, operationId, expectedRevision, commands }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');

@@ -9,6 +9,28 @@ import { createHash, randomUUID } from 'node:crypto';
 import { applyPatch } from 'diff';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('information view traces draft relationships to source and baseline', () => {
+  const store = new WorkspaceStore(':memory:');
+  const initial = '# source\nMODULE|foundation\nRecord|root|A record.|\nDevice|-|A device.|owns:Record!\n';
+  const workspace = store.create({ title: 'View', baselineCommit: 'a'.repeat(40), schema: initial });
+  const first = store.view(workspace.id, 'Device', 0);
+  assert.equal(first.viewpoint, 'information');
+  assert.equal(first.nodes[0].iri, 'https://example.org/charge-domain#Device');
+  assert.deepEqual(first.nodes[0].sourceRef, { path: 'model/domain.schema', line: 4 });
+  assert.equal(first.nodes[0].changeStatus, 'unchanged');
+  assert.equal(first.edges.find(edge => edge.predicate === 'owns').cardinality, '!');
+  assert.equal(first.edges.find(edge => edge.predicate === 'owns').changeStatus, 'unchanged');
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'relationship.add', owner: 'Device', name: 'references', range: 'Record', cardinality: '*' }] });
+  const next = store.view(workspace.id, 'Device', 1);
+  assert.equal(next.nodes[0].changeStatus, 'changed');
+  const edge = next.edges.find(item => item.predicate === 'references');
+  assert.equal(edge.changeStatus, 'added');
+  assert.equal(edge.predicateIri, 'https://example.org/charge-domain#references');
+  assert.deepEqual(edge.sourceRef, { path: 'model/domain.schema', line: 4 });
+  assert.equal(edge.cardinality, '*');
+  assert.equal(edge.mappingVersion, next.mappingVersion);
+  store.close();
+});
 test('candidate identity binds the pinned baseline', () => {
   const store = new WorkspaceStore(':memory:');
   const first = store.create({ title: 'One', baselineCommit: 'a'.repeat(40), schema });
