@@ -393,6 +393,39 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('failed validation can be inspected, corrected and retried on the current draft', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const validationRunner = async (target, input, job) => {
+    const failing = input.schema.includes('Needs correction.');
+    target.startJobStep(job.id, 0, 'tools/example-check.py');
+    target.finishJobStep(job.id, 0, failing ? 'failed' : 'passed', failing ? 'Synthetic fixture: definition needs correction.' : 'Fixture passed.');
+    target.updateJob(job.id, failing ? 'failed' : 'passed', failing ? 'Synthetic fixture: definition needs correction.' : 'Fixture passed.');
+  };
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', validationRunner, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Run structural generator' }).click();
+    const issues = page.getByRole('region', { name: 'Validation issues' });
+    await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
+    await issues.getByText('Recorded check output').click();
+    await expect(issues.getByText('Synthetic fixture: definition needs correction.')).toBeVisible();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Corrected definition.');
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    await expect(issues.getByText(/stale for the current draft/)).toBeVisible();
+    await issues.getByRole('button', { name: 'Retry structural check on current draft' }).click();
+    await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
+    await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
