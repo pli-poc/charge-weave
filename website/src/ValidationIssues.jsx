@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
 
+function fixtureFailures(step) {
+  if (!step.checkName.includes('tools/test_authoring_maintenance_demo.py')) return [];
+  for (const line of (step.output || '').split(/\r?\n/).reverse()) {
+    try {
+      const report = JSON.parse(line);
+      if (!Array.isArray(report.cases)) continue;
+      return report.cases.filter(item => item && typeof item.case === 'string' && typeof item.expectedConformance === 'boolean' && typeof item.actualConformance === 'boolean' && item.passed === false).slice(0, 100);
+    } catch { /* Not a structured fixture report. */ }
+  }
+  return [];
+}
+const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maintenanceStation'], 'invalid-planning-state': ['PlannedMaintenanceWindow', 'maintenancePlanningState'], 'reversed-shared-interval': ['TimeWindow', 'endsAt'] };
+
 // A failing check is evidence of a failed check, not automatically a model defect.
-export default function ValidationIssues({ job, snapshot, onRetry }) {
+export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept }) {
   const [copyMessage, setCopyMessage] = useState('');
   if (!job || ['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile)) return null;
   const stale = job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest;
@@ -19,6 +32,7 @@ export default function ValidationIssues({ job, snapshot, onRetry }) {
     {issues.map(step => <article key={step.ordinal}>
       <h3>Failed check: {step.checkName}</h3>
       <p>Severity: error. Affected concept and cause are not determined by this check summary; inspect its output before choosing a repair.</p>
+      {fixtureFailures(step).length > 0 && <><h4>Synthetic fixture mismatches</h4><p>These are test examples, not live data or a claim that the model is incomplete.</p><ul>{fixtureFailures(step).map(item => <li key={item.case}>{item.case}: expected {item.expectedConformance ? 'conformance' : 'rejection'}, observed {item.actualConformance ? 'conformance' : 'rejection'}.{fixtureConcepts[item.case] && <> Fixture target: {fixtureConcepts[item.case].join('.')}. <button type="button" disabled={stale} onClick={() => onFocusConcept(fixtureConcepts[item.case][0])}>Inspect {fixtureConcepts[item.case][0]}</button></>}</li>)}</ul></>}
       <details><summary>Recorded check output</summary><pre>{step.output || job.output || 'No output was recorded.'}</pre></details>
       <button type="button" onClick={() => copyRepair(step)}>Copy repair instruction</button>
     </article>)}

@@ -474,6 +474,13 @@ test('failed validation can be inspected, corrected and retried on the current d
   const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const validationRunner = async (target, input, job) => {
+    if (job.profile === 'maintenance-demo') {
+      const report = JSON.stringify({ cases: [{ case: 'missing-station', expectedConformance: false, actualConformance: true, passed: false }, { case: 'reversed-shared-interval', expectedConformance: false, actualConformance: false, passed: true }] });
+      target.startJobStep(job.id, 0, 'tools/test_authoring_maintenance_demo.py');
+      target.finishJobStep(job.id, 0, 'failed', report);
+      target.updateJob(job.id, 'failed', report);
+      return;
+    }
     const failing = input.schema.includes('Needs correction.');
     target.startJobStep(job.id, 0, 'tools/example-check.py');
     target.finishJobStep(job.id, 0, failing ? 'failed' : 'passed', failing ? 'Synthetic fixture: definition needs correction.' : 'Fixture passed.');
@@ -499,6 +506,10 @@ test('failed validation can be inspected, corrected and retried on the current d
     await issues.getByRole('button', { name: 'Retry structural check on current draft' }).click();
     await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
+    await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
+    await expect(issues.getByText('missing-station: expected rejection, observed conformance.')).toBeVisible();
+    await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeVisible();
+    await expect(issues.getByText(/reversed-shared-interval: expected/)).toHaveCount(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
