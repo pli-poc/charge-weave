@@ -52,6 +52,7 @@ test('scripted maintenance scenario shares edits and recovers after restart', as
       { type: 'class.add', name: 'PlannedMaintenanceWindow', module: 'foundation', parent: 'Record', definition: 'A planned interval of charging station unavailability.' },
       ...[['maintenanceStation', 'ChargingStation', '!'], ['maintenanceInterval', 'TimeWindow', '!'], ['maintenanceWorkOrder', 'WorkOrder', '?'], ['maintenanceAccountableParty', 'LegalEntity', '!']].map(([name, range, cardinality]) => ({ type: 'relationship.add', owner: 'PlannedMaintenanceWindow', name, range, cardinality })),
       { type: 'property.add', owner: 'PlannedMaintenanceWindow', name: 'maintenanceReason', range: 'string', cardinality: '!' },
+      { type: 'property.add', owner: 'PlannedMaintenanceWindow', name: 'maintenancePlanningState', range: '{Draft,Confirmed,Cancelled}', cardinality: '!' },
     ];
     const request = { workspaceId: workspace.id, operationId: 'demo-proposal', expectedRevision: 0, commands };
     const proposal = await invoke(clients[0], 'ontology_changeset_apply', request);

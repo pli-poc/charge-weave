@@ -34,6 +34,9 @@ test('typed fields reject unknown targets and reused global properties atomicall
   assert.equal(store.diff(workspace.id).changes[0].kind, 'changed');
   assert.equal(store.diff(workspace.id).source.before, schema);
   assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'duplicate', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '?' }] }), /Invalid/);
+  assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'bad-enum', commands: [{ type: 'property.add', owner: 'Record', name: 'state', range: '{Draft,Draft}', cardinality: '!' }] }), /Invalid/);
+  store.apply({ ...base, expectedRevision: 1, operationId: 'enum', commands: [{ type: 'property.add', owner: 'Record', name: 'state', range: '{Draft,Confirmed,Cancelled}', cardinality: '!' }] });
+  assert.match(store.get(workspace.id).schema, /state:\{Draft,Confirmed,Cancelled\}!/);
   store.close();
 });
 

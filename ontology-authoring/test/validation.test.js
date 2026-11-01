@@ -13,17 +13,19 @@ test('generator evidence is bound to its input and becomes stale after edits', a
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const schema = readFileSync(new URL('../../model/domain.schema', import.meta.url), 'utf8');
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Validation', baselineCommit: commit, schema });
+  const created = store.create({ title: 'Validation', baselineCommit: commit, schema });
+  store.apply({ workspaceId: created.id, actor: 'test', operationId: 'enum', expectedRevision: 0, commands: [{ type: 'class.add', name: 'ValidationExample', module: 'foundation', parent: 'Record', definition: 'A validation example.' }, { type: 'property.add', owner: 'ValidationExample', name: 'validationExampleState', range: '{Draft,Confirmed,Cancelled}', cardinality: '!' }] });
+  const workspace = store.get(created.id);
   const { job } = store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'test', 'job-one');
   assert.equal(store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'test', 'job-one').created, false);
-  assert.throws(() => store.createJob(workspace.id, 1, workspace.sourceDigest, 'test', 'job-one'), /reused/);
+  assert.throws(() => store.createJob(workspace.id, 2, workspace.sourceDigest, 'test', 'job-one'), /reused/);
   await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON || process.execPath);
   const finished = store.job(workspace.id, job.id);
   assert.equal(finished.status, process.env.CHARGEWEAVE_TEST_PYTHON ? 'passed' : 'failed', finished.output);
   assert.equal(finished.stale, false);
-  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
   assert.equal(store.job(workspace.id, job.id).stale, true);
-  assert.throws(() => store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'job-two'), /Stale/);
+  assert.throws(() => store.createJob(workspace.id, 1, workspace.sourceDigest, 'test', 'job-two'), /Stale/);
   store.close();
 });
 

@@ -33,7 +33,10 @@ function apply(schema, commands) {
       const { owner, name, range, cardinality } = command;
       const datatypes = new Set(['string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI', 'IRI']);
       const existing = [...model.classes.values()].flatMap(item => item.fields.split(/\s+/).filter(Boolean));
-      if (!model.classes.has(owner) || !identifier.test(name ?? '') || existing.some(field => field.startsWith(`${name}:`)) || !['!', '?', '+', '*'].includes(cardinality) || !(datatypes.has(range) || model.classes.has(range)) || (command.type === 'relationship.add' && !model.classes.has(range))) throw new Error('Invalid property.add');
+      const enumMatch = typeof range === 'string' && /^\{([A-Za-z][A-Za-z0-9]*(?:,[A-Za-z][A-Za-z0-9]*)+)\}$/.exec(range);
+      const values = enumMatch ? enumMatch[1].split(',') : [];
+      const validEnum = values.length >= 2 && values.length <= 50 && new Set(values).size === values.length;
+      if (!model.classes.has(owner) || !identifier.test(name ?? '') || existing.some(field => field.startsWith(`${name}:`)) || !['!', '?', '+', '*'].includes(cardinality) || !(datatypes.has(range) || model.classes.has(range) || validEnum) || (command.type === 'relationship.add' && !model.classes.has(range))) throw new Error('Invalid property.add');
       const index = lines.findIndex(line => line.startsWith(`${owner}|`));
       const parts = lines[index].split('|');
       parts[3] = [parts[3], `${name}:${range}${cardinality}`].filter(Boolean).join(' ');
