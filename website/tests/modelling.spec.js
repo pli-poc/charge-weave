@@ -32,6 +32,8 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('changed: Record')).toBeVisible();
     await expect(page.getByText('After: An edited record.')).toBeVisible();
+    await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
+    await expect(page.locator('pre').filter({ hasText: '+Record|root|An edited record.' })).toBeVisible();
     await page.getByText('Add a concept').click();
     await page.getByLabel('Class name').fill('MaintenanceWindow');
     await page.getByLabel('Class definition').fill('A planned maintenance window.');

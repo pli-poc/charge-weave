@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
+import { applyPatch } from 'diff';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
 test('candidate identity binds the pinned baseline', () => {
@@ -94,6 +95,7 @@ test('typed fields reject unknown targets and reused global properties atomicall
   assert.deepEqual(store.view(workspace.id, 'Record').edges.map(edge => edge.predicate), ['related']);
   assert.equal(store.diff(workspace.id).changes[0].kind, 'changed');
   assert.equal(store.diff(workspace.id).source.before, schema);
+  assert.equal(applyPatch(schema, store.diff(workspace.id).source.patch), store.get(workspace.id).schema);
   assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'duplicate', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '?' }] }), /Invalid/);
   assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'bad-enum', commands: [{ type: 'property.add', owner: 'Record', name: 'state', range: '{Draft,Draft}', cardinality: '!' }] }), /Invalid/);
   store.apply({ ...base, expectedRevision: 1, operationId: 'enum', commands: [{ type: 'property.add', owner: 'Record', name: 'state', range: '{Draft,Confirmed,Cancelled}', cardinality: '!' }] });
