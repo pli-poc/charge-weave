@@ -3,12 +3,9 @@ import { promisify } from 'node:util';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { generatedInputs, sha256 } from './source-manifest.js';
 
 const exec = promisify(execFile);
-const generatedInputs = new Set([
-  'model/catalog.json', 'model/property-types.json', 'model/rules.json', 'model/transitions.json', 'model/competency-questions.json', 'model/temporal-example.json',
-  'benchmark/resource-coverage.json', 'benchmark/endpoint-coverage.json', 'benchmark/event-catalog.json', 'benchmark/capture.json', 'benchmark/pricing-field-crosswalk.json', 'tests/journey-snapshots.json',
-]);
 
 // Run fixed repository checks in an isolated copy of the pinned baseline.
 // Neither profile alone establishes all independent acceptance evidence.
@@ -27,6 +24,10 @@ export async function runGenerator(store, workspace, job, repository, python = '
     const sourcePaths = tracked.stdout.split('\0').filter(path => path && !generatedInputs.has(path));
     const sourceBytes = new Map();
     for (const path of sourcePaths) sourceBytes.set(path, await readFile(join(directory, path)));
+    if (workspace.digestVersion === 3) {
+      const actual = [...sourceBytes].map(([path, bytes]) => ({ path, sha256: sha256(bytes) })).sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+      if (JSON.stringify(actual) !== JSON.stringify(workspace.sourceManifest)) throw new Error('Candidate source manifest does not match materialized inputs');
+    }
     const commands = job.profile === 'reference'
       ? [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']]
       : [['tools/build.py']];

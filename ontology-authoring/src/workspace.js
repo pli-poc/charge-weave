@@ -2,9 +2,11 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
-const sourceDigest = (schema, baselineCommit, version) => hash(JSON.stringify(version === 1
+const candidateManifest = (manifest, schema) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : entry);
+const sourceDigest = (schema, baselineCommit, version, manifest) => hash(JSON.stringify(version === 1
   ? { adapter: 'domain-schema-v1', sources: { 'model/domain.schema': hash(schema) } }
-  : { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }));
+  : version === 2 ? { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }
+    : { adapter: 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema) }));
 const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
 
 function parse(schema) {
@@ -63,6 +65,7 @@ export class WorkspaceStore {
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS job_steps (job TEXT NOT NULL, ordinal INTEGER NOT NULL, check_name TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, output TEXT NOT NULL, PRIMARY KEY(job, ordinal), FOREIGN KEY(job) REFERENCES jobs(id)); UPDATE job_steps SET status = 'interrupted', finished_at = datetime('now') WHERE status = 'running';`);
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
+    if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
@@ -129,21 +132,26 @@ export class WorkspaceStore {
     const missing = evidence.filter(item => !item.job).map(item => item.profile);
     // Remaining independent acceptance tiers and reviewer decisions are not implemented.
     if (workspace.digestVersion === 1) missing.push('legacy digest does not bind the baseline commit');
+    if (workspace.digestVersion < 3) missing.push('complete source manifest not recorded');
     missing.push('independent acceptance and publication evidence');
     return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, digestVersion: workspace.digestVersion, evidence, missing, canAccept: false };
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
-  create({ title, baselineCommit, schema }) {
+  create({ title, baselineCommit, schema, sourceManifest }) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');
     parse(schema);
+    if (sourceManifest !== undefined) {
+      if (!Array.isArray(sourceManifest) || !sourceManifest.length || sourceManifest.length > 10000 || sourceManifest.some((entry, index) => !entry || typeof entry.path !== 'string' || !(entry.path === 'requirements.txt' || /^(model|benchmark|requirements|tests|tools)\/[A-Za-z0-9._/-]+$/.test(entry.path)) || entry.path.split('/').some(part => part === '.' || part === '..' || !part) || Object.keys(entry).sort().join(',') !== 'path,sha256' || !/^[a-f0-9]{64}$/.test(entry.sha256 ?? '') || (index > 0 && sourceManifest[index - 1].path >= entry.path)) || sourceManifest.find(entry => entry.path === 'model/domain.schema')?.sha256 !== hash(schema)) throw new Error('Invalid source manifest');
+    }
     const id = randomUUID();
-    this.db.prepare('INSERT INTO workspaces (id, title, baseline_commit, baseline_schema, schema, revision, digest, digest_version) VALUES (?, ?, ?, ?, ?, 0, ?, 2)').run(id, title, baselineCommit, schema, schema, sourceDigest(schema, baselineCommit, 2));
+    const version = sourceManifest ? 3 : 2;
+    this.db.prepare('INSERT INTO workspaces (id, title, baseline_commit, baseline_schema, schema, revision, digest, digest_version, source_manifest) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)').run(id, title, baselineCommit, schema, schema, sourceDigest(schema, baselineCommit, version, sourceManifest), version, sourceManifest ? JSON.stringify(sourceManifest) : null);
     return this.get(id);
   }
   get(id) {
     const row = this.db.prepare('SELECT * FROM workspaces WHERE id = ?').get(id);
     if (!row) throw new Error('Workspace not found');
-    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, schema: row.schema };
+    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema) : null, schema: row.schema };
   }
   snapshot(id) {
     // Synchronous reads share the event loop with mutations, so identity and cursor
@@ -200,7 +208,7 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
-      const schema = apply(current.schema, commands), revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion);
+      const schema = apply(current.schema, commands), revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, current.sourceManifest);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
       this.db.prepare('INSERT INTO command_groups VALUES (?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, sourceDigest: digest }));
@@ -223,7 +231,7 @@ export class WorkspaceStore {
       if (current.revision !== expectedRevision || targetRevision !== current.revision) throw new Error('Undo requires the latest revision');
       const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(workspaceId, targetRevision);
       if (!group || group.after_digest !== current.sourceDigest) throw new Error('Command group cannot be undone');
-      const revision = current.revision + 1, digest = sourceDigest(group.before_schema, current.baselineCommit, current.digestVersion);
+      const revision = current.revision + 1, digest = sourceDigest(group.before_schema, current.baselineCommit, current.digestVersion, current.sourceManifest);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(group.before_schema, revision, digest, workspaceId);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ type: 'undo', targetRevision, sourceDigest: digest }));
       const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };

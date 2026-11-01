@@ -14,6 +14,13 @@ test('candidate identity binds the pinned baseline', () => {
   const second = store.create({ title: 'Two', baselineCommit: 'b'.repeat(40), schema });
   assert.equal(first.digestVersion, 2);
   assert.notEqual(first.sourceDigest, second.sourceDigest);
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  assert.throws(() => store.create({ title: 'Unsafe', baselineCommit: 'a'.repeat(40), schema, sourceManifest: [{ path: 'model/../secret', sha256: '0'.repeat(64) }, { path: 'model/domain.schema', sha256: hash(schema) }] }), /Invalid source manifest/);
+  const baseManifest = [{ path: 'model/domain.schema', sha256: hash(schema) }, { path: 'tools/build.py', sha256: '1'.repeat(64) }];
+  const third = store.create({ title: 'Three', baselineCommit: 'a'.repeat(40), schema, sourceManifest: baseManifest });
+  const fourth = store.create({ title: 'Four', baselineCommit: 'a'.repeat(40), schema, sourceManifest: [baseManifest[0], { ...baseManifest[1], sha256: '2'.repeat(64) }] });
+  assert.equal(third.digestVersion, 3);
+  assert.notEqual(third.sourceDigest, fourth.sourceDigest);
   store.close();
 });
 
