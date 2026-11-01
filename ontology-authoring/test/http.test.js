@@ -39,7 +39,9 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const listed = (await first.callTool({ name: 'ontology_workspace_list', arguments: {} })).structuredContent.workspaces;
     assert.deepEqual(listed.map(item => item.workspaceId), [workspace.id]);
     assert.equal(listed[0].baselineCommit, workspace.baselineCommit);
-    assert.equal((await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: other.id } })).isError, true);
+    const denied = await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: other.id } });
+    assert.equal(denied.isError, true);
+    assert.equal(denied.structuredContent.error.code, 'SCOPE_DENIED');
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: other.id, operationId: 'denied', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Forbidden.' }] } })).isError, true);
     assert.equal((await fetch(new URL(`/events?workspaceId=${other.id}`, url), { headers: { authorization: `Bearer ${token}` } })).status, 403);
     assert.equal((await fetch(new URL(`/events?workspaceId=${workspace.id}&after=999`, url), { headers: { authorization: `Bearer ${token}` } })).status, 409);
