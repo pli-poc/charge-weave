@@ -4,6 +4,7 @@ import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { generatedInputs, sha256 } from './source-manifest.js';
+import { captureGeneratedArtifacts, summarizeGeneratedArtifacts } from './artifact-summary.js';
 
 const exec = promisify(execFile);
 
@@ -56,6 +57,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
       if (JSON.stringify(JSON.parse(listed.stdout)) !== JSON.stringify(releaseGates)) throw new Error('Release-gate catalogue differs from the supported acceptance profile');
     }
     const commands = commandsFor(job.profile);
+    const baselineArtifacts = job.profile === 'structural' ? null : await captureGeneratedArtifacts(directory, python);
     for (const [ordinal, args] of commands.entries()) {
       if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
       currentStep = ordinal;
@@ -68,6 +70,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
         const equal = path === 'model/domain.schema' ? before.toString('utf8').replace(/\r\n/g, '\n') === after.toString('utf8').replace(/\r\n/g, '\n') : before.equals(after);
         if (!equal) throw new Error(`Generator rewrote source ${path}; reconcile changes before review`);
       }
+      if (ordinal === 0 && baselineArtifacts) store.saveJobArtifacts(job.id, summarizeGeneratedArtifacts(baselineArtifacts, await captureGeneratedArtifacts(directory, python)));
       store.finishJobStep(job.id, ordinal, 'passed', `${result.stdout}\n${result.stderr}`);
       currentStep = null;
     }

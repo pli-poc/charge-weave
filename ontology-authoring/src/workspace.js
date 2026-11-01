@@ -62,6 +62,7 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS job_steps (job TEXT NOT NULL, ordinal INTEGER NOT NULL, check_name TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, output TEXT NOT NULL, PRIMARY KEY(job, ordinal), FOREIGN KEY(job) REFERENCES jobs(id)); UPDATE job_steps SET status = 'interrupted', finished_at = datetime('now') WHERE status = 'running';`);
+    this.db.exec('CREATE TABLE IF NOT EXISTS job_artifacts (job TEXT PRIMARY KEY, summary TEXT NOT NULL, FOREIGN KEY(job) REFERENCES jobs(id))');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
@@ -115,8 +116,10 @@ export class WorkspaceStore {
     if (!row) throw new Error('Job not found');
     const workspace = this.get(workspaceId);
     const steps = this.db.prepare('SELECT ordinal, check_name AS checkName, status, started_at AS startedAt, finished_at AS finishedAt, output FROM job_steps WHERE job = ? ORDER BY ordinal').all(jobId);
-    return { ...row, baselineCommit: workspace.baselineCommit, digestVersion: workspace.digestVersion, steps, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
+    const artifact = this.db.prepare('SELECT summary FROM job_artifacts WHERE job = ?').get(jobId);
+    return { ...row, baselineCommit: workspace.baselineCommit, digestVersion: workspace.digestVersion, steps, artifactSummary: artifact ? JSON.parse(artifact.summary) : null, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
   }
+  saveJobArtifacts(jobId, summary) { this.db.prepare('INSERT OR REPLACE INTO job_artifacts (job, summary) VALUES (?, ?)').run(jobId, JSON.stringify(summary)); }
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');

@@ -65,6 +65,7 @@ test('validation retry survives restart without starting another job', () => {
     assert.throws(() => store.evidence(workspace.id, first.job.id), /not complete/);
     store.updateJob(first.job.id, 'running');
     store.startJobStep(first.job.id, 0, 'tools/build.py');
+    store.saveJobArtifacts(first.job.id, { comparison: 'exact-bytes', changedCount: 1 });
     store.close();
     store = new WorkspaceStore(path);
     const retry = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'retry');
@@ -72,6 +73,7 @@ test('validation retry survives restart without starting another job', () => {
     assert.equal(retry.job.id, first.job.id);
     assert.equal(retry.job.status, 'interrupted');
     assert.equal(retry.job.steps[0].status, 'interrupted');
+    assert.deepEqual(retry.job.artifactSummary, { comparison: 'exact-bytes', changedCount: 1 });
     store.close();
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
@@ -138,6 +140,32 @@ test('isolated validation has the real baseline Git identity and a draft worktre
   } finally { rmSync(repository, { recursive: true, force: true }); }
 });
 
+test('reference generation records bounded artifact evidence with its job', { skip: !process.env.CHARGEWEAVE_TEST_PYTHON }, async () => {
+  const repository = mkdtempSync(join(tmpdir(), 'chargeweave-artifact-job-'));
+  try {
+    mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools')); mkdirSync(join(repository, 'generated'));
+    const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+    writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    writeFileSync(join(repository, 'generated', 'model.txt'), 'baseline');
+    writeFileSync(join(repository, 'tools', 'check_generated.py'), "def generated_paths(root):\n    return {'generated/model.txt'}\n");
+    writeFileSync(join(repository, 'tools', 'build_all.py'), "from pathlib import Path\nPath('generated/model.txt').write_text('candidate')\n");
+    for (const name of ['validate.py', 'test_business.py', 'test_boundaries.py']) writeFileSync(join(repository, 'tools', name), 'print("passed")\n');
+    const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
+    git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+    const store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Artifact job', baselineCommit: commit, schema });
+    const job = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'reference', 'reference').job;
+    await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    const evidence = store.evidence(workspace.id, job.id);
+    assert.equal(evidence.status, 'passed', evidence.output);
+    assert.equal(evidence.artifactSummary.changedCount, 1);
+    assert.equal(evidence.artifactSummary.changes[0].path, 'generated/model.txt');
+    assert.notEqual(evidence.artifactSummary.baselineManifestSha256, evidence.artifactSummary.candidateManifestSha256);
+    store.close();
+  } finally { rmSync(repository, { recursive: true, force: true }); }
+});
+
 test('reference profile runs generated model and fixture checks', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
@@ -149,5 +177,9 @@ test('reference profile runs generated model and fixture checks', { skip: !proce
   const result = store.job(workspace.id, job.id);
   assert.equal(result.status, 'passed', result.output);
   assert.match(result.output, /tools\/test_boundaries.py/);
+  assert.ok(result.artifactSummary.baselineFiles > 0);
+  assert.ok(result.artifactSummary.candidateFiles > 0);
+  assert.equal(result.artifactSummary.comparison, 'exact-bytes');
+  assert.deepEqual(store.evidence(workspace.id, job.id).artifactSummary, result.artifactSummary);
   store.close();
 });
