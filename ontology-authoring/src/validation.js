@@ -31,7 +31,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
     store.updateJob(job.id, 'running');
     directory = await mkdtemp(join(tmpdir(), 'chargeweave-validation-'));
     const archive = join(directory, 'baseline.tar');
-    await exec('git', ['-c', 'core.autocrlf=false', 'archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
+    await exec('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
     await exec('tar', ['-xf', archive, '-C', directory], { timeout: 30000 });
     await rm(archive);
     // Several release checks record `git rev-parse HEAD`. Give the isolated
@@ -82,6 +82,26 @@ export async function runGenerator(store, workspace, job, repository, python = '
         if (!equal) throw new Error(`Generator rewrote source ${path}; reconcile changes before review`);
       }
       if (ordinal === 0 && baselineArtifacts) {
+        // Capture the repository's clean-filter bytes before tests run. On
+        // Windows generators may write CRLF while Git's attributes require LF;
+        // testing the normalized files binds evidence to the eventual commit.
+        const rawGenerated = await captureGeneratedArtifacts(directory, python);
+        const paths = [...new Set([...baselineArtifacts, ...rawGenerated].map(file => file.path))].sort();
+        if (paths.length) {
+          const pathspec = join(directory, 'validation-generated-pathspec');
+          await writeFile(pathspec, `${paths.join('\0')}\0`, 'utf8');
+          await exec('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'add', '-A', `--pathspec-from-file=${pathspec}`, '--pathspec-file-nul'], gitOptions);
+          // Git may consider a CRLF worktree file clean against its LF index
+          // blob and skip overwriting it even with --force. Remove only the
+          // validated generated files so checkout writes the clean bytes.
+          for (const file of rawGenerated) await rm(join(directory, ...file.path.split('/')));
+          for (let index = 0; index < rawGenerated.length; index += 50) {
+            const chunk = rawGenerated.slice(index, index + 50).map(file => file.path);
+            await exec('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'checkout-index', '--force', '--', ...chunk], gitOptions);
+          }
+          await exec('git', ['reset', '--quiet', '--mixed', workspace.baselineCommit], gitOptions);
+          await rm(pathspec);
+        }
         const generated = await captureGeneratedArtifacts(directory, python);
         const summary = summarizeGeneratedArtifacts(baselineArtifacts, generated);
         generatedManifest = summary.candidateManifestSha256;

@@ -146,9 +146,10 @@ test('reference generation records bounded artifact evidence with its job', { sk
     mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools')); mkdirSync(join(repository, 'generated'));
     const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
     writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    writeFileSync(join(repository, '.gitattributes'), '* text=auto eol=lf\n');
     writeFileSync(join(repository, 'generated', 'model.txt'), 'baseline');
     writeFileSync(join(repository, 'tools', 'check_generated.py'), "def generated_paths(root):\n    return {'generated/model.txt'}\n");
-    writeFileSync(join(repository, 'tools', 'build_all.py'), "from pathlib import Path\nPath('generated/model.txt').write_text('candidate')\n");
+    writeFileSync(join(repository, 'tools', 'build_all.py'), "from pathlib import Path\nPath('generated/model.txt').write_bytes(b'candidate\\r\\n')\n");
     for (const name of ['validate.py', 'test_business.py', 'test_boundaries.py', 'test_business_acceptance.py']) writeFileSync(join(repository, 'tools', name), 'print("passed")\n');
     const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
     git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
@@ -162,7 +163,7 @@ test('reference generation records bounded artifact evidence with its job', { sk
     assert.equal(evidence.artifactSummary.changedCount, 1);
     assert.equal(evidence.artifactSummary.changes[0].path, 'generated/model.txt');
     assert.notEqual(evidence.artifactSummary.baselineManifestSha256, evidence.artifactSummary.candidateManifestSha256);
-    assert.equal(store.jobGeneratedFiles(workspace.id, job.id)[0].content.toString('utf8'), 'candidate');
+    assert.equal(store.jobGeneratedFiles(workspace.id, job.id)[0].content.toString('utf8'), 'candidate\n');
     writeFileSync(join(repository, 'tools', 'test_business.py'), "from pathlib import Path\nPath('generated/model.txt').write_text('changed-after-generation')\n");
     git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'mutating check']);
     const nextCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

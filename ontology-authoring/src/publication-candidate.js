@@ -23,7 +23,7 @@ export async function preparePublicationCandidate(store, workspaceId, reviewId, 
   try {
     directory = await mkdtemp(join(tmpdir(), 'chargeweave-publish-candidate-'));
     const archive = join(directory, 'baseline.tar');
-    await exec('git', ['-c', 'core.autocrlf=false', 'archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
+    await exec('git', ['-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
     await exec('tar', ['-xf', archive, '-C', directory], { timeout: 30000 });
     await rm(archive);
     const git = { cwd: directory, timeout: 60000, maxBuffer: 8 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_ALLOW_PROTOCOL: 'file', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null' } };
