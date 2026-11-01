@@ -20,6 +20,8 @@ Only one validation job may run per workspace. Retrying the same operation ID re
 
 Completed jobs can be read through `ontology_evidence_get` using the job ID as the evidence ID. The response identifies the baseline commit, checked revision, source digest, scope, freshness and individual step outcomes. An interrupted or cancelled job is evidence of that outcome, not a passing validation. The service does not yet retain full generated artifacts or establish all required acceptance evidence.
 
+New workspaces use digest version 2: a SHA-256 identity over the adapter version, immutable Git baseline commit and schema overlay hash. The commit pins the rest of the tracked baseline; this is not yet the plan's complete path-sorted source manifest. Existing version 1 workspaces retain their original digest and receipts for recovery, but review readiness flags their missing baseline binding. Create a new workspace to use version 2.
+
 Cancellation is cooperative: the running fixed check is allowed to finish, then the job stops before the next check and is marked `cancelled`. A cancelling job continues to occupy the workspace validation slot. Cancellation does not promise immediate termination of a running child process.
 
 `node --test test/demo.test.js` runs a synthetic two-client maintenance scenario against the committed `HEAD` schema: it discovers existing terms, adds a planned maintenance class, typed relationships and controlled lifecycle values, refines and undoes a definition, restarts the service, and retries the original operation. It does not yet demonstrate acceptance, publication, or exact-commit CI status.

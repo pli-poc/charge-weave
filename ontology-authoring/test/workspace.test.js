@@ -4,8 +4,39 @@ import { WorkspaceStore } from '../src/workspace.js';
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import { createHash, randomUUID } from 'node:crypto';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('candidate identity binds the pinned baseline', () => {
+  const store = new WorkspaceStore(':memory:');
+  const first = store.create({ title: 'One', baselineCommit: 'a'.repeat(40), schema });
+  const second = store.create({ title: 'Two', baselineCommit: 'b'.repeat(40), schema });
+  assert.equal(first.digestVersion, 2);
+  assert.notEqual(first.sourceDigest, second.sourceDigest);
+  store.close();
+});
+
+test('legacy workspace digests and undo remain usable without rewriting receipts', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-legacy-'));
+  try {
+    const path = join(directory, 'store.sqlite'), id = randomUUID();
+    const hash = value => createHash('sha256').update(value).digest('hex');
+    const digest = hash(JSON.stringify({ adapter: 'domain-schema-v1', sources: { 'model/domain.schema': hash(schema) } }));
+    const db = new DatabaseSync(path);
+    db.exec('CREATE TABLE workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL)');
+    db.prepare('INSERT INTO workspaces VALUES (?, ?, ?, ?, ?, 0, ?)').run(id, 'Legacy', 'a'.repeat(40), schema, schema, digest);
+    db.close();
+    const store = new WorkspaceStore(path);
+    assert.equal(store.get(id).digestVersion, 1);
+    assert.equal(store.get(id).sourceDigest, digest);
+    assert.ok(store.reviewReadiness(id).missing.includes('legacy digest does not bind the baseline commit'));
+    store.apply({ workspaceId: id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Changed.' }] });
+    store.undo({ workspaceId: id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 });
+    assert.equal(store.get(id).sourceDigest, digest);
+    store.close();
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
 test('atomic edits, durable receipts and stale revisions', () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Test', baselineCommit: 'a'.repeat(40), schema });
