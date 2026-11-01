@@ -20,7 +20,7 @@ test('shared view revisions persist independently and reject conflicts without c
     const path = join(directory, 'workspace.sqlite');
     store = new WorkspaceStore(path);
     const workspace = store.create({ title: 'Views', baselineCommit: 'a'.repeat(40), schema });
-    const request = { workspaceId: workspace.id, viewId: 'default', actor: 'reviewer', operationId: 'save', expectedViewRevision: 0, definition: { root: 'Record', positions: { Record: { x: 10, y: 20 } } } };
+    const request = { workspaceId: workspace.id, viewId: 'default', actor: 'reviewer', operationId: 'save', expectedViewRevision: 0, definition: { root: 'Record', positions: { Record: { x: 10, y: 20 } }, mappingVersion: 'chargeweave-authoring-v1', viewpoint: 'information', filter: '', groups: [{ name: 'Core', members: ['Record'] }], annotations: [{ target: 'Record', text: 'Presentation note.' }] } };
     const saved = store.saveView(request);
     assert.equal(saved.viewRevision, 1);
     assert.equal(saved.semanticRevision, 0);
@@ -28,9 +28,11 @@ test('shared view revisions persist independently and reject conflicts without c
     assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
     assert.throws(() => store.saveView({ ...request, operationId: 'other' }), /revision conflict/);
     assert.throws(() => store.saveView({ ...request, operationId: 'bad', expectedViewRevision: 1, definition: { root: 'Missing', positions: {} } }), /unknown concept/);
+    assert.throws(() => store.saveView({ ...request, operationId: 'bad-group', expectedViewRevision: 1, definition: { ...request.definition, groups: [{ name: 'Invalid', members: ['Missing'] }] } }), /unknown concept/);
     store.close(); store = new WorkspaceStore(path);
     assert.deepEqual(store.savedView(workspace.id, 'default').definition, request.definition);
     assert.equal(store.savedView(workspace.id, 'default').viewRevision, 1);
+    assert.deepEqual(store.savedViews(workspace.id).views, [{ viewId: 'default', viewRevision: 1 }]);
     assert.equal(store.get(workspace.id).revision, 0);
   } finally { store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });

@@ -80,10 +80,13 @@ one revision; older contracts without descriptions remain valid.
 The modelling service stores shared presentation views separately from semantic
 source edits. `ontology_view_save` requires a view ID, idempotency key and the
 expected view revision; a conflicting save must be reloaded before retrying.
-The current studio saves a default root and bounded node positions, and
-`ontology_view_saved_get` reads them. Saving a view emits an activity event but
-does not change the workspace's semantic revision or source digest. View groups,
-annotations and named-view management are not yet available in the browser.
+The studio can save named roots, bounded node positions, groups and notes;
+`ontology_view_saved_get` reads a view and `ontology_view_saved_list` lists up
+to 100. Groups and notes are presentation metadata, not ontology assertions.
+Saving a view emits an activity event but does not change the workspace's
+semantic revision or source digest. Existing views must be loaded before they
+are overwritten in the browser. Saved filters and non-information viewpoints
+are preserved but are not yet applied to the canvas.
 
 ## Workflow gates
 

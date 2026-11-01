@@ -45,6 +45,10 @@ test('loopback MCP transport authenticates and shares state', async () => {
     assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: { ...viewArgs, workspaceId: other.id } })).isError, true);
     assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: viewArgs })).structuredContent.viewRevision, 1);
     assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_get', arguments: { workspaceId: workspace.id, viewId: 'default' } })).structuredContent.definition, viewArgs.definition);
+    const named = { ...viewArgs, viewId: 'review', operationId: 'review-view', definition: { ...viewArgs.definition, mappingVersion: 'chargeweave-authoring-v1', viewpoint: 'information', groups: [{ name: 'Core', members: ['NetworkExample'] }], annotations: [{ target: 'NetworkExample', text: 'Review this concept.' }] } };
+    assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: named })).structuredContent.viewRevision, 1);
+    assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_get', arguments: { workspaceId: workspace.id, viewId: 'review' } })).structuredContent.definition, named.definition);
+    assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_list', arguments: { workspaceId: workspace.id } })).structuredContent.views.map(item => item.viewId), ['default', 'review']);
     assert.equal(store.get(workspace.id).revision, 1);
     const controller = new AbortController();
     const feed = await fetch(new URL(`/events?workspaceId=${workspace.id}&after=0`, url), { headers: { authorization: `Bearer ${token}` }, signal: controller.signal });

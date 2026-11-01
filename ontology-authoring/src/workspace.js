@@ -506,19 +506,26 @@ export class WorkspaceStore {
     const row = this.db.prepare('SELECT revision, definition FROM saved_views WHERE workspace = ? AND view_id = ?').get(workspaceId, viewId);
     return { workspaceId, viewId, viewRevision: row?.revision ?? 0, definition: row ? JSON.parse(row.definition) : null };
   }
+  savedViews(workspaceId) {
+    this.get(workspaceId);
+    const views = this.db.prepare('SELECT view_id AS viewId, revision AS viewRevision FROM saved_views WHERE workspace = ? ORDER BY view_id LIMIT 101').all(workspaceId);
+    return { workspaceId, views: views.slice(0, 100).map(view => ({ ...view })), truncated: views.length > 100 };
+  }
   saveView({ workspaceId, viewId, actor, operationId, expectedViewRevision, definition }) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(viewId ?? '') || typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || operationId.length > 128 || !Number.isSafeInteger(expectedViewRevision) || expectedViewRevision < 0) throw new Error('Invalid saved view request');
-    if (!definition || Object.keys(definition).sort().join(',') !== 'positions,root' || !identifier.test(definition.root ?? '') || !definition.positions || typeof definition.positions !== 'object' || Array.isArray(definition.positions)) throw new Error('Invalid saved view definition');
+    if (!definition || Object.keys(definition).some(key => !['root', 'positions', 'mappingVersion', 'viewpoint', 'filter', 'groups', 'annotations'].includes(key)) || !identifier.test(definition.root ?? '') || !definition.positions || typeof definition.positions !== 'object' || Array.isArray(definition.positions)) throw new Error('Invalid saved view definition');
     const entries = Object.entries(definition.positions);
     if (entries.length > 500 || entries.some(([name, point]) => !identifier.test(name) || !point || typeof point !== 'object' || Object.keys(point).sort().join(',') !== 'x,y' || !Number.isFinite(point.x) || !Number.isFinite(point.y) || Math.abs(point.x) > 100000 || Math.abs(point.y) > 100000)) throw new Error('Invalid saved view positions');
-    const normalized = { root: definition.root, positions: Object.fromEntries(entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+    const groups = definition.groups ?? [], annotations = definition.annotations ?? [];
+    if ((definition.mappingVersion !== undefined && definition.mappingVersion !== 'chargeweave-authoring-v1') || (definition.viewpoint !== undefined && !['information', 'responsibility', 'temporal'].includes(definition.viewpoint)) || (definition.filter !== undefined && (typeof definition.filter !== 'string' || definition.filter.length > 200)) || !Array.isArray(groups) || groups.length > 50 || groups.some(group => !group || Object.keys(group).sort().join(',') !== 'members,name' || typeof group.name !== 'string' || !group.name.trim() || group.name.length > 100 || !Array.isArray(group.members) || group.members.length > 100 || group.members.some(name => !identifier.test(name))) || !Array.isArray(annotations) || annotations.length > 100 || annotations.some(note => !note || Object.keys(note).sort().join(',') !== 'target,text' || !identifier.test(note.target ?? '') || typeof note.text !== 'string' || !note.text.trim() || note.text.length > 1000)) throw new Error('Invalid saved view metadata');
+    const normalized = { root: definition.root, positions: Object.fromEntries(entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)), ...Object.fromEntries(['mappingVersion', 'viewpoint', 'filter', 'groups', 'annotations'].filter(key => Object.hasOwn(definition, key)).map(key => [key, definition[key]])) };
     const requestHash = hash(JSON.stringify({ viewId, expectedViewRevision, definition: normalized }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT request_hash, result FROM view_receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
       if (receipt) { if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request'); this.db.exec('COMMIT'); return JSON.parse(receipt.result); }
       const workspace = this.get(workspaceId), classes = parse(workspace.schema).classes;
-      if (!classes.has(normalized.root) || entries.some(([name]) => !classes.has(name))) throw new Error('Saved view references an unknown concept');
+      if (!classes.has(normalized.root) || entries.some(([name]) => !classes.has(name)) || groups.some(group => group.members.some(name => !classes.has(name))) || annotations.some(note => !classes.has(note.target))) throw new Error('Saved view references an unknown concept');
       const current = this.savedView(workspaceId, viewId);
       if (current.viewRevision !== expectedViewRevision) throw new Error('Saved view revision conflict');
       const viewRevision = current.viewRevision + 1;
