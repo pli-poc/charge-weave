@@ -97,5 +97,6 @@ test('push tool requires reviewer role and explicit publisher permission', async
     }
     const catalogues = await Promise.all(clients.map(client => client.listTools()));
     assert.deepEqual(catalogues.map(catalogue => catalogue.tools.some(tool => tool.name === 'ontology_publication_push')), [false, false, true]);
+    assert.deepEqual(catalogues.map(catalogue => catalogue.tools.some(tool => tool.name === 'ontology_publication_pull_request')), [false, false, true]);
   } finally { for (const client of clients) await client.close(); store.close(); }
 });

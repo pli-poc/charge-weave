@@ -102,13 +102,16 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS review_decisions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, actor TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS review_evidence (review TEXT NOT NULL, profile TEXT NOT NULL, job TEXT NOT NULL, PRIMARY KEY(review, profile), FOREIGN KEY(review) REFERENCES review_decisions(id), FOREIGN KEY(job) REFERENCES jobs(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, actor TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, review_id TEXT NOT NULL, preview_job TEXT NOT NULL, branch TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, state TEXT NOT NULL, commit_sha TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id), FOREIGN KEY(review_id) REFERENCES review_decisions(id), FOREIGN KEY(preview_job) REFERENCES jobs(id))');
+    if (!this.db.prepare('PRAGMA table_info(publications)').all().some(column => column.name === 'pr_number')) this.db.exec('ALTER TABLE publications ADD COLUMN pr_number INTEGER');
+    if (!this.db.prepare('PRAGMA table_info(publications)').all().some(column => column.name === 'pr_status')) this.db.exec('ALTER TABLE publications ADD COLUMN pr_status TEXT');
     this.db.exec('CREATE TABLE IF NOT EXISTS publication_bundles (publication TEXT PRIMARY KEY, sha256 TEXT NOT NULL, content BLOB NOT NULL, FOREIGN KEY(publication) REFERENCES publications(id))');
     this.db.prepare("UPDATE publications SET state = 'push_unknown', updated_at = ? WHERE state = 'push_pending'").run(new Date().toISOString());
+    this.db.prepare("UPDATE publications SET state = 'pr_unknown', updated_at = ? WHERE state = 'pr_pending'").run(new Date().toISOString());
   }
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural', subject = null) {
     if (!actor || !operationId) throw new Error('Invalid validation identity');
-    if (!['structural', 'reference', 'audit', 'acceptance', 'publication-preview', 'publication-commit', 'publication-push'].includes(profile) || (['publication-preview', 'publication-commit', 'publication-push'].includes(profile) && !/^[0-9a-f-]{36}$/i.test(subject ?? '')) || (!['publication-preview', 'publication-commit', 'publication-push'].includes(profile) && subject !== null)) throw new Error('Invalid validation profile');
+    if (!['structural', 'reference', 'audit', 'acceptance', 'publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(profile) || (['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(profile) && !/^[0-9a-f-]{36}$/i.test(subject ?? '')) || (!['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(profile) && subject !== null)) throw new Error('Invalid validation profile');
     const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile, ...(subject === null ? {} : { subject }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -120,6 +123,7 @@ export class WorkspaceStore {
       }
       const workspace = this.get(id);
       if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(id)) throw new Error('Publication operation is in progress');
       if (this.db.prepare("SELECT 1 FROM jobs WHERE workspace = ? AND status IN ('queued', 'running', 'cancelling') LIMIT 1").get(id)) throw new Error('A validation job is already active for this workspace');
       const jobId = randomUUID();
       this.db.prepare('INSERT INTO jobs (id, workspace, revision, digest, status, output, profile) VALUES (?, ?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '', profile);
@@ -140,7 +144,7 @@ export class WorkspaceStore {
         this.db.exec('COMMIT'); return { job, requested: false };
       }
       const job = this.job(workspaceId, jobId);
-      if (['publication-commit', 'publication-push'].includes(job.profile)) throw new Error('Publication operation cannot be cancelled after it starts');
+      if (['publication-commit', 'publication-push', 'publication-pr'].includes(job.profile)) throw new Error('Publication operation cannot be cancelled after it starts');
       const requested = ['queued', 'running'].includes(job.status);
       if (requested) this.db.prepare("UPDATE jobs SET status = 'cancelling' WHERE id = ?").run(jobId);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ jobId }));
@@ -175,7 +179,7 @@ export class WorkspaceStore {
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
-    const scope = job.profile === 'publication-push' ? 'Push of the recorded commit to its isolated branch; pull-request and required checks are separate' : job.profile === 'publication-commit' ? 'Local commit and recoverable bundle; no push or remote verification' : job.profile === 'publication-preview' ? 'Isolated staged-file preview; no commit, push or remote verification' : job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
+    const scope = job.profile === 'publication-pr' ? 'Draft pull-request creation or reconciliation; required checks and deployment are separate' : job.profile === 'publication-push' ? 'Push of the recorded commit to its isolated branch; pull-request and required checks are separate' : job.profile === 'publication-commit' ? 'Local commit and recoverable bundle; no push or remote verification' : job.profile === 'publication-preview' ? 'Isolated staged-file preview; no commit, push or remote verification' : job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
     return { ...job, scope, completeAcceptanceEvidence: false };
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
@@ -203,7 +207,7 @@ export class WorkspaceStore {
     return { ...row, evidence: this.db.prepare('SELECT profile, job AS jobId FROM review_evidence WHERE review = ? ORDER BY profile').all(row.id), stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit };
   }
   publication(workspaceId, publicationId) {
-    const row = this.db.prepare('SELECT id, actor, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, review_id AS reviewId, preview_job AS previewJobId, branch, subject, body, state, commit_sha AS commitSha, created_at AS createdAt, updated_at AS updatedAt FROM publications WHERE workspace = ? AND id = ?').get(workspaceId, publicationId);
+    const row = this.db.prepare('SELECT id, actor, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, review_id AS reviewId, preview_job AS previewJobId, branch, subject, body, state, commit_sha AS commitSha, pr_number AS prNumber, pr_status AS prStatus, created_at AS createdAt, updated_at AS updatedAt FROM publications WHERE workspace = ? AND id = ?').get(workspaceId, publicationId);
     if (!row) throw new Error('Publication not found');
     const workspace = this.get(workspaceId);
     return { ...row, workspaceId, stale: workspace.revision !== row.revision || workspace.sourceDigest !== row.sourceDigest || workspace.baselineCommit !== row.baselineCommit };
@@ -245,7 +249,7 @@ export class WorkspaceStore {
       const workspace = this.get(workspaceId), review = this.reviewDecision(workspaceId, reviewId), preview = this.job(workspaceId, previewJobId);
       if (workspace.revision !== expectedRevision || workspace.sourceDigest !== digest || review.decision !== 'accept' || review.stale || this.reviewDecisions(workspaceId)[0]?.id !== reviewId || !this.reviewReadiness(workspaceId).canAccept || preview.profile !== 'publication-preview' || preview.status !== 'passed' || preview.stale || preview.artifactSummary?.reviewId !== reviewId || preview.artifactSummary?.sourceDigest !== digest || preview.artifactSummary?.baselineCommit !== workspace.baselineCommit || preview.artifactSummary?.revision !== expectedRevision || !Array.isArray(preview.artifactSummary?.files) || !preview.artifactSummary.files.length) throw new Error('Current accepted review and staged preview are required');
       const id = randomUUID(), now = new Date().toISOString(), branch = `chargeweave/studio-${id}`;
-      this.db.prepare('INSERT INTO publications VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, workspaceId, actor, workspace.baselineCommit, expectedRevision, digest, reviewId, previewJobId, branch, subject.trim(), body.trim(), 'prepared', null, now, now);
+      this.db.prepare('INSERT INTO publications (id, workspace, actor, baseline_commit, revision, digest, review_id, preview_job, branch, subject, body, state, commit_sha, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, workspaceId, actor, workspace.baselineCommit, expectedRevision, digest, reviewId, previewJobId, branch, subject.trim(), body.trim(), 'prepared', null, now, now);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ publicationId: id }));
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, expectedRevision, JSON.stringify({ type: 'publication', publicationId: id, state: 'prepared', sourceDigest: digest }));
       const record = this.publication(workspaceId, id);
@@ -253,18 +257,30 @@ export class WorkspaceStore {
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   advancePublication(workspaceId, publicationId, expectedState, nextState, commitSha = null) {
-    const allowed = { prepared: ['failed'], commit_created: ['push_pending', 'failed'], push_pending: ['pushed', 'push_unknown'], push_unknown: ['pushed'], pushed: ['pr_created'] };
+    const allowed = { prepared: ['failed'], commit_created: ['push_pending', 'failed'], push_pending: ['pushed', 'push_unknown'], push_unknown: ['pushed'], pushed: ['pr_pending'], pr_pending: ['pr_unknown'] };
     if (!allowed[expectedState]?.includes(nextState) || (commitSha !== null && !/^[a-f0-9]{40}$/.test(commitSha))) throw new Error('Invalid publication transition');
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const record = this.publication(workspaceId, publicationId);
       if (record.state !== expectedState) throw new Error('Publication state conflict');
-      if (['prepared', 'commit_created'].includes(expectedState) && (record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept)) throw new Error('Publication draft or review is stale');
+      if (['prepared', 'commit_created', 'pushed'].includes(expectedState) && (record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept)) throw new Error('Publication draft or review is stale');
       if (record.commitSha && commitSha && record.commitSha !== commitSha) throw new Error('Publication commit cannot change');
       this.db.prepare('UPDATE publications SET state = ?, commit_sha = ?, updated_at = ? WHERE workspace = ? AND id = ?').run(nextState, record.commitSha ?? commitSha, new Date().toISOString(), workspaceId, publicationId);
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: nextState, commitSha: record.commitSha ?? commitSha }));
       const updated = this.publication(workspaceId, publicationId);
       this.db.exec('COMMIT'); return updated;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+  recordPublicationPullRequest(workspaceId, publicationId, expectedState, number, status) {
+    if (!['pr_pending', 'pr_unknown'].includes(expectedState) || !Number.isSafeInteger(number) || number < 1 || !['open', 'closed'].includes(status)) throw new Error('Invalid pull request evidence');
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const record = this.publication(workspaceId, publicationId);
+      if (record.state !== expectedState) throw new Error('Publication state conflict');
+      this.db.prepare("UPDATE publications SET state = 'pr_created', pr_number = ?, pr_status = ?, updated_at = ? WHERE workspace = ? AND id = ?").run(number, status, new Date().toISOString(), workspaceId, publicationId);
+      this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: 'pr_created', prNumber: number }));
+      const result = this.publication(workspaceId, publicationId);
+      this.db.exec('COMMIT'); return result;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   retryPublicationAfterAbsentRemote(workspaceId, publicationId) {
@@ -274,6 +290,17 @@ export class WorkspaceStore {
       if (record.state !== 'push_unknown' || record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept) throw new Error('Publication cannot be retried');
       this.db.prepare("UPDATE publications SET state = 'commit_created', updated_at = ? WHERE workspace = ? AND id = ?").run(new Date().toISOString(), workspaceId, publicationId);
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: 'commit_created', reason: 'remote branch absent on reconciliation' }));
+      const updated = this.publication(workspaceId, publicationId);
+      this.db.exec('COMMIT'); return updated;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+  retryPublicationAfterAbsentPullRequest(workspaceId, publicationId) {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const record = this.publication(workspaceId, publicationId);
+      if (record.state !== 'pr_unknown' || record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept) throw new Error('Pull request cannot be retried');
+      this.db.prepare("UPDATE publications SET state = 'pushed', updated_at = ? WHERE workspace = ? AND id = ?").run(new Date().toISOString(), workspaceId, publicationId);
+      this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: 'pushed', reason: 'pull request absent on reconciliation' }));
       const updated = this.publication(workspaceId, publicationId);
       this.db.exec('COMMIT'); return updated;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
@@ -291,6 +318,7 @@ export class WorkspaceStore {
       }
       const workspace = this.get(workspaceId);
       if (workspace.revision !== expectedRevision || workspace.sourceDigest !== digest) throw new Error('Stale review input');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication operation is in progress');
       const readiness = decision === 'accept' ? this.reviewReadiness(workspaceId) : null;
       if (readiness && !readiness.canAccept) throw new Error(`Review gates incomplete: ${readiness.missing.join(', ')}`);
       const reviewId = randomUUID(), createdAt = new Date().toISOString();
@@ -492,7 +520,7 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
-      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state = 'push_pending' LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
       verifyAdapter(current);
       if (!Array.isArray(commands) || !commands.length || commands.length > 100) throw new Error('Invalid command group');
       const baselineManifest = JSON.parse(this.db.prepare('SELECT source_manifest FROM workspaces WHERE id = ?').get(workspaceId).source_manifest || 'null');
@@ -579,7 +607,7 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision || targetRevision !== current.revision) throw new Error('Undo requires the latest revision');
-      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state = 'push_pending' LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
       const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(workspaceId, targetRevision);
       if (!group || group.after_digest !== current.sourceDigest) throw new Error('Command group cannot be undone');
       const overlays = current.digestVersion === 4 ? JSON.parse(group.before_overlays || '{}') : {};

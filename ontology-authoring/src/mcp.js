@@ -6,6 +6,7 @@ import { publicationPreflight } from './publication-preflight.js';
 import { githubCommitWorkflows } from './github-ci.js';
 import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
 import { runPublicationPush } from './publication-push.js';
+import { runPublicationPullRequest } from './publication-pr.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -79,6 +80,14 @@ export function createServer(store, actor, options = {}) {
       if (created) {
         if (options.startPush) options.startPush(args.workspaceId, args.publicationId, job);
         else void runPublicationPush(store, args.workspaceId, args.publicationId, job, options.repository, options.githubToken, options.publicationFixture);
+      }
+      return result(job);
+    });
+    if (options.role === 'reviewer' && options.allowPublish) server.registerTool('ontology_publication_pull_request', { description: 'Create a draft pull request for the confirmed branch, or reconcile a previous uncertain response. Required checks and deployment are separate.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), publicationId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
+      const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, 'publication-pr', args.publicationId);
+      if (created) {
+        if (options.startPullRequest) options.startPullRequest(args.workspaceId, args.publicationId, job);
+        else void runPublicationPullRequest(store, args.workspaceId, args.publicationId, job, options.githubToken, options.pullRequestFetch);
       }
       return result(job);
     });

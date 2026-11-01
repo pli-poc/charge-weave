@@ -5,12 +5,13 @@ import { createServer } from './mcp.js';
 import { runGenerator } from './validation.js';
 import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
 import { runPublicationPush } from './publication-push.js';
+import { runPublicationPullRequest } from './publication-pr.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, allowPublish = false, githubToken }) {
+export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, pullRequestFetch, allowPublish = false, githubToken }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
   store.get(workspaceId);
@@ -132,7 +133,12 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       activeJobs.set(job.id, { task, controller: new AbortController() });
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, startPush, cancelValidation, publicationFixture, ciFetch, allowPublish, githubToken });
+    const startPullRequest = (id, publicationId, job) => {
+      const task = runPublicationPullRequest(store, id, publicationId, job, githubToken, pullRequestFetch);
+      activeJobs.set(job.id, { task, controller: new AbortController() });
+      void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
+    };
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
