@@ -85,8 +85,9 @@ The studio can save named roots, bounded node positions, groups and notes;
 to 100. Groups and notes are presentation metadata, not ontology assertions.
 Saving a view emits an activity event but does not change the workspace's
 semantic revision or source digest. Existing views must be loaded before they
-are overwritten in the browser. Saved filters and non-information viewpoints
-are preserved but are not yet applied to the canvas.
+are overwritten in the browser. Saved viewpoint and relationship filters are
+applied to the canvas. Responsibility edges use the explicit partial mapping;
+temporal edges show explicit window references, not inferred time semantics.
 
 ## Workflow gates
 
