@@ -7,8 +7,33 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 import { applyPatch } from 'diff';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('temporal view binds policy to the baseline and exposes only explicit time fields', () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  const baselineSchema = show('model/domain.schema').toString('utf8');
+  const paths = ['model/domain.schema', 'model/temporal-policy.json', 'tools/authoring_adapter.py', 'tools/domain_schema.py'];
+  const manifest = paths.map(path => ({ path, sha256: hash(show(path)) }));
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Temporal', baselineCommit: commit, schema: baselineSchema, sourceManifest: manifest });
+  const view = store.temporalView(workspace.id, 'TimeWindow', 0, repository);
+  assert.equal(view.policy, 'snapshot-versioned');
+  assert.equal(view.policySource.sha256, manifest[1].sha256);
+  assert.equal(view.baselineCommit, commit);
+  assert.ok(view.fields.some(field => field.range === 'dateTime'));
+  assert.ok(view.fields.every(field => field.source.path === 'model/domain.schema'));
+  assert.throws(() => store.temporalView(workspace.id, 'TimeWindow', 1, repository), /Revision conflict/);
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'new', expectedRevision: 0, commands: [{ type: 'class.add', name: 'NewTemporalConcept', module: 'foundation', parent: 'Record', definition: 'A new concept.' }] });
+  assert.equal(store.temporalView(workspace.id, 'NewTemporalConcept', 1, repository).policy, null);
+  const legacy = store.create({ title: 'Legacy', baselineCommit: commit, schema: baselineSchema });
+  assert.throws(() => store.temporalView(legacy.id, 'TimeWindow', 0, repository), /pinned source manifest/);
+  store.close();
+});
 test('information view traces draft relationships to source and baseline', () => {
   const store = new WorkspaceStore(':memory:');
   const initial = '# source\nMODULE|foundation\nRecord|root|A record.|\nDevice|-|A device.|owns:Record!\n';

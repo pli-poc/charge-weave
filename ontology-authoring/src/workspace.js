@@ -222,6 +222,24 @@ export class WorkspaceStore {
     });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, viewpoint: 'information', mappingVersion: 'chargeweave-authoring-v1', root, nodes, edges: visible, omitted: edges.length - visible.length };
   }
+  temporalView(id, root, expectedRevision, repository) {
+    const workspace = this.get(id);
+    if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    if (workspace.digestVersion !== 3 || !repository) throw new Error('Temporal policy requires a pinned source manifest and repository');
+    const expected = workspace.sourceManifest.find(item => item.path === 'model/temporal-policy.json')?.sha256;
+    if (!expected) throw new Error('Temporal policy is not in the pinned source manifest');
+    const bytes = execFileSync('git', ['show', `${workspace.baselineCommit}:model/temporal-policy.json`], { cwd: repository, timeout: 15000, maxBuffer: 4 * 1024 * 1024 });
+    if (hash(bytes) !== expected) throw new Error('Pinned temporal policy does not match the source manifest');
+    const policy = JSON.parse(bytes.toString('utf8'));
+    const entity = this.entity(id, root, expectedRevision).entity;
+    const fields = entity.fields.filter(field => ['dateTime', 'date', 'time', 'TimeWindow', 'RecurringWindow'].includes(field.range));
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, baselineCommit: workspace.baselineCommit,
+      viewpoint: 'temporal', root, iri: entity.iri, fields,
+      policy: policy.classPolicies?.[root] ?? null,
+      policySource: { path: 'model/temporal-policy.json', baselineCommit: workspace.baselineCommit, sha256: expected },
+      timeConvention: { interval: policy.intervalConvention ?? null, precision: policy.timePrecision ?? null, recordedTimeOwner: policy.recordedTimeOwner ?? null },
+    };
+  }
   apply({ workspaceId, actor, operationId, expectedRevision, commands }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
     const requestHash = hash(JSON.stringify({ expectedRevision, commands }));

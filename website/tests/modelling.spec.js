@@ -3,6 +3,33 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+test('browser inspects the pinned temporal policy and explicit time fields', async ({ page }) => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
+  const paths = ['model/domain.schema', 'model/temporal-policy.json', 'tools/authoring_adapter.py', 'tools/domain_schema.py'];
+  const manifest = paths.map(path => ({ path, sha256: createHash('sha256').update(show(path)).digest('hex') }));
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Temporal browser test', baselineCommit: commit, schema: show('model/domain.schema').toString('utf8'), sourceManifest: manifest });
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode: 'synthetic-pairing-code-'.repeat(2), workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill('synthetic-pairing-code-'.repeat(2));
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('TimeWindow');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'TimeWindow', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await expect(page.getByText('Class policy: snapshot-versioned')).toBeVisible();
+    await expect(page.getByText(/Policy source: model\/temporal-policy\.json/)).toBeVisible();
+    await expect(page.getByText(/Model revision 0; policy from baseline/)).toContainText(commit);
+    await expect(page.getByRole('heading', { name: 'Explicit time fields and window references' })).toBeVisible();
+  } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
+});
 
 test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
