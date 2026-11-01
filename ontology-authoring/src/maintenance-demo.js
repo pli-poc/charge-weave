@@ -30,20 +30,22 @@ export async function runMaintenanceDemo(client, workspaceId, { waitForEdit = as
   if (nearby.results.some(item => /maintenance.*(window|interval)|(window|interval).*maintenance/i.test(item.name))) throw new Error('A maintenance-window concept already exists; inspect it before adding another');
   log(`Maintenance-related concepts found: ${nearby.results.map(item => item.name).join(', ') || 'none'}.`);
   log('Discovered existing station, time, work-order, responsibility and availability concepts.');
-  const request = { workspaceId, operationId: 'scripted-maintenance-proposal', expectedRevision: 0, commands: maintenanceCommands() };
+  const opened = await call('ontology_changeset_open', { workspaceId, operationId: 'scripted-maintenance-changeset', expectedRevision: 0, intent: 'Model planned charging-station maintenance and its responsibility and time context.' });
+  const changeSetId = opened.changeSet.id;
+  const request = { workspaceId, changeSetId, operationId: 'scripted-maintenance-proposal', expectedRevision: 0, commands: maintenanceCommands() };
   const proposal = await call('ontology_changeset_apply', request);
   const retry = await call('ontology_changeset_apply', request);
   if (proposal.revision !== 1 || retry.eventSequence !== proposal.eventSequence) throw new Error('Proposal retry was not idempotent');
   await call('ontology_view_suggest', { workspaceId, operationId: 'scripted-maintenance-view', expectedRevision: proposal.revision, root: 'PlannedMaintenanceWindow', viewpoint: 'information', explanation: 'Inspect the new maintenance window and its reused concepts.' });
   log('Proposed a maintenance window; the identical retry did not create another revision.');
-  await waitForEdit();
+  await waitForEdit({ workspaceId, changeSetId });
   let current = await call('ontology_workspace_get', { workspaceId });
   if (current.revision === proposal.revision) {
-    await call('ontology_changeset_apply', { workspaceId, operationId: 'scripted-maintenance-refinement', expectedRevision: current.revision, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A scheduled interval of charging station unavailability.' }] });
+    await call('ontology_changeset_apply', { workspaceId, changeSetId, operationId: 'scripted-maintenance-refinement', expectedRevision: current.revision, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A scheduled interval of charging station unavailability.' }] });
     log('No manual edit was made; the scripted client supplied a visible refinement.');
     current = await call('ontology_workspace_get', { workspaceId });
   } else log('The workspace changed during the pause; continuing from the current revision.');
-  const stale = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId, operationId: 'scripted-stale-check', expectedRevision: proposal.revision, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A stale description that must not be applied.' }] } });
+  const stale = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId, changeSetId, operationId: 'scripted-stale-check', expectedRevision: proposal.revision, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A stale description that must not be applied.' }] } });
   if (!stale.isError) throw new Error('Stale revision was unexpectedly accepted');
   const after = await call('ontology_workspace_get', { workspaceId });
   if (after.revision !== current.revision || after.sourceDigest !== current.sourceDigest) throw new Error('Stale command changed the workspace');
@@ -75,5 +77,5 @@ export async function runMaintenanceDemo(client, workspaceId, { waitForEdit = as
       }
     }
   } else log('Reference validation was explicitly skipped for this quick rehearsal.');
-  return { workspaceId, baselineCommit: current.baselineCommit, revision: current.revision, sourceDigest: current.sourceDigest, proposal, graph, diff, job, fixtureJob };
+  return { workspaceId, changeSetId, baselineCommit: current.baselineCommit, revision: current.revision, sourceDigest: current.sourceDigest, proposal, graph, diff, job, fixtureJob };
 }

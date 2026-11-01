@@ -97,11 +97,13 @@ test('runnable scripted demonstration preserves a concurrent manual edit and rej
       clients.push(client);
     }
     const messages = [];
-    const result = await runMaintenanceDemo(clients[0], workspace.id, { validate: false, log: message => messages.push(message), waitForEdit: async () => {
-      const response = await clients[1].callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'manual-edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A reviewer-refined maintenance window.' }] } });
+    const result = await runMaintenanceDemo(clients[0], workspace.id, { validate: false, log: message => messages.push(message), waitForEdit: async ({ changeSetId }) => {
+      const response = await clients[1].callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, changeSetId, operationId: 'manual-edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A reviewer-refined maintenance window.' }] } });
       assert.equal(response.isError, undefined);
     } });
     assert.equal(result.revision, 2);
+    assert.equal(store.snapshot(workspace.id).changeSet.id, result.changeSetId);
+    assert.equal(store.snapshot(workspace.id).changeSet.status, 'draft');
     assert.equal(result.job, null);
     assert.ok(result.graph.edges.some(edge => edge.predicate === 'maintenanceStation' && edge.target === 'ChargingStation'));
     assert.ok(store.responsibilityView(workspace.id, 'PlannedMaintenanceWindow', 2).bindings.some(binding => binding.property === 'maintenanceAccountableParty'));
