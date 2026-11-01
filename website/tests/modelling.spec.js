@@ -191,6 +191,39 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('following suggestions pauses for manual work and resumes for new events', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Following', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const suggest = (operationId, root) => store.suggestView(workspace.id, { actor: 'codex', operationId, expectedRevision: 0, root, viewpoint: 'information', explanation: operationId });
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByLabel('Follow new suggestions').check();
+    suggest('first-suggestion', 'Device');
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    await page.getByLabel('Search model').focus();
+    await expect(page.getByText('Following paused after interaction.')).toBeVisible();
+    suggest('paused-suggestion', 'Record');
+    await expect(page.getByText('paused-suggestion', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Resume following' }).click();
+    suggest('resumed-suggestion', 'Record');
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await page.getByLabel('Follow new suggestions').uncheck();
+    suggest('disabled-suggestion', 'Device');
+    await expect(page.getByText('disabled-suggestion', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('interactive graph preserves view positions and supports keyboard selection', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
   const store = new WorkspaceStore(':memory:');
