@@ -79,7 +79,7 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
-    await expect(page.getByText(/Acceptance and publication are not implemented/)).toBeVisible();
+    await expect(page.getByText(/Publication is not implemented/)).toBeVisible();
     expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });

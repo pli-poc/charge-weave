@@ -30,14 +30,14 @@ export async function publicationPreflight(store, workspaceId, expectedRevision,
   const stale = current.revision !== workspace.revision || current.sourceDigest !== workspace.sourceDigest;
   if (stale) return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, stale: true,
     target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, sourceFiles: [], generatedEvidence: null, readiness: null, canPublish: false,
-    limitations: ['The draft changed during preflight; run it again.', 'Acceptance and publication are not implemented.'] };
+    limitations: ['The draft changed during preflight; run it again.', 'Publication is not implemented.'] };
   const diff = store.diff(workspaceId), readiness = store.reviewReadiness(workspaceId);
-  const checked = readiness.evidence.find(item => item.profile === 'acceptance' && item.job) ?? readiness.evidence.find(item => item.profile === 'reference' && item.job);
+  const checked = readiness.evidence.find(item => item.profile === 'acceptance' && item.job?.status === 'passed') ?? readiness.evidence.find(item => item.profile === 'reference' && item.job?.status === 'passed');
   const artifacts = checked ? store.job(workspaceId, checked.job.id).artifactSummary : null;
   const sourceFiles = [...(diff.source.before !== diff.source.after ? [diff.source.path] : []), ...diff.additionalSources.map(item => item.path)];
   return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, stale,
     target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, sourceFiles,
     generatedEvidence: artifacts ? { jobId: checked.job.id, profile: checked.profile, summary: artifacts } : null,
     readiness, canPublish: false,
-    limitations: ['Acceptance and publication are not implemented.', 'Remote changes require a three-way comparison and revalidation.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
+    limitations: ['Publication is not implemented.', 'Remote changes require a three-way comparison and revalidation.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
 }

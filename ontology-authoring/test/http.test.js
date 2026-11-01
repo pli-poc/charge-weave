@@ -37,7 +37,7 @@ test('loopback MCP transport authenticates and shares state', async () => {
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_review_readiness'), true);
     const readiness = (await reviewer.callTool({ name: 'ontology_review_readiness', arguments: { workspaceId: workspace.id } })).structuredContent;
     assert.equal(readiness.canAccept, false);
-    assert.ok(readiness.missing.includes('independent acceptance and publication evidence'));
+    assert.ok(readiness.missing.includes('audit'));
     const args = { workspaceId: workspace.id, operationId: 'network-edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'NetworkExample', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
     assert.equal((await second.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'NetworkExample' } })).structuredContent.results.length, 1);
