@@ -24,6 +24,24 @@ test('candidate identity binds the pinned baseline', () => {
   store.close();
 });
 
+test('version-three workspaces refuse mismatched or missing parser adapters', () => {
+  const store = new WorkspaceStore(':memory:');
+  const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+  const manifest = [
+    { path: 'model/domain.schema', sha256: hash(schema) },
+    { path: 'tools/authoring_adapter.py', sha256: hash(readFileSync(new URL('../../tools/authoring_adapter.py', import.meta.url))) },
+    { path: 'tools/domain_schema.py', sha256: hash(readFileSync(new URL('../../tools/domain_schema.py', import.meta.url))) },
+  ];
+  const workspace = store.create({ title: 'Pinned', baselineCommit: 'a'.repeat(40), schema, sourceManifest: manifest });
+  const request = { workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated.' }] };
+  assert.equal(store.apply(request).revision, 1);
+  const mismatched = store.create({ title: 'Mismatched', baselineCommit: 'a'.repeat(40), schema, sourceManifest: [manifest[0], { ...manifest[1], sha256: '0'.repeat(64) }, manifest[2]] });
+  assert.throws(() => store.apply({ ...request, workspaceId: mismatched.id }), /Pinned adapter differs/);
+  assert.throws(() => store.entity(mismatched.id, 'Record'), /Pinned adapter differs/);
+  assert.equal(store.get(mismatched.id).revision, 0);
+  store.close();
+});
+
 test('legacy workspace digests and undo remain usable without rewriting receipts', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-legacy-'));
   try {

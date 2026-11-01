@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const candidateManifest = (manifest, schema) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : entry);
@@ -38,6 +39,16 @@ function apply(schema, commands) {
   const result = adapterCall({ schema, commands });
   if (typeof result.schema !== 'string' || Buffer.byteLength(result.schema) > 2_000_000) throw new Error('Invalid adapter result');
   return result.schema;
+}
+function verifyAdapter(workspace) {
+  if (workspace.digestVersion !== 3) return;
+  for (const name of ['tools/authoring_adapter.py', 'tools/domain_schema.py']) {
+    const expected = workspace.sourceManifest.find(entry => entry.path === name)?.sha256;
+    const path = fileURLToPath(new URL(`../../${name}`, import.meta.url));
+    let actual;
+    try { actual = hash(readFileSync(path)); } catch { actual = null; }
+    if (!expected || actual !== expected) throw new Error(`Pinned adapter differs or is missing: ${name}; create a workspace from the current commit`);
+  }
 }
 
 export class WorkspaceStore {
@@ -167,6 +178,7 @@ export class WorkspaceStore {
   entity(id, name, expectedRevision) {
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    verifyAdapter(workspace);
     const result = adapterCall({ action: 'inspect', schema: workspace.schema, name });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, entity: result.entity };
   }
@@ -199,6 +211,7 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
+      verifyAdapter(current);
       const schema = apply(current.schema, commands), revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, current.sourceManifest);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
       this.db.prepare('INSERT INTO command_groups VALUES (?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest);
