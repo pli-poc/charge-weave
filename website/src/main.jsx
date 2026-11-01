@@ -22,6 +22,7 @@ function App() {
     .slice(base.length)
     .replace(/(?:index\.html)?\/?$/, "")
     .replace(/^\//, "");
+  const localStudio = window.location.hostname === '127.0.0.1' && !['4173', '5173'].includes(window.location.port);
   const nav = [
     ["", "Overview"],
     ["capabilities", "Capabilities"],
@@ -90,7 +91,7 @@ function App() {
           </main>
         }
       >
-        {route === "modelling" ? (
+        {route === "modelling" || route === "developer/modeler/studio" || (route === "developer/modeler" && localStudio) ? (
           <ModellingStudio />
         ) : route === "ontology" ? (
           <Ontology />

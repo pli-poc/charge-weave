@@ -4,6 +4,10 @@
 .studio-connect label, .studio-panels label { display: grid; gap: .3rem; }
 .studio-connect input, .studio-panels input { padding: .5rem; min-width: 15rem; }
 .studio-panels { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr) minmax(14rem, 1fr); gap: 1rem; }
+.studio-panel-controls { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(18rem, 2fr) minmax(14rem, 1fr); }
+.studio-panels[data-hide-inspector="true"] { grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr); }
+.studio-panels[data-hide-navigator="true"][data-hide-inspector="true"] { grid-template-columns: minmax(0, 1fr); }
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
 .studio-panels pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
@@ -22,4 +26,4 @@
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
 .studio-activity { margin-top: 1rem; padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; }
-@media (max-width: 900px) { .studio-panels { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }

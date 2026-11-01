@@ -639,6 +639,7 @@ export default function Ontology() {
             <span className="beta-label">Read-only preview</span>
           </h1>
           <p>Follow a relationship. Inspect its meaning. See how time fits.</p>
+          <p><a href={`${import.meta.env.BASE_URL}modelling/`}>Open ontology modelling studio</a></p>
         </div>
         <div className="model-badge">
           <Layers size={18} />

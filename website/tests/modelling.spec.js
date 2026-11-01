@@ -253,6 +253,8 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await page.waitForTimeout(500);
     const from = graph.locator('.react-flow__node[data-id="Device"] .react-flow__handle.source');
     const to = graph.locator('.react-flow__node[data-id="Record"] .react-flow__handle.target');
+    await graph.scrollIntoViewIfNeeded();
+    await from.scrollIntoViewIfNeeded();
     const sourceBox = await from.boundingBox(), targetBox = await to.boundingBox();
     await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
     await page.mouse.down();
@@ -508,7 +510,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
   const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); if (job.profile === 'reference') target.saveJobArtifacts(job.id, { changedCount: 1, baselineManifestSha256: 'a'.repeat(64), candidateManifestSha256: 'b'.repeat(64), changes: [{ path: 'ontology/example.ttl', kind: 'changed' }], omitted: 0, note: 'Synthetic comparison for browser testing.' }); target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
-    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/developer/modeler/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
@@ -519,6 +521,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
     await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    await page.getByRole('button', { name: 'Hide navigator' }).click();
+    await expect(page.getByRole('heading', { name: 'Discover concepts' })).not.toBeVisible();
+    await page.getByRole('button', { name: 'Show navigator' }).click();
+    await page.getByRole('button', { name: 'Hide inspector' }).click();
+    await expect(page.getByRole('heading', { name: 'Inspector', exact: true })).not.toBeVisible();
+    await page.getByRole('button', { name: 'Show inspector' }).click();
     await page.getByText('Connection diagnostics').click();
     await expect(page.getByText(/negotiated MCP protocol:/)).toContainText('2025-06-18');
     await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedDiagnostics = text; return Promise.resolve(); } } }); });
@@ -527,6 +535,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(diagnostics).toContain(workspace.id);
     expect(diagnostics).not.toContain(token);
     expect(diagnostics).not.toContain(pairingCode);
+    await page.getByText('Connect an MCP client').click();
+    await page.getByRole('button', { name: 'Copy connection details' }).click();
+    const connectionDetails = await page.evaluate(() => window.copiedDiagnostics);
+    expect(connectionDetails).toContain(workspace.id);
+    expect(connectionDetails).toContain('<your draft token>');
+    expect(connectionDetails).not.toContain(token);
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
     await page.getByRole('button', { name: 'Run reference checks' }).click();

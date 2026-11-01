@@ -12,7 +12,7 @@ export async function serveStudio(req, res, directory) {
   try { path = decodeURIComponent(url.pathname.slice(base.length)); }
   catch { res.writeHead(400).end('Invalid path'); return true; }
   if (path.includes('\\') || path.split('/').some(part => part === '..' || part === '.') || path.includes('\0')) { res.writeHead(400).end('Invalid path'); return true; }
-  if (!path || path === 'modelling' || path === 'modelling/' || path === 'modelling/index.html') path = 'index.html';
+  if (!path || ['modelling', 'modelling/', 'modelling/index.html', 'developer/modeler', 'developer/modeler/', 'developer/modeler/index.html', 'developer/modeler/studio', 'developer/modeler/studio/', 'developer/modeler/studio/index.html'].includes(path)) path = 'index.html';
   const type = types[extname(path).toLowerCase()];
   if (!type) { res.writeHead(404).end('Not found'); return true; }
   try {

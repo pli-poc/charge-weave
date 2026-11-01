@@ -26,6 +26,8 @@ test('local studio serves bounded static files without exposing neighbouring fil
     assert.equal(page.status, 200);
     assert.match(page.headers.get('content-security-policy'), /frame-ancestors 'none'/);
     assert.match(await page.text(), /Studio/);
+    assert.equal((await fetch(`${url}/charge-weave-app/developer/modeler/`)).status, 200);
+    assert.equal((await fetch(`${url}/charge-weave-app/developer/modeler/studio/`)).status, 200);
     const script = await fetch(`${url}/charge-weave-app/app.js`);
     assert.match(script.headers.get('content-type'), /javascript/);
     assert.notEqual((await fetch(`${url}/charge-weave-app/%2e%2e/secret.json`)).status, 200);

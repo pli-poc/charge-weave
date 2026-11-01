@@ -27,6 +27,10 @@ export function createServer(store, actor, options = {}) {
     z.object({ type: z.literal('temporal.policy_set'), className: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), expectedPolicy: z.enum(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']).nullable(), policy: z.enum(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']) }).strict(),
     z.object({ type: z.literal('relationship.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']), description: z.string().min(1).max(4000).optional() }).strict(),
   ]);
+  if (options.workspaceId) server.registerTool('ontology_workspace_list', { description: 'List the one workspace authorized for this local service session.', inputSchema: {}, annotations: { readOnlyHint: true } }, async () => {
+    const workspace = store.snapshot(options.workspaceId);
+    return result({ workspaces: [{ workspaceId: workspace.id, title: workspace.title, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest }] });
+  });
   server.registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, source and event cursor.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.snapshot(args.workspaceId)));
   server.registerTool('ontology_constraint_templates', { description: 'List the bounded schema constraint templates supported by the pinned adapter.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.constraintTemplates(args.workspaceId)));
   server.registerTool('ontology_context_search', { description: 'Search existing model classes before proposing additions.', inputSchema: { workspaceId, query: z.string().max(200), limit: z.number().int().min(1).max(100).optional(), expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(store.search(args.workspaceId, args.query, args.limit, args.expectedRevision)));

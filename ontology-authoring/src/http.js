@@ -138,7 +138,7 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       activeJobs.set(job.id, { task, controller: new AbortController() });
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, workspaceId, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
