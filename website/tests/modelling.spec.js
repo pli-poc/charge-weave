@@ -224,6 +224,43 @@ test('following suggestions pauses for manual work and resumes for new events', 
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('relationship gestures and keyboard form do not edit until submitted', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop connector gestures are covered separately from the mobile list.');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Relationship authoring', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const graph = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(graph).toHaveAttribute('data-layout', 'ready');
+    const from = graph.locator('.react-flow__node[data-id="Device"] .react-flow__handle.source');
+    const to = graph.locator('.react-flow__node[data-id="Record"] .react-flow__handle.target');
+    const sourceBox = await from.boundingBox(), targetBox = await to.boundingBox();
+    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 15 });
+    await page.mouse.up();
+    await expect(page.getByRole('form', { name: 'New relationship' })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+    await page.getByRole('button', { name: 'Cancel relationship' }).click();
+    await page.getByText('Create a relationship using the keyboard').click();
+    await page.getByRole('button', { name: 'Relate Device to Record' }).click();
+    await page.getByLabel('Predicate name').fill('linkedRecord');
+    await page.getByLabel('Relationship cardinality').selectOption('!');
+    expect(store.get(workspace.id).revision).toBe(0);
+    await page.getByRole('button', { name: 'Create relationship', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    expect(store.get(workspace.id).schema).toContain('linkedRecord:Record!');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('interactive graph preserves view positions and supports keyboard selection', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
   const store = new WorkspaceStore(':memory:');

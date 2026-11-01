@@ -12,7 +12,7 @@ function loadPositions(workspaceId) {
   } catch { return Object.create(null); }
 }
 
-export default function ModellingCanvas({ graph, onSelect, onManualInteraction }) {
+export default function ModellingCanvas({ graph, onSelect, onManualInteraction, onConnect }) {
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
@@ -79,7 +79,8 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction }
     {layoutNotice && <p role="status">{layoutNotice}</p>}
     <ReactFlow nodes={nodes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.predicate, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
-      nodesConnectable={false} deleteKeyCode={null} fitView minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
+      onConnect={connection => { onManualInteraction(); onConnect(connection); }}
+      nodesConnectable deleteKeyCode={null} fitView minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <Background /><Controls showInteractive={false} />
     </ReactFlow>
   </div>;
