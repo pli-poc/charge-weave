@@ -1,5 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const candidateManifest = (manifest, schema) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : entry);
@@ -23,36 +25,15 @@ function parse(schema) {
 }
 
 function apply(schema, commands) {
-  if (!Array.isArray(commands) || !commands.length || commands.length > 100) throw new Error('Expected 1–100 commands');
-  const lines = schema.split(/\r?\n/);
-  for (const command of commands) {
-    const model = parse(lines.join('\n'));
-    if (command.type === 'class.add') {
-      const { name, module, parent, definition } = command;
-      if (!identifier.test(name ?? '') || model.classes.has(name) || !model.modules.has(module) || !(parent === 'root' || parent === '-' || model.classes.has(parent)) || typeof definition !== 'string' || !definition.trim() || /[|\r\n]/.test(definition)) throw new Error('Invalid class.add');
-      let index = lines.findIndex(line => line === `MODULE|${module}`) + 1;
-      while (index < lines.length && !lines[index].startsWith('MODULE|')) index++;
-      lines.splice(index, 0, `${name}|${parent}|${definition}|`);
-    } else if (command.type === 'property.add' || command.type === 'relationship.add') {
-      const { owner, name, range, cardinality } = command;
-      const datatypes = new Set(['string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI', 'IRI']);
-      const existing = [...model.classes.values()].flatMap(item => item.fields.split(/\s+/).filter(Boolean));
-      const enumMatch = typeof range === 'string' && /^\{([A-Za-z][A-Za-z0-9]*(?:,[A-Za-z][A-Za-z0-9]*)+)\}$/.exec(range);
-      const values = enumMatch ? enumMatch[1].split(',') : [];
-      const validEnum = values.length >= 2 && values.length <= 50 && new Set(values).size === values.length;
-      if (!model.classes.has(owner) || !identifier.test(name ?? '') || existing.some(field => field.startsWith(`${name}:`)) || !['!', '?', '+', '*'].includes(cardinality) || !(datatypes.has(range) || model.classes.has(range) || validEnum) || (command.type === 'relationship.add' && !model.classes.has(range))) throw new Error('Invalid property.add');
-      const index = lines.findIndex(line => line.startsWith(`${owner}|`));
-      const parts = lines[index].split('|');
-      parts[3] = [parts[3], `${name}:${range}${cardinality}`].filter(Boolean).join(' ');
-      lines[index] = parts.join('|');
-    } else if (command.type === 'class.describe') {
-      const { name, definition } = command;
-      if (!model.classes.has(name) || typeof definition !== 'string' || !definition.trim() || /[|\r\n]/.test(definition)) throw new Error('Invalid class.describe');
-      const index = lines.findIndex(line => line.startsWith(`${name}|`));
-      const parts = lines[index].split('|'); parts[2] = definition; lines[index] = parts.join('|');
-    } else throw new Error(`Unsupported command: ${command.type}`);
-  }
-  return lines.join('\n');
+  const adapter = fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url));
+  const output = execFileSync(process.env.CHARGEWEAVE_PYTHON || 'python', [adapter], {
+    input: JSON.stringify({ schema, commands }), encoding: 'utf8', timeout: 15000, maxBuffer: 4 * 1024 * 1024,
+    env: { ...process.env, PYTHONUTF8: '1' },
+  });
+  const result = JSON.parse(output);
+  if (result.error) throw new Error(result.error);
+  if (typeof result.schema !== 'string' || Buffer.byteLength(result.schema) > 2_000_000) throw new Error('Invalid adapter result');
+  return result.schema;
 }
 
 export class WorkspaceStore {

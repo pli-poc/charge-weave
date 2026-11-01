@@ -1,6 +1,6 @@
 # Ontology authoring service (under construction)
 
-This package currently exposes workspace reads, class search, baseline comparison and bounded draft class, property and relationship commands over MCP Streamable HTTP. Reusing an existing global property name is deliberately rejected until impact-aware editing is supported. It is not yet the complete modelling studio or a publication service. Node 22.18 or newer is required.
+This package currently exposes workspace reads, class search, baseline comparison and bounded draft class, property and relationship commands over MCP Streamable HTTP. Semantic writes use the repository's Python authoring adapter and shared generator parser. Reusing an existing global property name is deliberately rejected until impact-aware editing is supported. It is not yet the complete modelling studio or a publication service. Node 22.18 or newer and Python are required.
 
 From this directory, run `npm ci`, then create a workspace from the committed repository baseline with `npm start -- --create-workspace`. Record the returned workspace ID. The import reads `model/domain.schema` from Git at HEAD; uncommitted changes are not included. The default SQLite database is `workspaces.sqlite` in this directory; set `CHARGEWEAVE_WORKSPACE_DB` to change it and `CHARGEWEAVE_REPOSITORY` to select the local checkout.
 
