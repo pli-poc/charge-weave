@@ -19,12 +19,25 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
-    await page.getByLabel('Definition').fill('An edited record.');
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('An edited record.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('An edited record.');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('changed: Record')).toBeVisible();
     await expect(page.getByText('After: An edited record.')).toBeVisible();
+    await page.getByText('Add a concept').click();
+    await page.getByLabel('Class name').fill('MaintenanceWindow');
+    await page.getByLabel('Class definition').fill('A planned maintenance window.');
+    await page.getByRole('button', { name: 'Add concept' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    await page.getByLabel('Search model').fill('MaintenanceWindow');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'MaintenanceWindow', exact: true }).click();
+    await page.getByText('Add a field or relationship').click();
+    await page.getByLabel('Field name').fill('windowNote');
+    await page.getByRole('button', { name: 'Add field' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 3');
+    expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('windowNote:string?');
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
