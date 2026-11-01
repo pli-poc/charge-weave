@@ -43,6 +43,13 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   const narrow = { workspaceId: workspace.id, operationId: 'narrow', expectedRevision: 6, commands: [{ type: 'constraint.add', template: 'allowed-values', owner: 'Example', name: 'exampleState', expectedRange: '{Draft,Final,Archived}', expectedCardinality: '?', values: ['Draft', 'Final'] }] };
   assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: narrow })).structuredContent.revision, 7);
   assert.match(store.get(workspace.id).schema, /exampleState:\{Draft,Final\}\?/);
+  const suggestion = { workspaceId: workspace.id, operationId: 'suggest', expectedRevision: 7, root: 'Example', viewpoint: 'temporal', explanation: 'Review the new concept.' };
+  const proposed = (await codex.callTool({ name: 'ontology_view_suggest', arguments: suggestion })).structuredContent;
+  assert.equal((await codex.callTool({ name: 'ontology_view_suggest', arguments: suggestion })).structuredContent.eventSequence, proposed.eventSequence);
+  assert.equal(store.get(workspace.id).revision, 7);
+  assert.equal((await browser.callTool({ name: 'ontology_history_get', arguments: { workspaceId: workspace.id } })).structuredContent.events.at(-1).payload.type, 'view_suggestion');
+  assert.equal((await codex.callTool({ name: 'ontology_view_suggest', arguments: { ...suggestion, operationId: 'stale-view', expectedRevision: 6 } })).isError, true);
+  assert.equal((await codex.callTool({ name: 'ontology_view_suggest', arguments: { ...suggestion, operationId: 'missing-view', root: 'Missing' } })).isError, true);
   for (const client of clients) await client.close();
   store.close();
 });

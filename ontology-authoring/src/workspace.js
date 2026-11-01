@@ -202,6 +202,27 @@ export class WorkspaceStore {
       this.db.exec('COMMIT'); return record;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
+  suggestView(workspaceId, { actor, operationId, expectedRevision, root, viewpoint, explanation }) {
+    if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !identifier.test(root ?? '') || !['information', 'responsibility', 'temporal'].includes(viewpoint) || typeof explanation !== 'string' || !explanation.trim() || explanation.length > 500) throw new Error('Invalid view suggestion');
+    const requestHash = hash(JSON.stringify({ type: 'view.suggest', expectedRevision, root, viewpoint, explanation }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        const result = JSON.parse(receipt.result);
+        this.db.exec('COMMIT'); return result;
+      }
+      const workspace = this.get(workspaceId);
+      if (workspace.revision !== expectedRevision) throw new Error('Stale view suggestion');
+      if (!parse(workspace.schema).classes.has(root)) throw new Error('Suggested class not found');
+      const payload = { type: 'view_suggestion', root, viewpoint, explanation, sourceDigest: workspace.sourceDigest };
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, workspace.revision, JSON.stringify(payload));
+      const result = { workspaceId, revision: workspace.revision, sourceDigest: workspace.sourceDigest, eventSequence: Number(event.lastInsertRowid), suggestion: payload };
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
   create({ title, baselineCommit, schema, sourceManifest, sourceBlobs }) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');

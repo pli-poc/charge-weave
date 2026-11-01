@@ -13,6 +13,23 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('view suggestions survive restart without changing the candidate or duplicating events', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-suggestions-'));
+  let store;
+  try {
+    const path = join(directory, 'workspace.sqlite');
+    store = new WorkspaceStore(path);
+    const workspace = store.create({ title: 'Suggestion', baselineCommit: 'a'.repeat(40), schema });
+    const request = { actor: 'codex', operationId: 'suggest', expectedRevision: 0, root: 'Record', viewpoint: 'information', explanation: 'Inspect this concept.' };
+    const first = store.suggestView(workspace.id, request);
+    store.close(); store = new WorkspaceStore(path);
+    assert.equal(store.suggestView(workspace.id, request).eventSequence, first.eventSequence);
+    assert.equal(store.events(workspace.id).length, 1);
+    assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
+    assert.equal(store.get(workspace.id).revision, 0);
+    assert.throws(() => store.suggestView(workspace.id, { ...request, explanation: 'Changed.' }), /reused/);
+  } finally { store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 test('version-four drafts atomically link an existing requirement and undo both sources', () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

@@ -10,7 +10,7 @@ test.use({ actionTimeout: 10000 });
 
 test('browser updates a field with a visible compatibility warning', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string? peer:Record?\n' });
+  const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string? peer:Record?\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -32,6 +32,10 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Require peer' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
     expect(store.get(workspace.id).schema).toContain('peer:Record!');
+    store.suggestView(workspace.id, { actor: 'codex', operationId: 'suggest-device', expectedRevision: 2, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device.' });
+    await expect(page.getByText('Inspect the device.')).toBeVisible();
+    await page.getByRole('button', { name: 'Focus Device' }).click();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

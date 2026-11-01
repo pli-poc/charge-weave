@@ -48,6 +48,8 @@ For versions 3 and 4, semantic writes and source-grounded inspection require the
 
 Version-four workspaces can search the existing requirement register and explicitly link a known class using an expected class-list precondition. The requirement source and schema changes share a revision, digest, receipt and undo; their source patches are shown in review and validation materializes both. A link records an author decision, not proof that the requirement is met, and does not create a requirement or acceptance case.
 
+`ontology_view_suggest` records a bounded, nonbinding concept and perspective suggestion as a workspace event. It does not change the semantic revision or force browser navigation. A connected viewer can choose to focus the suggested concept while the suggestion still refers to the current draft; retries with the same operation ID do not create duplicate events.
+
 New version-four workspaces can also set an explicit class temporal policy using the expected prior value as a precondition. The policy source shares the same transaction, identity, undo and validation materialization as the schema and requirement register. Selecting a policy does not configure all temporal relationships or establish time-behavior acceptance; those checks and any needed fixtures remain separate. Older version-four workspaces created without the temporal source must be recreated to edit it.
 
 Cancellation is cooperative: the running fixed check is allowed to finish, then the job stops before the next check and is marked `cancelled`. A cancelling job continues to occupy the workspace validation slot. Cancellation does not promise immediate termination of a running child process.
