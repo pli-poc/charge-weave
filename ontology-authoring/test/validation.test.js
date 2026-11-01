@@ -149,7 +149,7 @@ test('reference generation records bounded artifact evidence with its job', { sk
     writeFileSync(join(repository, 'generated', 'model.txt'), 'baseline');
     writeFileSync(join(repository, 'tools', 'check_generated.py'), "def generated_paths(root):\n    return {'generated/model.txt'}\n");
     writeFileSync(join(repository, 'tools', 'build_all.py'), "from pathlib import Path\nPath('generated/model.txt').write_text('candidate')\n");
-    for (const name of ['validate.py', 'test_business.py', 'test_boundaries.py']) writeFileSync(join(repository, 'tools', name), 'print("passed")\n');
+    for (const name of ['validate.py', 'test_business.py', 'test_boundaries.py', 'test_business_acceptance.py']) writeFileSync(join(repository, 'tools', name), 'print("passed")\n');
     const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
     git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

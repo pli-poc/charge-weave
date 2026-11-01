@@ -61,6 +61,10 @@ for declared class fields; they apply to subclasses and reject conflicting value
 They keep generated examples reproducible, but do not replace independently reviewed
 positive and negative business cases. Run `python tools/test_authoring_example_overrides.py`
 when changing the override contract.
+Template-derived focused cases carry explicit provenance and are exercised by the
+business-decision test, but are excluded when the audit checks for independent
+positive and negative coverage. Run `python tools/test_business_case_provenance.py`
+when changing that distinction.
 `python tools/test_domain_schema.py` checks the parser against the committed
 catalogue and exercises invalid inputs. The temporal contract digest includes
 the parser source so changes to parsing invalidate temporal evidence.

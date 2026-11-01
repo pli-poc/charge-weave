@@ -12,12 +12,13 @@ export function createServer(store, actor, options = {}) {
   const workspaceId = z.string().uuid();
   const operationId = z.string().min(1).max(128);
   const revision = z.number().int().nonnegative().safe();
-  const command = z.discriminatedUnion('type', [
+  const command = z.union([
     z.object({ type: z.literal('class.add'), name: z.string().max(128), module: z.string().max(128), parent: z.string().max(128), definition: z.string().max(4000) }).strict(),
     z.object({ type: z.literal('class.describe'), name: z.string().max(128), definition: z.string().max(4000) }).strict(),
     z.object({ type: z.literal('property.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
     z.object({ type: z.literal('property.update'), owner: z.string().max(128), name: z.string().max(128), expectedRange: z.string().max(128), expectedCardinality: z.enum(['!', '?', '+', '*']), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
     z.object({ type: z.literal('constraint.add'), template: z.enum(['required-relationship', 'allowed-values']), owner: z.string().max(128), name: z.string().max(128), expectedRange: z.string().max(128), expectedCardinality: z.enum(['!', '?', '+', '*']), values: z.array(z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128)).min(2).max(50).optional() }).strict(),
+    z.object({ type: z.literal('constraint.add'), template: z.literal('valid-interval'), owner: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), startProperty: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), endProperty: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), expectedStartCardinality: z.enum(['!', '?']), expectedEndCardinality: z.enum(['!', '?']), requirementId: z.string().regex(/^BR-[0-9]+$/).max(32), expectedRules: z.array(z.string().regex(/^B[0-9]{3,6}$/)).max(500), ruleId: z.string().regex(/^B[0-9]{3,6}$/) }).strict(),
     z.object({ type: z.literal('requirement.link'), requirementId: z.string().regex(/^BR-[0-9]+$/).max(32), className: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), expectedClasses: z.array(z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128)).max(200) }).strict(),
     z.object({ type: z.literal('temporal.policy_set'), className: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), expectedPolicy: z.enum(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']).nullable(), policy: z.enum(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']) }).strict(),
     z.object({ type: z.literal('relationship.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
@@ -49,7 +50,7 @@ export function createServer(store, actor, options = {}) {
       return result(changeImpact(workspace, store.diff(args.workspaceId).changes, options.repository));
     });
     server.registerTool('ontology_temporal_view_get', { description: 'Inspect explicit time fields and the pinned class temporal policy; no missing policy or relationship is inferred.', inputSchema: { workspaceId, root: z.string().max(128), expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(store.temporalView(args.workspaceId, args.root, args.expectedRevision, options.repository)));
-    server.registerTool('ontology_validation_start', { description: 'Run structural, reference or independent release checks on an isolated pinned draft.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), profile: z.enum(['structural', 'reference', 'acceptance']).default('structural') }, annotations: { idempotentHint: true } }, async args => {
+    server.registerTool('ontology_validation_start', { description: 'Run structural, reference, independent audit or release checks on an isolated pinned draft.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), profile: z.enum(['structural', 'reference', 'audit', 'acceptance']).default('structural') }, annotations: { idempotentHint: true } }, async args => {
       const workspace = store.get(args.workspaceId);
       const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, args.profile);
       if (created) {

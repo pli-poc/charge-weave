@@ -8,8 +8,53 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { editableSourcePaths } from '../../ontology-authoring/src/source-manifest.js';
 
 test.use({ actionTimeout: 10000 });
+
+test('browser authors an interval rule with draft cases and source patches', async ({ page }) => {
+  test.setTimeout(60000);
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
+  const paths = [...new Set([...editableSourcePaths, 'model/domain.schema', 'tools/authoring_adapter.py', 'tools/domain_schema.py'])].sort();
+  const manifest = paths.map(path => ({ path, sha256: createHash('sha256').update(show(path)).digest('hex') }));
+  const sourceBlobs = Object.fromEntries([...editableSourcePaths].map(path => [path, show(path).toString('utf8')]));
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Interval browser test', baselineCommit: commit, schema: show('model/domain.schema').toString('utf8'), sourceManifest: manifest, sourceBlobs });
+  const requirement = store.requirementsSearch(workspace.id, 'BR-012').results.find(item => item.id === 'BR-012');
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'prepare', expectedRevision: 0, commands: [
+    { type: 'class.add', name: 'PlannedServiceWindow', module: 'foundation', parent: 'Record', definition: 'A planned service window.' },
+    { type: 'property.add', owner: 'PlannedServiceWindow', name: 'maintenanceStartsAt', range: 'dateTime', cardinality: '!' },
+    { type: 'property.add', owner: 'PlannedServiceWindow', name: 'maintenanceEndsAt', range: 'dateTime', cardinality: '!' },
+    { type: 'requirement.link', requirementId: requirement.id, className: 'PlannedServiceWindow', expectedClasses: requirement.classes },
+    { type: 'temporal.policy_set', className: 'PlannedServiceWindow', expectedPolicy: null, policy: 'snapshot-versioned' },
+  ] });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('PlannedServiceWindow');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'PlannedServiceWindow', exact: true }).click();
+    await page.getByLabel('Search requirements').fill('BR-012');
+    await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
+    await page.getByText('Add interval rule for BR-012').click();
+    await page.getByLabel('Interval start').selectOption('maintenanceStartsAt');
+    await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
+    await page.getByLabel('New rule ID').fill('B900');
+    await page.getByRole('button', { name: 'Add interval constraint' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    await expect(page.getByText('Source patch: model/audit-rules.json')).toBeVisible();
+    await expect(page.getByText('Source patch: tests/negative-cases.json')).toBeVisible();
+    await expect(page.getByText('Source patch: tests/business-acceptance.json')).toBeVisible();
+    expect(JSON.parse(store.get(workspace.id).sourceOverlays['tests/business-acceptance.json']).filter(item => item.rule === 'B900').every(item => item.provenance === 'template-derived')).toBe(true);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
 
 test('reviewer can inspect a publication target without publishing', async ({ page }) => {
   test.setTimeout(45000);

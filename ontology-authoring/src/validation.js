@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { generatedInputs, sha256 } from './source-manifest.js';
+import { editableSourcePaths, generatedInputs, sha256 } from './source-manifest.js';
 import { captureGeneratedArtifacts, summarizeGeneratedArtifacts } from './artifact-summary.js';
 
 const exec = promisify(execFile);
@@ -15,7 +15,8 @@ export const releaseGates = [
 ];
 export function commandsFor(profile) {
   if (profile === 'structural') return [['tools/build.py']];
-  if (profile === 'reference') return [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']];
+  if (profile === 'reference') return [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py'], ['tools/test_business_acceptance.py']];
+  if (profile === 'audit') return [['tools/build_all.py'], ['tools/check_audit.py']];
   if (profile === 'acceptance') return [['tools/build_all.py'], ['tools/check_generated.py'], ...releaseGates.map(([name, ...args]) => [`tools/${name}`, ...args])];
   throw new Error('Invalid validation profile');
 }
@@ -43,7 +44,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
     await exec('git', ['reset', '--quiet', '--mixed', workspace.baselineCommit], gitOptions);
     await writeFile(join(directory, 'model', 'domain.schema'), workspace.schema, 'utf8');
     for (const [path, content] of Object.entries(workspace.sourceOverlays || {})) {
-      if (workspace.digestVersion !== 4 || !['requirements/business-requirements.json', 'model/temporal-policy.json'].includes(path) || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid candidate source overlay');
+      if (workspace.digestVersion !== 4 || !editableSourcePaths.has(path) || typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid candidate source overlay');
       await writeFile(join(directory, ...path.split('/')), content, 'utf8');
     }
     const tracked = await exec('git', ['ls-tree', '-r', '-z', '--name-only', workspace.baselineCommit, '--', 'model', 'benchmark', 'requirements', 'tests', 'tools', 'requirements.txt'], { cwd: repository, timeout: 30000, maxBuffer: 4 * 1024 * 1024 });

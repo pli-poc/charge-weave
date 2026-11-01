@@ -1,5 +1,6 @@
 """Fail on broken requirement/source/actor/term/rule/scenario traceability."""
 from runtime import *
+from business_case_provenance import has_independent_rule_coverage, independent_cases
 import json
 import hashlib
 import sys
@@ -36,7 +37,8 @@ for r in requirements:
         actual = {f['property'] for f in catalog.get(cls, {}).get('fields', [])}
         result(r['id']+':paths:'+cls, set(relation['properties']) <= actual)
     if r['kind'] == 'audit-gap-closure':
-        selected = [c for c in cases if c['requirement'] == r['id']]
+        # Generated template cases exercise behavior but are not independent review evidence.
+        selected = independent_cases(cases, r['id'])
         result(r['id']+':positive-and-negative', {c['expectedConformance'] for c in selected} == {True,False})
         result(r['id']+':scenario-rules', all(c['rule'] in r['rules'] for c in selected))
 for case in adversarial_cases:
@@ -48,6 +50,9 @@ for family in {c['family'] for c in adversarial_cases}:
     result(family+':adversarial-boundaries', {c['expectedConformance'] for c in adversarial_cases if c['family']==family}=={True,False})
 used_rules = {rule for r in requirements for rule in r['rules']}
 result('all-business-rules-accounted-for', set(rules) == used_rules, sorted(set(rules)-used_rules))
+for authored in read('model/audit-rules.json'):
+    if authored.get('provenance') == 'template-derived':
+        result(authored['id']+':independent-positive-and-negative', has_independent_rule_coverage(cases, authored['requirement'], authored['id']))
 phases = set(read('requirements/scope.json')['lifecyclePhases'])
 for key, journey in journeys.items():
     result(key+':six-lifecycle-phases', set(journey['lifecycle']) == phases and all(journey['lifecycle'].values()))

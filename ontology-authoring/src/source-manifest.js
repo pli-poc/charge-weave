@@ -5,6 +5,11 @@ export const generatedInputs = new Set([
   'model/catalog.json', 'model/property-types.json', 'model/rules.json', 'model/transitions.json', 'model/competency-questions.json', 'model/temporal-example.json',
   'benchmark/resource-coverage.json', 'benchmark/endpoint-coverage.json', 'benchmark/event-catalog.json', 'benchmark/capture.json', 'benchmark/pricing-field-crosswalk.json', 'tests/journey-snapshots.json',
 ]);
+// Only these declared source owners may be materialized as draft overlays.
+export const editableSourcePaths = new Set([
+  'model/audit-rules.json', 'model/authoring-example-overrides.json', 'model/temporal-policy.json',
+  'requirements/business-requirements.json', 'tests/business-acceptance.json', 'tests/negative-cases.json',
+]);
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 export function importSourceManifest(repository, commit) {

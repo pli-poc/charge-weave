@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { createPatch } from 'diff';
 import { responsibilityMappings, responsibilityMappingVersion } from './responsibility-mapping.js';
+import { editableSourcePaths } from './source-manifest.js';
+import { buildIntervalSources, canonicalJson, intervalSourcePaths } from './business-templates.js';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const candidateManifest = (manifest, schema, overlays = {}) => manifest?.map(entry => entry.path === 'model/domain.schema' ? { ...entry, sha256: hash(schema) } : Object.hasOwn(overlays, entry.path) ? { ...entry, sha256: hash(overlays[entry.path]) } : entry);
@@ -12,11 +14,9 @@ const sourceDigest = (schema, baselineCommit, version, manifest, overlays = {}) 
   ? { adapter: 'domain-schema-v1', sources: { 'model/domain.schema': hash(schema) } }
   : version === 2 ? { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }
     : { adapter: version === 4 ? 'domain-schema-v4' : 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema, overlays) }));
-const editableSourcePaths = new Set(['requirements/business-requirements.json', 'model/temporal-policy.json']);
 const requirementsPath = 'requirements/business-requirements.json';
 const temporalPolicyPath = 'model/temporal-policy.json';
 const temporalPolicies = new Set(['abstract', 'history-metadata', 'immutable-aggregate', 'snapshot-versioned', 'tenant-context']);
-const canonicalJson = value => JSON.stringify(value, null, 2).replace(/[\u007f-\uffff]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`) + '\n';
 const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
 const cardBounds = { '!': [1, 1], '?': [0, 1], '+': [1, Infinity], '*': [0, Infinity] };
 function fieldContracts(entity) {
@@ -103,7 +103,7 @@ export class WorkspaceStore {
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural') {
     if (!actor || !operationId) throw new Error('Invalid validation identity');
-    if (!['structural', 'reference', 'acceptance'].includes(profile)) throw new Error('Invalid validation profile');
+    if (!['structural', 'reference', 'audit', 'acceptance'].includes(profile)) throw new Error('Invalid validation profile');
     const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -154,7 +154,7 @@ export class WorkspaceStore {
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
-    const scope = job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures and structural boundaries' : 'Structural generation';
+    const scope = job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
     return { ...job, scope, completeAcceptanceEvidence: false };
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
@@ -291,7 +291,9 @@ export class WorkspaceStore {
   constraintTemplates(id) {
     const workspace = this.get(id);
     verifyAdapter(workspace);
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, templates: adapterCall({ action: 'templates' }).templates };
+    const templates = adapterCall({ action: 'templates' }).templates;
+    if (intervalSourcePaths.every(path => workspace.editableSources.includes(path))) templates.push({ id: 'valid-interval', description: 'For a new class and new dateTime fields, the end must be later than the start when both are present.', sourceOwner: intervalSourcePaths, compiler: 'tools/build_rules.py', testFactory: 'template-derived-positive-equal-and-reversed; independent review required' });
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, templates };
   }
   requirementsSearch(id, query, limit = 20, expectedRevision) {
     const workspace = this.get(id);
@@ -301,7 +303,7 @@ export class WorkspaceStore {
     if (!row) throw new Error('Requirements source is unavailable');
     const needle = query.toLowerCase(), entries = JSON.parse(row.content);
     if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, source: requirementsPath })) };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, rules: item.rules, source: requirementsPath })) };
   }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);
@@ -394,8 +396,22 @@ export class WorkspaceStore {
       const overlays = { ...current.sourceOverlays };
       const flush = () => { if (pending.length) { schema = apply(schema, pending); pending = []; } };
       for (const command of commands) {
-        if (!['requirement.link', 'temporal.policy_set'].includes(command?.type)) { pending.push(command); continue; }
+        const interval = command?.type === 'constraint.add' && command.template === 'valid-interval';
+        if (!interval && !['requirement.link', 'temporal.policy_set'].includes(command?.type)) { pending.push(command); continue; }
         flush();
+        if (interval) {
+          if (current.digestVersion !== 4) throw new Error('Valid-interval templates require a multi-source workspace');
+          const baseline = this.db.prepare('SELECT baseline_schema FROM workspaces WHERE id = ?').get(workspaceId).baseline_schema;
+          const baselineClasses = parse(baseline).classes;
+          if (baselineClasses.has(command.owner) || [...baselineClasses.values()].some(item => fieldContracts(item).has(command.startProperty) || fieldContracts(item).has(command.endProperty))) throw new Error('Valid-interval templates require a new class and new fields; review existing rules for reuse');
+          const contents = Object.fromEntries(this.db.prepare('SELECT path, content FROM workspace_sources WHERE workspace = ?').all(workspaceId).map(source => [source.path, source.content]));
+          const updated = buildIntervalSources(parse(schema).classes.get(command.owner), command, contents);
+          for (const [path, content] of Object.entries(updated)) {
+            if (!editableSourcePaths.has(path) || Buffer.byteLength(content) > 2_000_000 || this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, path).changes !== 1) throw new Error('Invalid template source update');
+            overlays[path] = content;
+          }
+          continue;
+        }
         if (command.type === 'temporal.policy_set') {
           if (current.digestVersion !== 4 || Object.keys(command).sort().join(',') !== 'className,expectedPolicy,policy,type' || !identifier.test(command.className ?? '') || !parse(schema).classes.has(command.className) || !(command.expectedPolicy === null || temporalPolicies.has(command.expectedPolicy)) || !temporalPolicies.has(command.policy)) throw new Error('Invalid temporal policy command');
           const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, temporalPolicyPath);
