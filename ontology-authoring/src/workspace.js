@@ -89,6 +89,8 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
+    if (!this.db.prepare('PRAGMA table_info(events)').all().some(column => column.name === 'created_at')) this.db.exec('ALTER TABLE events ADD COLUMN created_at TEXT');
+    this.db.exec("CREATE TRIGGER IF NOT EXISTS events_timestamp AFTER INSERT ON events WHEN NEW.created_at IS NULL BEGIN UPDATE events SET created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE sequence = NEW.sequence; END");
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS job_steps (job TEXT NOT NULL, ordinal INTEGER NOT NULL, check_name TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, output TEXT NOT NULL, PRIMARY KEY(job, ordinal), FOREIGN KEY(job) REFERENCES jobs(id)); UPDATE job_steps SET status = 'interrupted', finished_at = datetime('now') WHERE status = 'running';`);
     this.db.exec('CREATE TABLE IF NOT EXISTS job_artifacts (job TEXT PRIMARY KEY, summary TEXT NOT NULL, FOREIGN KEY(job) REFERENCES jobs(id))');
@@ -99,6 +101,8 @@ export class WorkspaceStore {
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'before_overlays')) this.db.exec('ALTER TABLE command_groups ADD COLUMN before_overlays TEXT');
+    if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'after_schema')) this.db.exec('ALTER TABLE command_groups ADD COLUMN after_schema TEXT');
+    if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'after_overlays')) this.db.exec('ALTER TABLE command_groups ADD COLUMN after_overlays TEXT');
     this.db.exec('CREATE TABLE IF NOT EXISTS review_decisions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, actor TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS review_evidence (review TEXT NOT NULL, profile TEXT NOT NULL, job TEXT NOT NULL, PRIMARY KEY(review, profile), FOREIGN KEY(review) REFERENCES review_decisions(id), FOREIGN KEY(job) REFERENCES jobs(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, actor TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, review_id TEXT NOT NULL, preview_job TEXT NOT NULL, branch TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, state TEXT NOT NULL, commit_sha TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id), FOREIGN KEY(review_id) REFERENCES review_decisions(id), FOREIGN KEY(preview_job) REFERENCES jobs(id))');
@@ -403,6 +407,29 @@ export class WorkspaceStore {
     const additionalSources = this.db.prepare('SELECT path, baseline_content, content FROM workspace_sources WHERE workspace = ? AND content <> baseline_content ORDER BY path').all(id).map(source => ({ path: source.path, patch: createPatch(source.path, source.baseline_content, source.content, 'baseline', 'draft', { context: 3 }) }));
     return { workspaceId: id, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, changes, source: { path: 'model/domain.schema', before: row.baseline_schema, after: row.schema, patch: createPatch('model/domain.schema', row.baseline_schema, row.schema, 'baseline', 'draft', { context: 3 }) }, additionalSources };
   }
+  historyDetail(id, revision) {
+    if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Invalid historical revision');
+    const workspace = this.get(id);
+    const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(id, revision);
+    if (!group) throw new Error('Historical command group not found');
+    if (group.after_schema === null) return { workspaceId: id, revision, available: false, reason: 'This older command group did not record an after snapshot.' };
+    const beforeOverlays = JSON.parse(group.before_overlays || '{}');
+    const afterOverlays = JSON.parse(group.after_overlays || '{}');
+    const stored = this.db.prepare('SELECT baseline_schema, source_manifest FROM workspaces WHERE id = ?').get(id);
+    const manifest = stored.source_manifest ? JSON.parse(stored.source_manifest) : null;
+    if (sourceDigest(group.after_schema, workspace.baselineCommit, workspace.digestVersion, manifest, afterOverlays) !== group.after_digest) throw new Error('Historical snapshot digest mismatch');
+    const baseline = stored.baseline_schema;
+    const sources = this.db.prepare('SELECT path, baseline_content FROM workspace_sources WHERE workspace = ? ORDER BY path').all(id);
+    const additionalSources = sources.flatMap(({ path, baseline_content: original }) => {
+      const before = beforeOverlays[path] ?? original, after = afterOverlays[path] ?? original;
+      return before === after ? [] : [{ path, patch: createPatch(path, before, after, 'before', 'after', { context: 3 }) }];
+    });
+    const event = this.db.prepare('SELECT sequence, actor, created_at AS createdAt, payload FROM events WHERE workspace = ? AND revision = ? ORDER BY sequence LIMIT 1').get(id, revision);
+    return { workspaceId: id, revision, baselineCommit: workspace.baselineCommit, sourceDigest: group.after_digest, available: true,
+      actor: event?.actor ?? null, createdAt: event?.createdAt ?? null, eventSequence: event?.sequence ?? null, commands: event ? JSON.parse(event.payload).commands ?? [] : [],
+      patch: createPatch('model/domain.schema', group.before_schema, group.after_schema, 'before', 'after', { context: 3 }),
+      baselinePatch: createPatch('model/domain.schema', baseline, group.after_schema, 'baseline', 'historical revision', { context: 3 }), additionalSources };
+  }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
     const workspace = this.get(id), needle = query.toLowerCase();
@@ -588,7 +615,7 @@ export class WorkspaceStore {
       flush();
       const revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, baselineManifest, overlays);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
-      this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays) VALUES (?, ?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest, current.digestVersion === 4 ? JSON.stringify(current.sourceOverlays) : null);
+      this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays, after_schema, after_overlays) VALUES (?, ?, ?, ?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest, current.digestVersion === 4 ? JSON.stringify(current.sourceOverlays) : null, schema, current.digestVersion === 4 ? JSON.stringify(overlays) : null);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, sourceDigest: digest }));
       const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
@@ -629,7 +656,7 @@ export class WorkspaceStore {
   events(id, after = 0) {
     this.get(id);
     if (!Number.isSafeInteger(after) || after < 0) throw new Error('Invalid cursor');
-    return this.db.prepare('SELECT e.sequence, e.actor, e.revision, e.payload, COALESCE((SELECT MAX(p.sequence) FROM events p WHERE p.workspace = e.workspace AND p.sequence < e.sequence), 0) AS previousSequence FROM events e WHERE e.workspace = ? AND e.sequence > ? ORDER BY e.sequence LIMIT 100').all(id, after).map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+    return this.db.prepare('SELECT e.sequence, e.actor, e.revision, e.created_at AS createdAt, e.payload, COALESCE((SELECT MAX(p.sequence) FROM events p WHERE p.workspace = e.workspace AND p.sequence < e.sequence), 0) AS previousSequence FROM events e WHERE e.workspace = ? AND e.sequence > ? ORDER BY e.sequence LIMIT 100').all(id, after).map(row => ({ ...row, payload: JSON.parse(row.payload) }));
   }
   hasCursor(id, sequence) {
     this.get(id);
@@ -637,6 +664,6 @@ export class WorkspaceStore {
   }
   recentEvents(id) {
     this.get(id);
-    return this.db.prepare('SELECT sequence, actor, revision, payload FROM events WHERE workspace = ? ORDER BY sequence DESC LIMIT 100').all(id).reverse().map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+    return this.db.prepare('SELECT sequence, actor, revision, created_at AS createdAt, payload FROM events WHERE workspace = ? ORDER BY sequence DESC LIMIT 100').all(id).reverse().map(row => ({ ...row, payload: JSON.parse(row.payload) }));
   }
 }

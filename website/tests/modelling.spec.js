@@ -518,6 +518,13 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(page.getByRole('status')).toContainText('revision 4');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
     await expect(page.getByText(/undid revision 3/)).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect revision 1', exact: true }).click();
+    const historical = page.getByRole('region', { name: 'Historical comparison' });
+    await expect(historical.getByText('Historical revision 1')).toBeVisible();
+    await expect(historical.locator('pre').first()).toContainText('+Record|root|An edited record.');
+    await expect(page.getByRole('status')).toContainText('revision 4');
+    await historical.getByRole('button', { name: 'Return to current draft' }).click();
+    await expect(historical).toHaveCount(0);
     await page.route('**/events?**', route => route.abort());
     await page.route('**/mcp', route => route.abort());
     service.closeAllConnections();

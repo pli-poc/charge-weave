@@ -13,6 +13,34 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('historical comparisons retain exact command snapshots across edits, undo and restart', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-history-'));
+  let store;
+  try {
+    const path = join(directory, 'workspace.sqlite');
+    store = new WorkspaceStore(path);
+    const workspace = store.create({ title: 'History', baselineCommit: 'a'.repeat(40), schema });
+    store.apply({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'first', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'First revision.' }] });
+    const digest = store.get(workspace.id).sourceDigest;
+    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'second', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Second revision.' }] });
+    store.undo({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'undo', expectedRevision: 2, targetRevision: 2 });
+    const current = store.get(workspace.id);
+    store.close(); store = new WorkspaceStore(path);
+    const first = store.historyDetail(workspace.id, 1), second = store.historyDetail(workspace.id, 2);
+    assert.equal(first.sourceDigest, digest);
+    assert.equal(first.actor, 'reviewer');
+    assert.match(first.createdAt, /^\d{4}-\d\d-\d\dT/);
+    assert.equal(store.events(workspace.id)[0].createdAt, first.createdAt);
+    assert.match(first.patch, /\+Record\|root\|First revision\./);
+    assert.match(second.patch, /\+Record\|root\|Second revision\./);
+    assert.match(second.baselinePatch, /\+Record\|root\|Second revision\./);
+    assert.equal(store.get(workspace.id).sourceDigest, current.sourceDigest);
+    assert.equal(store.get(workspace.id).revision, 3);
+    assert.throws(() => store.historyDetail(workspace.id, 3), /not found/);
+    store.db.prepare('UPDATE command_groups SET after_schema = NULL WHERE workspace = ? AND revision = 1').run(workspace.id);
+    assert.equal(store.historyDetail(workspace.id, 1).available, false);
+  } finally { store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 test('view suggestions survive restart without changing the candidate or duplicating events', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-suggestions-'));
   let store;
@@ -72,6 +100,10 @@ test('version-four drafts atomically link an existing requirement and undo both 
   assert.deepEqual(store.get(workspace.id).sourceOverlays, {});
   assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
   assert.equal(store.get(workspace.id).schema, workspace.schema);
+  const historical = store.historyDetail(workspace.id, 1);
+  assert.equal(historical.sourceDigest, changed.sourceDigest);
+  assert.equal(applyPatch(requirements, historical.additionalSources.find(item => item.path === 'requirements/business-requirements.json').patch), source);
+  assert.equal(applyPatch(policy, historical.additionalSources.find(item => item.path === 'model/temporal-policy.json').patch), changed.sourceOverlays['model/temporal-policy.json']);
   store.close();
 });
 test('version-four source overlays and receipts survive restart', () => {
