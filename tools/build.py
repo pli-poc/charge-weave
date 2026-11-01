@@ -29,6 +29,7 @@ for c,i in classes.items():
  sn=C[c+'Shape'];shapes.add((sn,RDF.type,SH.NodeShape));shapes.add((sn,SH.targetClass,n));shapes.add((sn,SH.nodeKind,SH.IRI));shapes.add((sn,SH.description,Literal(i['definition'])))
  for f in i['fields']:
   k=f['property'];p=C[k];ps=C[c+'_'+k+'Shape'];shapes.add((sn,SH.property,ps));shapes.add((ps,RDF.type,SH.PropertyShape));shapes.add((ps,SH.path,p));shapes.add((ps,SH.name,Literal(snake_label(k))));shapes.add((ps,SH.message,Literal(c+'.'+k+' violates its domain contract.')))
+  if f.get('description'):shapes.add((ps,SH.description,Literal(f['description'],lang='en')))
   card=f['cardinality'];minimum=1 if card in '!+' else 0
   if minimum:shapes.add((ps,SH.minCount,Literal(1)))
   if card in '!?':shapes.add((ps,SH.maxCount,Literal(1)))
@@ -101,7 +102,7 @@ for m in mods:
  for c,i in classes.items():
   if i['module']!=m:continue
   d+=['### '+c,'',i['definition'],'',f'Parent: {i["parent"] or "root"}. Shape: `{c}Shape`.','', '| Property | Range | Cardinality |','|---|---|---|']
-  for f in i['fields']:d+=['| '+f['property']+' | '+(', '.join(f['values']) if f['values'] else f['range'])+' | '+f['cardinality']+' |']
+  for f in i['fields']:d+=['| '+f['property']+(' — '+f['description'] if f.get('description') else '')+' | '+(', '.join(f['values']) if f['values'] else f['range'])+' | '+f['cardinality']+' |']
   d+=['']
 (P/'docs/domain-dictionary.md').write_text('\n'.join(d))
 print(json.dumps(dict(classes=len(classes),modules=len(mods),properties=len(prop_types),codeSchemes=len(enum),ontologyTriples=len(ont),structureTriples=len(shapes))))

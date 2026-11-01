@@ -34,6 +34,29 @@ class AuthoringAdapterTests(unittest.TestCase):
             apply_commands(self.schema, commands)
         self.assertNotIn('Example', self.schema)
 
+    def test_relationship_description_is_preserved_and_compiled(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n'
+        command = {'type': 'relationship.add', 'owner': 'Device', 'name': 'linkedRecord', 'range': 'Record', 'cardinality': '?', 'description': 'The record linked to this device.'}
+        candidate = apply_commands(schema, [command])
+        self.assertIn('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.', candidate)
+        self.assertEqual(inspect_entity(candidate, 'Device')['fields'][0]['description'], command['description'])
+        for bad in ['', 'bad|description', 'bad\ndescription']:
+            with self.assertRaises(ValueError):
+                apply_commands(schema, [{**command, 'description': bad}])
+        with tempfile.TemporaryDirectory(prefix='chargeweave-description-test-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            shapes = Graph().parse(root / 'validation/structure.shacl.ttl')
+            cd = Namespace('https://example.org/charge-domain#')
+            sh = Namespace('http://www.w3.org/ns/shacl#')
+            self.assertEqual(str(next(shapes.objects(cd.Device_linkedRecordShape, sh.description))), command['description'])
+            self.assertIn(command['description'], (root / 'docs/domain-dictionary.md').read_text(encoding='utf8'))
+
     def test_inspection_reports_declared_and_inherited_source(self):
         schema = 'MODULE|foundation\nRecord|root|A record.|recordName:string!\nExample|Record|An example.|count:integer?\n'
         entity = inspect_entity(schema, 'Example')

@@ -40,12 +40,18 @@ def apply_commands(schema, commands):
             match = ENUM.fullmatch(target) if isinstance(target, str) else None
             values = match.group(1).split(',') if match else []
             valid_enum = 2 <= len(values) <= 50 and len(set(values)) == len(values)
-            if set(command) != {'type', 'owner', 'name', 'range', 'cardinality'} or owner not in classes or not isinstance(name, str) or not IDENTIFIER.fullmatch(name) or name in existing or cardinality not in ('!', '?', '+', '*') or not (target in DATATYPES or target in classes or valid_enum) or (kind == 'relationship.add' and target not in classes):
+            description = command.get('description')
+            keys = {'type', 'owner', 'name', 'range', 'cardinality'}
+            if kind == 'relationship.add' and 'description' in command:
+                keys.add('description')
+            if set(command) != keys or ('description' in command and (not isinstance(description, str) or not description.strip() or len(description) > 4000 or re.search(r'[|\r\n]', description))) or owner not in classes or not isinstance(name, str) or not IDENTIFIER.fullmatch(name) or name in existing or cardinality not in ('!', '?', '+', '*') or not (target in DATATYPES or target in classes or valid_enum) or (kind == 'relationship.add' and target not in classes):
                 raise ValueError('Invalid property.add')
             index = next(i for i, line in enumerate(lines) if line.startswith(owner + '|'))
             parts = lines[index].split('|')
             parts[3] = ' '.join(filter(None, [parts[3], f'{name}:{target}{cardinality}']))
             lines[index] = '|'.join(parts)
+            if description is not None:
+                lines.insert(index + 1, f'# FIELD-DESCRIPTION|{owner}|{name}|{description.strip()}')
         elif kind == 'constraint.add':
             template = command.get('template')
             owner, name, old_range, old_cardinality = (command.get(key) for key in ('owner', 'name', 'expectedRange', 'expectedCardinality'))

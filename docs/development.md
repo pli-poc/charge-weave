@@ -69,6 +69,14 @@ when changing that distinction.
 catalogue and exercises invalid inputs. The temporal contract digest includes
 the parser source so changes to parsing invalidate temporal evidence.
 
+Optional field descriptions live in `model/domain.schema` as separate lines
+`# FIELD-DESCRIPTION|ClassName|propertyName|Description`. The owner and field
+must identify exactly one declared field; duplicate descriptions, empty text,
+and embedded line breaks or `|` delimiters are invalid. The generator carries
+the description into the catalogue, structural SHACL property shape and domain
+dictionary. Relationship authoring writes this line together with the field in
+one revision; older contracts without descriptions remain valid.
+
 ## Workflow gates
 
 | GitHub Actions job | What it establishes |

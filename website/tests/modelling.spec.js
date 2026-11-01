@@ -240,6 +240,8 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     const graph = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(graph).toHaveAttribute('data-layout', 'ready');
+    // The initial fit animation moves both handles after layout completes.
+    await page.waitForTimeout(500);
     const from = graph.locator('.react-flow__node[data-id="Device"] .react-flow__handle.source');
     const to = graph.locator('.react-flow__node[data-id="Record"] .react-flow__handle.target');
     const sourceBox = await from.boundingBox(), targetBox = await to.boundingBox();
@@ -253,11 +255,14 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await page.getByText('Create a relationship using the keyboard').click();
     await page.getByRole('button', { name: 'Relate Device to Record' }).click();
     await page.getByLabel('Predicate name').fill('linkedRecord');
+    await page.getByLabel('Relationship description').fill('The record linked to this device.');
     await page.getByLabel('Relationship cardinality').selectOption('!');
     expect(store.get(workspace.id).revision).toBe(0);
     await page.getByRole('button', { name: 'Create relationship', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.get(workspace.id).schema).toContain('linkedRecord:Record!');
+    expect(store.get(workspace.id).schema).toContain('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.');
+    await expect(page.getByText(/linkedRecord: Record.*The record linked to this device/)).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

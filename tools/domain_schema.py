@@ -11,8 +11,16 @@ def parse_schema(text, datatypes):
     enum = defaultdict(set)
     prop_types = defaultdict(set)
     prop_users = defaultdict(set)
+    descriptions = {}
     module = None
     for no, line in enumerate(text.splitlines(), 1):
+        if line.startswith('# FIELD-DESCRIPTION|'):
+            parts = line.split('|', 3)
+            assert len(parts) == 4 and parts[1] and parts[2] and parts[3].strip() and len(parts[3]) <= 4000 and '|' not in parts[3], (no, line)
+            key = (parts[1], parts[2])
+            assert key not in descriptions, (no, key)
+            descriptions[key] = parts[3]
+            continue
         if not line or line.startswith('#'):
             continue
         if line.startswith('MODULE|'):
@@ -38,6 +46,11 @@ def parse_schema(text, datatypes):
             prop_types[key].add((typ, r))
             prop_users[key].add(c)
         classes[c] = dict(module=module, parent='Record' if parent == '-' else (None if parent == 'root' else parent), definition=definition, fields=fs)
+    for (owner, prop), description in descriptions.items():
+        assert owner in classes, (owner, prop)
+        fields = [field for field in classes[owner]['fields'] if field['property'] == prop]
+        assert len(fields) == 1, (owner, prop)
+        fields[0]['description'] = description
     for c, info in classes.items():
         for field in info['fields']:
             if field['type'] == 'object':

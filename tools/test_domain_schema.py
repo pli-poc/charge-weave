@@ -20,6 +20,15 @@ class DomainSchemaTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             parse_schema('MODULE|m\nRecord|root|A.|target:Missing!\n', DATATYPES)
 
+    def test_descriptions_must_reference_a_unique_declared_field(self):
+        schema = 'MODULE|m\nRecord|root|A.|target:Record?\n# FIELD-DESCRIPTION|Record|target|An explicit relation.\n'
+        classes, _, _, _ = parse_schema(schema, DATATYPES)
+        self.assertEqual(classes['Record']['fields'][0]['description'], 'An explicit relation.')
+        with self.assertRaises(AssertionError):
+            parse_schema(schema + '# FIELD-DESCRIPTION|Record|target|Duplicate.\n', DATATYPES)
+        with self.assertRaises(AssertionError):
+            parse_schema(schema.replace('|target|An explicit', '|missing|An explicit'), DATATYPES)
+
 
 if __name__ == '__main__':
     unittest.main()
