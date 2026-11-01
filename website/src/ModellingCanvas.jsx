@@ -3,6 +3,7 @@ import { Background, Controls, ReactFlow, applyNodeChanges } from '@xyflow/react
 import '@xyflow/react/dist/style.css';
 
 const keyFor = workspaceId => `chargeweave.canvas.v1.${workspaceId}`;
+const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 function loadPositions(workspaceId) {
   try {
     const data = JSON.parse(sessionStorage.getItem(keyFor(workspaceId)) || '{}');
@@ -35,7 +36,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
     lastRoot.current = graph.root;
     if (changedRoot && positions.current[graph.root] && instance.current && fitted.current) {
       const point = positions.current[graph.root];
-      void instance.current.setCenter(point.x + 95, point.y + 32, { zoom: 1, duration: 250 });
+      void instance.current.setCenter(point.x + 95, point.y + 32, { zoom: 1, duration: motionDuration(250) });
     }
     const requestId = ++sequence.current;
     if (!worker.current) return;
@@ -54,7 +55,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
       setLayoutState('ready');
-      if (!fitted.current && instance.current) { fitted.current = true; requestAnimationFrame(() => instance.current?.fitView({ padding: 0.2, duration: 200 })); }
+      if (!fitted.current && instance.current) { fitted.current = true; requestAnimationFrame(() => instance.current?.fitView({ padding: 0.2, duration: motionDuration(200) })); }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
   }, [graph]);

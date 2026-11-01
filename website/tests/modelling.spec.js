@@ -254,6 +254,10 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await page.getByRole('button', { name: 'Cancel relationship' }).click();
     await page.getByText('Create a relationship using the keyboard').click();
     await page.getByRole('button', { name: 'Relate Device to Record' }).click();
+    await page.getByLabel('Predicate name').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Relate Device to Record' })).toBeFocused();
+    await page.getByRole('button', { name: 'Relate Device to Record' }).click();
     await page.getByLabel('Predicate name').fill('linkedRecord');
     await page.getByLabel('Relationship description').fill('The record linked to this device.');
     await page.getByLabel('Relationship cardinality').selectOption('!');
@@ -263,11 +267,15 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     expect(store.get(workspace.id).schema).toContain('linkedRecord:Record!');
     expect(store.get(workspace.id).schema).toContain('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.');
     await expect(page.getByText(/linkedRecord: Record.*The record linked to this device/)).toBeVisible();
+    await page.getByRole('heading', { name: 'Inspector' }).click();
+    await page.keyboard.press('Control+k');
+    await expect(page.getByLabel('Search model')).toBeFocused();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
 test('interactive graph preserves view positions and supports keyboard selection', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -460,6 +468,14 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
     await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    await page.getByText('Connection diagnostics').click();
+    await expect(page.getByText(/negotiated MCP protocol:/)).toContainText('2025-06-18');
+    await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedDiagnostics = text; return Promise.resolve(); } } }); });
+    await page.getByRole('button', { name: 'Copy redacted diagnostics' }).click();
+    const diagnostics = await page.evaluate(() => window.copiedDiagnostics);
+    expect(diagnostics).toContain(workspace.id);
+    expect(diagnostics).not.toContain(token);
+    expect(diagnostics).not.toContain(pairingCode);
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
     await page.getByRole('button', { name: 'Run reference checks' }).click();
@@ -475,6 +491,10 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('changed: Record')).toBeVisible();
     await expect(page.getByText('After: An edited record.')).toBeVisible();
+    await page.getByRole('button', { name: 'Focus changed Record' }).click();
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await expect(page.getByText('structural: not run for this draft')).toBeVisible();
     await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
     await expect(page.locator('pre').filter({ hasText: '+Record|root|An edited record.' })).toBeVisible();
     await page.getByText('Add a concept').click();
