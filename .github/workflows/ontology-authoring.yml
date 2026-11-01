@@ -65,6 +65,7 @@ jobs:
         env:
           CHARGEWEAVE_TEST_PYTHON: python
           CHARGEWEAVE_TEST_REFERENCE: '1'
+          CHARGEWEAVE_TEST_MAINTENANCE: '1'
   browser:
     runs-on: ubuntu-24.04
     steps:

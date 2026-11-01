@@ -10,6 +10,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { WorkspaceStore } from '../src/workspace.js';
 import { createHttpService } from '../src/http.js';
+import { maintenanceCommands, runMaintenanceDemo } from '../src/maintenance-demo.js';
+import { importSourceManifest } from '../src/source-manifest.js';
+import { runGenerator } from '../src/validation.js';
 
 test('scripted maintenance scenario shares edits and recovers after restart', async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -72,4 +75,58 @@ test('scripted maintenance scenario shares edits and recovers after restart', as
     assert.equal(recovered.eventSequence, cursor);
     assert.equal(store.events(workspace.id).length, 3);
   } finally { if (store) await close(); rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('runnable scripted demonstration preserves a concurrent manual edit and rejects stale writes', async () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8' });
+  const store = new WorkspaceStore(':memory:');
+  const policy = execFileSync('git', ['show', `${commit}:model/temporal-policy.json`], { cwd: repository, encoding: 'utf8' });
+  const workspace = store.create({ title: 'Scripted demonstration', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy } });
+  const token = 'synthetic-demo-token-'.repeat(2);
+  const service = createHttpService({ store, token, workspaceId: workspace.id });
+  const clients = [];
+  try {
+    service.listen(0, '127.0.0.1'); await once(service, 'listening');
+    const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
+    for (const name of ['scripted-demonstration', 'manual-client']) {
+      const client = new Client({ name, version: '1' });
+      await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+      clients.push(client);
+    }
+    const messages = [];
+    const result = await runMaintenanceDemo(clients[0], workspace.id, { validate: false, log: message => messages.push(message), waitForEdit: async () => {
+      const response = await clients[1].callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'manual-edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'PlannedMaintenanceWindow', definition: 'A reviewer-refined maintenance window.' }] } });
+      assert.equal(response.isError, undefined);
+    } });
+    assert.equal(result.revision, 2);
+    assert.equal(result.job, null);
+    assert.ok(result.graph.edges.some(edge => edge.predicate === 'maintenanceStation' && edge.target === 'ChargingStation'));
+    assert.equal(store.entity(workspace.id, 'PlannedMaintenanceWindow').entity.definition, 'A reviewer-refined maintenance window.');
+    assert.ok(messages.some(message => message.includes('stale edit was rejected')));
+    assert.equal(store.events(workspace.id).filter(event => event.payload.commands?.length).length, 2);
+  } finally { for (const client of clients) await client.close(); await service.shutdown(); store.close(); }
+});
+
+test('real maintenance fixture profile checks positive and adverse cases', { skip: !process.env.CHARGEWEAVE_TEST_MAINTENANCE, timeout: 600000 }, async () => {
+  const repository = process.env.CHARGEWEAVE_TEST_REPOSITORY || fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8' });
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const policy = execFileSync('git', ['show', `${commit}:model/temporal-policy.json`], { cwd: repository, encoding: 'utf8' });
+    const workspace = store.create({ title: 'Maintenance fixtures', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy } });
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'proposal', expectedRevision: 0, commands: maintenanceCommands() });
+    const candidate = store.get(workspace.id);
+    const job = store.createJob(workspace.id, 1, candidate.sourceDigest, 'test', 'fixtures', 'maintenance-demo').job;
+    await runGenerator(store, candidate, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    const result = store.job(workspace.id, job.id);
+    assert.equal(result.status, 'passed', result.output);
+    const output = result.steps.find(step => step.checkName === 'tools/test_authoring_maintenance_demo.py').output;
+    const evidence = JSON.parse(output.split(/\r?\n/).find(line => line.trim().startsWith('{')));
+    assert.equal(evidence.passed, 8);
+    assert.equal(evidence.total, 8);
+    assert.deepEqual(evidence.cases.filter(item => !item.expectedConformance).map(item => item.case), ['missing-station', 'invalid-planning-state', 'reversed-shared-interval']);
+  } finally { store.close(); }
 });

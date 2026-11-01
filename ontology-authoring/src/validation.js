@@ -17,6 +17,7 @@ export function commandsFor(profile) {
   if (profile === 'structural') return [['tools/build.py']];
   if (profile === 'reference') return [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py'], ['tools/test_business_acceptance.py']];
   if (profile === 'audit') return [['tools/build_all.py'], ['tools/check_audit.py']];
+  if (profile === 'maintenance-demo') return [['tools/build_all.py'], ['tools/test_authoring_maintenance_demo.py']];
   if (profile === 'acceptance') return [['tools/build_all.py'], ['tools/check_generated.py'], ...releaseGates.map(([name, ...args]) => [`tools/${name}`, ...args])];
   throw new Error('Invalid validation profile');
 }
