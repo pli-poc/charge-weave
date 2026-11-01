@@ -69,7 +69,7 @@ export class WorkspaceStore {
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural') {
     if (!actor || !operationId) throw new Error('Invalid validation identity');
-    if (!['structural', 'reference'].includes(profile)) throw new Error('Invalid validation profile');
+    if (!['structural', 'reference', 'acceptance'].includes(profile)) throw new Error('Invalid validation profile');
     const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -118,14 +118,15 @@ export class WorkspaceStore {
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
-    return { ...job, scope: job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures and structural boundaries' : 'Structural generation', completeAcceptanceEvidence: false };
+    const scope = job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures and structural boundaries' : 'Structural generation';
+    return { ...job, scope, completeAcceptanceEvidence: false };
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
   finishJobStep(jobId, ordinal, status, output = '') { this.db.prepare('UPDATE job_steps SET status = ?, finished_at = ?, output = ? WHERE job = ? AND ordinal = ?').run(status, new Date().toISOString(), output.slice(-16000), jobId, ordinal); }
   reviewReadiness(workspaceId) {
     const workspace = this.get(workspaceId);
     const jobs = this.db.prepare("SELECT id, profile, revision, digest, status FROM jobs WHERE workspace = ? AND status = 'passed' AND digest = ? AND revision = ? ORDER BY rowid DESC").all(workspaceId, workspace.sourceDigest, workspace.revision);
-    const evidence = ['structural', 'reference'].map(profile => ({ profile, job: jobs.find(job => job.profile === profile) ?? null }));
+    const evidence = ['structural', 'reference', 'acceptance'].map(profile => ({ profile, job: jobs.find(job => job.profile === profile) ?? null }));
     const missing = evidence.filter(item => !item.job).map(item => item.profile);
     // Remaining independent acceptance tiers and reviewer decisions are not implemented.
     if (workspace.digestVersion === 1) missing.push('legacy digest does not bind the baseline commit');

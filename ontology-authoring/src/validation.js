@@ -7,6 +7,18 @@ import { generatedInputs, sha256 } from './source-manifest.js';
 
 const exec = promisify(execFile);
 
+export const releaseGates = [
+  ['validate.py', '--meta'], ['test_business.py'], ['test_boundaries.py'], ['test_trust_boundary.py'], ['check_owl.py'], ['check_release.py'], ['test_analytics.py'], ['check_audit.py'], ['test_business_acceptance.py'], ['test_lifecycle.py'], ['check_naming.py'], ['audit_temporal.py'], ['test_temporal.py'], ['test_xflow.py'],
+  ...['closure', 'charge', 'credit', 'offline', 'reimbursement', 'privacy', 'energy', 'migration', 'asset', 'allowance', 'access', 'settlement', 'process'].map(family => ['test_journey_snapshots.py', '--family', family]),
+  ...['access', 'credit', 'allowance', 'dunning', 'history', 'hold'].map(family => ['test_adversarial.py', '--family', family]),
+];
+export function commandsFor(profile) {
+  if (profile === 'structural') return [['tools/build.py']];
+  if (profile === 'reference') return [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']];
+  if (profile === 'acceptance') return [['tools/build_all.py'], ['tools/check_generated.py'], ...releaseGates.map(([name, ...args]) => [`tools/${name}`, ...args])];
+  throw new Error('Invalid validation profile');
+}
+
 // Run fixed repository checks in an isolated copy of the pinned baseline.
 // Neither profile alone establishes all independent acceptance evidence.
 export async function runGenerator(store, workspace, job, repository, python = 'python', signal) {
@@ -28,9 +40,13 @@ export async function runGenerator(store, workspace, job, repository, python = '
       const actual = [...sourceBytes].map(([path, bytes]) => ({ path, sha256: sha256(bytes) })).sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
       if (JSON.stringify(actual) !== JSON.stringify(workspace.sourceManifest)) throw new Error('Candidate source manifest does not match materialized inputs');
     }
-    const commands = job.profile === 'reference'
-      ? [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']]
-      : [['tools/build.py']];
+    if (job.profile === 'acceptance') {
+      const verifier = await readFile(join(directory, 'tools', 'verify_all.py'), 'utf8');
+      if (!verifier.includes("if sys.argv[1:] == ['--list-json']")) throw new Error('Baseline verifier does not expose a compatible release-gate catalogue');
+      const listed = await exec(python, ['tools/verify_all.py', '--list-json'], { cwd: directory, timeout: 30000, maxBuffer: 1024 * 1024, env: { ...process.env, PYTHONUTF8: '1' } });
+      if (JSON.stringify(JSON.parse(listed.stdout)) !== JSON.stringify(releaseGates)) throw new Error('Release-gate catalogue differs from the supported acceptance profile');
+    }
+    const commands = commandsFor(job.profile);
     for (const [ordinal, args] of commands.entries()) {
       if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
       currentStep = ordinal;

@@ -6,8 +6,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../src/workspace.js';
-import { runGenerator } from '../src/validation.js';
+import { runGenerator, releaseGates } from '../src/validation.js';
 import { importSourceManifest } from '../src/source-manifest.js';
+
+test('acceptance profile matches the repository release gate catalogue', () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const output = execFileSync(process.env.CHARGEWEAVE_TEST_PYTHON || 'python', ['tools/verify_all.py', '--list-json'], { cwd: repository, encoding: 'utf8' });
+  assert.deepEqual(JSON.parse(output), releaseGates);
+});
 
 test('generator evidence is bound to its input and becomes stale after edits', async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -91,6 +97,7 @@ test('generator changes to another tracked source fail validation', { skip: !pro
     writeFileSync(join(repository, 'model', 'domain.schema'), schema);
     writeFileSync(join(repository, 'model', 'audit-rules.json'), '{}\n');
     writeFileSync(join(repository, 'tools', 'build.py'), "from pathlib import Path\nPath('model/audit-rules.json').write_text('{\"rewritten\":true}')\n");
+    writeFileSync(join(repository, 'tools', 'verify_all.py'), "raise RuntimeError('must not run an incompatible verifier')\n");
     const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
     git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'fixture']);
     const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
@@ -102,6 +109,10 @@ test('generator changes to another tracked source fail validation', { skip: !pro
     assert.equal(result.status, 'failed');
     assert.equal(result.steps[0].status, 'failed');
     assert.match(result.output, /Generator rewrote source model\/audit-rules.json/);
+    const incompatible = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'acceptance', 'acceptance').job;
+    await runGenerator(store, workspace, incompatible, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    assert.equal(store.job(workspace.id, incompatible.id).status, 'failed');
+    assert.match(store.job(workspace.id, incompatible.id).output, /does not expose a compatible release-gate catalogue/);
     store.close();
   } finally { rmSync(repository, { recursive: true, force: true }); }
 });
