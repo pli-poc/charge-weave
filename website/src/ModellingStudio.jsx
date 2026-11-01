@@ -53,6 +53,9 @@ export default function ModellingStudio() {
   const [job, setJob] = useState(null);
   const [history, setHistory] = useState([]);
   const [readiness, setReadiness] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewReason, setReviewReason] = useState('');
+  const [reviewDecision, setReviewDecision] = useState('request_changes');
   const [definition, setDefinition] = useState('');
   const [newClass, setNewClass] = useState({ name: '', module: 'foundation', parent: 'Record', definition: '' });
   const [field, setField] = useState({ name: '', range: 'string', cardinality: '?' });
@@ -255,7 +258,18 @@ export default function ModellingStudio() {
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_readiness', arguments: { workspaceId: connection.workspaceId } });
       setReadiness(response.structuredContent);
+      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId: connection.workspaceId } });
+      setReviews(history.structuredContent.decisions);
     } catch { setError('Review readiness requires a reviewer credential.'); }
+  }
+  async function submitReview(event) {
+    event.preventDefault(); setError('');
+    try {
+      await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_changeset_review', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, decision: reviewDecision, reason: reviewReason } });
+      setReviewReason('');
+      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId: connection.workspaceId } });
+      setReviews(history.structuredContent.decisions);
+    } catch (problem) { setError(problem.message); }
   }
   async function runChecks(profile) {
     setError('');
@@ -332,6 +346,7 @@ export default function ModellingStudio() {
     <section className="studio-activity"><h2>Responsibility perspective</h2><button type="button" onClick={inspectResponsibility} disabled={!selected}>Inspect responsibilities for selected concept</button>{responsibility && responsibility.root === selected?.name && responsibility.revision === snapshot.revision && <><p>{responsibility.note}</p>{responsibility.bindings.length ? <ul>{responsibility.bindings.map(binding => <li key={`${binding.owner}-${binding.property}`}><strong>{binding.label}</strong>: {binding.property} → {binding.range} ({binding.cardinality}) · {binding.category} · {binding.source.path}:{binding.source.line} · {binding.mappingVersion}</li>)}</ul> : <p>No responsibility binding defined in this mapping.</p>}</>}</section>
     <section className="studio-activity"><h2>Temporal perspective</h2><button type="button" onClick={inspectTemporal} disabled={!selected}>Inspect time for selected concept</button>{temporal && temporal.root === selected?.name && temporal.revision === snapshot.revision && <><p>Model revision {temporal.revision}; policy from baseline <code>{temporal.baselineCommit}</code>.</p><p>Class policy: {temporal.policy ?? 'No explicit temporal policy defined.'}</p><p>Policy source: {temporal.policySource.path}; interval convention: {temporal.timeConvention.interval ?? 'unspecified'}; recorded time: {temporal.timeConvention.recordedTimeOwner ?? 'unspecified'}.</p><h3>Explicit time fields and window references</h3>{temporal.fields.length ? <ul>{temporal.fields.map(field => <li key={`${field.owner}-${field.property}`}>{field.property}: {field.range} ({field.cardinality}) · {field.inherited ? `inherited from ${field.owner}` : 'declared'} · {field.source.path}:{field.source.line}</li>)}</ul> : <p>No explicit time fields or window references.</p>}</>}</section>
     <section className="studio-activity"><h2>Change impact</h2><button type="button" onClick={inspectImpact}>Inspect explicit impact references</button>{impact && impact.revision === snapshot.revision && <><p>{impact.note}</p><p>Changed classes: {impact.changedClasses.join(', ') || 'none'}; changed properties: {impact.changedProperties.join(', ') || 'none'}.</p>{impact.references.length ? <ul>{impact.references.map(item => <li key={`${item.kind}-${item.id}`}>{item.kind} {item.id}: {item.title} · {item.source} · references {item.terms.join(', ')}</li>)}</ul> : <p>No indexed baseline references matched.</p>}{impact.omitted > 0 && <p>{impact.omitted} additional references omitted.</p>}</>}</section>
-    <section className="studio-activity"><h2>Review readiness</h2><button type="button" onClick={inspectReadiness}>Inspect review gates</button>{readiness && <><p>Revision {readiness.revision}, digest <code>{readiness.sourceDigest}</code></p><p>Acceptance is not available yet.</p><ul>{readiness.missing.map(item => <li key={item}>Missing: {item}</li>)}</ul></>}<h2>Activity</h2><button type="button" onClick={undoLatest} disabled={!snapshot.revision || history.at(-1)?.payload?.type === 'undo'}>Undo latest command group</button><ol>{history.map(event => <li key={event.sequence}>Revision {event.revision} · {event.actor} · {event.payload.type === 'undo' ? `undid revision ${event.payload.targetRevision}` : (event.payload.commands || []).map(command => command.type).join(', ')}</li>)}</ol></section></fieldset>}
+    <section className="studio-activity"><h2>Reviewer decision</h2><p>Acceptance is not available. A rejection records the decision and does not erase the draft.</p><form onSubmit={submitReview}><label>Decision <select value={reviewDecision} onChange={event => setReviewDecision(event.target.value)}><option value="request_changes">Request changes</option><option value="reject">Reject draft</option></select></label><label>Reason <textarea value={reviewReason} onChange={event => setReviewReason(event.target.value)} maxLength={4000} required /></label><button>Record reviewer decision</button></form>{reviews.length > 0 && <ol>{reviews.map(review => <li key={review.id}>{review.decision === 'reject' ? 'Rejected' : 'Changes requested'} · revision {review.revision} · {review.actor} · {review.revision !== snapshot.revision || review.sourceDigest !== snapshot.sourceDigest ? 'stale' : 'current'}<p>{review.reason}</p></li>)}</ol>}</section>
+    <section className="studio-activity"><h2>Review readiness</h2><button type="button" onClick={inspectReadiness}>Inspect review gates</button>{readiness && <><p>Revision {readiness.revision}, digest <code>{readiness.sourceDigest}</code></p><p>Acceptance is not available yet.</p><ul>{readiness.missing.map(item => <li key={item}>Missing: {item}</li>)}</ul></>}<h2>Activity</h2><button type="button" onClick={undoLatest} disabled={!snapshot.revision || history.at(-1)?.payload?.type === 'undo'}>Undo latest command group</button><ol>{history.map(event => <li key={event.sequence}>Revision {event.revision} · {event.actor} · {event.payload.type === 'undo' ? `undid revision ${event.payload.targetRevision}` : event.payload.type === 'review' ? event.payload.decision : (event.payload.commands || []).map(command => command.type).join(', ')}</li>)}</ol></section></fieldset>}
   </main>;
 }

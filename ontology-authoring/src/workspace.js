@@ -66,6 +66,7 @@ export class WorkspaceStore {
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS review_decisions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, actor TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural') {
@@ -134,6 +135,38 @@ export class WorkspaceStore {
     if (workspace.digestVersion < 3) missing.push('complete source manifest not recorded');
     missing.push('independent acceptance and publication evidence');
     return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, digestVersion: workspace.digestVersion, evidence, missing, canAccept: false };
+  }
+  reviewDecisions(workspaceId) {
+    const workspace = this.get(workspaceId);
+    return this.db.prepare('SELECT id, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, actor, decision, reason, created_at AS createdAt FROM review_decisions WHERE workspace = ? ORDER BY rowid DESC LIMIT 100').all(workspaceId)
+      .map(row => ({ ...row, stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit }));
+  }
+  reviewDecision(workspaceId, reviewId) {
+    const workspace = this.get(workspaceId);
+    const row = this.db.prepare('SELECT id, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, actor, decision, reason, created_at AS createdAt FROM review_decisions WHERE workspace = ? AND id = ?').get(workspaceId, reviewId);
+    if (!row) throw new Error('Review decision not found');
+    return { ...row, stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit };
+  }
+  recordReview(workspaceId, { actor, operationId, expectedRevision, sourceDigest: digest, decision, reason }) {
+    if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(digest ?? '') || !['request_changes', 'reject'].includes(decision) || typeof reason !== 'string' || !reason.trim() || reason.length > 4000) throw new Error('Invalid review decision');
+    const requestHash = hash(JSON.stringify({ type: 'review', expectedRevision, digest, decision, reason }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        const record = this.reviewDecision(workspaceId, JSON.parse(receipt.result).reviewId);
+        this.db.exec('COMMIT'); return record;
+      }
+      const workspace = this.get(workspaceId);
+      if (workspace.revision !== expectedRevision || workspace.sourceDigest !== digest) throw new Error('Stale review input');
+      const reviewId = randomUUID(), createdAt = new Date().toISOString();
+      this.db.prepare('INSERT INTO review_decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(reviewId, workspaceId, workspace.baselineCommit, expectedRevision, digest, actor, decision, reason, createdAt);
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ reviewId }));
+      this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, expectedRevision, JSON.stringify({ type: 'review', reviewId, decision, sourceDigest: digest }));
+      const record = this.reviewDecision(workspaceId, reviewId);
+      this.db.exec('COMMIT'); return record;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
   create({ title, baselineCommit, schema, sourceManifest }) {

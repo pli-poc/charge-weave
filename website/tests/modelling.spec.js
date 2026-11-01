@@ -42,6 +42,14 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect explicit impact references' }).click();
     await expect(page.getByText(/Changed classes: ChargingStation/)).toBeVisible();
     await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: 'Change impact' }) }).getByText(/requirement BR-/).first()).toBeVisible();
+    await page.getByLabel('Reason', { exact: true }).fill('Add a deliberate negative fixture.');
+    await page.getByRole('button', { name: 'Record reviewer decision' }).click();
+    await expect(page.getByText('Add a deliberate negative fixture.')).toBeVisible();
+    await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · current/)).toBeVisible();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A revised station definition.');
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · stale/)).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
 
