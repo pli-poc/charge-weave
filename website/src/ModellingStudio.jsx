@@ -44,6 +44,12 @@ export default function ModellingStudio() {
   const [pairingCode, setPairingCode] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
   const [connection, setConnection] = useState(null);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [canCreateWorkspace, setCanCreateWorkspace] = useState(false);
+  const [workspaceTitle, setWorkspaceTitle] = useState('');
+  const [workspaceBaseline, setWorkspaceBaseline] = useState('');
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+  const creationOperation = useRef(null);
   const [snapshot, setSnapshot] = useState(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -164,6 +170,10 @@ export default function ModellingStudio() {
         const initialization = await call(url, credential, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'chargeweave-browser', version: '0.1.0' } }, abort.signal);
         if (initialization.protocolVersion !== '2025-06-18') throw new Error(`Unsupported MCP protocol ${initialization.protocolVersion ?? 'unknown'}; update the local service or studio.`);
         setServerInfo({ name: initialization.serverInfo?.name ?? 'unknown', version: initialization.serverInfo?.version ?? 'unknown', protocolVersion: initialization.protocolVersion ?? 'unknown' });
+        const capabilities = await call(url, credential, 'tools/list', {}, abort.signal);
+        setCanCreateWorkspace(capabilities.tools.some(item => item.name === 'ontology_workspace_create'));
+        const listing = await tool('ontology_workspace_list', {});
+        setWorkspaces(listing.workspaces);
         await refresh();
         setStatus('Connected');
         let delay = 500;
@@ -655,6 +665,25 @@ export default function ModellingStudio() {
     try { await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2)); setDiagnosticMessage('Redacted diagnostics copied.'); }
     catch { setDiagnosticMessage('Clipboard unavailable; the fields above can be copied manually.'); }
   }
+  function switchWorkspace(id) {
+    if (!connection || id === connection.workspaceId) return;
+    followGeneration.current += 1; currentRevision.current = null; cursor.current = 0;
+    setSnapshot(null); setSelected(null); setGraph(null); setEntityInfo(null); setTemporal(null); setResponsibility(null); setImpact(null);
+    setResults([]); setSearchDone(false); setHistory([]); setHistoryDetail(null); setDiff(null); setJob(null); setReadiness(null); setReviews([]); setPublication(null); setPublicationHistory([]); setCommitWorkflows(null); setRequiredChecks(null); setRequirements([]); setViewId('default'); setViewIdInput('default'); setError('');
+    setWorkspaceId(id); setConnection({ ...connection, workspaceId: id });
+  }
+  async function createWorkspace(event) {
+    event.preventDefault(); setError(''); setCreatingWorkspace(true);
+    const title = workspaceTitle.trim(), baselineCommit = workspaceBaseline.trim();
+    const key = JSON.stringify({ title, baselineCommit });
+    if (creationOperation.current?.key !== key) creationOperation.current = { key, id: crypto.randomUUID() };
+    try {
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_workspace_create', arguments: { title, baselineCommit, operationId: creationOperation.current.id } });
+      const created = response.structuredContent;
+      setWorkspaces(current => [...current.filter(item => item.workspaceId !== created.workspaceId), created]);
+      creationOperation.current = null; setWorkspaceTitle(''); switchWorkspace(created.workspaceId);
+    } catch (problem) { setError(problem.message); } finally { setCreatingWorkspace(false); }
+  }
   async function copyConnectionValue(value, label) {
     try { await navigator.clipboard.writeText(value); setConnectionCopyMessage(`${label} copied.`); }
     catch { setConnectionCopyMessage(`Clipboard unavailable; copy the ${label.toLowerCase()} shown below.`); }
@@ -674,6 +703,7 @@ export default function ModellingStudio() {
       <button type="submit">Connect</button>
     </form>
     <p role="status">{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
+    {connection && <section><h2>Workspaces</h2><label>Current workspace <select value={connection.workspaceId} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form>}</section>}
     {connection && <><button type="button" onClick={disconnect}>Disconnect</button><p>Workspace ID: <code>{connection.workspaceId}</code> <button type="button" onClick={() => copyConnectionValue(connection.workspaceId, 'Workspace ID')}>Copy workspace ID</button></p><details><summary>Connect an MCP client</summary><p>Use this local endpoint and workspace ID with the separately configured draft token. The token is not included below.</p><pre>{`MCP endpoint: ${connection.endpoint}/mcp\nWorkspace ID: ${connection.workspaceId}\nAuthorization: Bearer <your draft token>`}</pre><button type="button" onClick={() => copyConnectionValue(`MCP endpoint: ${connection.endpoint}/mcp\nWorkspace ID: ${connection.workspaceId}\nAuthorization: Bearer <your draft token>`, 'Connection details')}>Copy connection details</button></details>{connectionCopyMessage && <p aria-live="polite">{connectionCopyMessage}</p>}</>}
     <details><summary>Connection diagnostics</summary><p>Connection: {status}; event stream: {online ? 'live' : 'not live'}.</p><p>Server: {serverInfo ? `${serverInfo.name} ${serverInfo.version}` : 'not initialized'}; negotiated MCP protocol: {serverInfo?.protocolVersion ?? 'unknown'}.</p><p>Workspace: {connection?.workspaceId ?? 'none'}; revision: {snapshot?.revision ?? 'unknown'}; last event cursor: {cursor.current}.</p><p>Latest job: {job ? `${job.profile}, ${job.status}, revision ${job.revision}` : 'none'}.</p><button type="button" onClick={copyDiagnostics}>Copy redacted diagnostics</button>{diagnosticMessage && <p aria-live="polite">{diagnosticMessage}</p>}<p>Reconnect by opening the local studio and pairing again. Diagnostics exclude credentials and check output.</p></details>
     {error && <p role="alert">{error}</p>}

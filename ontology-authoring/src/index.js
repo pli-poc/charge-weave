@@ -21,7 +21,7 @@ if (process.argv.includes('--create-workspace')) {
   store.close();
 } else {
   const staticDirectory = resolve(process.env.CHARGEWEAVE_WEB_DIST ?? '../website/dist');
-  const service = createHttpService({ store, token, reviewerToken: process.env.CHARGEWEAVE_REVIEWER_TOKEN, pairingCode: process.env.CHARGEWEAVE_PAIRING_CODE, workspaceId: process.env.CHARGEWEAVE_WORKSPACE_ID, allowedOrigin: process.env.CHARGEWEAVE_BROWSER_ORIGIN, repository, python: process.env.CHARGEWEAVE_PYTHON, staticDirectory, allowPublish: process.env.CHARGEWEAVE_ALLOW_PUBLISH === '1', githubToken: process.env.CHARGEWEAVE_GITHUB_TOKEN });
+  const service = createHttpService({ store, token, reviewerToken: process.env.CHARGEWEAVE_REVIEWER_TOKEN, pairingCode: process.env.CHARGEWEAVE_PAIRING_CODE, workspaceId: process.env.CHARGEWEAVE_WORKSPACE_ID, allowedOrigin: process.env.CHARGEWEAVE_BROWSER_ORIGIN, repository, python: process.env.CHARGEWEAVE_PYTHON, staticDirectory, allowPublish: process.env.CHARGEWEAVE_ALLOW_PUBLISH === '1', allowWorkspaceCreate: process.env.CHARGEWEAVE_ALLOW_WORKSPACE_CREATE === '1', githubToken: process.env.CHARGEWEAVE_GITHUB_TOKEN });
   service.listen(port, '127.0.0.1', () => console.log(`Studio: http://127.0.0.1:${port}/charge-weave-app/modelling/`));
   const stop = async () => { await service.shutdown(); store.close(); process.exit(0); };
   process.on('SIGINT', stop); process.on('SIGTERM', stop);

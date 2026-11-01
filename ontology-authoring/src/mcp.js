@@ -62,9 +62,13 @@ export function createServer(store, actor, options = {}) {
     z.object({ type: z.literal('viewpoint.binding_add'), owner: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), property: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), range: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), label: z.string().min(1).max(100), category: z.enum(['ownership', 'service', 'role', 'assignment', 'affected']) }).strict(),
     z.object({ type: z.literal('relationship.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']), description: z.string().min(1).max(4000).optional() }).strict(),
   ]);
-  if (options.workspaceId) registerTool('ontology_workspace_list', { description: 'List the one workspace authorized for this local service session.', inputSchema: {}, annotations: { readOnlyHint: true } }, async () => {
-    const workspace = store.snapshot(options.workspaceId);
-    return result({ workspaces: [{ workspaceId: workspace.id, title: workspace.title, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest }] });
+  if (options.workspaceId) registerTool('ontology_workspace_list', { description: 'List workspaces authorized for this local service session.', inputSchema: {}, annotations: { readOnlyHint: true } }, async () => {
+    const workspaces = (options.listWorkspaceIds?.() ?? [options.workspaceId]).map(id => store.snapshot(id)).map(workspace => ({ workspaceId: workspace.id, title: workspace.title, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest }));
+    return result({ workspaces });
+  });
+  if (options.createWorkspace) registerTool('ontology_workspace_create', { description: 'Create and grant a workspace from an exact committed canonical repository baseline.', inputSchema: { title: z.string().min(1).max(120), baselineCommit: z.string().regex(/^[a-f0-9]{40}$/), operationId }, annotations: { destructiveHint: false } }, async args => {
+    const created = options.createWorkspace(args);
+    return result({ workspaceId: created.id, title: created.title, baselineCommit: created.baselineCommit, revision: created.revision, sourceDigest: created.sourceDigest });
   });
   registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, source and event cursor.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.snapshot(args.workspaceId)));
   registerTool('ontology_constraint_templates', { description: 'List the bounded schema constraint templates supported by the pinned adapter.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.constraintTemplates(args.workspaceId)));

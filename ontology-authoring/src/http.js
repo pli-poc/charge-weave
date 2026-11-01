@@ -8,10 +8,11 @@ import { runPublicationPush } from './publication-push.js';
 import { runPublicationPullRequest } from './publication-pr.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
+import { createWorkspaceFromRepository } from './workspace-create.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, pullRequestFetch, allowPublish = false, githubToken }) {
+export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, pullRequestFetch, allowPublish = false, allowWorkspaceCreate = false, githubToken }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
   store.get(workspaceId);
@@ -21,13 +22,14 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
   const secret = Buffer.from(token);
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
   const pairing = pairingCode ? new PairingSessions(pairingCode) : null;
+  const grantedWorkspaces = new Set([workspaceId]);
   const scopedStore = new Proxy(store, {
     get(target, property) {
       const member = target[property];
       if (typeof member !== 'function') return member;
       return (...args) => {
         const requested = ['apply', 'applyReviewerCase', 'undo', 'saveView', 'openChangeSet', 'reopenChangeSet'].includes(property) ? args[0]?.workspaceId : args[0];
-        if (requested !== workspaceId) throw new Error('Workspace not authorized');
+        if (!grantedWorkspaces.has(requested)) throw new Error('Workspace not authorized');
         return member.apply(target, args);
       };
     },
@@ -89,16 +91,16 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       const requestedWorkspace = url.searchParams.get('workspaceId');
       const cursor = req.headers['last-event-id'] ?? url.searchParams.get('after') ?? '0';
       if (!/^[0-9a-f-]{36}$/i.test(requestedWorkspace ?? '') || !/^\d{1,15}$/.test(cursor)) { res.writeHead(400).end('Invalid event cursor'); return; }
-      if (requestedWorkspace !== workspaceId) { res.writeHead(403).end('Workspace not authorized'); return; }
+      if (!grantedWorkspaces.has(requestedWorkspace)) { res.writeHead(403).end('Workspace not authorized'); return; }
       let sequence = Number(cursor);
-      try { store.get(workspaceId); } catch { res.writeHead(404).end('Workspace not found'); return; }
-      if (!store.hasCursor(workspaceId, sequence)) { res.writeHead(409).end('Event cursor unavailable; reload workspace snapshot'); return; }
+      try { store.get(requestedWorkspace); } catch { res.writeHead(404).end('Workspace not found'); return; }
+      if (!store.hasCursor(requestedWorkspace, sequence)) { res.writeHead(409).end('Event cursor unavailable; reload workspace snapshot'); return; }
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
       res.flushHeaders();
       const send = () => {
         try {
           if (sessionAuthorized && !pairing.get(sessionId)) { res.end(); return; }
-          const events = store.events(workspaceId, sequence);
+          const events = store.events(requestedWorkspace, sequence);
           for (const event of events) {
             sequence = event.sequence;
             if (!res.write(`id: ${sequence}\nevent: workspace-change\ndata: ${JSON.stringify(event)}\n\n`)) { res.end(); return; }
@@ -141,7 +143,14 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       activeJobs.set(job.id, { task, controller: new AbortController() });
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, workspaceId, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
+    const createWorkspace = role === 'reviewer' && allowWorkspaceCreate && repository ? args => {
+      const prior = store.db.prepare('SELECT workspace FROM workspace_creation_receipts WHERE actor = ? AND operation = ?').get('local-reviewer', args.operationId);
+      if (grantedWorkspaces.size >= 20 && !grantedWorkspaces.has(prior?.workspace)) throw new Error('Workspace grant limit reached');
+      const created = createWorkspaceFromRepository(store, repository, { ...args, actor: 'local-reviewer' });
+      grantedWorkspaces.add(created.id);
+      return created;
+    } : undefined;
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, workspaceId, listWorkspaceIds: () => [...grantedWorkspaces], createWorkspace, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

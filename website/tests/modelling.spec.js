@@ -12,6 +12,35 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('reviewer creates and switches between workspaces', async ({ page }) => {
+  test.setTimeout(60000);
+  const repo = mkdtempSync(join(tmpdir(), 'chargeweave-browser-create-'));
+  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  const put = (path, text) => { const target = join(repo, path); mkdirSync(join(target, '..'), { recursive: true }); writeFileSync(target, text); };
+  let store, service;
+  try {
+    git('init'); git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.invalid');
+    git('remote', 'add', 'origin', 'https://github.com/pli-poc/charge-weave.git');
+    put('model/domain.schema', 'MODULE|foundation\nRecord|root|A record.|\n');
+    for (const path of editableSourcePaths) put(path, '{}\n');
+    for (const path of ['tools/authoring_adapter.py', 'tools/domain_schema.py']) { mkdirSync(join(repo, 'tools'), { recursive: true }); copyFileSync(fileURLToPath(new URL(`../../${path}`, import.meta.url)), join(repo, path)); }
+    git('add', '.'); git('commit', '-m', 'Baseline'); const commit = git('rev-parse', 'HEAD');
+    store = new WorkspaceStore(':memory:');
+    const original = store.create({ title: 'Original', baselineCommit: commit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+    const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+    service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: original.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: repo, allowWorkspaceCreate: true });
+    service.listen(0, '127.0.0.1'); await once(service, 'listening');
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('New workspace title').fill('New proposal'); await page.getByLabel('Baseline commit SHA').fill(commit);
+    await page.getByRole('button', { name: 'Create workspace' }).click();
+    await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);
+    await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
+    await page.getByLabel('Current workspace').selectOption(original.id);
+    await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
+  } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
+});
+
 test('browser authors an interval rule with draft cases and source patches', async ({ page }) => {
   test.setTimeout(60000);
   const repository = fileURLToPath(new URL('../..', import.meta.url));

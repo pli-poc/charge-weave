@@ -98,6 +98,7 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS workspace_sources (workspace TEXT NOT NULL, path TEXT NOT NULL, baseline_content TEXT NOT NULL, content TEXT NOT NULL, PRIMARY KEY(workspace, path), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS saved_views (workspace TEXT NOT NULL, view_id TEXT NOT NULL, revision INTEGER NOT NULL, definition TEXT NOT NULL, PRIMARY KEY(workspace, view_id), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS view_receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS workspace_creation_receipts (actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, workspace TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec("CREATE TABLE IF NOT EXISTS change_sets (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, intent TEXT NOT NULL, requirements TEXT NOT NULL, base_revision INTEGER NOT NULL, status TEXT NOT NULL, review_id TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))");
     this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS one_open_change_set ON change_sets(workspace) WHERE status IN ('draft', 'accepted', 'rejected')");
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
@@ -364,7 +365,7 @@ export class WorkspaceStore {
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
-  create({ title, baselineCommit, schema, sourceManifest, sourceBlobs }) {
+  create({ title, baselineCommit, schema, sourceManifest, sourceBlobs }, provision = null) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');
     parse(schema);
     if (sourceManifest !== undefined) {
@@ -379,12 +380,20 @@ export class WorkspaceStore {
     }
     const id = randomUUID();
     const version = sourceBlobs ? 4 : sourceManifest ? 3 : 2;
+    if (provision && (typeof provision.actor !== 'string' || !provision.actor || typeof provision.operationId !== 'string' || !provision.operationId || provision.operationId.length > 128)) throw new Error('Invalid workspace creation identity');
+    const requestHash = provision ? hash(JSON.stringify({ title, baselineCommit })) : null;
     this.db.exec('BEGIN IMMEDIATE');
     try {
+      if (provision) {
+        const receipt = this.db.prepare('SELECT request_hash, result FROM workspace_creation_receipts WHERE actor = ? AND operation = ?').get(provision.actor, provision.operationId);
+        if (receipt) { if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request'); this.db.exec('COMMIT'); return JSON.parse(receipt.result); }
+      }
       this.db.prepare('INSERT INTO workspaces (id, title, baseline_commit, baseline_schema, schema, revision, digest, digest_version, source_manifest) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)').run(id, title, baselineCommit, schema, schema, sourceDigest(schema, baselineCommit, version, sourceManifest), version, sourceManifest ? JSON.stringify(sourceManifest) : null);
       for (const [path, content] of Object.entries(sourceBlobs || {})) this.db.prepare('INSERT INTO workspace_sources VALUES (?, ?, ?, ?)').run(id, path, content, content);
       const workspace = this.get(id);
-      this.db.exec('COMMIT'); return workspace;
+      const result = provision ? { id, title: workspace.title, baselineCommit, revision: 0, sourceDigest: workspace.sourceDigest } : workspace;
+      if (provision) this.db.prepare('INSERT INTO workspace_creation_receipts VALUES (?, ?, ?, ?, ?)').run(provision.actor, provision.operationId, requestHash, id, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   latestChangeSet(workspaceId) {

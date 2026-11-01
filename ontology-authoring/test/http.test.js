@@ -1,10 +1,58 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { once } from 'node:events';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { WorkspaceStore } from '../src/workspace.js';
 import { createHttpService } from '../src/http.js';
+import { editableSourcePaths } from '../src/source-manifest.js';
+
+test('reviewer creates a scoped workspace idempotently from a committed baseline', { timeout: 120000 }, async () => {
+  const repo = mkdtempSync(join(tmpdir(), 'chargeweave-create-'));
+  const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  const put = (path, content) => { mkdirSync(dirname(join(repo, path)), { recursive: true }); writeFileSync(join(repo, path), content); };
+  git('init'); git('config', 'user.email', 'test@example.invalid'); git('config', 'user.name', 'Test');
+  git('remote', 'add', 'origin', 'https://github.com/pli-poc/charge-weave.git');
+  put('model/domain.schema', 'MODULE|foundation\nRecord|root|A record.|\n');
+  for (const path of editableSourcePaths) put(path, '{}\n');
+  for (const path of ['tools/authoring_adapter.py', 'tools/domain_schema.py']) {
+    mkdirSync(dirname(join(repo, path)), { recursive: true });
+    copyFileSync(fileURLToPath(new URL(`../../${path}`, import.meta.url)), join(repo, path));
+  }
+  git('add', '.'); git('commit', '-m', 'Baseline'); const baselineCommit = git('rev-parse', 'HEAD');
+  const store = new WorkspaceStore(':memory:');
+  const original = store.create({ title: 'Original', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const hidden = store.create({ title: 'Hidden', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const token = 'a'.repeat(32), reviewerToken = 'b'.repeat(32);
+  const service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
+  const clients = [];
+  try {
+    for (const secret of [token, reviewerToken]) {
+      const client = new Client({ name: 'test', version: '1' });
+      await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: { authorization: `Bearer ${secret}` } } }));
+      clients.push(client);
+    }
+    const [draft, reviewer] = clients;
+    assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_workspace_create'), false);
+    assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_workspace_create'), true);
+    const args = { title: 'New workspace', baselineCommit, operationId: 'create-one' };
+    const invoke = arguments_ => reviewer.callTool({ name: 'ontology_workspace_create', arguments: arguments_ });
+    const created = (await invoke(args)).structuredContent;
+    assert.ok(created.workspaceId);
+    assert.deepEqual((await invoke(args)).structuredContent, created);
+    assert.equal((await invoke({ ...args, title: 'Different' })).isError, true);
+    assert.deepEqual((await draft.callTool({ name: 'ontology_workspace_list', arguments: {} })).structuredContent.workspaces.map(item => item.workspaceId), [original.id, created.workspaceId]);
+    assert.equal((await draft.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: created.workspaceId } })).isError, undefined);
+    assert.equal((await draft.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: hidden.id } })).isError, true);
+  } finally { for (const client of clients) await client.close(); await service.shutdown(); store.close(); rmSync(repo, { recursive: true, force: true }); }
+});
 
 test('loopback MCP transport authenticates and shares state', async () => {
   const store = new WorkspaceStore(':memory:');
