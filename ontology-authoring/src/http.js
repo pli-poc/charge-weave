@@ -5,7 +5,7 @@ import { createServer } from './mcp.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, allowedOrigin }) {
+export function createHttpService({ store, token, allowedOrigin, repository, python }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   const secret = Buffer.from(token);
   return createHttpServer(async (req, res) => {
@@ -47,7 +47,7 @@ export function createHttpService({ store, token, allowedOrigin }) {
     }
     if (req.url !== '/mcp' || req.method !== 'POST') { res.writeHead(404).end('Not found'); return; }
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
-    const server = createServer(store, 'local-draft-session');
+    const server = createServer(store, 'local-draft-session', { repository, python });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

@@ -55,8 +55,22 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running');`);
   }
   close() { this.db.close(); }
+  createJob(id, revision, digest) {
+    const workspace = this.get(id);
+    if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
+    const jobId = randomUUID();
+    this.db.prepare('INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '');
+    return this.job(id, jobId);
+  }
+  job(workspaceId, jobId) {
+    const row = this.db.prepare('SELECT id, workspace, revision, digest, status, output FROM jobs WHERE workspace = ? AND id = ?').get(workspaceId, jobId);
+    if (!row) throw new Error('Job not found');
+    return { ...row, stale: this.get(workspaceId).sourceDigest !== row.digest };
+  }
+  updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
   create({ title, baselineCommit, schema }) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');
     parse(schema);

@@ -25,6 +25,7 @@ export default function ModellingStudio() {
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
   const [diff, setDiff] = useState(null);
+  const [job, setJob] = useState(null);
   const [definition, setDefinition] = useState('');
   const [status, setStatus] = useState('Disconnected');
   const [error, setError] = useState('');
@@ -105,6 +106,19 @@ export default function ModellingStudio() {
       setDiff(response.structuredContent);
     } catch (problem) { setError(problem.message); }
   }
+  async function runChecks() {
+    setError('');
+    try {
+      let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_start', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest } });
+      let current = response.structuredContent;
+      setJob(current);
+      while (current.status === 'queued' || current.status === 'running') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } });
+        current = response.structuredContent; setJob(current);
+      }
+    } catch (problem) { setError(problem.message); }
+  }
   function connect(event) {
     event.preventDefault(); setError(''); setSnapshot(null); setResults([]); setSelected(null); setStatus('Connecting');
     try {
@@ -127,7 +141,7 @@ export default function ModellingStudio() {
     {snapshot && <div className="studio-panels">
       <section><h2>Discover concepts</h2><form onSubmit={search}><label>Search model <input value={query} onChange={event => setQuery(event.target.value)} /></label><button>Search</button></form>
         <ul>{results.map(item => <li key={item.name}><button type="button" onClick={() => { setSelected(item); setDefinition(item.definition); }}>{item.name}</button> <small>{item.module}</small></li>)}</ul></section>
-      <section><h2>Workspace</h2><p>{snapshot.title}</p><p>Source digest: <code>{snapshot.sourceDigest}</code></p><p>Live changes update the revision shown above. Search again to refresh results.</p><button type="button" onClick={inspectChanges}>Inspect changes</button>{diff && <div><h3>Changes at revision {diff.revision}</h3>{diff.changes.length ? <ul>{diff.changes.map(item => <li key={item.name}><strong>{item.kind}: {item.name}</strong>{item.before && <p>Before: {item.before.definition} {item.before.fields}</p>}{item.after && <p>After: {item.after.definition} {item.after.fields}</p>}</li>)}</ul> : <p>No changes from the baseline.</p>}<details><summary>Source before and after</summary><h4>Before</h4><pre>{diff.source.before}</pre><h4>After</h4><pre>{diff.source.after}</pre></details></div>}</section>
+      <section><h2>Workspace</h2><p>{snapshot.title}</p><p>Source digest: <code>{snapshot.sourceDigest}</code></p><p>Live changes update the revision shown above. Search again to refresh results.</p><button type="button" onClick={runChecks} disabled={job?.status === 'queued' || job?.status === 'running'}>Run structural generator</button>{job && <div>Generator: {job.status} for revision {job.revision}{job.digest !== snapshot.sourceDigest ? ' (stale)' : ''}. This does not include reference or fixture checks. {job.output && <details><summary>Output</summary><pre>{job.output}</pre></details>}</div>}<button type="button" onClick={inspectChanges}>Inspect changes</button>{diff && <div><h3>Changes at revision {diff.revision}</h3>{diff.changes.length ? <ul>{diff.changes.map(item => <li key={item.name}><strong>{item.kind}: {item.name}</strong>{item.before && <p>Before: {item.before.definition} {item.before.fields}</p>}{item.after && <p>After: {item.after.definition} {item.after.fields}</p>}</li>)}</ul> : <p>No changes from the baseline.</p>}<details><summary>Source before and after</summary><h4>Before</h4><pre>{diff.source.before}</pre><h4>After</h4><pre>{diff.source.after}</pre></details></div>}</section>
       <section><h2>Inspector</h2>{selected ? <><h3>{selected.name}</h3><form onSubmit={saveDefinition}><label>Definition <textarea value={definition} onChange={event => setDefinition(event.target.value)} maxLength={4000} required /></label><button disabled={definition === selected.definition}>Save definition</button><button type="button" onClick={() => setDefinition(selected.definition)}>Cancel</button></form><p>Parent: {selected.parent}</p><p>Fields: {selected.fields || 'None declared'}</p></> : <p>Select a concept to inspect it.</p>}</section>
     </div>}
   </main>;

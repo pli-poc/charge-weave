@@ -1,8 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { runGenerator } from './validation.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
-export function createServer(store, actor) {
+export function createServer(store, actor, options = {}) {
   if (!actor) throw new Error('An authenticated actor is required');
   const server = new McpServer({ name: 'chargeweave-ontology-authoring', version: '0.1.0' });
   const result = value => ({ content: [{ type: 'text', text: JSON.stringify(value) }], structuredContent: value });
@@ -18,6 +19,15 @@ export function createServer(store, actor) {
   server.registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, source and event cursor.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.snapshot(args.workspaceId)));
   server.registerTool('ontology_context_search', { description: 'Search existing model classes before proposing additions.', inputSchema: { workspaceId, query: z.string().max(200), limit: z.number().int().min(1).max(100).optional() }, annotations: { readOnlyHint: true } }, async args => result(store.search(args.workspaceId, args.query, args.limit)));
   server.registerTool('ontology_changeset_diff', { description: 'Compare the current draft with its committed baseline.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.diff(args.workspaceId)));
+  if (options.repository) {
+    server.registerTool('ontology_validation_start', { description: 'Run the structural generator on an isolated pinned draft; this is not full reference validation.', inputSchema: { workspaceId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/) } }, async args => {
+      const workspace = store.get(args.workspaceId);
+      const job = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest);
+      void runGenerator(store, workspace, job, options.repository, options.python);
+      return result(job);
+    });
+    server.registerTool('ontology_job_get', { description: 'Read generator job status and freshness.', inputSchema: { workspaceId, jobId: z.string().uuid() }, annotations: { readOnlyHint: true } }, async args => result(store.job(args.workspaceId, args.jobId)));
+  }
   server.registerTool('ontology_changeset_apply', { description: 'Atomically apply supported draft class commands at an expected revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, commands: z.array(command).min(1).max(100) }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(store.apply({ ...args, actor })));
   return server;
 }

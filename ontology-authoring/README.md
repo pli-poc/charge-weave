@@ -9,3 +9,5 @@ Set `CHARGEWEAVE_DRAFT_TOKEN` to a long random secret of at least 32 bytes, then
 The authenticated `GET /events?workspaceId=<id>&after=<sequence>` endpoint streams committed changes as server-sent events. Reconnect with the last event ID to replay later events. This feed is read-only; semantic changes still use MCP. Clients must deduplicate events by sequence and recover from a snapshot if they cannot apply a delta.
 
 Run `npm test` to exercise the store and MCP transport. Workspace creation is currently a local command, not an MCP tool. Pairing, change-set lifecycle, comprehensive validation, browser integration, review and publication are not yet implemented.
+
+The structural generator check requires Python, Git, tar, and `rdflib==7.6.0`. Set `CHARGEWEAVE_PYTHON` to the Python executable when it is not on PATH. The check materializes the pinned baseline in a temporary directory and records the input revision and digest. It runs `tools/build.py` only; it does not establish reference validation, fixture coverage, or publication readiness. Incomplete jobs are marked interrupted on restart.
