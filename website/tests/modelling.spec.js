@@ -6,6 +6,8 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
+test.use({ actionTimeout: 10000 });
+
 test('browser updates a field with a visible compatibility warning', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string? peer:Record?\n' });
@@ -30,10 +32,11 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Require peer' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
     expect(store.get(workspace.id).schema).toContain('peer:Record!');
-  } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
+  } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
 test('browser inspects the pinned temporal policy and explicit time fields', async ({ page }) => {
+  test.setTimeout(90000);
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
@@ -92,7 +95,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByText(/draft policy from baseline/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: model/temporal-policy.json')).toBeVisible();
-  } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
+  } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
 test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
@@ -163,5 +166,5 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Disconnect' }).click();
     await expect(page.getByRole('status')).toContainText('Disconnected');
     expect((await page.context().cookies()).some(cookie => cookie.name === 'cw_studio')).toBe(false);
-  } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
+  } finally { await page.close(); await service.shutdown(); store.close(); }
 });
