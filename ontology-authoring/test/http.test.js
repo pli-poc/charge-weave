@@ -29,7 +29,7 @@ test('reviewer creates a scoped workspace idempotently from a committed baseline
   const original = store.create({ title: 'Original', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const hidden = store.create({ title: 'Hidden', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const token = 'a'.repeat(32), reviewerToken = 'b'.repeat(32);
-  const service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
+  let service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
   const clients = [];
@@ -44,6 +44,7 @@ test('reviewer creates a scoped workspace idempotently from a committed baseline
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_workspace_create'), true);
     const args = { title: 'New workspace', baselineCommit, operationId: 'create-one' };
     const invoke = arguments_ => reviewer.callTool({ name: 'ontology_workspace_create', arguments: arguments_ });
+    assert.equal((await invoke({ ...args, baselineCommit: 'f'.repeat(40) })).structuredContent.error.code, 'BASELINE_UNAVAILABLE');
     const created = (await invoke(args)).structuredContent;
     assert.ok(created.workspaceId);
     assert.deepEqual((await invoke(args)).structuredContent, created);
@@ -51,6 +52,15 @@ test('reviewer creates a scoped workspace idempotently from a committed baseline
     assert.deepEqual((await draft.callTool({ name: 'ontology_workspace_list', arguments: {} })).structuredContent.workspaces.map(item => item.workspaceId), [original.id, created.workspaceId]);
     assert.equal((await draft.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: created.workspaceId } })).isError, undefined);
     assert.equal((await draft.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: hidden.id } })).isError, true);
+    for (const client of clients.splice(0)) await client.close();
+    await service.shutdown();
+    service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
+    service.listen(0, '127.0.0.1'); await once(service, 'listening');
+    const restarted = new Client({ name: 'reviewer-after-restart', version: '1' });
+    await restarted.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${reviewerToken}` } } })); clients.push(restarted);
+    assert.equal((await restarted.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: created.workspaceId } })).isError, true);
+    assert.deepEqual((await restarted.callTool({ name: 'ontology_workspace_create', arguments: args })).structuredContent, created);
+    assert.equal((await restarted.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: created.workspaceId } })).isError, undefined);
   } finally { for (const client of clients) await client.close(); await service.shutdown(); store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
 

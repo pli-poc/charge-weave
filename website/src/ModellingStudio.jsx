@@ -159,6 +159,7 @@ export default function ModellingStudio() {
       if (currentRevision.current !== value.revision) { setResults([]); setSearchDone(false); }
       currentRevision.current = value.revision;
       setSnapshot(value);
+      setWorkspaceBaseline(previous => previous || value.baselineCommit);
       setDiff(null);
       setReadiness(null);
       const activity = await tool('ontology_history_get', { workspaceId: id });
