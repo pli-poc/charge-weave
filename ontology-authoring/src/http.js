@@ -2,15 +2,19 @@ import { createServer as createHttpServer } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from './mcp.js';
+import { runGenerator } from './validation.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python }) {
+export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python, validationRunner = runGenerator }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (reviewerToken !== undefined && (typeof reviewerToken !== 'string' || Buffer.byteLength(reviewerToken) < 32 || reviewerToken === token)) throw new Error('Reviewer token must be distinct and at least 32 bytes');
   const secret = Buffer.from(token);
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
-  return createHttpServer(async (req, res) => {
+  const activeJobs = new Set();
+  let stopping = false;
+  const service = createHttpServer(async (req, res) => {
+    if (stopping) { res.writeHead(503).end('Service is stopping'); return; }
     if (!/^127\.0\.0\.1(?::\d+)?$/.test(req.headers.host ?? '')) { res.writeHead(403).end('Host forbidden'); return; }
     const origin = req.headers.origin;
     if (origin && origin !== allowedOrigin) { res.writeHead(403).end('Origin forbidden'); return; }
@@ -34,24 +38,30 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
       let sequence = Number(cursor);
       try { store.get(workspaceId); } catch { res.writeHead(404).end('Workspace not found'); return; }
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+      res.flushHeaders();
       const send = () => {
         try {
           const events = store.events(workspaceId, sequence);
           for (const event of events) {
             sequence = event.sequence;
-            res.write(`id: ${sequence}\nevent: workspace-change\ndata: ${JSON.stringify(event)}\n\n`);
+            if (!res.write(`id: ${sequence}\nevent: workspace-change\ndata: ${JSON.stringify(event)}\n\n`)) { res.end(); return; }
           }
         } catch { res.end(); }
       };
       send();
       const timer = setInterval(send, 500);
-      const heartbeat = setInterval(() => res.write(': heartbeat\n\n'), 15000);
+      const heartbeat = setInterval(() => { if (!res.write(': heartbeat\n\n')) res.end(); }, 15000);
       res.on('close', () => { clearInterval(timer); clearInterval(heartbeat); });
       return;
     }
     if (req.url !== '/mcp' || req.method !== 'POST') { res.writeHead(404).end('Not found'); return; }
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
-    const server = createServer(store, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role });
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true, maxRequestBodySize: 512 * 1024 });
+    const startValidation = (workspace, job) => {
+      const task = validationRunner(store, workspace, job, repository, python);
+      activeJobs.add(task);
+      void task.then(() => activeJobs.delete(task), () => activeJobs.delete(task));
+    };
+    const server = createServer(store, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
@@ -61,4 +71,12 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
       else res.end();
     }
   });
+  service.shutdown = async () => {
+    stopping = true;
+    const closed = new Promise(resolve => service.close(resolve));
+    service.closeAllConnections();
+    await closed;
+    await Promise.allSettled([...activeJobs]);
+  };
+  return service;
 }

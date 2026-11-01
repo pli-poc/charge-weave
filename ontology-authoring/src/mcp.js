@@ -26,7 +26,10 @@ export function createServer(store, actor, options = {}) {
     server.registerTool('ontology_validation_start', { description: 'Run structural generation or reference checks on an isolated pinned draft.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), profile: z.enum(['structural', 'reference']).default('structural') }, annotations: { idempotentHint: true } }, async args => {
       const workspace = store.get(args.workspaceId);
       const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, args.profile);
-      if (created) void runGenerator(store, workspace, job, options.repository, options.python);
+      if (created) {
+        if (options.startValidation) options.startValidation(workspace, job);
+        else void runGenerator(store, workspace, job, options.repository, options.python);
+      }
       return result(job);
     });
     server.registerTool('ontology_job_get', { description: 'Read generator job status and freshness.', inputSchema: { workspaceId, jobId: z.string().uuid() }, annotations: { readOnlyHint: true } }, async args => result(store.job(args.workspaceId, args.jobId)));

@@ -17,6 +17,7 @@ test('loopback MCP transport authenticates and shares state', async () => {
   try {
     assert.equal((await fetch(url, { method: 'POST' })).status, 401);
     assert.equal((await fetch(url, { method: 'POST', headers: { origin: 'https://untrusted.example', authorization: `Bearer ${token}` } })).status, 403);
+    assert.equal((await fetch(url, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ value: 'x'.repeat(600000) }) })).status, 413);
     const clients = [];
     for (const name of ['codex', 'browser']) {
       const client = new Client({ name, version: '1' });
@@ -44,5 +45,36 @@ test('loopback MCP transport authenticates and shares state', async () => {
     controller.abort();
     await reviewer.close();
     for (const client of clients) await client.close();
-  } finally { await new Promise(resolve => service.close(resolve)); store.close(); }
+  } finally { await service.shutdown(); store.close(); }
+});
+
+test('shutdown closes connected event streams', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Shutdown', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const token = 'a'.repeat(32), service = createHttpService({ store, token });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const response = await fetch(`http://127.0.0.1:${service.address().port}/events?workspaceId=${workspace.id}`, { headers: { authorization: `Bearer ${token}` } });
+  assert.equal(response.status, 200);
+  await service.shutdown();
+  store.close();
+});
+
+test('shutdown waits for active validation before the store is closed', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Drain', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const token = 'a'.repeat(32);
+  const service = createHttpService({ store, token, repository: '.', validationRunner: async (target, input, job) => { await pending; target.updateJob(job.id, 'passed'); } });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const client = new Client({ name: 'test', version: '1' });
+  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+  const result = await client.callTool({ name: 'ontology_validation_start', arguments: { workspaceId: workspace.id, operationId: 'drain', expectedRevision: 0, sourceDigest: workspace.sourceDigest } });
+  const shutdown = service.shutdown();
+  let finished = false; void shutdown.then(() => { finished = true; });
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(finished, false);
+  release(); await shutdown;
+  assert.equal(store.job(workspace.id, result.structuredContent.id).status, 'passed');
+  await client.close(); store.close();
 });
