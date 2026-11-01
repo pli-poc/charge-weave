@@ -117,6 +117,27 @@ test('generator changes to another tracked source fail validation', { skip: !pro
   } finally { rmSync(repository, { recursive: true, force: true }); }
 });
 
+test('isolated validation has the real baseline Git identity and a draft worktree', { skip: !process.env.CHARGEWEAVE_TEST_PYTHON }, async () => {
+  const repository = mkdtempSync(join(tmpdir(), 'chargeweave-git-baseline-'));
+  try {
+    mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools'));
+    const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+    writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    writeFileSync(join(repository, 'tools', 'build.py'), "import subprocess\nfrom pathlib import Path\nhead = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()\nassert len(head) == 40\nassert subprocess.check_output(['git', 'log', '-1', '--format=%s'], text=True).strip() == 'baseline fixture'\nassert subprocess.check_output(['git', 'diff', '--name-only'], text=True).strip() == 'model/domain.schema'\nassert 'Updated record.' in Path('model/domain.schema').read_text()\n");
+    const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
+    git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline fixture']);
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+    const store = new WorkspaceStore(':memory:');
+    const created = store.create({ title: 'Git baseline', baselineCommit: commit, schema });
+    store.apply({ workspaceId: created.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
+    const workspace = store.get(created.id), job = store.createJob(workspace.id, 1, workspace.sourceDigest, 'test', 'check').job;
+    await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    assert.equal(store.job(workspace.id, job.id).status, 'passed', store.job(workspace.id, job.id).output);
+    assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: repository, encoding: 'utf8' }).trim(), '');
+    store.close();
+  } finally { rmSync(repository, { recursive: true, force: true }); }
+});
+
 test('reference profile runs generated model and fixture checks', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

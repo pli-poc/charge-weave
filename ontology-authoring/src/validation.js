@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { generatedInputs, sha256 } from './source-manifest.js';
 
 const exec = promisify(execFile);
@@ -31,6 +31,15 @@ export async function runGenerator(store, workspace, job, repository, python = '
     const archive = join(directory, 'baseline.tar');
     await exec('git', ['archive', '--format=tar', `--output=${archive}`, workspace.baselineCommit], { cwd: repository, timeout: 30000 });
     await exec('tar', ['-xf', archive, '-C', directory], { timeout: 30000 });
+    await rm(archive);
+    // Several release checks record `git rev-parse HEAD`. Give the isolated
+    // candidate its actual baseline identity without modifying the source checkout.
+    // Reset only the index: the candidate overlay remains an ordinary worktree diff.
+    const gitOptions = { cwd: directory, timeout: 60000, env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_ALLOW_PROTOCOL: 'file', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null' } };
+    await exec('git', ['init', '--quiet', '--template=', directory], gitOptions);
+    await exec('git', ['-c', 'protocol.file.allow=always', 'fetch', '--quiet', '--no-tags', '--depth=1', '--no-write-fetch-head', '--', resolve(repository), workspace.baselineCommit], gitOptions);
+    await exec('git', ['update-ref', 'HEAD', workspace.baselineCommit], gitOptions);
+    await exec('git', ['reset', '--quiet', '--mixed', workspace.baselineCommit], gitOptions);
     await writeFile(join(directory, 'model', 'domain.schema'), workspace.schema, 'utf8');
     const tracked = await exec('git', ['ls-tree', '-r', '-z', '--name-only', workspace.baselineCommit, '--', 'model', 'benchmark', 'requirements', 'tests', 'tools', 'requirements.txt'], { cwd: repository, timeout: 30000, maxBuffer: 4 * 1024 * 1024 });
     const sourcePaths = tracked.stdout.split('\0').filter(path => path && !generatedInputs.has(path));
