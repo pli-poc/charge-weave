@@ -34,6 +34,7 @@ The React product site lives in [`website/`](website/README.md), with a landing 
 | Client-first refactor: generated GraphQL, XFlow and browser persistence | [Detailed build plan and next-session handoff](docs/client-runtime-build-plan.md) |
 | Engineering workbench implementation and operation | [Delivery ledger](docs/engineering-workbench-status.md), [workbench operation](docs/engineering-workbench-operations.md) |
 | Browser engineering: AI, MCP providers, synthetic scenarios and verification | [Engineering workbench architecture and phased plan](docs/engineering-workbench-architecture.md) |
+| Ontology authoring: shared MCP server, live visual modelling and Codex CLI | [Detailed architecture, UX and implementation plan](docs/ontology-mcp-modelling-studio-plan.md) |
 | AI context: existing components, retrieval, caching and Jev | [Browser-first context and agent architecture](docs/ai-context-architecture.md) |
 | OpenAI integration: Responses, browser tools, caching and Decisions | [OpenAI API integration architecture](docs/openai-integration-architecture.md) |
 | Validation and reproducibility | [Validation guide](docs/validation-guide.md), [development](docs/development.md) |
