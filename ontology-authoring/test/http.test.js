@@ -74,6 +74,10 @@ test('loopback MCP transport authenticates and shares state', async () => {
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
   try {
+    const health = await fetch(new URL('/health', url));
+    assert.equal(health.status, 200);
+    assert.deepEqual(await health.json(), { status: 'ok', service: 'chargeweave-ontology-authoring', version: '0.1.0' });
+    assert.equal((await fetch(new URL('/health', url), { headers: { origin: 'https://untrusted.example' } })).status, 403);
     assert.equal((await fetch(url, { method: 'POST' })).status, 401);
     assert.equal((await fetch(url, { method: 'POST', headers: { origin: 'https://untrusted.example', authorization: `Bearer ${token}` } })).status, 403);
     assert.equal((await fetch(url, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ value: 'x'.repeat(600000) }) })).status, 413);

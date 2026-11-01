@@ -50,6 +50,10 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
     if (req.method === 'OPTIONS' && origin) { res.writeHead(204).end(); return; }
     if (await serveStudio(req, res, staticDirectory)) return;
     const url = new URL(req.url, 'http://127.0.0.1');
+    if (url.pathname === '/health' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ status: 'ok', service: 'chargeweave-ontology-authoring', version: '0.1.0' })); return;
+    }
     const localOrigin = `http://${req.headers.host}`;
     if (url.pathname === '/pair' && req.method === 'POST') {
       if (!pairing || origin !== localOrigin || !/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] ?? '')) { res.writeHead(403).end('Pairing unavailable'); return; }
