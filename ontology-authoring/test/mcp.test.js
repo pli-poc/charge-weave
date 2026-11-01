@@ -1,0 +1,28 @@
+import { test } from 'node:test';
+import { strict as assert } from 'node:assert';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { WorkspaceStore } from '../src/workspace.js';
+import { createServer } from '../src/mcp.js';
+
+test('two MCP clients share revisioned state and reject stale edits', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Shared', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const clients = [];
+  for (const actor of ['codex', 'browser']) {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createServer(store, actor);
+    const client = new Client({ name: actor, version: '1' });
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    clients.push(client);
+  }
+  const [codex, browser] = clients;
+  assert.ok((await codex.listTools()).tools.some(tool => tool.name === 'ontology_changeset_apply'));
+  const args = { workspaceId: workspace.id, operationId: 'add', expectedRevision: 0, commands: [{ type: 'class.add', name: 'Example', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
+  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
+  assert.equal((await browser.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'Example' } })).structuredContent.results[0].name, 'Example');
+  assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: { ...args, operationId: 'stale' } })).isError, true);
+  for (const client of clients) await client.close();
+  store.close();
+});
