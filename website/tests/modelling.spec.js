@@ -5,10 +5,10 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { editableSourcePaths } from '../../ontology-authoring/src/source-manifest.js';
+import { editableSourcePaths, importSourceManifest } from '../../ontology-authoring/src/source-manifest.js';
 
 test.use({ actionTimeout: 10000 });
 
@@ -97,6 +97,58 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await expect(page.getByRole('link', { name: 'Synthetic check' })).toBeVisible();
     await expect(page.getByText(/branch-protection requirements and deployment are not checked/)).toBeVisible();
     expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
+  } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('reviewer opens a simulated draft pull request for a recorded branch', async ({ page }) => {
+  test.setTimeout(60000);
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-browser-pr-'));
+  const repository = join(directory, 'repo'), root = fileURLToPath(new URL('../..', import.meta.url));
+  const git = args => execFileSync('git', args, { cwd: repository, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  let store, service;
+  try {
+    mkdirSync(repository); mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools'));
+    for (const name of ['authoring_adapter.py', 'domain_schema.py']) copyFileSync(join(root, 'tools', name), join(repository, 'tools', name));
+    const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+    writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'baseline']);
+    const commit = git(['rev-parse', 'HEAD']);
+    store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Synthetic pull request', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit) });
+    store.apply({ workspaceId: workspace.id, actor: 'draft', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'DemoCandidate', module: 'foundation', parent: 'Record', definition: 'A synthetic reviewed candidate.' }] });
+    const candidate = store.get(workspace.id);
+    for (const profile of ['structural', 'reference', 'audit', 'acceptance']) {
+      const job = store.createJob(workspace.id, 1, candidate.sourceDigest, 'test', profile, profile).job;
+      store.updateJob(job.id, 'passed');
+    }
+    const review = store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'accept', expectedRevision: 1, sourceDigest: candidate.sourceDigest, decision: 'accept', reason: 'Synthetic test review.' });
+    const preview = store.createJob(workspace.id, 1, candidate.sourceDigest, 'reviewer', 'preview', 'publication-preview', review.id).job;
+    store.saveJobArtifacts(preview.id, { reviewId: review.id, sourceDigest: candidate.sourceDigest, baselineCommit: commit, revision: 1, files: [{ path: 'model/domain.schema', sha256: candidate.sourceDigest }] });
+    store.updateJob(preview.id, 'passed');
+    const intent = store.reservePublication(workspace.id, { actor: 'reviewer', operationId: 'reserve', expectedRevision: 1, sourceDigest: candidate.sourceDigest, reviewId: review.id, previewJobId: preview.id, subject: 'Synthetic model change', body: 'Synthetic test description.' });
+    const head = 'b'.repeat(40);
+    store.savePublicationCommit(workspace.id, intent.id, head, Buffer.from('synthetic bundle'));
+    store.advancePublication(workspace.id, intent.id, 'commit_created', 'push_pending');
+    store.advancePublication(workspace.id, intent.id, 'push_pending', 'pushed', head);
+    const response = value => ({ ok: true, text: async () => JSON.stringify(value) });
+    const pullRequestFetch = async (url, options) => {
+      if (url.includes('/pulls?')) return response([]);
+      if (url.endsWith('/git/ref/heads/main')) return response({ ref: 'refs/heads/main', object: { sha: commit } });
+      if (url.includes('/git/ref/heads/')) return response({ ref: `refs/heads/${intent.branch}`, object: { sha: head } });
+      const request = JSON.parse(options.body);
+      return response({ number: 77, state: 'open', body: request.body, head: { ref: intent.branch, sha: head, repo: { full_name: 'pli-poc/charge-weave' } }, base: { ref: 'main', repo: { full_name: 'pli-poc/charge-weave' } } });
+    };
+    const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+    service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), allowPublish: true, githubToken: 'synthetic-publisher-token-'.repeat(2), pullRequestFetch });
+    service.listen(0, '127.0.0.1'); await once(service, 'listening');
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Inspect publication history' }).click();
+    await expect(page.getByText(/Publisher permission: enabled/)).toBeVisible();
+    await page.getByRole('button', { name: 'Create draft pull request' }).click();
+    await expect(page.getByRole('link', { name: 'Pull request #77' })).toBeVisible();
+    expect(store.publication(workspace.id, intent.id).state).toBe('pr_created');
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 
