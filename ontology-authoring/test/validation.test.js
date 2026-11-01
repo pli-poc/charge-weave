@@ -44,3 +44,17 @@ test('validation retry survives restart without starting another job', () => {
     store.close();
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
+
+test('reference profile runs generated model and fixture checks', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const schema = readFileSync(new URL('../../model/domain.schema', import.meta.url), 'utf8');
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Reference', baselineCommit: commit, schema });
+  const { job } = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'reference', 'reference');
+  await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+  const result = store.job(workspace.id, job.id);
+  assert.equal(result.status, 'passed', result.output);
+  assert.match(result.output, /tools\/test_boundaries.py/);
+  store.close();
+});
