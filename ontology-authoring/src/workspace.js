@@ -427,8 +427,9 @@ export class WorkspaceStore {
       return before === after ? [] : [{ path, patch: createPatch(path, before, after, 'before', 'after', { context: 3 }) }];
     });
     const event = this.db.prepare('SELECT sequence, actor, created_at AS createdAt, payload FROM events WHERE workspace = ? AND revision = ? ORDER BY sequence LIMIT 1').get(id, revision);
+    const payload = event ? JSON.parse(event.payload) : {};
     return { workspaceId: id, revision, baselineCommit: workspace.baselineCommit, sourceDigest: group.after_digest, available: true,
-      actor: event?.actor ?? null, createdAt: event?.createdAt ?? null, eventSequence: event?.sequence ?? null, commands: event ? JSON.parse(event.payload).commands ?? [] : [],
+      actor: event?.actor ?? null, createdAt: event?.createdAt ?? null, eventSequence: event?.sequence ?? null, commandGroupId: payload.commandGroupId ?? null, operationId: payload.operationId ?? null, rationale: payload.rationale ?? null, commands: payload.commands ?? [],
       patch: createPatch('model/domain.schema', group.before_schema, group.after_schema, 'before', 'after', { context: 3 }),
       baselinePatch: createPatch('model/domain.schema', baseline, group.after_schema, 'baseline', 'historical revision', { context: 3 }), additionalSources };
   }
@@ -575,9 +576,10 @@ export class WorkspaceStore {
   applyReviewerCase({ workspaceId, actor, operationId, expectedRevision, command }) {
     return this.apply({ workspaceId, actor, operationId, expectedRevision, commands: [command], reviewerCase: true });
   }
-  apply({ workspaceId, actor, operationId, expectedRevision, commands, reviewerCase = false }) {
+  apply({ workspaceId, actor, operationId, expectedRevision, commands, rationale, reviewerCase = false }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
-    const requestHash = hash(JSON.stringify({ expectedRevision, commands }));
+    if (rationale !== undefined && (typeof rationale !== 'string' || !rationale.trim() || rationale.length > 2000)) throw new Error('Invalid command rationale');
+    const requestHash = hash(JSON.stringify({ expectedRevision, commands, ...(rationale === undefined ? {} : { rationale }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
@@ -672,8 +674,9 @@ export class WorkspaceStore {
       const revision = current.revision + 1, digest = sourceDigest(schema, current.baselineCommit, current.digestVersion, baselineManifest, overlays);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
       this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays, after_schema, after_overlays) VALUES (?, ?, ?, ?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest, current.digestVersion === 4 ? JSON.stringify(current.sourceOverlays) : null, schema, current.digestVersion === 4 ? JSON.stringify(overlays) : null);
-      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, sourceDigest: digest }));
-      const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };
+      const commandGroupId = randomUUID();
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, commandGroupId, operationId, ...(rationale === undefined ? {} : { rationale }), sourceDigest: digest }));
+      const result = { workspaceId, baselineCommit: current.baselineCommit, revision, sourceDigest: digest, commandGroupId, eventSequence: Number(event.lastInsertRowid) };
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
       this.db.exec('COMMIT'); return result;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }

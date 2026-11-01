@@ -161,7 +161,7 @@ export function createServer(store, actor, options = {}) {
       return result(outcome.job);
     });
   }
-  registerTool('ontology_changeset_apply', { description: 'Atomically apply supported draft class commands at an expected revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, commands: z.array(command).min(1).max(100) }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(store.apply({ ...args, actor })));
+  registerTool('ontology_changeset_apply', { description: 'Atomically apply supported draft commands with an optional caller-supplied rationale at an expected revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, rationale: z.string().min(1).max(2000).optional(), commands: z.array(command).min(1).max(100) }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(store.apply({ ...args, actor })));
   registerTool('ontology_changeset_undo', { description: 'Undo the latest supported command group as a new revision.', inputSchema: { workspaceId, operationId, expectedRevision: revision, targetRevision: revision }, annotations: { idempotentHint: true } }, async args => result(store.undo({ ...args, actor })));
   return server;
 }

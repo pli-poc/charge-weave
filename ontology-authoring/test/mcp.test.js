@@ -25,8 +25,14 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   const inspected = await codex.callTool({ name: 'ontology_entity_get', arguments: { workspaceId: workspace.id, iri: 'https://example.org/charge-domain#Record', expectedRevision: 0 } });
   assert.equal(inspected.structuredContent.entity.iri, 'https://example.org/charge-domain#Record');
   assert.equal((await codex.callTool({ name: 'ontology_entity_get', arguments: { workspaceId: workspace.id, iri: 'https://other.example/#Record' } })).isError, true);
-  const args = { workspaceId: workspace.id, operationId: 'add', expectedRevision: 0, commands: [{ type: 'class.add', name: 'Example', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
-  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
+  const args = { workspaceId: workspace.id, operationId: 'add', expectedRevision: 0, rationale: 'Explain the example.', commands: [{ type: 'class.add', name: 'Example', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
+  const applied = (await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent;
+  assert.equal(applied.revision, 1);
+  assert.match(applied.commandGroupId, /^[0-9a-f-]{36}$/);
+  assert.deepEqual((await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent, applied);
+  assert.equal(store.events(workspace.id)[0].payload.rationale, args.rationale);
+  assert.equal(store.events(workspace.id)[0].payload.operationId, args.operationId);
+  assert.equal(store.events(workspace.id)[0].payload.commandGroupId, applied.commandGroupId);
   assert.equal((await browser.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'Example' } })).structuredContent.results[0].name, 'Example');
   const stale = await browser.callTool({ name: 'ontology_changeset_apply', arguments: { ...args, operationId: 'stale' } });
   assert.equal(stale.isError, true);
@@ -34,6 +40,8 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   assert.match(stale.structuredContent.error.recovery, /current revision/);
   const duplicateOperation = await codex.callTool({ name: 'ontology_changeset_apply', arguments: { ...args, commands: [{ ...args.commands[0], definition: 'Different content.' }] } });
   assert.equal(duplicateOperation.structuredContent.error.code, 'IDEMPOTENCY_CONFLICT');
+  const differentReason = await codex.callTool({ name: 'ontology_changeset_apply', arguments: { ...args, rationale: 'A different reason.' } });
+  assert.equal(differentReason.structuredContent.error.code, 'IDEMPOTENCY_CONFLICT');
   const missing = await codex.callTool({ name: 'ontology_entity_get', arguments: { workspaceId: workspace.id, name: 'Missing' } });
   assert.equal(missing.structuredContent.error.code, 'UNKNOWN_TERM');
   const addField = { workspaceId: workspace.id, operationId: 'field', expectedRevision: 1, commands: [{ type: 'property.add', owner: 'Example', name: 'exampleLabel', range: 'string', cardinality: '?' }] };

@@ -615,8 +615,11 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('An edited record.');
+    await page.getByLabel('Reason for next edit (optional)').fill('Clarify the definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(page.getByText('Reason: Clarify the definition.')).toBeVisible();
+    await expect(page.getByLabel('Reason for next edit (optional)')).toHaveValue('');
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('An edited record.');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('changed: Record')).toBeVisible();
@@ -652,6 +655,8 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     const historical = page.getByRole('region', { name: 'Historical comparison' });
     await expect(historical.getByText('Historical revision 1')).toBeVisible();
     await expect(historical.locator('pre').first()).toContainText('+Record|root|An edited record.');
+    await expect(historical.getByText('Reason: Clarify the definition.')).toBeVisible();
+    await expect(historical.getByText(/Command group:/)).toBeVisible();
     await expect(page.getByRole('status')).toContainText('revision 4');
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
     await expect(historical).toHaveCount(0);
