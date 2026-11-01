@@ -1,9 +1,9 @@
 """Compile the reviewed declarative domain model to OWL, SHACL and a data dictionary."""
 from pathlib import Path
 import re,json
-from collections import defaultdict
 from rdflib import Graph,Namespace,URIRef,Literal,BNode,RDF,RDFS,OWL,XSD
 from rdflib.collection import Collection
+from domain_schema import parse_schema
 P=Path(__file__).resolve().parents[1]
 BASE='https://example.org/charge-domain#'
 C=Namespace(BASE); SH=Namespace('http://www.w3.org/ns/shacl#'); SKOS=Namespace('http://www.w3.org/2004/02/skos/core#'); DCT=Namespace('http://purl.org/dc/terms/')
@@ -15,25 +15,7 @@ def graph():
 def snake_label(s):return re.sub(r'(?<=[a-z0-9])(?=[A-Z])',' ',s)
 def lst(g,x):
  b=BNode();Collection(g,b,x);return b
-classes={}; enum=defaultdict(set); prop_types=defaultdict(set); prop_users=defaultdict(set); module=None
-for no,line in enumerate((P/'model/domain.schema').read_text().splitlines(),1):
- if not line or line.startswith('#'):continue
- if line.startswith('MODULE|'):module=line.split('|')[1];continue
- c,parent,definition,fields=line.split('|');assert c not in classes,c
- fs=[]
- for token in fields.split():
-  key,t=token.split(':',1); card=t[-1]; t=t[:-1];assert card in '!?+*',(no,token)
-  vals=None
-  if t.startswith('{'):
-   vals=t[1:-1].split(',');enum[key].update(vals);typ='enum';r=key[0].upper()+key[1:]+'Code'
-  else:typ='datatype' if t in DT else ('iri' if t=='IRI' else 'object');r=t
-  fs.append(dict(property=key,type=typ,range=r,cardinality=card,values=vals));prop_types[key].add((typ,r));prop_users[key].add(c)
- classes[c]=dict(module=module,parent='Record' if parent=='-' else (None if parent=='root' else parent),definition=definition,fields=fs)
-for c,info in classes.items():
- for f in info['fields']:
-  if f['type']=='object':assert f['range'] in classes,(c,f)
-for k,ts in prop_types.items():
- assert len({t[0] for t in ts})==1,(k,ts)
+classes,enum,prop_types,prop_users=parse_schema((P/'model/domain.schema').read_text(),DT)
 ont=graph(); shapes=graph(); concepts=graph();mods={m:graph() for m in sorted({i['module'] for i in classes.values()})}
 root=URIRef('https://example.org/charge-domain')
 ont.add((root,RDF.type,OWL.Ontology));ont.add((root,OWL.versionIRI,URIRef('https://example.org/charge-domain/1.3.0')));ont.add((root,OWL.versionInfo,Literal('1.3.0')));ont.add((root,DCT.title,Literal('Charge Domain Ontology',lang='en')))

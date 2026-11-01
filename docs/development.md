@@ -36,7 +36,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 
 | Editable source | Generated outputs |
 |---|---|
-| `model/domain.schema`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
+| `model/domain.schema`, parser in `tools/domain_schema.py`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
 | `tools/build_rules.py`, `model/audit-rules.json`, `model/lifecycle-policies.json` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
 | Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | External platform crosswalks, actions/events and vocabulary shapes |
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |
@@ -52,10 +52,13 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 
 `tools/check_generated.py` builds in a clean temporary output tree using only
 the committed source inputs. It compares the entire generated file inventory,
-parses JSON, compares plain text exactly, and compares RDF by exact graph
+parses JSON, compares plain text after normalizing platform line endings, and compares RDF by exact graph
 isomorphism. Blank-node identifiers and statement ordering may change without
 changing meaning. Schema source extensions must be idempotent. Missing or stale
 outputs fail CI. The reference fixture selects controlled values deterministically.
+`python tools/test_domain_schema.py` checks the parser against the committed
+catalogue and exercises invalid inputs. The temporal contract digest includes
+the parser source so changes to parsing invalidate temporal evidence.
 
 ## Workflow gates
 

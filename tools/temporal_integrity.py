@@ -174,9 +174,9 @@ def integrity_errors(graph):
 def contract_digest():
     """Hash the semantic, validation and reference writer inputs, not only class names."""
     names = ['model/domain.schema','model/audit-rules.json','model/lifecycle-policies.json',
-             'model/temporal-policy.json','model/temporal-queries.json','tools/build.py','tools/build_rules.py',
+             'model/temporal-policy.json','model/temporal-queries.json','tools/build.py','tools/domain_schema.py','tools/build_rules.py',
              'tools/temporal_integrity.py','tools/temporal_store.py','tools/runtime.py','requirements.txt']
     h = hashlib.sha256()
     for name in names:
-        h.update(name.encode()+b'\0'+(P/name).read_bytes()+b'\0')
+        h.update(name.encode()+b'\0'+(P/name).read_bytes().replace(b'\r\n', b'\n')+b'\0')
     return 'sha256:'+h.hexdigest()
