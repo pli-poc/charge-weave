@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { runGenerator } from './validation.js';
+import { changeImpact } from './impact.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -29,6 +30,11 @@ export function createServer(store, actor, options = {}) {
   server.registerTool('ontology_history_get', { description: 'Read the most recent committed workspace events.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result({ events: store.recentEvents(args.workspaceId) }));
   if (options.role === 'reviewer') server.registerTool('ontology_review_readiness', { description: 'Inspect exact-digest evidence and missing review gates. Acceptance is not yet available.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.reviewReadiness(args.workspaceId)));
   if (options.repository) {
+    server.registerTool('ontology_change_impact_get', { description: 'Find bounded explicit references in pinned requirements, journeys, rules and temporal queries; coverage is partial.', inputSchema: { workspaceId, expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => {
+      const workspace = store.get(args.workspaceId);
+      if (args.expectedRevision !== undefined && args.expectedRevision !== workspace.revision) throw new Error('Revision conflict');
+      return result(changeImpact(workspace, store.diff(args.workspaceId).changes, options.repository));
+    });
     server.registerTool('ontology_temporal_view_get', { description: 'Inspect explicit time fields and the pinned class temporal policy; no missing policy or relationship is inferred.', inputSchema: { workspaceId, root: z.string().max(128), expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(store.temporalView(args.workspaceId, args.root, args.expectedRevision, options.repository)));
     server.registerTool('ontology_validation_start', { description: 'Run structural, reference or independent release checks on an isolated pinned draft.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), profile: z.enum(['structural', 'reference', 'acceptance']).default('structural') }, annotations: { idempotentHint: true } }, async args => {
       const workspace = store.get(args.workspaceId);

@@ -48,6 +48,7 @@ export default function ModellingStudio() {
   const [entityInfo, setEntityInfo] = useState(null);
   const [temporal, setTemporal] = useState(null);
   const [responsibility, setResponsibility] = useState(null);
+  const [impact, setImpact] = useState(null);
   const [diff, setDiff] = useState(null);
   const [job, setJob] = useState(null);
   const [history, setHistory] = useState([]);
@@ -173,6 +174,15 @@ export default function ModellingStudio() {
 
   useEffect(() => { setTemporal(null); }, [connection, snapshot?.revision, selected?.name]);
   useEffect(() => { setResponsibility(null); }, [connection, snapshot?.revision, selected?.name]);
+  useEffect(() => { setImpact(null); }, [connection, snapshot?.revision]);
+
+  async function inspectImpact() {
+    setError('');
+    try {
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_change_impact_get', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision } });
+      if (response.structuredContent.revision === currentRevision.current) setImpact(response.structuredContent);
+    } catch (problem) { setError(problem.message); }
+  }
 
   async function inspectResponsibility() {
     setError('');
@@ -321,6 +331,7 @@ export default function ModellingStudio() {
     </div>
     <section className="studio-activity"><h2>Responsibility perspective</h2><button type="button" onClick={inspectResponsibility} disabled={!selected}>Inspect responsibilities for selected concept</button>{responsibility && responsibility.root === selected?.name && responsibility.revision === snapshot.revision && <><p>{responsibility.note}</p>{responsibility.bindings.length ? <ul>{responsibility.bindings.map(binding => <li key={`${binding.owner}-${binding.property}`}><strong>{binding.label}</strong>: {binding.property} → {binding.range} ({binding.cardinality}) · {binding.category} · {binding.source.path}:{binding.source.line} · {binding.mappingVersion}</li>)}</ul> : <p>No responsibility binding defined in this mapping.</p>}</>}</section>
     <section className="studio-activity"><h2>Temporal perspective</h2><button type="button" onClick={inspectTemporal} disabled={!selected}>Inspect time for selected concept</button>{temporal && temporal.root === selected?.name && temporal.revision === snapshot.revision && <><p>Model revision {temporal.revision}; policy from baseline <code>{temporal.baselineCommit}</code>.</p><p>Class policy: {temporal.policy ?? 'No explicit temporal policy defined.'}</p><p>Policy source: {temporal.policySource.path}; interval convention: {temporal.timeConvention.interval ?? 'unspecified'}; recorded time: {temporal.timeConvention.recordedTimeOwner ?? 'unspecified'}.</p><h3>Explicit time fields and window references</h3>{temporal.fields.length ? <ul>{temporal.fields.map(field => <li key={`${field.owner}-${field.property}`}>{field.property}: {field.range} ({field.cardinality}) · {field.inherited ? `inherited from ${field.owner}` : 'declared'} · {field.source.path}:{field.source.line}</li>)}</ul> : <p>No explicit time fields or window references.</p>}</>}</section>
+    <section className="studio-activity"><h2>Change impact</h2><button type="button" onClick={inspectImpact}>Inspect explicit impact references</button>{impact && impact.revision === snapshot.revision && <><p>{impact.note}</p><p>Changed classes: {impact.changedClasses.join(', ') || 'none'}; changed properties: {impact.changedProperties.join(', ') || 'none'}.</p>{impact.references.length ? <ul>{impact.references.map(item => <li key={`${item.kind}-${item.id}`}>{item.kind} {item.id}: {item.title} · {item.source} · references {item.terms.join(', ')}</li>)}</ul> : <p>No indexed baseline references matched.</p>}{impact.omitted > 0 && <p>{impact.omitted} additional references omitted.</p>}</>}</section>
     <section className="studio-activity"><h2>Review readiness</h2><button type="button" onClick={inspectReadiness}>Inspect review gates</button>{readiness && <><p>Revision {readiness.revision}, digest <code>{readiness.sourceDigest}</code></p><p>Acceptance is not available yet.</p><ul>{readiness.missing.map(item => <li key={item}>Missing: {item}</li>)}</ul></>}<h2>Activity</h2><button type="button" onClick={undoLatest} disabled={!snapshot.revision || history.at(-1)?.payload?.type === 'undo'}>Undo latest command group</button><ol>{history.map(event => <li key={event.sequence}>Revision {event.revision} · {event.actor} · {event.payload.type === 'undo' ? `undid revision ${event.payload.targetRevision}` : (event.payload.commands || []).map(command => command.type).join(', ')}</li>)}</ol></section></fieldset>}
   </main>;
 }

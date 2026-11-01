@@ -10,7 +10,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
-  const paths = ['model/domain.schema', 'model/temporal-policy.json', 'tools/authoring_adapter.py', 'tools/domain_schema.py'];
+  const paths = ['model/audit-rules.json', 'model/domain.schema', 'model/temporal-policy.json', 'model/temporal-queries.json', 'requirements/business-requirements.json', 'requirements/journeys.json', 'tools/authoring_adapter.py', 'tools/domain_schema.py'];
   const manifest = paths.map(path => ({ path, sha256: createHash('sha256').update(show(path)).digest('hex') }));
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Temporal browser test', baselineCommit: commit, schema: show('model/domain.schema').toString('utf8'), sourceManifest: manifest });
@@ -36,6 +36,12 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText('Asset owner', { exact: true })).toBeVisible();
     await expect(page.getByText(/Asset owner: assetOwner → LegalEntity/)).toBeVisible();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A reviewed station definition.');
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    await page.getByRole('button', { name: 'Inspect explicit impact references' }).click();
+    await expect(page.getByText(/Changed classes: ChargingStation/)).toBeVisible();
+    await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: 'Change impact' }) }).getByText(/requirement BR-/).first()).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
 
