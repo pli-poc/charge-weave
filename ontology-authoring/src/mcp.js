@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
 import { publicationPreflight } from './publication-preflight.js';
+import { githubCommitWorkflows } from './github-ci.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -38,6 +39,10 @@ export function createServer(store, actor, options = {}) {
   server.registerTool('ontology_history_get', { description: 'Read the most recent committed workspace events.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result({ events: store.recentEvents(args.workspaceId) }));
   server.registerTool('ontology_view_suggest', { description: 'Suggest a concept and perspective to a connected viewer; this does not change the model or force a selection.', inputSchema: { workspaceId, operationId, expectedRevision: revision, root: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), viewpoint: z.enum(['information', 'responsibility', 'temporal']), explanation: z.string().min(1).max(500) }, annotations: { idempotentHint: true } }, async args => result(store.suggestView(args.workspaceId, { ...args, actor })));
   if (options.role === 'reviewer') {
+    server.registerTool('ontology_github_commit_workflows', { description: 'Look up public GitHub Actions runs for an exact ChargeWeave commit. Required branch-protection checks and deployment are not verified.', inputSchema: { workspaceId, commitSha: z.string().regex(/^[a-f0-9]{40}$/) }, annotations: { readOnlyHint: true } }, async args => {
+      store.get(args.workspaceId);
+      return result(await githubCommitWorkflows(args.commitSha, options.ciFetch));
+    });
     server.registerTool('ontology_reviewer_interval_case_add', { description: 'Record one reviewer-authored synthetic interval case and its expected decision; later checks evaluate it. Review independence and business relevance.', inputSchema: { workspaceId, operationId, expectedRevision: revision, requirementId: z.string().regex(/^BR-[0-9]+$/).max(32), ruleId: z.string().regex(/^B[0-9]{3,6}$/), caseId: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,127}$/), start: z.string().max(20), end: z.string().max(20), expectedConformance: z.boolean(), scenario: z.string().min(12).max(1000) }, annotations: { idempotentHint: true } }, async args => {
       const { workspaceId: id, operationId: op, expectedRevision: rev, ...values } = args;
       return result(store.applyReviewerCase({ workspaceId: id, operationId: op, expectedRevision: rev, actor, command: { type: 'reviewer.interval_case_add', ...values } }));

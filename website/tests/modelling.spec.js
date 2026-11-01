@@ -53,6 +53,15 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await expect(page.getByText('Source patch: tests/negative-cases.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/business-acceptance.json')).toBeVisible();
     expect(JSON.parse(store.get(workspace.id).sourceOverlays['tests/business-acceptance.json']).filter(item => item.rule === 'B900').every(item => item.provenance === 'template-derived')).toBe(true);
+    await page.getByLabel('Requirement ID', { exact: true }).fill('BR-012');
+    await page.getByLabel('Rule ID', { exact: true }).fill('B900');
+    await page.getByLabel('Unique case ID').fill('BR-012-B900-REVIEW-PASS');
+    await page.getByLabel('Start (UTC, YYYY-MM-DDTHH:MM:SSZ)').fill('2026-10-01T10:00:00Z');
+    await page.getByLabel('End (UTC, YYYY-MM-DDTHH:MM:SSZ)').fill('2026-10-01T12:00:00Z');
+    await page.getByLabel('Business scenario and expected result').fill('A maintenance window ending later is accepted.');
+    await page.getByRole('button', { name: 'Save reviewer case' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 3');
+    expect(JSON.parse(store.get(workspace.id).sourceOverlays['tests/business-acceptance.json']).find(item => item.id === 'BR-012-B900-REVIEW-PASS').provenance).toBe('independent');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -72,7 +81,8 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     store = new WorkspaceStore(':memory:');
     const workspace = store.create({ title: 'Publication preflight', baselineCommit: commit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
     const pairingCode = 'synthetic-pairing-code-'.repeat(2);
-    service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository, publicationFixture: { remote, branch: 'main' } });
+    const ciFetch = async () => ({ ok: true, json: async () => ({ workflow_runs: [{ id: 123, name: 'Synthetic check', status: 'completed', conclusion: 'success', head_sha: commit }] }) });
+    service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository, publicationFixture: { remote, branch: 'main' }, ciFetch });
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
@@ -80,6 +90,10 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
     await expect(page.getByText(/Publication is not implemented/)).toBeVisible();
+    await page.getByLabel('Commit SHA').fill(commit);
+    await page.getByRole('button', { name: 'Check commit workflows' }).click();
+    await expect(page.getByRole('link', { name: 'Synthetic check' })).toBeVisible();
+    await expect(page.getByText(/branch-protection requirements and deployment are not checked/)).toBeVisible();
     expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
