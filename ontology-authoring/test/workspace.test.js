@@ -13,6 +13,8 @@ test('atomic edits, durable receipts and stale revisions', () => {
   const result = store.apply(request);
   assert.deepEqual(store.apply(request), result);
   assert.equal(store.search(workspace.id, 'example').results[0].name, 'Example');
+  assert.throws(() => store.view(workspace.id, 'Example', 0), /Revision conflict/);
+  assert.throws(() => store.search(workspace.id, 'example', 25, 0), /Revision conflict/);
   assert.throws(() => store.apply({ ...request, commands: [] }), /reused/);
   assert.throws(() => store.apply({ ...request, operationId: 'two' }), /Stale/);
   assert.throws(() => store.apply({ ...request, operationId: 'three', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Example', definition: 'Changed.' }, { type: 'class.add', name: 'Example' }] }), /Invalid/);

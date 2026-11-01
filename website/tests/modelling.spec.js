@@ -45,5 +45,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(page.getByRole('status')).toContainText('revision 4');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
     await expect(page.getByText(/undid revision 3/)).toBeVisible();
+    await page.route('**/events?**', route => route.abort());
+    service.closeAllConnections();
+    await expect(page.getByRole('status')).toContainText('Reconnecting');
+    await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeDisabled();
+    await page.unroute('**/events?**');
+    await expect(page.getByRole('status')).toContainText('Connected');
+    await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });

@@ -132,13 +132,15 @@ export class WorkspaceStore {
     for (const [name, entity] of before) if (!after.has(name)) changes.push({ kind: 'removed', name, before: entity });
     return { workspaceId: id, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, changes, source: { path: 'model/domain.schema', before: row.baseline_schema, after: row.schema } };
   }
-  search(id, query, limit = 25) {
+  search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
     const workspace = this.get(id), needle = query.toLowerCase();
+    if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
   }
-  view(id, root) {
+  view(id, root, expectedRevision) {
     const workspace = this.get(id);
+    if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     const classes = parse(workspace.schema).classes;
     const entity = classes.get(root);
     if (!entity) throw new Error('Class not found');

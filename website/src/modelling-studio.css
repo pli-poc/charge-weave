@@ -1,4 +1,5 @@
 .modelling-studio { padding-block: 2rem 4rem; }
+.studio-workspace { border: 0; margin: 0; padding: 0; min-width: 0; }
 .studio-connect { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; }
 .studio-connect label, .studio-panels label { display: grid; gap: .3rem; }
 .studio-connect input, .studio-panels input { padding: .5rem; min-width: 15rem; }
