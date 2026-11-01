@@ -18,10 +18,10 @@ test('scripted maintenance scenario shares edits and recovers after restart', as
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-demo-'));
   const path = join(directory, 'workspace.sqlite');
   const token = 'synthetic-demo-token-'.repeat(2);
-  let store, service;
+  let store, service, workspaceId;
   const clients = [];
   async function open() {
-    service = createHttpService({ store, token });
+    service = createHttpService({ store, token, workspaceId });
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
     const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
     for (const name of ['scripted-codex', 'scripted-browser']) {
@@ -43,6 +43,7 @@ test('scripted maintenance scenario shares edits and recovers after restart', as
   try {
     store = new WorkspaceStore(path);
     const workspace = store.create({ title: 'Synthetic maintenance', baselineCommit: commit, schema });
+    workspaceId = workspace.id;
     await open();
     for (const name of ['ChargingStation', 'TimeWindow', 'WorkOrder', 'LegalEntity']) {
       const found = await invoke(clients[0], 'ontology_context_search', { workspaceId: workspace.id, query: name });

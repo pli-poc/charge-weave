@@ -17,7 +17,7 @@ if (process.argv.includes('--create-workspace')) {
   console.log(JSON.stringify({ id: workspace.id, baselineCommit: workspace.baselineCommit, revision: workspace.revision }));
   store.close();
 } else {
-  const service = createHttpService({ store, token, reviewerToken: process.env.CHARGEWEAVE_REVIEWER_TOKEN, allowedOrigin: process.env.CHARGEWEAVE_BROWSER_ORIGIN, repository, python: process.env.CHARGEWEAVE_PYTHON });
+  const service = createHttpService({ store, token, reviewerToken: process.env.CHARGEWEAVE_REVIEWER_TOKEN, workspaceId: process.env.CHARGEWEAVE_WORKSPACE_ID, allowedOrigin: process.env.CHARGEWEAVE_BROWSER_ORIGIN, repository, python: process.env.CHARGEWEAVE_PYTHON });
   service.listen(port, '127.0.0.1', () => console.log(`Ontology MCP listening on 127.0.0.1:${port}`));
   const stop = async () => { await service.shutdown(); store.close(); process.exit(0); };
   process.on('SIGINT', stop); process.on('SIGTERM', stop);

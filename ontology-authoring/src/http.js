@@ -6,11 +6,24 @@ import { runGenerator } from './validation.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python, validationRunner = runGenerator }) {
+export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python, workspaceId, validationRunner = runGenerator }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
+  store.get(workspaceId);
   if (reviewerToken !== undefined && (typeof reviewerToken !== 'string' || Buffer.byteLength(reviewerToken) < 32 || reviewerToken === token)) throw new Error('Reviewer token must be distinct and at least 32 bytes');
   const secret = Buffer.from(token);
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
+  const scopedStore = new Proxy(store, {
+    get(target, property) {
+      const member = target[property];
+      if (typeof member !== 'function') return member;
+      return (...args) => {
+        const requested = ['apply', 'undo'].includes(property) ? args[0]?.workspaceId : args[0];
+        if (requested !== workspaceId) throw new Error('Workspace not authorized');
+        return member.apply(target, args);
+      };
+    },
+  });
   const activeJobs = new Set();
   let stopping = false;
   const service = createHttpServer(async (req, res) => {
@@ -32,9 +45,10 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
     if (!role) { res.writeHead(401).end('Unauthorized'); return; }
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/events' && req.method === 'GET') {
-      const workspaceId = url.searchParams.get('workspaceId');
+      const requestedWorkspace = url.searchParams.get('workspaceId');
       const cursor = req.headers['last-event-id'] ?? url.searchParams.get('after') ?? '0';
-      if (!/^[0-9a-f-]{36}$/i.test(workspaceId ?? '') || !/^\d{1,15}$/.test(cursor)) { res.writeHead(400).end('Invalid event cursor'); return; }
+      if (!/^[0-9a-f-]{36}$/i.test(requestedWorkspace ?? '') || !/^\d{1,15}$/.test(cursor)) { res.writeHead(400).end('Invalid event cursor'); return; }
+      if (requestedWorkspace !== workspaceId) { res.writeHead(403).end('Workspace not authorized'); return; }
       let sequence = Number(cursor);
       try { store.get(workspaceId); } catch { res.writeHead(404).end('Workspace not found'); return; }
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
@@ -61,7 +75,7 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
       activeJobs.add(task);
       void task.then(() => activeJobs.delete(task), () => activeJobs.delete(task));
     };
-    const server = createServer(store, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation });
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

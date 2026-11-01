@@ -9,9 +9,10 @@ import { createHttpService } from '../src/http.js';
 test('loopback MCP transport authenticates and shares state', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Network', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const other = store.create({ title: 'Other', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const token = 'a'.repeat(32);
   const reviewerToken = 'b'.repeat(32);
-  const service = createHttpService({ store, token, reviewerToken, allowedOrigin: 'http://127.0.0.1:5173' });
+  const service = createHttpService({ store, token, reviewerToken, workspaceId: workspace.id, allowedOrigin: 'http://127.0.0.1:5173' });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
   try {
@@ -25,6 +26,10 @@ test('loopback MCP transport authenticates and shares state', async () => {
       clients.push(client);
     }
     const [first, second] = clients;
+    assert.equal((await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: other.id } })).isError, true);
+    assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: other.id, operationId: 'denied', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Forbidden.' }] } })).isError, true);
+    assert.equal((await fetch(new URL(`/events?workspaceId=${other.id}`, url), { headers: { authorization: `Bearer ${token}` } })).status, 403);
+    assert.equal(store.get(other.id).revision, 0);
     assert.equal((await first.listTools()).tools.some(tool => tool.name === 'ontology_review_readiness'), false);
     const reviewer = new Client({ name: 'reviewer', version: '1' });
     await reviewer.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: { authorization: `Bearer ${reviewerToken}` } } }));
@@ -51,7 +56,7 @@ test('loopback MCP transport authenticates and shares state', async () => {
 test('shutdown closes connected event streams', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Shutdown', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
-  const token = 'a'.repeat(32), service = createHttpService({ store, token });
+  const token = 'a'.repeat(32), service = createHttpService({ store, token, workspaceId: workspace.id });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const response = await fetch(`http://127.0.0.1:${service.address().port}/events?workspaceId=${workspace.id}`, { headers: { authorization: `Bearer ${token}` } });
   assert.equal(response.status, 200);
@@ -65,7 +70,7 @@ test('shutdown waits for active validation before the store is closed', async ()
   let release;
   const pending = new Promise(resolve => { release = resolve; });
   const token = 'a'.repeat(32);
-  const service = createHttpService({ store, token, repository: '.', validationRunner: async (target, input, job) => { await pending; target.updateJob(job.id, 'passed'); } });
+  const service = createHttpService({ store, token, workspaceId: workspace.id, repository: '.', validationRunner: async (target, input, job) => { await pending; target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const client = new Client({ name: 'test', version: '1' });
   await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));

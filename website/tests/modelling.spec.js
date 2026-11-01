@@ -7,7 +7,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const token = 'test-token-'.repeat(4);
-  const service = createHttpService({ store, token, allowedOrigin: 'http://127.0.0.1:4173' });
+  const service = createHttpService({ store, token, workspaceId: workspace.id, allowedOrigin: 'http://127.0.0.1:4173' });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
     await page.goto('modelling/');
