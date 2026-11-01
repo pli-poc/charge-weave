@@ -28,6 +28,8 @@ test('only reviewers can record durable digest-bound decisions; edits make them 
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_preflight'), false);
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_prepare'), false);
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_publication_prepare'), true);
+    assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_create_commit'), false);
+    assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_publication_create_commit'), true);
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_publication_reserve'), false);
     assert.equal((await reviewer.listTools()).tools.some(tool => tool.name === 'ontology_publication_reserve'), true);
     assert.equal((await draft.listTools()).tools.some(tool => tool.name === 'ontology_github_commit_workflows'), false);

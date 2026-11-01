@@ -4,7 +4,7 @@ import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
 import { publicationPreflight } from './publication-preflight.js';
 import { githubCommitWorkflows } from './github-ci.js';
-import { runPublicationPreview } from './publication-candidate.js';
+import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -61,6 +61,14 @@ export function createServer(store, actor, options = {}) {
       if (created) {
         if (options.startPublication) options.startPublication(args.workspaceId, args.reviewId, job);
         else void runPublicationPreview(store, args.workspaceId, args.reviewId, job, options.repository, options.python);
+      }
+      return result(job);
+    });
+    if (options.role === 'reviewer') server.registerTool('ontology_publication_create_commit', { description: 'Rebuild the saved intent and create a local Git commit and recoverable bundle. Requires configured Git user.name and user.email; does not push.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), publicationId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
+      const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, 'publication-commit', args.publicationId);
+      if (created) {
+        if (options.startCommit) options.startCommit(args.workspaceId, args.publicationId, job);
+        else void runPublicationCommit(store, args.workspaceId, args.publicationId, job, options.repository, options.python);
       }
       return result(job);
     });

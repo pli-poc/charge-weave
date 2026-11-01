@@ -69,7 +69,9 @@ export async function preparePublicationCandidate(store, workspaceId, reviewId, 
     const current = store.get(workspaceId);
     const currentReview = store.reviewDecision(workspaceId, reviewId);
     if (current.revision !== workspace.revision || current.sourceDigest !== workspace.sourceDigest || currentReview.stale || store.reviewDecisions(workspaceId)[0]?.id !== reviewId || !store.reviewReadiness(workspaceId).canAccept) throw new Error('Draft or review changed while preparing candidate');
-    return { workspaceId, reviewId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, generatedManifestSha256: summary.candidateManifestSha256, files, note: 'Isolated staged preview only; no commit, push, remote recheck or branch-protection verification was performed.' };
+    const preview = { workspaceId, reviewId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, generatedManifestSha256: summary.candidateManifestSha256, files, note: 'Isolated staged preview only; no commit, push, remote recheck or branch-protection verification was performed.' };
+    if (dependencies.onPrepared) return await dependencies.onPrepared({ directory, git, preview });
+    return preview;
   } finally { if (directory) await rm(directory, { recursive: true, force: true }); }
 }
 
@@ -81,4 +83,47 @@ export async function runPublicationPreview(store, workspaceId, reviewId, job, r
     store.saveJobArtifacts(job.id, preview);
     store.updateJob(job.id, 'passed');
   } catch (error) { store.updateJob(job.id, signal?.aborted ? 'cancelled' : 'failed', error.message); }
+}
+
+// The commit and its prerequisite-based bundle are kept locally in SQLite.
+// No remote is contacted and no branch is created by this operation.
+export async function createPublicationCommit(store, workspaceId, publicationId, repository, python = 'python', dependencies = {}) {
+  const record = store.publication(workspaceId, publicationId);
+  if (record.state !== 'prepared' || record.stale) throw new Error('Publication intent is not current and prepared');
+  const expected = store.job(workspaceId, record.previewJobId).artifactSummary;
+  if (!expected || expected.reviewId !== record.reviewId || expected.sourceDigest !== record.sourceDigest) throw new Error('Staged preview is unavailable');
+  let identity = dependencies.identity;
+  if (!identity) {
+    try {
+      identity = {
+        name: (await exec('git', ['config', '--get', 'user.name'], { cwd: repository, timeout: 10000 })).stdout.trim(),
+        email: (await exec('git', ['config', '--get', 'user.email'], { cwd: repository, timeout: 10000 })).stdout.trim(),
+      };
+    } catch { throw new Error('Configure Git user.name and user.email before creating a commit'); }
+  }
+  if (typeof identity.name !== 'string' || !identity.name.trim() || identity.name.length > 200 || /[\x00-\x1f<>]/.test(identity.name) || typeof identity.email !== 'string' || identity.email.length > 254 || !/^[^@\s<>]+@[^@\s<>]+$/.test(identity.email)) throw new Error('Configure a valid Git user.name and user.email before creating a commit');
+  return preparePublicationCandidate(store, workspaceId, record.reviewId, repository, python, {
+    ...dependencies,
+    onPrepared: async ({ directory, git, preview }) => {
+      if (preview.sourceDigest !== record.sourceDigest || preview.baselineCommit !== record.baselineCommit || preview.generatedManifestSha256 !== expected.generatedManifestSha256 || JSON.stringify(preview.files) !== JSON.stringify(expected.files)) throw new Error('Rebuilt staged files differ from the saved preview');
+      const message = join(directory, 'publication-message.txt'), bundlePath = join(directory, 'publication.bundle');
+      await writeFile(message, `${record.subject}\n\n${record.body}\n`, 'utf8');
+      await exec('git', ['-c', `user.name=${identity.name}`, '-c', `user.email=${identity.email}`, '-c', 'commit.gpgsign=false', 'commit', '--quiet', '--no-verify', '-F', message], git);
+      const commitSha = (await exec('git', ['rev-parse', 'HEAD'], git)).stdout.trim();
+      const parent = (await exec('git', ['rev-parse', 'HEAD^'], git)).stdout.trim();
+      if (!/^[a-f0-9]{40}$/.test(commitSha) || parent !== record.baselineCommit) throw new Error('Commit does not have the reviewed baseline parent');
+      await exec('git', ['bundle', 'create', bundlePath, 'HEAD', `^${record.baselineCommit}`], git);
+      const bundle = await readFile(bundlePath);
+      return store.savePublicationCommit(workspaceId, publicationId, commitSha, bundle);
+    },
+  });
+}
+
+export async function runPublicationCommit(store, workspaceId, publicationId, job, repository, python) {
+  try {
+    store.updateJob(job.id, 'running');
+    const record = await createPublicationCommit(store, workspaceId, publicationId, repository, python);
+    store.saveJobArtifacts(job.id, { publicationId, commitSha: record.commitSha, branch: record.branch, note: 'Commit and recoverable bundle are local; no push has occurred.' });
+    store.updateJob(job.id, 'passed');
+  } catch (error) { store.updateJob(job.id, 'failed', error.message); }
 }

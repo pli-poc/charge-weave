@@ -101,12 +101,13 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS review_decisions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, actor TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS review_evidence (review TEXT NOT NULL, profile TEXT NOT NULL, job TEXT NOT NULL, PRIMARY KEY(review, profile), FOREIGN KEY(review) REFERENCES review_decisions(id), FOREIGN KEY(job) REFERENCES jobs(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, actor TEXT NOT NULL, baseline_commit TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, review_id TEXT NOT NULL, preview_job TEXT NOT NULL, branch TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, state TEXT NOT NULL, commit_sha TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id), FOREIGN KEY(review_id) REFERENCES review_decisions(id), FOREIGN KEY(preview_job) REFERENCES jobs(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS publication_bundles (publication TEXT PRIMARY KEY, sha256 TEXT NOT NULL, content BLOB NOT NULL, FOREIGN KEY(publication) REFERENCES publications(id))');
     this.db.prepare("UPDATE publications SET state = 'push_unknown', updated_at = ? WHERE state = 'push_pending'").run(new Date().toISOString());
   }
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural', subject = null) {
     if (!actor || !operationId) throw new Error('Invalid validation identity');
-    if (!['structural', 'reference', 'audit', 'acceptance', 'publication-preview'].includes(profile) || (profile === 'publication-preview' && !/^[0-9a-f-]{36}$/i.test(subject ?? '')) || (profile !== 'publication-preview' && subject !== null)) throw new Error('Invalid validation profile');
+    if (!['structural', 'reference', 'audit', 'acceptance', 'publication-preview', 'publication-commit'].includes(profile) || (['publication-preview', 'publication-commit'].includes(profile) && !/^[0-9a-f-]{36}$/i.test(subject ?? '')) || (!['publication-preview', 'publication-commit'].includes(profile) && subject !== null)) throw new Error('Invalid validation profile');
     const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest, profile, ...(subject === null ? {} : { subject }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
@@ -138,6 +139,7 @@ export class WorkspaceStore {
         this.db.exec('COMMIT'); return { job, requested: false };
       }
       const job = this.job(workspaceId, jobId);
+      if (job.profile === 'publication-commit') throw new Error('Commit creation cannot be cancelled after it starts');
       const requested = ['queued', 'running'].includes(job.status);
       if (requested) this.db.prepare("UPDATE jobs SET status = 'cancelling' WHERE id = ?").run(jobId);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ jobId }));
@@ -157,7 +159,7 @@ export class WorkspaceStore {
   evidence(workspaceId, jobId) {
     const job = this.job(workspaceId, jobId);
     if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
-    const scope = job.profile === 'publication-preview' ? 'Isolated staged-file preview; no commit, push or remote verification' : job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
+    const scope = job.profile === 'publication-commit' ? 'Local commit and recoverable bundle; no push or remote verification' : job.profile === 'publication-preview' ? 'Isolated staged-file preview; no commit, push or remote verification' : job.profile === 'acceptance' ? 'Generation, generated-artifact consistency and repository release gates' : job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures, structural boundaries and focused business decisions' : job.profile === 'audit' ? 'Generation and independent business traceability audit' : 'Structural generation';
     return { ...job, scope, completeAcceptanceEvidence: false };
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
@@ -194,6 +196,25 @@ export class WorkspaceStore {
     this.get(workspaceId);
     return this.db.prepare('SELECT id FROM publications WHERE workspace = ? ORDER BY rowid DESC LIMIT 100').all(workspaceId).map(row => this.publication(workspaceId, row.id));
   }
+  publicationBundle(workspaceId, publicationId) {
+    const record = this.publication(workspaceId, publicationId);
+    const row = this.db.prepare('SELECT sha256, content FROM publication_bundles WHERE publication = ?').get(publicationId);
+    if (!row || !record.commitSha || hash(row.content) !== row.sha256) throw new Error('Publication bundle is unavailable or corrupt');
+    return { commitSha: record.commitSha, sha256: row.sha256, content: Buffer.from(row.content) };
+  }
+  savePublicationCommit(workspaceId, publicationId, commitSha, bundle) {
+    if (!/^[a-f0-9]{40}$/.test(commitSha ?? '') || !Buffer.isBuffer(bundle) || !bundle.length || bundle.length > 128 * 1024 * 1024) throw new Error('Invalid publication commit bundle');
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const record = this.publication(workspaceId, publicationId);
+      if (record.state !== 'prepared' || record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept) throw new Error('Publication draft or review is stale');
+      this.db.prepare('INSERT INTO publication_bundles VALUES (?, ?, ?)').run(publicationId, hash(bundle), bundle);
+      this.db.prepare("UPDATE publications SET state = 'commit_created', commit_sha = ?, updated_at = ? WHERE workspace = ? AND id = ?").run(commitSha, new Date().toISOString(), workspaceId, publicationId);
+      this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: 'commit_created', commitSha }));
+      const result = this.publication(workspaceId, publicationId);
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
   reservePublication(workspaceId, { actor, operationId, expectedRevision, sourceDigest: digest, reviewId, previewJobId, subject, body }) {
     if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(digest ?? '') || !/^[0-9a-f-]{36}$/i.test(reviewId ?? '') || !/^[0-9a-f-]{36}$/i.test(previewJobId ?? '') || typeof subject !== 'string' || !subject.trim() || subject.length > 120 || /[\r\n\x00-\x1f]/.test(subject) || typeof body !== 'string' || !body.trim() || body.length > 10000 || body.includes('\0')) throw new Error('Invalid publication intent');
     const requestHash = hash(JSON.stringify({ type: 'publication.reserve', expectedRevision, digest, reviewId, previewJobId, subject, body }));
@@ -216,14 +237,13 @@ export class WorkspaceStore {
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   advancePublication(workspaceId, publicationId, expectedState, nextState, commitSha = null) {
-    const allowed = { prepared: ['commit_created', 'failed'], commit_created: ['push_pending', 'failed'], push_pending: ['pushed', 'push_unknown'], push_unknown: ['pushed'], pushed: ['pr_created'] };
+    const allowed = { prepared: ['failed'], commit_created: ['push_pending', 'failed'], push_pending: ['pushed', 'push_unknown'], push_unknown: ['pushed'], pushed: ['pr_created'] };
     if (!allowed[expectedState]?.includes(nextState) || (commitSha !== null && !/^[a-f0-9]{40}$/.test(commitSha))) throw new Error('Invalid publication transition');
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const record = this.publication(workspaceId, publicationId);
       if (record.state !== expectedState) throw new Error('Publication state conflict');
       if (['prepared', 'commit_created'].includes(expectedState) && (record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept)) throw new Error('Publication draft or review is stale');
-      if (nextState === 'commit_created' && !commitSha) throw new Error('Commit SHA is required');
       if (record.commitSha && commitSha && record.commitSha !== commitSha) throw new Error('Publication commit cannot change');
       this.db.prepare('UPDATE publications SET state = ?, commit_sha = ?, updated_at = ? WHERE workspace = ? AND id = ?').run(nextState, record.commitSha ?? commitSha, new Date().toISOString(), workspaceId, publicationId);
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: nextState, commitSha: record.commitSha ?? commitSha }));

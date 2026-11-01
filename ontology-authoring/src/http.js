@@ -3,7 +3,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from './mcp.js';
 import { runGenerator } from './validation.js';
-import { runPublicationPreview } from './publication-candidate.js';
+import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
 
@@ -120,7 +120,12 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       activeJobs.set(job.id, { task, controller });
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, cancelValidation, publicationFixture, ciFetch });
+    const startCommit = (id, publicationId, job) => {
+      const task = runPublicationCommit(store, id, publicationId, job, repository, python);
+      activeJobs.set(job.id, { task, controller: new AbortController() });
+      void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
+    };
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, cancelValidation, publicationFixture, ciFetch });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
