@@ -8,6 +8,7 @@ export const generatedInputs = new Set([
 // Only these declared source owners may be materialized as draft overlays.
 export const editableSourcePaths = new Set([
   'model/audit-rules.json', 'model/authoring-example-overrides.json', 'model/temporal-policy.json',
+  'model/responsibility-bindings.json',
   'requirements/business-requirements.json', 'tests/business-acceptance.json', 'tests/negative-cases.json',
 ]);
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');

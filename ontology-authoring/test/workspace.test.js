@@ -13,6 +13,42 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('curated responsibility mappings refer to declared object relationships', () => {
+  const model = readFileSync(fileURLToPath(new URL('../../model/domain.schema', import.meta.url)), 'utf8');
+  const mappings = JSON.parse(readFileSync(fileURLToPath(new URL('../../model/responsibility-bindings.json', import.meta.url)), 'utf8'));
+  const classes = new Set(model.split(/\r?\n/).filter(line => line && !line.startsWith('#') && !line.startsWith('MODULE|')).map(line => line.split('|')[0]));
+  for (const binding of mappings.bindings) {
+    const row = model.split(/\r?\n/).find(line => line.startsWith(`${binding.owner}|`));
+    assert.ok(row, `Missing owner ${binding.owner}`);
+    assert.ok(classes.has(binding.range), `Missing target ${binding.range}`);
+    assert.match(row.split('|')[3], new RegExp(`(?:^|\\s)${binding.property}:${binding.range}[!?+*](?:\\s|$)`));
+  }
+});
+test('responsibility bindings attach only to declared relationships and undo atomically', () => {
+  const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record?\n';
+  const mapping = JSON.stringify({ version: 'chargeweave-responsibility-v1', bindings: [] }, null, 2) + '\n';
+  const adapter = fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url));
+  const parser = fileURLToPath(new URL('../../tools/domain_schema.py', import.meta.url));
+  const entries = { 'model/domain.schema': source, 'model/responsibility-bindings.json': mapping, 'tools/authoring_adapter.py': readFileSync(adapter, 'utf8'), 'tools/domain_schema.py': readFileSync(parser, 'utf8') };
+  const manifest = Object.entries(entries).map(([path, content]) => ({ path, sha256: createHash('sha256').update(content).digest('hex') })).sort((a, b) => a.path < b.path ? -1 : 1);
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const workspace = store.create({ title: 'Bindings', baselineCommit: 'a'.repeat(40), schema: source, sourceManifest: manifest, sourceBlobs: { 'model/responsibility-bindings.json': mapping } });
+    const command = { type: 'viewpoint.binding_add', owner: 'Device', property: 'owner', range: 'Record', label: 'Accountable party', category: 'ownership' };
+    assert.throws(() => store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'invalid', expectedRevision: 0, commands: [{ ...command, range: 'Device' }] }), /existing declared object relationship/);
+    const applied = store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'binding', expectedRevision: 0, commands: [command] });
+    const result = store.responsibilityView(workspace.id, 'Device', 1);
+    assert.equal(result.bindings[0].label, 'Accountable party');
+    assert.deepEqual(result.bindings[0].mappingSource, { path: 'model/responsibility-bindings.json', scope: 'draft' });
+    assert.equal(store.get(workspace.id).schema, source);
+    assert.ok(store.diff(workspace.id).additionalSources.some(item => item.path === 'model/responsibility-bindings.json'));
+    assert.throws(() => store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'duplicate', expectedRevision: 1, commands: [command] }), /Duplicate/);
+    store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 });
+    assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
+    assert.deepEqual(store.responsibilityView(workspace.id, 'Device', 2).bindings, []);
+    assert.notEqual(applied.sourceDigest, workspace.sourceDigest);
+  } finally { store.close(); }
+});
 test('shared view revisions persist independently and reject conflicts without changing semantics', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-views-'));
   let store;

@@ -37,6 +37,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | Editable source | Generated outputs |
 |---|---|
 | `model/domain.schema`, parser in `tools/domain_schema.py`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
+| `model/responsibility-bindings.json` | Explicit, partial responsibility-perspective presentation mappings; no ontology assertions |
 | `tools/build_rules.py`, `model/audit-rules.json`, `model/lifecycle-policies.json` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
 | Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | External platform crosswalks, actions/events and vocabulary shapes |
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |

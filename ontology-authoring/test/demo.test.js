@@ -83,7 +83,8 @@ test('runnable scripted demonstration preserves a concurrent manual edit and rej
   const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8' });
   const store = new WorkspaceStore(':memory:');
   const policy = execFileSync('git', ['show', `${commit}:model/temporal-policy.json`], { cwd: repository, encoding: 'utf8' });
-  const workspace = store.create({ title: 'Scripted demonstration', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy } });
+  const mapping = execFileSync('git', ['show', `${commit}:model/responsibility-bindings.json`], { cwd: repository, encoding: 'utf8' });
+  const workspace = store.create({ title: 'Scripted demonstration', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy, 'model/responsibility-bindings.json': mapping } });
   const token = 'synthetic-demo-token-'.repeat(2);
   const service = createHttpService({ store, token, workspaceId: workspace.id });
   const clients = [];
@@ -103,6 +104,7 @@ test('runnable scripted demonstration preserves a concurrent manual edit and rej
     assert.equal(result.revision, 2);
     assert.equal(result.job, null);
     assert.ok(result.graph.edges.some(edge => edge.predicate === 'maintenanceStation' && edge.target === 'ChargingStation'));
+    assert.ok(store.responsibilityView(workspace.id, 'PlannedMaintenanceWindow', 2).bindings.some(binding => binding.property === 'maintenanceAccountableParty'));
     assert.equal(store.entity(workspace.id, 'PlannedMaintenanceWindow').entity.definition, 'A reviewer-refined maintenance window.');
     assert.ok(messages.some(message => message.includes('stale edit was rejected')));
     assert.equal(store.events(workspace.id).filter(event => event.payload.commands?.length).length, 2);
@@ -116,7 +118,8 @@ test('real maintenance fixture profile checks positive and adverse cases', { ski
   const store = new WorkspaceStore(':memory:');
   try {
     const policy = execFileSync('git', ['show', `${commit}:model/temporal-policy.json`], { cwd: repository, encoding: 'utf8' });
-    const workspace = store.create({ title: 'Maintenance fixtures', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy } });
+    const mapping = execFileSync('git', ['show', `${commit}:model/responsibility-bindings.json`], { cwd: repository, encoding: 'utf8' });
+    const workspace = store.create({ title: 'Maintenance fixtures', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy, 'model/responsibility-bindings.json': mapping } });
     store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'proposal', expectedRevision: 0, commands: maintenanceCommands() });
     const candidate = store.get(workspace.id);
     const job = store.createJob(workspace.id, 1, candidate.sourceDigest, 'test', 'fixtures', 'maintenance-demo').job;

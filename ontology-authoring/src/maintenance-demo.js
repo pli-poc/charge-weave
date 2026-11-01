@@ -7,6 +7,7 @@ export function maintenanceCommands() {
     { type: 'property.add', owner: 'PlannedMaintenanceWindow', name: 'maintenanceReason', range: 'string', cardinality: '!' },
     { type: 'property.add', owner: 'PlannedMaintenanceWindow', name: 'maintenancePlanningState', range: '{Draft,Confirmed,Cancelled}', cardinality: '!' },
     { type: 'temporal.policy_set', className: 'PlannedMaintenanceWindow', expectedPolicy: null, policy: 'snapshot-versioned' },
+    { type: 'viewpoint.binding_add', owner: 'PlannedMaintenanceWindow', property: 'maintenanceAccountableParty', range: 'LegalEntity', label: 'Accountable party', category: 'ownership' },
   ];
 }
 
@@ -18,7 +19,7 @@ export async function runMaintenanceDemo(client, workspaceId, { waitForEdit = as
   };
   const initial = await call('ontology_workspace_get', { workspaceId });
   if (initial.revision !== 0) throw new Error('Scripted demonstration requires a fresh workspace');
-  if (initial.digestVersion !== 4 || !initial.editableSources.includes('model/temporal-policy.json')) throw new Error('Scripted demonstration requires a fresh workspace with the temporal policy source');
+  if (initial.digestVersion !== 4 || !['model/temporal-policy.json', 'model/responsibility-bindings.json'].every(path => initial.editableSources.includes(path))) throw new Error('Scripted demonstration requires a fresh workspace with temporal policy and responsibility mapping sources');
   for (const name of ['ChargingStation', 'TimeWindow', 'WorkOrder', 'LegalEntity', 'AvailabilityPolicy', 'AvailabilityResult']) {
     const found = await call('ontology_context_search', { workspaceId, query: name });
     if (!found.results.some(item => item.name === name)) throw new Error(`Baseline concept is unavailable: ${name}`);

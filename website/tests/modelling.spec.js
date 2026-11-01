@@ -5,7 +5,7 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { copyFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { editableSourcePaths, importSourceManifest } from '../../ontology-authoring/src/source-manifest.js';
@@ -365,6 +365,38 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
     const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(overflows).toBe(false);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('browser maps an existing responsibility relationship without inventing one', async ({ page }) => {
+  const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record?\n';
+  const mapping = JSON.stringify({ version: 'chargeweave-responsibility-v1', bindings: [] }, null, 2) + '\n';
+  const entries = { 'model/domain.schema': source, 'model/responsibility-bindings.json': mapping, 'tools/authoring_adapter.py': readFileSync(fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url)), 'utf8'), 'tools/domain_schema.py': readFileSync(fileURLToPath(new URL('../../tools/domain_schema.py', import.meta.url)), 'utf8') };
+  const manifest = Object.entries(entries).map(([path, value]) => ({ path, sha256: createHash('sha256').update(value).digest('hex') })).sort((a, b) => a.path < b.path ? -1 : 1);
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Responsibility mapping', baselineCommit: 'a'.repeat(40), schema: source, sourceManifest: manifest, sourceBlobs: { 'model/responsibility-bindings.json': mapping } });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
+    await page.getByText('Map an existing responsibility relationship').click();
+    await page.getByLabel('Declared object relationship').selectOption('owner');
+    await page.getByLabel('Responsibility label').fill('Accountable party');
+    await page.getByRole('button', { name: 'Add responsibility mapping' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    expect(store.get(workspace.id).schema).toBe(source);
+    await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
+    await expect(page.getByText(/Accountable party: owner → Record/)).toBeVisible();
+    await page.getByRole('button', { name: 'Undo latest command group' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    expect(store.responsibilityView(workspace.id, 'Device', 2).bindings).toEqual([]);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

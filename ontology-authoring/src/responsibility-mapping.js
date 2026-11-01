@@ -1,13 +1,19 @@
-// Curated presentation mappings: each entry only applies to the exact declared
-// owner, predicate and range. These labels do not create ontology assertions.
+import { readFileSync } from 'node:fs';
+
+// Presentation labels only: mappings never create ontology assertions.
 export const responsibilityMappingVersion = 'chargeweave-responsibility-v1';
-export const responsibilityMappings = [
-  { owner: 'ChargingStation', property: 'assetOwner', range: 'LegalEntity', label: 'Asset owner', category: 'ownership' },
-  { owner: 'ChargingStation', property: 'maintenanceProvider', range: 'LegalEntity', label: 'Maintenance provider', category: 'service' },
-  { owner: 'ChargingSite', property: 'siteHost', range: 'LegalEntity', label: 'Site host', category: 'ownership' },
-  { owner: 'OperatorService', property: 'serviceProvider', range: 'LegalEntity', label: 'Service provider', category: 'service' },
-  { owner: 'PartyRole', property: 'party', range: 'LegalEntity', label: 'Role-holding party', category: 'role' },
-  { owner: 'WorkOrder', property: 'maintenanceProvider', range: 'LegalEntity', label: 'Maintenance provider', category: 'service' },
-  { owner: 'WorkOrder', property: 'assignedPrincipal', range: 'Principal', label: 'Assigned principal', category: 'assignment' },
-  { owner: 'WorkOrder', property: 'affectedRecord', range: 'Record', label: 'Affected record', category: 'affected' },
-];
+export const responsibilityMappingPath = 'model/responsibility-bindings.json';
+const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
+const categories = new Set(['ownership', 'service', 'role', 'assignment', 'affected']);
+export function validateResponsibilityMapping(value) {
+  if (!value || Object.keys(value).sort().join(',') !== 'bindings,version' || value.version !== responsibilityMappingVersion || !Array.isArray(value.bindings) || value.bindings.length > 1000) throw new Error('Invalid responsibility mapping');
+  const seen = new Set();
+  for (const item of value.bindings) {
+    if (!item || Object.keys(item).sort().join(',') !== 'category,label,owner,property,range' || ['owner', 'property', 'range'].some(key => typeof item[key] !== 'string' || !identifier.test(item[key]) || item[key].length > 128) || typeof item.label !== 'string' || !item.label.trim() || item.label.length > 100 || /[\u0000-\u001f\u007f]/.test(item.label) || !categories.has(item.category)) throw new Error('Invalid responsibility binding');
+    const key = JSON.stringify([item.owner, item.property, item.range]);
+    if (seen.has(key)) throw new Error('Duplicate responsibility binding');
+    seen.add(key);
+  }
+  return value;
+}
+export const responsibilityMappings = validateResponsibilityMapping(JSON.parse(readFileSync(new URL('../../model/responsibility-bindings.json', import.meta.url), 'utf8'))).bindings;

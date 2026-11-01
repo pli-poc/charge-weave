@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { createPatch } from 'diff';
-import { responsibilityMappings, responsibilityMappingVersion } from './responsibility-mapping.js';
+import { responsibilityMappings, responsibilityMappingVersion, responsibilityMappingPath, validateResponsibilityMapping } from './responsibility-mapping.js';
 import { editableSourcePaths } from './source-manifest.js';
 import { buildIntervalSources, buildReviewerIntervalCase, canonicalJson, intervalSourcePaths } from './business-templates.js';
 
@@ -559,12 +559,14 @@ export class WorkspaceStore {
     const inspected = this.entity(id, root, expectedRevision);
     const entity = inspected.entity;
     const prefix = 'https://example.org/charge-domain#';
+    const source = this.db.prepare('SELECT content, baseline_content FROM workspace_sources WHERE workspace = ? AND path = ?').get(id, responsibilityMappingPath);
+    const mappings = source ? validateResponsibilityMapping(JSON.parse(source.content)).bindings : responsibilityMappings;
     const bindings = entity.fields.flatMap(field => {
-      const mapping = responsibilityMappings.find(item => item.owner === field.owner && item.property === field.property && item.range === field.range);
+      const mapping = mappings.find(item => item.owner === field.owner && item.property === field.property && item.range === field.range);
       if (!mapping) return [];
       return [{ ...mapping, predicateIri: prefix + field.property, targetIri: prefix + field.range,
         cardinality: field.cardinality, inherited: field.inherited, source: field.source,
-        mappingVersion: responsibilityMappingVersion }];
+        mappingVersion: responsibilityMappingVersion, mappingSource: source ? { path: responsibilityMappingPath, scope: source.content === source.baseline_content ? 'baseline' : 'draft' } : { path: responsibilityMappingPath, scope: 'service-fallback' } }];
     });
     return { workspaceId: id, revision: inspected.revision, sourceDigest: inspected.sourceDigest, root, iri: entity.iri,
       viewpoint: 'responsibility', mappingVersion: responsibilityMappingVersion, bindings,
@@ -605,7 +607,7 @@ export class WorkspaceStore {
           continue;
         }
         const interval = command?.type === 'constraint.add' && command.template === 'valid-interval';
-        if (!interval && !['requirement.link', 'temporal.policy_set'].includes(command?.type)) { pending.push(command); continue; }
+        if (!interval && !['requirement.link', 'temporal.policy_set', 'viewpoint.binding_add'].includes(command?.type)) { pending.push(command); continue; }
         flush();
         if (interval) {
           if (current.digestVersion !== 4) throw new Error('Valid-interval templates require a multi-source workspace');
@@ -618,6 +620,22 @@ export class WorkspaceStore {
             if (!editableSourcePaths.has(path) || Buffer.byteLength(content) > 2_000_000 || this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, path).changes !== 1) throw new Error('Invalid template source update');
             overlays[path] = content;
           }
+          continue;
+        }
+        if (command.type === 'viewpoint.binding_add') {
+          if (current.digestVersion !== 4 || Object.keys(command).sort().join(',') !== 'category,label,owner,property,range,type') throw new Error('Invalid responsibility binding command');
+          const classes = parse(schema).classes, owner = classes.get(command.owner), field = fieldContracts(owner).get(command.property);
+          if (!owner || !classes.has(command.range) || !field || field.range !== command.range) throw new Error('Binding must reference an existing declared object relationship');
+          const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, responsibilityMappingPath);
+          if (!source) throw new Error('Responsibility mapping source is unavailable in this workspace');
+          const mapping = validateResponsibilityMapping(JSON.parse(source.content));
+          if (canonicalJson(mapping) !== source.content.replace(/\r\n/g, '\n')) throw new Error('Responsibility mapping source format is not supported for editing');
+          mapping.bindings.push({ owner: command.owner, property: command.property, range: command.range, label: command.label, category: command.category });
+          validateResponsibilityMapping(mapping);
+          const content = canonicalJson(mapping);
+          if (Buffer.byteLength(content) > 2_000_000) throw new Error('Responsibility mapping source exceeds limit');
+          this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, responsibilityMappingPath);
+          overlays[responsibilityMappingPath] = content;
           continue;
         }
         if (command.type === 'temporal.policy_set') {
