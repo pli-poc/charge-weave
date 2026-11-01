@@ -38,6 +38,30 @@ class AuthoringAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Invalid inheritance chain'):
             inspect_entity(schema, 'First')
 
+    def test_update_requires_exact_declared_field_and_preserves_other_spacing(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|name:string?  count:integer!\n'
+        command = {'type': 'property.update', 'owner': 'Record', 'name': 'name', 'expectedRange': 'string', 'expectedCardinality': '?', 'range': 'string', 'cardinality': '!'}
+        self.assertEqual(apply_commands(schema, [command]), schema.replace('name:string?', 'name:string!'))
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema, [{**command, 'expectedCardinality': '!'}])
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema, [{**command, 'name': 'missing'}])
+
+    def test_update_rejects_incompatible_shared_property_ranges(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|value:string?\nExample|Record|An example.|value:string!\n'
+        command = {'type': 'property.update', 'owner': 'Example', 'name': 'value', 'expectedRange': 'string', 'expectedCardinality': '!', 'range': 'integer', 'cardinality': '!'}
+        with self.assertRaisesRegex(ValueError, 'ranges must agree'):
+            apply_commands(schema, [command])
+        with self.assertRaisesRegex(ValueError, 'shared property contract'):
+            apply_commands(schema, [{**command, 'range': 'Record'}])
+
+    def test_update_can_change_object_range_and_rejects_ambiguous_fields(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|related:Record?\n'
+        command = {'type': 'property.update', 'owner': 'Device', 'name': 'related', 'expectedRange': 'Record', 'expectedCardinality': '?', 'range': 'Device', 'cardinality': '*'}
+        self.assertIn('related:Device*', apply_commands(schema, [command]))
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema.replace('related:Record?', 'related:Record? related:Device*'), [command])
+
 
 if __name__ == '__main__':
     unittest.main()

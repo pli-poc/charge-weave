@@ -26,6 +26,11 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
   assert.equal((await browser.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'Example' } })).structuredContent.results[0].name, 'Example');
   assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: { ...args, operationId: 'stale' } })).isError, true);
+  const addField = { workspaceId: workspace.id, operationId: 'field', expectedRevision: 1, commands: [{ type: 'property.add', owner: 'Example', name: 'exampleLabel', range: 'string', cardinality: '?' }] };
+  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: addField })).structuredContent.revision, 2);
+  const updateField = { workspaceId: workspace.id, operationId: 'update', expectedRevision: 2, commands: [{ type: 'property.update', owner: 'Example', name: 'exampleLabel', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' }] };
+  assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: updateField })).structuredContent.revision, 3);
+  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: { ...updateField, operationId: 'bad-precondition', expectedRevision: 3 } })).isError, true);
   for (const client of clients) await client.close();
   store.close();
 });

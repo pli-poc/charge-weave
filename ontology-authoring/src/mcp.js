@@ -15,6 +15,7 @@ export function createServer(store, actor, options = {}) {
     z.object({ type: z.literal('class.add'), name: z.string().max(128), module: z.string().max(128), parent: z.string().max(128), definition: z.string().max(4000) }).strict(),
     z.object({ type: z.literal('class.describe'), name: z.string().max(128), definition: z.string().max(4000) }).strict(),
     z.object({ type: z.literal('property.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
+    z.object({ type: z.literal('property.update'), owner: z.string().max(128), name: z.string().max(128), expectedRange: z.string().max(128), expectedCardinality: z.enum(['!', '?', '+', '*']), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
     z.object({ type: z.literal('relationship.add'), owner: z.string().max(128), name: z.string().max(128), range: z.string().max(128), cardinality: z.enum(['!', '?', '+', '*']) }).strict(),
   ]);
   server.registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, source and event cursor.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.snapshot(args.workspaceId)));

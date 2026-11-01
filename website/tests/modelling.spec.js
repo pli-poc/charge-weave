@@ -6,6 +6,30 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
+test('browser updates a field with a visible compatibility warning', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit recordName' }).click();
+    await page.getByLabel('New cardinality').selectOption('!');
+    await page.getByRole('button', { name: 'Update field contract' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    expect(store.get(workspace.id).schema).toContain('recordName:string!');
+    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    await expect(page.getByText(/recordName: potentially-breaking/)).toBeVisible();
+    await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
+  } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
+});
+
 test('browser inspects the pinned temporal policy and explicit time fields', async ({ page }) => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

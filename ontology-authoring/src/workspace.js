@@ -13,6 +13,30 @@ const sourceDigest = (schema, baselineCommit, version, manifest) => hash(JSON.st
   : version === 2 ? { adapter: 'domain-schema-v2', baselineCommit, overlay: { 'model/domain.schema': hash(schema) } }
     : { adapter: 'domain-schema-v3', baselineCommit, sources: candidateManifest(manifest, schema) }));
 const identifier = /^[A-Za-z][A-Za-z0-9]*$/;
+const cardBounds = { '!': [1, 1], '?': [0, 1], '+': [1, Infinity], '*': [0, Infinity] };
+function fieldContracts(entity) {
+  return new Map((entity?.fields || '').split(/\s+/).filter(Boolean).map(token => {
+    const match = /^([A-Za-z][A-Za-z0-9]*):(.+)([!?+*])$/.exec(token);
+    if (!match) throw new Error('Invalid field contract');
+    return [match[1], { range: match[2], cardinality: match[3] }];
+  }));
+}
+function fieldChanges(before, after) {
+  const oldFields = fieldContracts(before), newFields = fieldContracts(after), changes = [];
+  for (const name of new Set([...oldFields.keys(), ...newFields.keys()])) {
+    const old = oldFields.get(name), next = newFields.get(name);
+    if (JSON.stringify(old) === JSON.stringify(next)) continue;
+    let compatibility = 'potentially-breaking';
+    if (!old && !before) compatibility = 'new-class';
+    else if (!old && next && cardBounds[next.cardinality][0] === 0) compatibility = 'additive';
+    else if (old && next && old.range === next.range) {
+      const [oldMin, oldMax] = cardBounds[old.cardinality], [nextMin, nextMax] = cardBounds[next.cardinality];
+      compatibility = nextMin > oldMin || nextMax < oldMax ? 'potentially-breaking' : 'relaxed-review-required';
+    }
+    changes.push({ name, before: old ?? null, after: next ?? null, compatibility });
+  }
+  return changes;
+}
 
 function parse(schema) {
   const modules = new Set(), classes = new Map();
@@ -202,10 +226,10 @@ export class WorkspaceStore {
     const changes = [];
     for (const [name, entity] of after) {
       const previous = before.get(name);
-      if (!previous) changes.push({ kind: 'added', name, after: entity });
-      else if (JSON.stringify(previous) !== JSON.stringify(entity)) changes.push({ kind: 'changed', name, before: previous, after: entity });
+      if (!previous) changes.push({ kind: 'added', name, after: entity, fieldChanges: fieldChanges(null, entity) });
+      else if (JSON.stringify(previous) !== JSON.stringify(entity)) changes.push({ kind: 'changed', name, before: previous, after: entity, fieldChanges: fieldChanges(previous, entity) });
     }
-    for (const [name, entity] of before) if (!after.has(name)) changes.push({ kind: 'removed', name, before: entity });
+    for (const [name, entity] of before) if (!after.has(name)) changes.push({ kind: 'removed', name, before: entity, fieldChanges: fieldChanges(entity, null) });
     return { workspaceId: id, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, changes, source: { path: 'model/domain.schema', before: row.baseline_schema, after: row.schema, patch: createPatch('model/domain.schema', row.baseline_schema, row.schema, 'baseline', 'draft', { context: 3 }) } };
   }
   search(id, query, limit = 25, expectedRevision) {

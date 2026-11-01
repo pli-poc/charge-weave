@@ -42,6 +42,27 @@ def apply_commands(schema, commands):
             parts = lines[index].split('|')
             parts[3] = ' '.join(filter(None, [parts[3], f'{name}:{target}{cardinality}']))
             lines[index] = '|'.join(parts)
+        elif kind == 'property.update':
+            owner, name, old_range, old_cardinality, target, cardinality = (command.get(key) for key in ('owner', 'name', 'expectedRange', 'expectedCardinality', 'range', 'cardinality'))
+            match = ENUM.fullmatch(target) if isinstance(target, str) else None
+            values = match.group(1).split(',') if match else []
+            valid_enum = 2 <= len(values) <= 50 and len(set(values)) == len(values)
+            if set(command) != {'type', 'owner', 'name', 'expectedRange', 'expectedCardinality', 'range', 'cardinality'} or owner not in classes or not isinstance(name, str) or not IDENTIFIER.fullmatch(name) or not isinstance(old_range, str) or old_cardinality not in ('!', '?', '+', '*') or cardinality not in ('!', '?', '+', '*') or not (target in DATATYPES or target in classes or valid_enum):
+                raise ValueError('Invalid property.update')
+            index = next(i for i, line in enumerate(lines) if line.startswith(owner + '|'))
+            parts = lines[index].split('|')
+            previous = f'{name}:{old_range}{old_cardinality}'
+            token_pattern = r'(?<!\S)' + re.escape(previous) + r'(?!\S)'
+            if len(re.findall(token_pattern, parts[3])) != 1 or sum(token.split(':', 1)[0] == name for token in parts[3].split()) != 1:
+                raise ValueError('Property precondition does not match a declared field')
+            parts[3] = re.sub(token_pattern, lambda _: f'{name}:{target}{cardinality}', parts[3], count=1)
+            lines[index] = '|'.join(parts)
+            try:
+                _, _, property_types, _ = parse_schema('\n'.join(lines), DATATYPES - {'IRI'})
+                if any(len({rng for typ, rng in types if typ == 'datatype'}) > 1 for types in property_types.values()):
+                    raise ValueError('Shared datatype property ranges must agree')
+            except AssertionError as error:
+                raise ValueError('Property update conflicts with a shared property contract') from error
         elif kind == 'class.describe':
             name, definition = command.get('name'), command.get('definition')
             if set(command) != {'type', 'name', 'definition'} or name not in classes or not isinstance(definition, str) or not definition.strip() or re.search(r'[|\r\n]', definition):

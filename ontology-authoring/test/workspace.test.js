@@ -11,6 +11,19 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('field updates enforce old contracts and classify compatibility in review', () => {
+  const store = new WorkspaceStore(':memory:');
+  const source = 'MODULE|foundation\nRecord|root|A record.|label:string?\n';
+  const workspace = store.create({ title: 'Field review', baselineCommit: 'a'.repeat(40), schema: source });
+  const command = { type: 'property.update', owner: 'Record', name: 'label', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' };
+  assert.throws(() => store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'stale', expectedRevision: 0, commands: [{ ...command, expectedCardinality: '*' }] }), /precondition/);
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'tighten', expectedRevision: 0, commands: [command] });
+  assert.equal(store.diff(workspace.id).changes[0].fieldChanges[0].compatibility, 'potentially-breaking');
+  assert.match(store.get(workspace.id).schema, /label:string!/);
+  store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 });
+  assert.equal(store.get(workspace.id).schema, source);
+  store.close();
+});
 test('responsibility view shows only exact mapped declarations and preserves source provenance', () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
