@@ -59,6 +59,7 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running', 'cancelling');`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS job_steps (job TEXT NOT NULL, ordinal INTEGER NOT NULL, check_name TEXT NOT NULL, status TEXT NOT NULL, started_at TEXT NOT NULL, finished_at TEXT, output TEXT NOT NULL, PRIMARY KEY(job, ordinal), FOREIGN KEY(job) REFERENCES jobs(id)); UPDATE job_steps SET status = 'interrupted', finished_at = datetime('now') WHERE status = 'running';`);
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
@@ -108,8 +109,16 @@ export class WorkspaceStore {
     const row = this.db.prepare('SELECT id, workspace, revision, digest, status, output, profile FROM jobs WHERE workspace = ? AND id = ?').get(workspaceId, jobId);
     if (!row) throw new Error('Job not found');
     const workspace = this.get(workspaceId);
-    return { ...row, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
+    const steps = this.db.prepare('SELECT ordinal, check_name AS checkName, status, started_at AS startedAt, finished_at AS finishedAt, output FROM job_steps WHERE job = ? ORDER BY ordinal').all(jobId);
+    return { ...row, baselineCommit: workspace.baselineCommit, steps, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
   }
+  evidence(workspaceId, jobId) {
+    const job = this.job(workspaceId, jobId);
+    if (!['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status)) throw new Error('Evidence is not complete');
+    return { ...job, scope: job.profile === 'reference' ? 'Generation, SHACL reference validation, business-rule negative fixtures and structural boundaries' : 'Structural generation', completeAcceptanceEvidence: false };
+  }
+  startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
+  finishJobStep(jobId, ordinal, status, output = '') { this.db.prepare('UPDATE job_steps SET status = ?, finished_at = ?, output = ? WHERE job = ? AND ordinal = ?').run(status, new Date().toISOString(), output.slice(-16000), jobId, ordinal); }
   reviewReadiness(workspaceId) {
     const workspace = this.get(workspaceId);
     const jobs = this.db.prepare("SELECT id, profile, revision, digest, status FROM jobs WHERE workspace = ? AND status = 'passed' AND digest = ? AND revision = ? ORDER BY rowid DESC").all(workspaceId, workspace.sourceDigest, workspace.revision);

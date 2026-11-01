@@ -18,6 +18,8 @@ Validation requires Python, Git, tar, and the pinned dependencies in `requiremen
 
 Only one validation job may run per workspace. Retrying the same operation ID returns the original job; a different request is rejected while that job is active. Each completed step is retained in the bounded job output. Validation compares tracked model, benchmark, requirements, test and tool inputs against their pre-generation bytes, excluding the repository's known generated outputs. A substantive source rewrite fails the check rather than attributing the result to the earlier draft.
 
+Completed jobs can be read through `ontology_evidence_get` using the job ID as the evidence ID. The response identifies the baseline commit, checked revision, source digest, scope, freshness and individual step outcomes. An interrupted or cancelled job is evidence of that outcome, not a passing validation. The service does not yet retain full generated artifacts or establish all required acceptance evidence.
+
 Cancellation is cooperative: the running fixed check is allowed to finish, then the job stops before the next check and is marked `cancelled`. A cancelling job continues to occupy the workspace validation slot. Cancellation does not promise immediate termination of a running child process.
 
 `node --test test/demo.test.js` runs a synthetic two-client maintenance scenario against the committed `HEAD` schema: it discovers existing terms, adds a planned maintenance class, typed relationships and controlled lifecycle values, refines and undoes a definition, restarts the service, and retries the original operation. It does not yet demonstrate acceptance, publication, or exact-commit CI status.

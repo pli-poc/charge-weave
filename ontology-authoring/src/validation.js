@@ -15,6 +15,7 @@ const generatedInputs = new Set([
 export async function runGenerator(store, workspace, job, repository, python = 'python', signal) {
   let directory;
   let output = '';
+  let currentStep = null;
   try {
     store.updateJob(job.id, 'running');
     directory = await mkdtemp(join(tmpdir(), 'chargeweave-validation-'));
@@ -29,8 +30,10 @@ export async function runGenerator(store, workspace, job, repository, python = '
     const commands = job.profile === 'reference'
       ? [['tools/build_all.py'], ['tools/validate.py', '--meta'], ['tools/test_business.py'], ['tools/test_boundaries.py']]
       : [['tools/build.py']];
-    for (const args of commands) {
+    for (const [ordinal, args] of commands.entries()) {
       if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
+      currentStep = ordinal;
+      store.startJobStep(job.id, ordinal, args.join(' '));
       store.updateJob(job.id, 'running', `${output}\nRunning: ${args.join(' ')}`);
       const result = await exec(python, args, { cwd: directory, timeout: 600000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, PYTHONUTF8: '1' } });
       output += `$ ${args.join(' ')}\n${result.stdout}\n${result.stderr}\n`;
@@ -39,10 +42,13 @@ export async function runGenerator(store, workspace, job, repository, python = '
         const equal = path === 'model/domain.schema' ? before.toString('utf8').replace(/\r\n/g, '\n') === after.toString('utf8').replace(/\r\n/g, '\n') : before.equals(after);
         if (!equal) throw new Error(`Generator rewrote source ${path}; reconcile changes before review`);
       }
+      store.finishJobStep(job.id, ordinal, 'passed', `${result.stdout}\n${result.stderr}`);
+      currentStep = null;
     }
     if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
     store.updateJob(job.id, 'passed', output);
   } catch (error) {
+    if (currentStep !== null) store.finishJobStep(job.id, currentStep, signal?.aborted ? 'cancelled' : 'failed', `${error.message}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`);
     store.updateJob(job.id, signal?.aborted ? 'cancelled' : 'failed', `${output}\n${error.message}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`);
   } finally {
     if (directory) await rm(directory, { recursive: true, force: true });

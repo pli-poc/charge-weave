@@ -23,6 +23,11 @@ test('generator evidence is bound to its input and becomes stale after edits', a
   await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON || process.execPath);
   const finished = store.job(workspace.id, job.id);
   assert.equal(finished.status, process.env.CHARGEWEAVE_TEST_PYTHON ? 'passed' : 'failed', finished.output);
+  assert.equal(finished.steps.length, 1);
+  assert.equal(finished.steps[0].checkName, 'tools/build.py');
+  assert.equal(finished.steps[0].status, finished.status);
+  assert.equal(store.evidence(workspace.id, job.id).baselineCommit, commit);
+  assert.equal(store.evidence(workspace.id, job.id).completeAcceptanceEvidence, false);
   assert.equal(finished.stale, false);
   store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
   assert.equal(store.job(workspace.id, job.id).stale, true);
@@ -40,13 +45,16 @@ test('validation retry survives restart without starting another job', () => {
     let store = new WorkspaceStore(path);
     const workspace = store.create({ title: 'Jobs', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
     const first = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'retry');
+    assert.throws(() => store.evidence(workspace.id, first.job.id), /not complete/);
     store.updateJob(first.job.id, 'running');
+    store.startJobStep(first.job.id, 0, 'tools/build.py');
     store.close();
     store = new WorkspaceStore(path);
     const retry = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'retry');
     assert.equal(retry.created, false);
     assert.equal(retry.job.id, first.job.id);
     assert.equal(retry.job.status, 'interrupted');
+    assert.equal(retry.job.steps[0].status, 'interrupted');
     store.close();
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
@@ -81,6 +89,7 @@ test('generator changes to another tracked source fail validation', { skip: !pro
     await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
     const result = store.job(workspace.id, job.id);
     assert.equal(result.status, 'failed');
+    assert.equal(result.steps[0].status, 'failed');
     assert.match(result.output, /Generator rewrote source model\/audit-rules.json/);
     store.close();
   } finally { rmSync(repository, { recursive: true, force: true }); }
