@@ -59,7 +59,7 @@ export async function publicationPreflight(store, workspaceId, expectedRevision,
   const stale = current.revision !== workspace.revision || current.sourceDigest !== workspace.sourceDigest;
   if (stale) return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, stale: true,
     target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, sourceFiles: [], generatedEvidence: null, readiness: null, canPublish: false,
-    limitations: ['The draft changed during preflight; run it again.', 'Publication is not implemented.'] };
+    limitations: ['The draft changed during preflight; run it again.', 'Pull-request creation is not implemented.'] };
   const diff = store.diff(workspaceId), readiness = store.reviewReadiness(workspaceId);
   const checked = readiness.evidence.find(item => item.profile === 'acceptance' && item.job?.status === 'passed') ?? readiness.evidence.find(item => item.profile === 'reference' && item.job?.status === 'passed');
   const artifacts = checked ? store.job(workspaceId, checked.job.id).artifactSummary : null;
@@ -68,5 +68,5 @@ export async function publicationPreflight(store, workspaceId, expectedRevision,
     target: { repository: fixture ? 'local-test-remote' : 'pli-poc/charge-weave', branch, ...remote }, comparison, sourceFiles,
     generatedEvidence: artifacts ? { jobId: checked.job.id, profile: checked.profile, summary: artifacts } : null,
     readiness, canPublish: false,
-    limitations: ['Publication is not implemented.', 'Remote changes require semantic review and revalidation even when paths do not overlap.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
+    limitations: ['Pull-request creation is not implemented.', 'Remote changes require semantic review and revalidation even when paths do not overlap.', 'Generated evidence is a byte comparison, not a staged-file list.', 'Branch protection and exact-commit CI have not been checked.'] };
 }

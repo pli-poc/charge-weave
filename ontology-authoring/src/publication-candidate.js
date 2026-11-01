@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm, mkdir, lstat, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { captureGeneratedArtifacts, summarizeGeneratedArtifacts } from './artifact-summary.js';
@@ -44,16 +44,42 @@ export async function preparePublicationCandidate(store, workspaceId, reviewId, 
     await verifySources();
     const capture = dependencies.capture ?? captureGeneratedArtifacts;
     const before = await capture(directory, python);
+    const saved = store.jobGeneratedFiles(workspaceId, acceptance.jobId);
+    const savedManifest = saved.map(({ path, sha256: digest, bytes }) => ({ path, sha256: digest, bytes }));
+    if (!saved.length || sha256(JSON.stringify(savedManifest)) !== original.candidateManifestSha256) throw new Error('Accepted generated snapshot is unavailable or incomplete; rerun acceptance checks');
+    const safePath = async path => {
+      if (!/^[A-Za-z0-9._/-]+$/.test(path) || path.split('/').some(part => !part || part === '.' || part === '..')) throw new Error('Unsafe generated snapshot path');
+      const parts = path.split('/'); let parent = directory;
+      for (const part of parts.slice(0, -1)) {
+        parent = join(parent, part);
+        let info;
+        try { info = await lstat(parent); } catch (error) { if (error.code !== 'ENOENT') throw error; await mkdir(parent); info = await lstat(parent); }
+        if (!info.isDirectory() || info.isSymbolicLink()) throw new Error('Generated snapshot directory is unsafe');
+      }
+      const full = join(parent, parts.at(-1));
+      try { const info = await lstat(full); if (!info.isFile() || info.isSymbolicLink()) throw new Error('Generated snapshot target is unsafe'); }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
+      return full;
+    };
+    const savedPaths = new Set(saved.map(file => file.path));
+    for (const file of before) if (!savedPaths.has(file.path)) await unlink(await safePath(file.path));
+    for (const file of saved) {
+      if (sha256(file.content) !== file.sha256 || file.content.length !== file.bytes) throw new Error('Accepted generated snapshot is corrupt');
+      await writeFile(await safePath(file.path), file.content);
+    }
     if (dependencies.build) await dependencies.build(directory, python);
-    else await exec(python, ['tools/build_all.py'], { cwd: directory, timeout: 600000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, PYTHONUTF8: '1' } });
     await verifySources();
     const after = await capture(directory, python), summary = summarizeGeneratedArtifacts(before, after);
-    if (summary.candidateManifestSha256 !== original.candidateManifestSha256 || summary.baselineManifestSha256 !== original.baselineManifestSha256 || summary.omitted || summary.changedCount !== original.changedCount) throw new Error('Generated output differs from accepted evidence');
+    if (summary.candidateManifestSha256 !== original.candidateManifestSha256) throw new Error('Generated output differs from accepted evidence: candidate manifest');
+    if (summary.baselineManifestSha256 !== original.baselineManifestSha256) throw new Error('Generated output differs from accepted evidence: baseline manifest');
+    if (summary.omitted || summary.changedCount !== original.changedCount) throw new Error('Generated output differs from accepted evidence: changed-file count');
     const diff = store.diff(workspaceId);
     const sourceFiles = [...(diff.source.before !== diff.source.after ? [diff.source.path] : []), ...diff.additionalSources.map(item => item.path)];
     const paths = [...new Set([...sourceFiles, ...summary.changes.map(item => item.path)])].sort();
-    if (!paths.length || paths.length > 1000) throw new Error('Invalid staged file set');
-    await exec('git', ['add', '-A', '--', ...paths], git);
+    if (!paths.length || paths.length > 10000) throw new Error('Invalid staged file set');
+    const pathspec = join(directory, 'publication-pathspec');
+    await writeFile(pathspec, `${paths.join('\0')}\0`, 'utf8');
+    await exec('git', ['add', '-A', `--pathspec-from-file=${pathspec}`, '--pathspec-file-nul'], git);
     const stagedOutput = (await exec('git', ['diff', '--cached', '--name-only', '-z', '--no-renames'], git)).stdout;
     const staged = stagedOutput.split('\0').filter(Boolean).sort();
     if (JSON.stringify(staged) !== JSON.stringify(paths)) throw new Error('Staged files differ from the reviewed candidate');

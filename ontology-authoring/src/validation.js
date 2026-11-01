@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { editableSourcePaths, generatedInputs, sha256 } from './source-manifest.js';
-import { captureGeneratedArtifacts, summarizeGeneratedArtifacts } from './artifact-summary.js';
+import { captureGeneratedArtifacts, readGeneratedArtifactContents, summarizeGeneratedArtifacts } from './artifact-summary.js';
 
 const exec = promisify(execFile);
 
@@ -68,6 +68,7 @@ export async function runGenerator(store, workspace, job, repository, python = '
     }
     const commands = commandsFor(job.profile);
     const baselineArtifacts = job.profile === 'structural' ? null : await captureGeneratedArtifacts(directory, python);
+    let generatedManifest = null;
     for (const [ordinal, args] of commands.entries()) {
       if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
       currentStep = ordinal;
@@ -80,11 +81,21 @@ export async function runGenerator(store, workspace, job, repository, python = '
         const equal = path === 'model/domain.schema' ? before.toString('utf8').replace(/\r\n/g, '\n') === after.toString('utf8').replace(/\r\n/g, '\n') : before.equals(after);
         if (!equal) throw new Error(`Generator rewrote source ${path}; reconcile changes before review`);
       }
-      if (ordinal === 0 && baselineArtifacts) store.saveJobArtifacts(job.id, summarizeGeneratedArtifacts(baselineArtifacts, await captureGeneratedArtifacts(directory, python)));
+      if (ordinal === 0 && baselineArtifacts) {
+        const generated = await captureGeneratedArtifacts(directory, python);
+        const summary = summarizeGeneratedArtifacts(baselineArtifacts, generated);
+        generatedManifest = summary.candidateManifestSha256;
+        store.saveJobArtifacts(job.id, summary);
+        if (['reference', 'acceptance'].includes(job.profile)) store.saveJobGeneratedFiles(job.id, await readGeneratedArtifactContents(directory, generated));
+      }
       store.finishJobStep(job.id, ordinal, 'passed', `${result.stdout}\n${result.stderr}`);
       currentStep = null;
     }
     if (signal?.aborted) { store.updateJob(job.id, 'cancelled', output); return; }
+    if (generatedManifest) {
+      const finalArtifacts = await captureGeneratedArtifacts(directory, python);
+      if (sha256(JSON.stringify(finalArtifacts)) !== generatedManifest) throw new Error('Checks changed generated artifacts after the snapshot was captured');
+    }
     store.updateJob(job.id, 'passed', output);
   } catch (error) {
     if (currentStep !== null) store.finishJobStep(job.id, currentStep, signal?.aborted ? 'cancelled' : 'failed', `${error.message}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`);

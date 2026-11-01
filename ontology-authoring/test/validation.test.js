@@ -162,6 +162,15 @@ test('reference generation records bounded artifact evidence with its job', { sk
     assert.equal(evidence.artifactSummary.changedCount, 1);
     assert.equal(evidence.artifactSummary.changes[0].path, 'generated/model.txt');
     assert.notEqual(evidence.artifactSummary.baselineManifestSha256, evidence.artifactSummary.candidateManifestSha256);
+    assert.equal(store.jobGeneratedFiles(workspace.id, job.id)[0].content.toString('utf8'), 'candidate');
+    writeFileSync(join(repository, 'tools', 'test_business.py'), "from pathlib import Path\nPath('generated/model.txt').write_text('changed-after-generation')\n");
+    git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'mutating check']);
+    const nextCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+    const next = store.create({ title: 'Mutating check', baselineCommit: nextCommit, schema });
+    const changed = store.createJob(next.id, 0, next.sourceDigest, 'test', 'mutated', 'reference').job;
+    await runGenerator(store, next, changed, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    assert.equal(store.job(next.id, changed.id).status, 'failed');
+    assert.match(store.job(next.id, changed.id).output, /Checks changed generated artifacts/);
     store.close();
   } finally { rmSync(repository, { recursive: true, force: true }); }
 });

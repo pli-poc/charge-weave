@@ -34,6 +34,21 @@ export async function captureGeneratedArtifacts(directory, python) {
   return entries;
 }
 
+// Capture the actual accepted bytes, not just hashes: RDF serializations can
+// vary between equivalent builds. Bounds and path checks come from capture.
+export async function readGeneratedArtifactContents(directory, entries) {
+  const files = [];
+  for (const entry of entries) {
+    const path = join(directory, ...entry.path.split('/'));
+    const info = await lstat(path);
+    if (!info.isFile() || info.isSymbolicLink() || info.size !== entry.bytes) throw new Error(`Generated artifact changed during capture: ${entry.path}`);
+    const content = await readFile(path);
+    if (digest(content) !== entry.sha256) throw new Error(`Generated artifact changed during capture: ${entry.path}`);
+    files.push({ ...entry, content });
+  }
+  return files;
+}
+
 export function summarizeGeneratedArtifacts(before, after) {
   const old = new Map(before.map(item => [item.path, item])), next = new Map(after.map(item => [item.path, item]));
   const changed = [...new Set([...old.keys(), ...next.keys()])].sort().flatMap(path => {
@@ -42,6 +57,6 @@ export function summarizeGeneratedArtifacts(before, after) {
     return [{ path, kind: !previous ? 'added' : !current ? 'removed' : 'changed', beforeSha256: previous?.sha256 ?? null, afterSha256: current?.sha256 ?? null, beforeBytes: previous?.bytes ?? null, afterBytes: current?.bytes ?? null }];
   });
   return { comparison: 'exact-bytes', baselineManifestSha256: digest(JSON.stringify(before)), candidateManifestSha256: digest(JSON.stringify(after)),
-    baselineFiles: before.length, candidateFiles: after.length, changedCount: changed.length, changes: changed.slice(0, 250), omitted: Math.max(0, changed.length - 250),
+    baselineFiles: before.length, candidateFiles: after.length, changedCount: changed.length, changes: changed, omitted: 0,
     note: 'Exact byte differences may include serialization or line-ending changes. This summary is not a generated patch, independent acceptance evidence or publication authorization.' };
 }

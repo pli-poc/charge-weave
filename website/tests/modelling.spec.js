@@ -89,7 +89,7 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
-    await expect(page.getByText(/Publication is not implemented/)).toBeVisible();
+    await expect(page.getByText(/Pull-request creation is not implemented/)).toBeVisible();
     await page.getByLabel('Commit SHA').fill(commit);
     await page.getByRole('button', { name: 'Check commit workflows' }).click();
     await expect(page.getByRole('link', { name: 'Synthetic check' })).toBeVisible();

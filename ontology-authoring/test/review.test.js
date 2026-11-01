@@ -84,3 +84,18 @@ test('acceptance binds each current evidence job and becomes stale after an edit
     assert.throws(() => store.recordReview(workspace.id, { ...review, operationId: 'stale' }), /Stale review input/);
   } finally { store.close(); }
 });
+
+test('push tool requires reviewer role and explicit publisher permission', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const clients = [];
+  try {
+    for (const [role, allowPublish] of [['draft', true], ['reviewer', false], ['reviewer', true]]) {
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+      const server = createServer(store, role, { role, allowPublish, repository: '.' });
+      const client = new Client({ name: role, version: '1' });
+      await server.connect(serverTransport); await client.connect(clientTransport); clients.push(client);
+    }
+    const catalogues = await Promise.all(clients.map(client => client.listTools()));
+    assert.deepEqual(catalogues.map(catalogue => catalogue.tools.some(tool => tool.name === 'ontology_publication_push')), [false, false, true]);
+  } finally { for (const client of clients) await client.close(); store.close(); }
+});

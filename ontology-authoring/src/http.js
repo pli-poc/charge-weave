@@ -4,17 +4,19 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { createServer } from './mcp.js';
 import { runGenerator } from './validation.js';
 import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
+import { runPublicationPush } from './publication-push.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch }) {
+export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, allowPublish = false, githubToken }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
   store.get(workspaceId);
   if (reviewerToken !== undefined && (typeof reviewerToken !== 'string' || Buffer.byteLength(reviewerToken) < 32 || reviewerToken === token)) throw new Error('Reviewer token must be distinct and at least 32 bytes');
   if (pairingCode && (pairingCode === token || pairingCode === reviewerToken)) throw new Error('Pairing code must be distinct from bearer credentials');
+  if (allowPublish && !publicationFixture && (typeof githubToken !== 'string' || githubToken.length < 20 || /[\r\n\0]/.test(githubToken))) throw new Error('Publisher permission requires a GitHub token');
   const secret = Buffer.from(token);
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
   const pairing = pairingCode ? new PairingSessions(pairingCode) : null;
@@ -125,7 +127,12 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       activeJobs.set(job.id, { task, controller: new AbortController() });
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, cancelValidation, publicationFixture, ciFetch });
+    const startPush = (id, publicationId, job) => {
+      const task = runPublicationPush(store, id, publicationId, job, repository, githubToken, publicationFixture);
+      activeJobs.set(job.id, { task, controller: new AbortController() });
+      void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
+    };
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, startValidation, startPublication, startCommit, startPush, cancelValidation, publicationFixture, ciFetch, allowPublish, githubToken });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

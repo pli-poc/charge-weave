@@ -124,7 +124,10 @@ test('real interval candidate passes reference and focused business decisions', 
     // artifact hashes here to exercise isolated staging without rerunning it.
     for (const profile of ['structural', 'acceptance']) {
       const synthetic = store.createJob(workspace.id, 3, reviewed.sourceDigest, 'test', `staging-${profile}`, profile).job;
-      if (profile === 'acceptance') store.saveJobArtifacts(synthetic.id, reference.artifactSummary);
+      if (profile === 'acceptance') {
+        store.saveJobArtifacts(synthetic.id, reference.artifactSummary);
+        store.saveJobGeneratedFiles(synthetic.id, store.jobGeneratedFiles(workspace.id, reference.id));
+      }
       store.updateJob(synthetic.id, 'passed');
     }
     const accepted = store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'accept-staging', expectedRevision: 3, sourceDigest: reviewed.sourceDigest, decision: 'accept', reason: 'Synthetic review for isolated staging integration.' });

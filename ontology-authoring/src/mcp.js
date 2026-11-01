@@ -5,6 +5,7 @@ import { changeImpact } from './impact.js';
 import { publicationPreflight } from './publication-preflight.js';
 import { githubCommitWorkflows } from './github-ci.js';
 import { runPublicationCommit, runPublicationPreview } from './publication-candidate.js';
+import { runPublicationPush } from './publication-push.js';
 
 // The transport supplies the authenticated actor; tool arguments never select it.
 export function createServer(store, actor, options = {}) {
@@ -40,6 +41,7 @@ export function createServer(store, actor, options = {}) {
   server.registerTool('ontology_history_get', { description: 'Read the most recent committed workspace events.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result({ events: store.recentEvents(args.workspaceId) }));
   server.registerTool('ontology_view_suggest', { description: 'Suggest a concept and perspective to a connected viewer; this does not change the model or force a selection.', inputSchema: { workspaceId, operationId, expectedRevision: revision, root: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/).max(128), viewpoint: z.enum(['information', 'responsibility', 'temporal']), explanation: z.string().min(1).max(500) }, annotations: { idempotentHint: true } }, async args => result(store.suggestView(args.workspaceId, { ...args, actor })));
   if (options.role === 'reviewer') {
+    server.registerTool('ontology_publication_capabilities', { description: 'Inspect whether this local server has publisher permission enabled.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => { store.get(args.workspaceId); return result({ canPush: Boolean(options.allowPublish) }); });
     server.registerTool('ontology_publication_history', { description: 'Inspect durable publication intents and uncertain push outcomes; prepared entries do not mean anything was pushed.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result({ publications: store.publicationHistory(args.workspaceId) }));
     server.registerTool('ontology_publication_reserve', { description: 'Record a reviewed staged candidate and proposed commit message as a local publication intent. This does not create a commit or push.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), reviewId: z.string().uuid(), previewJobId: z.string().uuid(), subject: z.string().min(1).max(120), body: z.string().min(1).max(10000) }, annotations: { idempotentHint: true } }, async args => result(store.reservePublication(args.workspaceId, { ...args, actor })));
     server.registerTool('ontology_github_commit_workflows', { description: 'Look up public GitHub Actions runs for an exact ChargeWeave commit. Required branch-protection checks and deployment are not verified.', inputSchema: { workspaceId, commitSha: z.string().regex(/^[a-f0-9]{40}$/) }, annotations: { readOnlyHint: true } }, async args => {
@@ -64,11 +66,19 @@ export function createServer(store, actor, options = {}) {
       }
       return result(job);
     });
-    if (options.role === 'reviewer') server.registerTool('ontology_publication_create_commit', { description: 'Rebuild the saved intent and create a local Git commit and recoverable bundle. Requires configured Git user.name and user.email; does not push.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), publicationId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
+    if (options.role === 'reviewer') server.registerTool('ontology_publication_create_commit', { description: 'Reconstruct the saved intent and create a local Git commit and recoverable bundle. Requires configured Git user.name and user.email; does not push.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), publicationId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
       const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, 'publication-commit', args.publicationId);
       if (created) {
         if (options.startCommit) options.startCommit(args.workspaceId, args.publicationId, job);
         else void runPublicationCommit(store, args.workspaceId, args.publicationId, job, options.repository, options.python);
+      }
+      return result(job);
+    });
+    if (options.role === 'reviewer' && options.allowPublish) server.registerTool('ontology_publication_push', { description: 'Push the recorded commit to its unique branch or reconcile a previous uncertain push. Requires explicitly configured publisher permission; never pushes main or force-pushes.', inputSchema: { workspaceId, operationId, expectedRevision: revision, sourceDigest: z.string().regex(/^[a-f0-9]{64}$/), publicationId: z.string().uuid() }, annotations: { idempotentHint: true } }, async args => {
+      const { job, created } = store.createJob(args.workspaceId, args.expectedRevision, args.sourceDigest, actor, args.operationId, 'publication-push', args.publicationId);
+      if (created) {
+        if (options.startPush) options.startPush(args.workspaceId, args.publicationId, job);
+        else void runPublicationPush(store, args.workspaceId, args.publicationId, job, options.repository, options.githubToken, options.publicationFixture);
       }
       return result(job);
     });
