@@ -5,4 +5,5 @@
 .studio-panels { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr) minmax(14rem, 1fr); gap: 1rem; }
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
+.studio-panels pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
 @media (max-width: 900px) { .studio-panels { grid-template-columns: 1fr; } }

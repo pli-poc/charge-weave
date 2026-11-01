@@ -23,6 +23,19 @@ test('atomic edits, durable receipts and stale revisions', () => {
   store.close();
 });
 
+test('typed fields reject unknown targets and reused global properties atomically', () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Fields', baselineCommit: 'a'.repeat(40), schema });
+  const base = { workspaceId: workspace.id, actor: 'architect', expectedRevision: 0 };
+  assert.throws(() => store.apply({ ...base, operationId: 'bad', commands: [{ type: 'relationship.add', owner: 'Record', name: 'target', range: 'Missing', cardinality: '!' }] }), /Invalid/);
+  store.apply({ ...base, operationId: 'good', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '!' }, { type: 'relationship.add', owner: 'Record', name: 'related', range: 'Record', cardinality: '*' }] });
+  assert.match(store.get(workspace.id).schema, /title:string! related:Record\*/);
+  assert.equal(store.diff(workspace.id).changes[0].kind, 'changed');
+  assert.equal(store.diff(workspace.id).source.before, schema);
+  assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'duplicate', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '?' }] }), /Invalid/);
+  store.close();
+});
+
 test('real repository schema is searchable and receipts survive restart', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-workspace-'));
   try {

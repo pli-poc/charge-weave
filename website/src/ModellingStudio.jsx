@@ -24,6 +24,7 @@ export default function ModellingStudio() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [diff, setDiff] = useState(null);
   const [definition, setDefinition] = useState('');
   const [status, setStatus] = useState('Disconnected');
   const [error, setError] = useState('');
@@ -38,6 +39,7 @@ export default function ModellingStudio() {
       const value = await tool('ontology_workspace_get', { workspaceId: id });
       cursor.current = value.eventSequence;
       setSnapshot(value);
+      setDiff(null);
       return value;
     }
     async function run() {
@@ -96,6 +98,13 @@ export default function ModellingStudio() {
       setStatus('Saved; awaiting workspace update');
     } catch (problem) { setError(problem.message); }
   }
+  async function inspectChanges() {
+    setError('');
+    try {
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_changeset_diff', arguments: { workspaceId: connection.workspaceId } });
+      setDiff(response.structuredContent);
+    } catch (problem) { setError(problem.message); }
+  }
   function connect(event) {
     event.preventDefault(); setError(''); setSnapshot(null); setResults([]); setSelected(null); setStatus('Connecting');
     try {
@@ -118,7 +127,7 @@ export default function ModellingStudio() {
     {snapshot && <div className="studio-panels">
       <section><h2>Discover concepts</h2><form onSubmit={search}><label>Search model <input value={query} onChange={event => setQuery(event.target.value)} /></label><button>Search</button></form>
         <ul>{results.map(item => <li key={item.name}><button type="button" onClick={() => { setSelected(item); setDefinition(item.definition); }}>{item.name}</button> <small>{item.module}</small></li>)}</ul></section>
-      <section><h2>Workspace</h2><p>{snapshot.title}</p><p>Source digest: <code>{snapshot.sourceDigest}</code></p><p>Live changes update the revision shown above. Search again to refresh results.</p></section>
+      <section><h2>Workspace</h2><p>{snapshot.title}</p><p>Source digest: <code>{snapshot.sourceDigest}</code></p><p>Live changes update the revision shown above. Search again to refresh results.</p><button type="button" onClick={inspectChanges}>Inspect changes</button>{diff && <div><h3>Changes at revision {diff.revision}</h3>{diff.changes.length ? <ul>{diff.changes.map(item => <li key={item.name}><strong>{item.kind}: {item.name}</strong>{item.before && <p>Before: {item.before.definition} {item.before.fields}</p>}{item.after && <p>After: {item.after.definition} {item.after.fields}</p>}</li>)}</ul> : <p>No changes from the baseline.</p>}<details><summary>Source before and after</summary><h4>Before</h4><pre>{diff.source.before}</pre><h4>After</h4><pre>{diff.source.after}</pre></details></div>}</section>
       <section><h2>Inspector</h2>{selected ? <><h3>{selected.name}</h3><form onSubmit={saveDefinition}><label>Definition <textarea value={definition} onChange={event => setDefinition(event.target.value)} maxLength={4000} required /></label><button disabled={definition === selected.definition}>Save definition</button><button type="button" onClick={() => setDefinition(selected.definition)}>Cancel</button></form><p>Parent: {selected.parent}</p><p>Fields: {selected.fields || 'None declared'}</p></> : <p>Select a concept to inspect it.</p>}</section>
     </div>}
   </main>;

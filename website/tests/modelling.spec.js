@@ -23,5 +23,8 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('An edited record.');
+    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    await expect(page.getByText('changed: Record')).toBeVisible();
+    await expect(page.getByText('After: An edited record.')).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
