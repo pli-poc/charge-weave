@@ -1,4 +1,4 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { runGenerator } from './validation.js';
 import { changeImpact } from './impact.js';
@@ -16,6 +16,32 @@ export function createServer(store, actor, options = {}) {
   const workspaceId = z.string().uuid();
   const operationId = z.string().min(1).max(128);
   const revision = z.number().int().nonnegative().safe();
+  const resource = (name, template, description, read) => server.registerResource(name, new ResourceTemplate(template, { list: undefined }), { description, mimeType: 'application/json' }, async (uri, variables) => {
+    const id = workspaceId.parse(variables.workspaceId);
+    const value = await read(id, variables);
+    const text = JSON.stringify({ contractVersion: 'chargeweave-resource-v1', ...value });
+    if (Buffer.byteLength(text) > 256 * 1024) throw new Error('Resource exceeds bounded response size');
+    return { contents: [{ uri: uri.href, mimeType: 'application/json', text }] };
+  });
+  resource('workspace-summary', 'ontology://workspace/{workspaceId}/v1/summary', 'Bounded workspace identity and event cursor.', id => {
+    const value = store.snapshot(id);
+    return { workspaceId: id, title: value.title, baselineCommit: value.baselineCommit, revision: value.revision, sourceDigest: value.sourceDigest, digestVersion: value.digestVersion, eventSequence: value.eventSequence, editableSources: value.editableSources };
+  });
+  resource('workspace-entity', 'ontology://workspace/{workspaceId}/v1/entity/{entity}', 'Source-grounded class inspection by local name or encoded development IRI.', (id, vars) => {
+    const decoded = decodeURIComponent(z.string().max(768).parse(vars.entity));
+    const prefix = 'https://example.org/charge-domain#';
+    const name = decoded.startsWith(prefix) ? decoded.slice(prefix.length) : decoded;
+    if (!/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(name)) throw new Error('Unsupported entity identifier');
+    return store.entity(id, name);
+  });
+  resource('workspace-changes', 'ontology://workspace/{workspaceId}/v1/changes', 'Bounded semantic change summary; use the diff tool for source patches.', id => {
+    const value = store.diff(id);
+    return { workspaceId: id, baselineCommit: value.baselineCommit, revision: value.revision, sourceDigest: value.sourceDigest, changes: value.changes.slice(0, 100).map(item => ({ kind: item.kind, name: item.name, fieldChanges: item.fieldChanges.slice(0, 20), omittedFields: Math.max(0, item.fieldChanges.length - 20) })), omitted: Math.max(0, value.changes.length - 100), additionalSourcePaths: value.additionalSources.map(item => item.path) };
+  });
+  if (options.repository) resource('workspace-evidence', 'ontology://workspace/{workspaceId}/v1/evidence/{evidenceId}', 'Bounded completed validation evidence; logs are available through the job tool.', (id, vars) => {
+    const value = store.evidence(id, z.string().uuid().parse(vars.evidenceId));
+    return { workspaceId: id, id: value.id, baselineCommit: value.baselineCommit, revision: value.revision, sourceDigest: value.digest, profile: value.profile, status: value.status, stale: value.stale, scope: value.scope, completeAcceptanceEvidence: value.completeAcceptanceEvidence, steps: value.steps.map(({ checkName, status }) => ({ checkName, status })) };
+  });
   const command = z.union([
     z.object({ type: z.literal('class.add'), name: z.string().max(128), module: z.string().max(128), parent: z.string().max(128), definition: z.string().max(4000) }).strict(),
     z.object({ type: z.literal('class.describe'), name: z.string().max(128), definition: z.string().max(4000) }).strict(),

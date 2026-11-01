@@ -26,6 +26,16 @@ test('loopback MCP transport authenticates and shares state', async () => {
       clients.push(client);
     }
     const [first, second] = clients;
+    const templates = (await first.listResourceTemplates()).resourceTemplates;
+    assert.ok(templates.some(item => item.uriTemplate === 'ontology://workspace/{workspaceId}/v1/summary'));
+    const readJson = async uri => JSON.parse((await first.readResource({ uri })).contents[0].text);
+    const summary = await readJson(`ontology://workspace/${workspace.id}/v1/summary`);
+    assert.equal(summary.workspaceId, workspace.id);
+    assert.equal(summary.contractVersion, 'chargeweave-resource-v1');
+    assert.equal(Object.hasOwn(summary, 'schema'), false);
+    const entity = await readJson(`ontology://workspace/${workspace.id}/v1/entity/${encodeURIComponent('https://example.org/charge-domain#Record')}`);
+    assert.equal(entity.entity.name, 'Record');
+    await assert.rejects(first.readResource({ uri: `ontology://workspace/${other.id}/v1/summary` }), /authorized/);
     const listed = (await first.callTool({ name: 'ontology_workspace_list', arguments: {} })).structuredContent.workspaces;
     assert.deepEqual(listed.map(item => item.workspaceId), [workspace.id]);
     assert.equal(listed[0].baselineCommit, workspace.baselineCommit);
@@ -43,6 +53,9 @@ test('loopback MCP transport authenticates and shares state', async () => {
     assert.ok(readiness.missing.includes('audit'));
     const args = { workspaceId: workspace.id, operationId: 'network-edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'NetworkExample', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
+    const changes = await readJson(`ontology://workspace/${workspace.id}/v1/changes`);
+    assert.equal(changes.changes[0].name, 'NetworkExample');
+    assert.equal(changes.revision, 1);
     assert.equal((await second.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'NetworkExample' } })).structuredContent.results.length, 1);
     const viewArgs = { workspaceId: workspace.id, viewId: 'default', operationId: 'network-view', expectedViewRevision: 0, definition: { root: 'NetworkExample', positions: { NetworkExample: { x: 12, y: 34 } } } };
     assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: { ...viewArgs, workspaceId: other.id } })).isError, true);
@@ -118,5 +131,9 @@ test('cancellation is scoped, idempotent and waits for the active step', async (
     release();
     await new Promise(resolve => setTimeout(resolve, 10));
     assert.equal(store.job(workspace.id, request.jobId).status, 'cancelled');
+    const evidence = JSON.parse((await client.readResource({ uri: `ontology://workspace/${workspace.id}/v1/evidence/${request.jobId}` })).contents[0].text);
+    assert.equal(evidence.status, 'cancelled');
+    assert.equal(evidence.completeAcceptanceEvidence, false);
+    assert.equal(Object.hasOwn(evidence, 'output'), false);
   } finally { release(); await client.close(); await service.shutdown(); store.close(); }
 });
