@@ -8,6 +8,7 @@ import "./pages.css";
 const Home = lazy(() => import("./Home.jsx"));
 const ProductPages = lazy(() => import("./ProductPages.jsx"));
 const Ontology = lazy(() => import("./Ontology.jsx"));
+const ModellingStudio = lazy(() => import("./ModellingStudio.jsx"));
 const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
 const Blog = lazy(() => import("./Blog.jsx"));
 export const base = import.meta.env.BASE_URL;
@@ -25,6 +26,7 @@ function App() {
     ["", "Overview"],
     ["capabilities", "Capabilities"],
     ["ontology", "Ontology explorer"],
+    ["modelling", "Modelling studio"],
     ["architecture", "Architecture"],
     ["roadmap", "Roadmap"],
     ["app", "Operations console"],
@@ -88,7 +90,9 @@ function App() {
           </main>
         }
       >
-        {route === "ontology" ? (
+        {route === "modelling" ? (
+          <ModellingStudio />
+        ) : route === "ontology" ? (
           <Ontology />
         ) : route === "blog" || route.startsWith("blog/") ? (
           <Blog route={route} />

@@ -2,8 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
-const blogRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../content/blog");
-const websiteRoot = path.dirname(new URL(import.meta.url).pathname);
+import { fileURLToPath } from "node:url";
+const websiteRoot = path.dirname(fileURLToPath(import.meta.url));
+const blogRoot = path.resolve(websiteRoot, "../content/blog");
 const siteBase = "/charge-weave-app/";
 const categories = new Set([
   "Charging operations",

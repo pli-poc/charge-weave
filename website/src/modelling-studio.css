@@ -1,0 +1,8 @@
+.modelling-studio { padding-block: 2rem 4rem; }
+.studio-connect { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; }
+.studio-connect label, .studio-panels label { display: grid; gap: .3rem; }
+.studio-connect input, .studio-panels input { padding: .5rem; min-width: 15rem; }
+.studio-panels { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr) minmax(14rem, 1fr); gap: 1rem; }
+.studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
+.studio-panels li { margin-block: .5rem; }
+@media (max-width: 900px) { .studio-panels { grid-template-columns: 1fr; } }
