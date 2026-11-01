@@ -5,6 +5,30 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { WorkspaceStore } from '../src/workspace.js';
 import { createServer } from '../src/mcp.js';
 
+test('change-set reopening is available only to the reviewer role', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Change set', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const clients = [];
+  try {
+    for (const role of ['draft', 'reviewer']) {
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+      const server = createServer(store, role, { role });
+      const client = new Client({ name: role, version: '1' });
+      await server.connect(serverTransport); await client.connect(clientTransport); clients.push(client);
+    }
+    const [draft, reviewer] = clients;
+    assert.equal((await draft.listTools()).tools.some(item => item.name === 'ontology_changeset_reopen'), false);
+    assert.equal((await reviewer.listTools()).tools.some(item => item.name === 'ontology_changeset_reopen'), true);
+    const opened = (await draft.callTool({ name: 'ontology_changeset_open', arguments: { workspaceId: workspace.id, operationId: 'open', expectedRevision: 0, intent: 'Describe the record.' } })).structuredContent;
+    const id = opened.changeSet.id;
+    const applied = (await draft.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'edit', expectedRevision: 0, changeSetId: id, commands: [{ type: 'class.describe', name: 'Record', definition: 'A revised record.' }] } })).structuredContent;
+    assert.equal(applied.changeSetId, id);
+    await reviewer.callTool({ name: 'ontology_changeset_review', arguments: { workspaceId: workspace.id, operationId: 'reject', expectedRevision: 1, changeSetId: id, sourceDigest: applied.sourceDigest, decision: 'reject', reason: 'Needs revision.' } });
+    const reopened = await reviewer.callTool({ name: 'ontology_changeset_reopen', arguments: { workspaceId: workspace.id, operationId: 'reopen', expectedRevision: 1, changeSetId: id } });
+    assert.equal(reopened.structuredContent.changeSet.status, 'draft');
+  } finally { for (const client of clients) await client.close(); store.close(); }
+});
+
 test('two MCP clients share revisioned state and reject stale edits', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Shared', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });

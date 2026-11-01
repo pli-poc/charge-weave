@@ -98,6 +98,8 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS workspace_sources (workspace TEXT NOT NULL, path TEXT NOT NULL, baseline_content TEXT NOT NULL, content TEXT NOT NULL, PRIMARY KEY(workspace, path), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS saved_views (workspace TEXT NOT NULL, view_id TEXT NOT NULL, revision INTEGER NOT NULL, definition TEXT NOT NULL, PRIMARY KEY(workspace, view_id), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS view_receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    this.db.exec("CREATE TABLE IF NOT EXISTS change_sets (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, intent TEXT NOT NULL, requirements TEXT NOT NULL, base_revision INTEGER NOT NULL, status TEXT NOT NULL, review_id TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id))");
+    this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS one_open_change_set ON change_sets(workspace) WHERE status IN ('draft', 'accepted', 'rejected')");
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
@@ -204,13 +206,13 @@ export class WorkspaceStore {
   reviewDecisions(workspaceId) {
     const workspace = this.get(workspaceId);
     return this.db.prepare('SELECT id, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, actor, decision, reason, created_at AS createdAt FROM review_decisions WHERE workspace = ? ORDER BY rowid DESC LIMIT 100').all(workspaceId)
-      .map(row => ({ ...row, evidence: this.db.prepare('SELECT profile, job AS jobId FROM review_evidence WHERE review = ? ORDER BY profile').all(row.id), stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit }));
+      .map(row => ({ ...row, evidence: this.db.prepare('SELECT profile, job AS jobId FROM review_evidence WHERE review = ? ORDER BY profile').all(row.id), stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit || Boolean(row.decision === 'accept' && workspace.changeSet && (workspace.changeSet.reviewId !== row.id || !['accepted', 'published'].includes(workspace.changeSet.status))) }));
   }
   reviewDecision(workspaceId, reviewId) {
     const workspace = this.get(workspaceId);
     const row = this.db.prepare('SELECT id, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, actor, decision, reason, created_at AS createdAt FROM review_decisions WHERE workspace = ? AND id = ?').get(workspaceId, reviewId);
     if (!row) throw new Error('Review decision not found');
-    return { ...row, evidence: this.db.prepare('SELECT profile, job AS jobId FROM review_evidence WHERE review = ? ORDER BY profile').all(row.id), stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit };
+    return { ...row, evidence: this.db.prepare('SELECT profile, job AS jobId FROM review_evidence WHERE review = ? ORDER BY profile').all(row.id), stale: row.revision !== workspace.revision || row.sourceDigest !== workspace.sourceDigest || row.baselineCommit !== workspace.baselineCommit || Boolean(row.decision === 'accept' && workspace.changeSet && (workspace.changeSet.reviewId !== row.id || !['accepted', 'published'].includes(workspace.changeSet.status))) };
   }
   publication(workspaceId, publicationId) {
     const row = this.db.prepare('SELECT id, actor, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, review_id AS reviewId, preview_job AS previewJobId, branch, subject, body, state, commit_sha AS commitSha, pr_number AS prNumber, pr_status AS prStatus, created_at AS createdAt, updated_at AS updatedAt FROM publications WHERE workspace = ? AND id = ?').get(workspaceId, publicationId);
@@ -233,7 +235,7 @@ export class WorkspaceStore {
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const record = this.publication(workspaceId, publicationId);
-      if (record.state !== 'prepared' || record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept) throw new Error('Publication draft or review is stale');
+      if (record.state !== 'prepared' || record.stale || this.reviewDecision(workspaceId, record.reviewId).stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept) throw new Error('Publication draft or review is stale');
       this.db.prepare('INSERT INTO publication_bundles VALUES (?, ?, ?)').run(publicationId, hash(bundle), bundle);
       this.db.prepare("UPDATE publications SET state = 'commit_created', commit_sha = ?, updated_at = ? WHERE workspace = ? AND id = ?").run(commitSha, new Date().toISOString(), workspaceId, publicationId);
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: 'commit_created', commitSha }));
@@ -269,9 +271,10 @@ export class WorkspaceStore {
     try {
       const record = this.publication(workspaceId, publicationId);
       if (record.state !== expectedState) throw new Error('Publication state conflict');
-      if (['prepared', 'commit_created', 'pushed'].includes(expectedState) && (record.stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept)) throw new Error('Publication draft or review is stale');
+      if (['prepared', 'commit_created', 'pushed'].includes(expectedState) && (record.stale || this.reviewDecision(workspaceId, record.reviewId).stale || this.reviewDecisions(workspaceId)[0]?.id !== record.reviewId || !this.reviewReadiness(workspaceId).canAccept)) throw new Error('Publication draft or review is stale');
       if (record.commitSha && commitSha && record.commitSha !== commitSha) throw new Error('Publication commit cannot change');
       this.db.prepare('UPDATE publications SET state = ?, commit_sha = ?, updated_at = ? WHERE workspace = ? AND id = ?').run(nextState, record.commitSha ?? commitSha, new Date().toISOString(), workspaceId, publicationId);
+      if (nextState === 'pushed') this.db.prepare("UPDATE change_sets SET status = 'published', updated_at = ? WHERE workspace = ? AND status = 'accepted' AND review_id = ?").run(new Date().toISOString(), workspaceId, record.reviewId);
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, record.actor, record.revision, JSON.stringify({ type: 'publication', publicationId, state: nextState, commitSha: record.commitSha ?? commitSha }));
       const updated = this.publication(workspaceId, publicationId);
       this.db.exec('COMMIT'); return updated;
@@ -311,9 +314,9 @@ export class WorkspaceStore {
       this.db.exec('COMMIT'); return updated;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
-  recordReview(workspaceId, { actor, operationId, expectedRevision, sourceDigest: digest, decision, reason }) {
+  recordReview(workspaceId, { actor, operationId, expectedRevision, changeSetId, sourceDigest: digest, decision, reason }) {
     if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(digest ?? '') || !['accept', 'request_changes', 'reject'].includes(decision) || typeof reason !== 'string' || !reason.trim() || reason.length > 4000) throw new Error('Invalid review decision');
-    const requestHash = hash(JSON.stringify({ type: 'review', expectedRevision, digest, decision, reason }));
+    const requestHash = hash(JSON.stringify({ type: 'review', expectedRevision, digest, decision, reason, ...(changeSetId === undefined ? {} : { changeSetId }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
@@ -324,11 +327,14 @@ export class WorkspaceStore {
       }
       const workspace = this.get(workspaceId);
       if (workspace.revision !== expectedRevision || workspace.sourceDigest !== digest) throw new Error('Stale review input');
+      if (workspace.changeSet && (workspace.changeSet.id !== changeSetId || workspace.changeSet.status !== 'draft')) throw new Error('Change set is not editable');
+      if (!workspace.changeSet && changeSetId !== undefined) throw new Error('Change set not found');
       if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication operation is in progress');
       const readiness = decision === 'accept' ? this.reviewReadiness(workspaceId) : null;
       if (readiness && !readiness.canAccept) throw new Error(`Review gates incomplete: ${readiness.missing.join(', ')}`);
       const reviewId = randomUUID(), createdAt = new Date().toISOString();
       this.db.prepare('INSERT INTO review_decisions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(reviewId, workspaceId, workspace.baselineCommit, expectedRevision, digest, actor, decision, reason, createdAt);
+      if (workspace.changeSet) this.db.prepare('UPDATE change_sets SET status = ?, review_id = ?, updated_at = ? WHERE id = ?').run(decision === 'accept' ? 'accepted' : decision === 'reject' ? 'rejected' : 'draft', decision === 'accept' ? reviewId : null, createdAt, workspace.changeSet.id);
       if (readiness) for (const item of readiness.evidence) this.db.prepare('INSERT INTO review_evidence VALUES (?, ?, ?)').run(reviewId, item.profile, item.job.id);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify({ reviewId }));
       this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, expectedRevision, JSON.stringify({ type: 'review', reviewId, decision, sourceDigest: digest }));
@@ -381,12 +387,59 @@ export class WorkspaceStore {
       this.db.exec('COMMIT'); return workspace;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
+  latestChangeSet(workspaceId) {
+    const row = this.db.prepare('SELECT id, intent, requirements, base_revision AS baseRevision, status, review_id AS reviewId, created_at AS createdAt, updated_at AS updatedAt FROM change_sets WHERE workspace = ? ORDER BY rowid DESC LIMIT 1').get(workspaceId);
+    return row ? { ...row, requirements: JSON.parse(row.requirements) } : null;
+  }
+  openChangeSet({ workspaceId, actor, operationId, expectedRevision, intent, requirements = [] }) {
+    if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || typeof intent !== 'string' || !intent.trim() || intent.length > 1000 || !Array.isArray(requirements) || requirements.length > 100 || requirements.some(id => typeof id !== 'string' || !/^BR-[0-9]+$/.test(id)) || new Set(requirements).size !== requirements.length) throw new Error('Invalid change set request');
+    const requestHash = hash(JSON.stringify({ type: 'changeset.open', expectedRevision, intent, requirements }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT request_hash, result FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) { if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request'); this.db.exec('COMMIT'); return JSON.parse(receipt.result); }
+      const workspace = this.get(workspaceId);
+      if (workspace.revision !== expectedRevision) throw new Error('Stale revision');
+      if (this.latestChangeSet(workspaceId)) throw new Error('Workspace already has a change set');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'push_unknown', 'pr_pending', 'pr_unknown') LIMIT 1").get(workspaceId)) throw new Error('Publication operation is in progress or requires reconciliation');
+      if (requirements.length) {
+        const source = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(workspaceId, requirementsPath);
+        if (!source) throw new Error('Requirements source is unavailable');
+        const known = new Set(JSON.parse(source.content).map(item => item.id));
+        if (requirements.some(id => !known.has(id))) throw new Error('Change set references an unknown requirement');
+      }
+      const id = randomUUID(), now = new Date().toISOString();
+      this.db.prepare('INSERT INTO change_sets VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?)').run(id, workspaceId, intent.trim(), JSON.stringify(requirements), expectedRevision, 'draft', now, now);
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, workspace.revision, JSON.stringify({ type: 'changeset_opened', changeSetId: id, intent: intent.trim(), requirements }));
+      const result = { workspaceId, changeSet: this.latestChangeSet(workspaceId), revision: workspace.revision, sourceDigest: workspace.sourceDigest, eventSequence: Number(event.lastInsertRowid) };
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+  reopenChangeSet({ workspaceId, actor, operationId, expectedRevision, changeSetId }) {
+    if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !/^[0-9a-f-]{36}$/i.test(changeSetId ?? '')) throw new Error('Invalid change set request');
+    const requestHash = hash(JSON.stringify({ type: 'changeset.reopen', expectedRevision, changeSetId }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT request_hash, result FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) { if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request'); this.db.exec('COMMIT'); return JSON.parse(receipt.result); }
+      const workspace = this.get(workspaceId), current = this.latestChangeSet(workspaceId);
+      if (workspace.revision !== expectedRevision) throw new Error('Stale revision');
+      if (!current || current.id !== changeSetId || !['accepted', 'rejected'].includes(current.status)) throw new Error('Change set cannot be reopened');
+      if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'push_unknown', 'pr_pending', 'pr_unknown') LIMIT 1").get(workspaceId)) throw new Error('Publication operation is in progress or requires reconciliation');
+      this.db.prepare("UPDATE change_sets SET status = 'draft', review_id = NULL, updated_at = ? WHERE id = ?").run(new Date().toISOString(), changeSetId);
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, workspace.revision, JSON.stringify({ type: 'changeset_reopened', changeSetId }));
+      const result = { workspaceId, changeSet: this.latestChangeSet(workspaceId), revision: workspace.revision, sourceDigest: workspace.sourceDigest, eventSequence: Number(event.lastInsertRowid) };
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
   get(id) {
     const row = this.db.prepare('SELECT * FROM workspaces WHERE id = ?').get(id);
     if (!row) throw new Error('Workspace not found');
     const sources = this.db.prepare('SELECT path, content, baseline_content FROM workspace_sources WHERE workspace = ? ORDER BY path').all(id);
     const overlays = Object.fromEntries(sources.filter(source => source.content !== source.baseline_content).map(source => [source.path, source.content]));
-    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema, overlays) : null, editableSources: sources.map(source => source.path), sourceOverlays: overlays, schema: row.schema };
+    return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, digestVersion: row.digest_version, changeSet: this.latestChangeSet(id), sourceManifest: row.source_manifest ? candidateManifest(JSON.parse(row.source_manifest), row.schema, overlays) : null, editableSources: sources.map(source => source.path), sourceOverlays: overlays, schema: row.schema };
   }
   snapshot(id) {
     // Synchronous reads share the event loop with mutations, so identity and cursor
@@ -573,13 +626,13 @@ export class WorkspaceStore {
       viewpoint: 'responsibility', mappingVersion: responsibilityMappingVersion, bindings,
       coverage: 'partial', note: 'Only explicitly curated mappings are shown; absence does not prove that no other responsibility relationship exists.' };
   }
-  applyReviewerCase({ workspaceId, actor, operationId, expectedRevision, command }) {
-    return this.apply({ workspaceId, actor, operationId, expectedRevision, commands: [command], reviewerCase: true });
+  applyReviewerCase({ workspaceId, actor, operationId, expectedRevision, changeSetId, command }) {
+    return this.apply({ workspaceId, actor, operationId, expectedRevision, changeSetId, commands: [command], reviewerCase: true });
   }
-  apply({ workspaceId, actor, operationId, expectedRevision, commands, rationale, reviewerCase = false }) {
+  apply({ workspaceId, actor, operationId, expectedRevision, changeSetId, commands, rationale, reviewerCase = false }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
     if (rationale !== undefined && (typeof rationale !== 'string' || !rationale.trim() || rationale.length > 2000)) throw new Error('Invalid command rationale');
-    const requestHash = hash(JSON.stringify({ expectedRevision, commands, ...(rationale === undefined ? {} : { rationale }) }));
+    const requestHash = hash(JSON.stringify({ expectedRevision, commands, ...(changeSetId === undefined ? {} : { changeSetId }), ...(rationale === undefined ? {} : { rationale }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
@@ -589,6 +642,8 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
+      if (current.changeSet && (current.changeSet.id !== changeSetId || current.changeSet.status !== 'draft')) throw new Error('Change set is not editable');
+      if (!current.changeSet && changeSetId !== undefined) throw new Error('Change set not found');
       if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
       verifyAdapter(current);
       if (!Array.isArray(commands) || !commands.length || commands.length > 100) throw new Error('Invalid command group');
@@ -675,15 +730,15 @@ export class WorkspaceStore {
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
       this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays, after_schema, after_overlays) VALUES (?, ?, ?, ?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest, current.digestVersion === 4 ? JSON.stringify(current.sourceOverlays) : null, schema, current.digestVersion === 4 ? JSON.stringify(overlays) : null);
       const commandGroupId = randomUUID();
-      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, commandGroupId, operationId, ...(rationale === undefined ? {} : { rationale }), sourceDigest: digest }));
-      const result = { workspaceId, baselineCommit: current.baselineCommit, revision, sourceDigest: digest, commandGroupId, eventSequence: Number(event.lastInsertRowid) };
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, commandGroupId, operationId, ...(changeSetId === undefined ? {} : { changeSetId }), ...(rationale === undefined ? {} : { rationale }), sourceDigest: digest }));
+      const result = { workspaceId, baselineCommit: current.baselineCommit, revision, sourceDigest: digest, commandGroupId, ...(changeSetId === undefined ? {} : { changeSetId }), eventSequence: Number(event.lastInsertRowid) };
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
       this.db.exec('COMMIT'); return result;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
-  undo({ workspaceId, actor, operationId, expectedRevision, targetRevision }) {
+  undo({ workspaceId, actor, operationId, expectedRevision, targetRevision, changeSetId }) {
     if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(targetRevision)) throw new Error('Invalid undo identity');
-    const requestHash = hash(JSON.stringify({ type: 'undo', expectedRevision, targetRevision }));
+    const requestHash = hash(JSON.stringify({ type: 'undo', expectedRevision, targetRevision, ...(changeSetId === undefined ? {} : { changeSetId }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
@@ -693,6 +748,8 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision || targetRevision !== current.revision) throw new Error('Undo requires the latest revision');
+      if (current.changeSet && (current.changeSet.id !== changeSetId || current.changeSet.status !== 'draft')) throw new Error('Change set is not editable');
+      if (!current.changeSet && changeSetId !== undefined) throw new Error('Change set not found');
       if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');
       const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(workspaceId, targetRevision);
       if (!group || group.after_digest !== current.sourceDigest) throw new Error('Command group cannot be undone');

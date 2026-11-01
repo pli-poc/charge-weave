@@ -16,6 +16,9 @@ const cases = [
   [/^A validation job is already active for this workspace$/, 'JOB_IN_PROGRESS', 'A validation job is already active.', 'Wait for it to finish or request cancellation.'],
   [/^Responsibility mapping source is unavailable in this workspace$/, 'SOURCE_UNAVAILABLE', 'This workspace does not contain an editable responsibility mapping source.', 'Create a new workspace from a baseline containing the mapping source.'],
   [/^Command group cannot be undone$/, 'UNDO_CONFLICT', 'The command group cannot be safely undone.', 'Inspect current history and use an eligible latest command group.'],
+  [/^Change set is not editable$/, 'CHANGE_SET_LOCKED', 'The change set is not editable.', 'Ask a reviewer to reopen it, or create a new workspace after publication.'],
+  [/^Workspace already has a change set$/, 'CHANGE_SET_EXISTS', 'This workspace already has a change set.', 'Inspect its current status and reopen it if appropriate.'],
+  [/^Change set references an unknown requirement$/, 'UNKNOWN_REQUIREMENT', 'A requested requirement was not found.', 'Search the pinned requirement register and use an existing ID.'],
   [/^Invalid (?:class\.add|class\.describe|property\.add|property\.update|saved view|responsibility|workspace|search)/i, 'INVALID_COMMAND', 'The requested values are invalid or unsupported.', 'Review the supplied identifiers, source preconditions and supported contract.'],
 ];
 

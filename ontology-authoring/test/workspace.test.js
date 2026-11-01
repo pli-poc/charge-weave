@@ -13,6 +13,53 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('explicit change set locks accepted and rejected drafts until reviewer reopening', () => {
+  const repository = fileURLToPath(new URL('../..', import.meta.url));
+  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+  const baseline = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repository, encoding: 'utf8' });
+  const directory = mkdtempSync(join(tmpdir(), 'chargeweave-changeset-'));
+  const path = join(directory, 'workspace.sqlite');
+  let store = new WorkspaceStore(path);
+  try {
+    const workspace = store.create({ title: 'Change set', baselineCommit: commit, schema: baseline, sourceManifest: importSourceManifest(repository, commit) });
+    const open = { workspaceId: workspace.id, actor: 'draft', operationId: 'open', expectedRevision: 0, intent: 'Clarify a definition.', requirements: [] };
+    const opened = store.openChangeSet(open);
+    assert.deepEqual(store.openChangeSet(open), opened);
+    assert.equal(opened.changeSet.status, 'draft');
+    assert.equal(store.get(workspace.id).revision, 0);
+    assert.throws(() => store.openChangeSet({ ...open, operationId: 'another' }), /already has/);
+    const edit = { workspaceId: workspace.id, actor: 'draft', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A revised record.' }] };
+    assert.throws(() => store.apply(edit), /not editable/);
+    const edited = store.apply({ ...edit, changeSetId: opened.changeSet.id });
+    const reject = store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'reject', expectedRevision: 1, changeSetId: opened.changeSet.id, sourceDigest: edited.sourceDigest, decision: 'reject', reason: 'Needs revision.' });
+    assert.equal(reject.decision, 'reject');
+    assert.equal(store.get(workspace.id).changeSet.status, 'rejected');
+    store.close(); store = new WorkspaceStore(path);
+    assert.equal(store.get(workspace.id).changeSet.status, 'rejected');
+    assert.throws(() => store.apply({ ...edit, operationId: 'blocked', expectedRevision: 1, changeSetId: opened.changeSet.id }), /not editable/);
+    const reopen = { workspaceId: workspace.id, actor: 'reviewer', operationId: 'reopen', expectedRevision: 1, changeSetId: opened.changeSet.id };
+    assert.equal(store.reopenChangeSet(reopen).changeSet.status, 'draft');
+    assert.equal(store.reopenChangeSet(reopen).changeSet.status, 'draft');
+    let acceptanceJob;
+    for (const profile of ['structural', 'reference', 'audit', 'acceptance']) {
+      const job = store.createJob(workspace.id, 1, edited.sourceDigest, 'test', `job-${profile}`, profile).job;
+      store.updateJob(job.id, 'passed');
+      if (profile === 'acceptance') acceptanceJob = job.id;
+    }
+    const accepted = store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'accept', expectedRevision: 1, changeSetId: opened.changeSet.id, sourceDigest: edited.sourceDigest, decision: 'accept', reason: 'Reviewed the evidence.' });
+    assert.equal(store.get(workspace.id).changeSet.status, 'accepted');
+    assert.equal(accepted.stale, false);
+    const publicationId = randomUUID(), now = new Date().toISOString();
+    store.db.prepare('INSERT INTO publications (id, workspace, actor, baseline_commit, revision, digest, review_id, preview_job, branch, subject, body, state, commit_sha, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(publicationId, workspace.id, 'reviewer', commit, 1, edited.sourceDigest, accepted.id, acceptanceJob, 'synthetic-branch', 'Synthetic', 'Synthetic test', 'push_unknown', 'a'.repeat(40), now, now);
+    assert.throws(() => store.reopenChangeSet({ ...reopen, operationId: 'uncertain-push' }), /requires reconciliation/);
+    store.db.prepare("UPDATE publications SET state = 'commit_created' WHERE id = ?").run(publicationId);
+    store.reopenChangeSet({ ...reopen, operationId: 'reopen-accepted' });
+    assert.equal(store.reviewDecision(workspace.id, accepted.id).stale, true);
+    assert.throws(() => store.advancePublication(workspace.id, publicationId, 'commit_created', 'push_pending'), /review is stale/);
+    assert.equal(store.get(workspace.id).revision, 1);
+    assert.equal(store.get(workspace.id).sourceDigest, edited.sourceDigest);
+  } finally { store.close(); rmSync(directory, { recursive: true, force: true }); }
+});
 test('curated responsibility mappings refer to declared object relationships', () => {
   const model = readFileSync(fileURLToPath(new URL('../../model/domain.schema', import.meta.url)), 'utf8');
   const mappings = JSON.parse(readFileSync(fileURLToPath(new URL('../../model/responsibility-bindings.json', import.meta.url)), 'utf8'));

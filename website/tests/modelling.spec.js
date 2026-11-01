@@ -586,6 +586,9 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
     await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    await page.getByLabel('Change-set intent').fill('Clarify and extend the record.');
+    await page.getByRole('button', { name: 'Open change set' }).click();
+    await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
     await page.getByRole('button', { name: 'Hide navigator' }).click();
     await expect(page.getByRole('heading', { name: 'Discover concepts' })).not.toBeVisible();
     await page.getByRole('button', { name: 'Show navigator' }).click();
@@ -660,6 +663,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(page.getByRole('status')).toContainText('revision 4');
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
     await expect(historical).toHaveCount(0);
+    await page.getByLabel('Decision').selectOption('reject');
+    await page.getByLabel('Reason', { exact: true }).fill('The proposal needs revision.');
+    await page.getByRole('button', { name: 'Record reviewer decision' }).click();
+    await expect(page.getByText(/Clarify and extend the record. · rejected/)).toBeVisible();
+    await page.getByRole('button', { name: 'Reopen change set' }).click();
+    await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
     await page.route('**/events?**', route => route.abort());
     await page.route('**/mcp', route => route.abort());
     service.closeAllConnections();
