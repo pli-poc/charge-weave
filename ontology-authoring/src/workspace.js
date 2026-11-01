@@ -60,6 +60,13 @@ export class WorkspaceStore {
     if (!row) throw new Error('Workspace not found');
     return { id: row.id, title: row.title, baselineCommit: row.baseline_commit, revision: row.revision, sourceDigest: row.digest, schema: row.schema };
   }
+  snapshot(id) {
+    // Synchronous reads share the event loop with mutations, so identity and cursor
+    // describe the same committed state for this single-process store.
+    const workspace = this.get(id);
+    const row = this.db.prepare('SELECT COALESCE(MAX(sequence), 0) AS cursor FROM events WHERE workspace = ?').get(id);
+    return { ...workspace, eventSequence: row.cursor };
+  }
   search(id, query, limit = 25) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
     const workspace = this.get(id), needle = query.toLowerCase();

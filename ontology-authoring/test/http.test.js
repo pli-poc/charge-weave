@@ -26,6 +26,14 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const args = { workspaceId: workspace.id, operationId: 'network-edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'NetworkExample', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
     assert.equal((await second.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'NetworkExample' } })).structuredContent.results.length, 1);
+    const controller = new AbortController();
+    const feed = await fetch(new URL(`/events?workspaceId=${workspace.id}&after=0`, url), { headers: { authorization: `Bearer ${token}` }, signal: controller.signal });
+    assert.equal(feed.status, 200);
+    const reader = feed.body.getReader();
+    const chunk = new TextDecoder().decode((await reader.read()).value);
+    assert.match(chunk, /event: workspace-change/);
+    assert.match(chunk, /NetworkExample/);
+    controller.abort();
     for (const client of clients) await client.close();
   } finally { await new Promise(resolve => service.close(resolve)); store.close(); }
 });
