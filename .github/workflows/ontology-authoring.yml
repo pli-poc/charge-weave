@@ -20,3 +20,18 @@ jobs:
         working-directory: ontology-authoring
       - run: npm test
         working-directory: ontology-authoring
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.18.0'
+      - run: npm ci --prefix ontology-authoring
+      - run: npm ci --prefix client-runtime
+      - run: npm ci --prefix website
+      - run: npm run build --prefix website
+      - run: npx playwright install --with-deps chromium
+        working-directory: website
+      - run: npx playwright test tests/modelling.spec.js --project=desktop
+        working-directory: website
