@@ -40,6 +40,7 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python tools/test_domain_schema.py
       - run: python tools/test_authoring_adapter.py
+      - run: python tools/test_authoring_example_overrides.py
       - run: python tools/test_check_generated.py
       - run: npm test
         working-directory: ontology-authoring

@@ -40,7 +40,7 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 | `tools/build_rules.py`, `model/audit-rules.json`, `model/lifecycle-policies.json` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
 | Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | External platform crosswalks, actions/events and vocabulary shapes |
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |
-| `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
+| `tools/build_examples.py`, `model/authoring-example-overrides.json`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
 | `ontology/`, `validation/`, `model/`, `website/scripts/build-model.mjs` | Versioned browser model package, manifest, RDF graph asset and generated compatibility snapshot |
@@ -56,6 +56,11 @@ parses JSON, compares plain text after normalizing platform line endings, and co
 isomorphism. Blank-node identifiers and statement ordering may change without
 changing meaning. Schema source extensions must be idempotent. Missing or stale
 outputs fail CI. The reference fixture selects controlled values deterministically.
+The optional authoring example overrides are bounded synthetic UTC date-time values
+for declared class fields; they apply to subclasses and reject conflicting values.
+They keep generated examples reproducible, but do not replace independently reviewed
+positive and negative business cases. Run `python tools/test_authoring_example_overrides.py`
+when changing the override contract.
 `python tools/test_domain_schema.py` checks the parser against the committed
 catalogue and exercises invalid inputs. The temporal contract digest includes
 the parser source so changes to parsing invalidate temporal evidence.
