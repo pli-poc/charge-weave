@@ -109,7 +109,7 @@ export default function ModellingStudio() {
   async function runChecks() {
     setError('');
     try {
-      let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_start', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest } });
+      let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_start', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest } });
       let current = response.structuredContent;
       setJob(current);
       while (current.status === 'queued' || current.status === 'running') {

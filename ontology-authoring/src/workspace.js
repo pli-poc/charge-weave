@@ -58,12 +58,25 @@ export class WorkspaceStore {
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running');`);
   }
   close() { this.db.close(); }
-  createJob(id, revision, digest) {
-    const workspace = this.get(id);
-    if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
-    const jobId = randomUUID();
-    this.db.prepare('INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '');
-    return this.job(id, jobId);
+  createJob(id, revision, digest, actor, operationId) {
+    if (!actor || !operationId) throw new Error('Invalid validation identity');
+    const requestHash = hash(JSON.stringify({ type: 'validation.start', revision, digest }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(id, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        const job = this.job(id, JSON.parse(receipt.result).jobId);
+        this.db.exec('COMMIT'); return { job, created: false };
+      }
+      const workspace = this.get(id);
+      if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
+      const jobId = randomUUID();
+      this.db.prepare('INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '');
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(id, actor, operationId, requestHash, JSON.stringify({ jobId }));
+      const job = this.job(id, jobId);
+      this.db.exec('COMMIT'); return { job, created: true };
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   job(workspaceId, jobId) {
     const row = this.db.prepare('SELECT id, workspace, revision, digest, status, output FROM jobs WHERE workspace = ? AND id = ?').get(workspaceId, jobId);
