@@ -41,6 +41,11 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const args = { workspaceId: workspace.id, operationId: 'network-edit', expectedRevision: 0, commands: [{ type: 'class.add', name: 'NetworkExample', module: 'foundation', parent: 'Record', definition: 'An example.' }] };
     assert.equal((await first.callTool({ name: 'ontology_changeset_apply', arguments: args })).structuredContent.revision, 1);
     assert.equal((await second.callTool({ name: 'ontology_context_search', arguments: { workspaceId: workspace.id, query: 'NetworkExample' } })).structuredContent.results.length, 1);
+    const viewArgs = { workspaceId: workspace.id, viewId: 'default', operationId: 'network-view', expectedViewRevision: 0, definition: { root: 'NetworkExample', positions: { NetworkExample: { x: 12, y: 34 } } } };
+    assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: { ...viewArgs, workspaceId: other.id } })).isError, true);
+    assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: viewArgs })).structuredContent.viewRevision, 1);
+    assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_get', arguments: { workspaceId: workspace.id, viewId: 'default' } })).structuredContent.definition, viewArgs.definition);
+    assert.equal(store.get(workspace.id).revision, 1);
     const controller = new AbortController();
     const feed = await fetch(new URL(`/events?workspaceId=${workspace.id}&after=0`, url), { headers: { authorization: `Bearer ${token}` }, signal: controller.signal });
     assert.equal(feed.status, 200);

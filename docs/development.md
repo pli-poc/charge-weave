@@ -77,6 +77,14 @@ the description into the catalogue, structural SHACL property shape and domain
 dictionary. Relationship authoring writes this line together with the field in
 one revision; older contracts without descriptions remain valid.
 
+The modelling service stores shared presentation views separately from semantic
+source edits. `ontology_view_save` requires a view ID, idempotency key and the
+expected view revision; a conflicting save must be reloaded before retrying.
+The current studio saves a default root and bounded node positions, and
+`ontology_view_saved_get` reads them. Saving a view emits an activity event but
+does not change the workspace's semantic revision or source digest. View groups,
+annotations and named-view management are not yet available in the browser.
+
 ## Workflow gates
 
 | GitHub Actions job | What it establishes |

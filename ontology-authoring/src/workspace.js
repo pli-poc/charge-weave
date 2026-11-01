@@ -96,6 +96,8 @@ export class WorkspaceStore {
     this.db.exec('CREATE TABLE IF NOT EXISTS job_artifacts (job TEXT PRIMARY KEY, summary TEXT NOT NULL, FOREIGN KEY(job) REFERENCES jobs(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS job_generated_files (job TEXT NOT NULL, path TEXT NOT NULL, sha256 TEXT NOT NULL, content BLOB NOT NULL, PRIMARY KEY(job, path), FOREIGN KEY(job) REFERENCES jobs(id))');
     this.db.exec('CREATE TABLE IF NOT EXISTS workspace_sources (workspace TEXT NOT NULL, path TEXT NOT NULL, baseline_content TEXT NOT NULL, content TEXT NOT NULL, PRIMARY KEY(workspace, path), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS saved_views (workspace TEXT NOT NULL, view_id TEXT NOT NULL, revision INTEGER NOT NULL, definition TEXT NOT NULL, PRIMARY KEY(workspace, view_id), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
+    this.db.exec('CREATE TABLE IF NOT EXISTS view_receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
@@ -497,6 +499,35 @@ export class WorkspaceStore {
         changeStatus: !before ? 'added' : JSON.stringify(before) === JSON.stringify(item) ? 'unchanged' : 'changed' };
     });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, viewpoint: 'information', mappingVersion: 'chargeweave-authoring-v1', root, nodes, edges: visible, omitted: edges.length - visible.length };
+  }
+  savedView(workspaceId, viewId) {
+    this.get(workspaceId);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(viewId ?? '')) throw new Error('Invalid view ID');
+    const row = this.db.prepare('SELECT revision, definition FROM saved_views WHERE workspace = ? AND view_id = ?').get(workspaceId, viewId);
+    return { workspaceId, viewId, viewRevision: row?.revision ?? 0, definition: row ? JSON.parse(row.definition) : null };
+  }
+  saveView({ workspaceId, viewId, actor, operationId, expectedViewRevision, definition }) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(viewId ?? '') || typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || operationId.length > 128 || !Number.isSafeInteger(expectedViewRevision) || expectedViewRevision < 0) throw new Error('Invalid saved view request');
+    if (!definition || Object.keys(definition).sort().join(',') !== 'positions,root' || !identifier.test(definition.root ?? '') || !definition.positions || typeof definition.positions !== 'object' || Array.isArray(definition.positions)) throw new Error('Invalid saved view definition');
+    const entries = Object.entries(definition.positions);
+    if (entries.length > 500 || entries.some(([name, point]) => !identifier.test(name) || !point || typeof point !== 'object' || Object.keys(point).sort().join(',') !== 'x,y' || !Number.isFinite(point.x) || !Number.isFinite(point.y) || Math.abs(point.x) > 100000 || Math.abs(point.y) > 100000)) throw new Error('Invalid saved view positions');
+    const normalized = { root: definition.root, positions: Object.fromEntries(entries.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+    const requestHash = hash(JSON.stringify({ viewId, expectedViewRevision, definition: normalized }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT request_hash, result FROM view_receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) { if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request'); this.db.exec('COMMIT'); return JSON.parse(receipt.result); }
+      const workspace = this.get(workspaceId), classes = parse(workspace.schema).classes;
+      if (!classes.has(normalized.root) || entries.some(([name]) => !classes.has(name))) throw new Error('Saved view references an unknown concept');
+      const current = this.savedView(workspaceId, viewId);
+      if (current.viewRevision !== expectedViewRevision) throw new Error('Saved view revision conflict');
+      const viewRevision = current.viewRevision + 1;
+      this.db.prepare('INSERT INTO saved_views (workspace, view_id, revision, definition) VALUES (?, ?, ?, ?) ON CONFLICT(workspace, view_id) DO UPDATE SET revision = excluded.revision, definition = excluded.definition').run(workspaceId, viewId, viewRevision, JSON.stringify(normalized));
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, workspace.revision, JSON.stringify({ type: 'view_saved', viewId, viewRevision }));
+      const result = { workspaceId, viewId, viewRevision, definition: normalized, semanticRevision: workspace.revision, eventSequence: Number(event.lastInsertRowid) };
+      this.db.prepare('INSERT INTO view_receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   temporalView(id, root, expectedRevision, repository) {
     const workspace = this.get(id);
