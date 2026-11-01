@@ -8,14 +8,17 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
   const token = 'test-token-'.repeat(4);
-  const service = createHttpService({ store, token, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); target.updateJob(job.id, 'passed'); } });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
-    await page.getByLabel('Local service').fill(`http://127.0.0.1:${service.address().port}`);
-    await page.getByLabel('Workspace ID').fill(workspace.id);
-    await page.getByLabel('Draft token').fill(token);
-    await page.getByRole('button', { name: 'Connect' }).click();
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 0');
+    const cookies = await page.context().cookies();
+    expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
+    await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 0');
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
@@ -60,5 +63,8 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.unroute('**/events?**');
     await expect(page.getByRole('status')).toContainText('Connected');
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Disconnect' }).click();
+    await expect(page.getByRole('status')).toContainText('Disconnected');
+    expect((await page.context().cookies()).some(cookie => cookie.name === 'cw_studio')).toBe(false);
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });

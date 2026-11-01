@@ -4,16 +4,19 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { createServer } from './mcp.js';
 import { runGenerator } from './validation.js';
 import { serveStudio } from './static.js';
+import { PairingSessions } from './pairing.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator }) {
+export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
   store.get(workspaceId);
   if (reviewerToken !== undefined && (typeof reviewerToken !== 'string' || Buffer.byteLength(reviewerToken) < 32 || reviewerToken === token)) throw new Error('Reviewer token must be distinct and at least 32 bytes');
+  if (pairingCode && (pairingCode === token || pairingCode === reviewerToken)) throw new Error('Pairing code must be distinct from bearer credentials');
   const secret = Buffer.from(token);
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
+  const pairing = pairingCode ? new PairingSessions(pairingCode) : null;
   const scopedStore = new Proxy(store, {
     get(target, property) {
       const member = target[property];
@@ -40,12 +43,42 @@ export function createHttpService({ store, token, reviewerToken, allowedOrigin, 
     }
     if (req.method === 'OPTIONS' && origin) { res.writeHead(204).end(); return; }
     if (await serveStudio(req, res, staticDirectory)) return;
+    const url = new URL(req.url, 'http://127.0.0.1');
+    const localOrigin = `http://${req.headers.host}`;
+    if (url.pathname === '/pair' && req.method === 'POST') {
+      if (!pairing || origin !== localOrigin || !/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] ?? '')) { res.writeHead(403).end('Pairing unavailable'); return; }
+      let body = '';
+      try {
+        for await (const chunk of req) { body += chunk.toString('utf8'); if (Buffer.byteLength(body) > 1024) throw new Error('Too large'); }
+        const data = JSON.parse(body);
+        const session = pairing.pair(data.code);
+        if (!session) { res.writeHead(403).end('Invalid or expired pairing code'); return; }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Set-Cookie': `cw_studio=${session.id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800` });
+        res.end(JSON.stringify({ workspaceId, csrf: session.csrf }));
+      } catch { if (!res.headersSent) res.writeHead(400).end('Invalid pairing request'); }
+      return;
+    }
+    const cookies = (req.headers.cookie ?? '').split(';').map(item => item.trim()).filter(item => item.startsWith('cw_studio='));
+    const sessionId = cookies.length === 1 ? cookies[0].slice('cw_studio='.length) : '';
+    const session = /^[A-Za-z0-9_-]{43}$/.test(sessionId) ? pairing?.get(sessionId) : null;
+    if (url.pathname === '/session' && req.method === 'GET') {
+      if (!session || req.headers['sec-fetch-site'] !== 'same-origin' || (origin && origin !== localOrigin)) { res.writeHead(403).end('Session unavailable'); return; }
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ workspaceId, csrf: session.csrf })); return;
+    }
     const authorization = req.headers.authorization ?? '';
     const supplied = Buffer.from(authorization.startsWith('Bearer ') ? authorization.slice(7) : '');
     const matches = candidate => candidate && supplied.length === candidate.length && timingSafeEqual(supplied, candidate);
-    const role = matches(secret) ? 'draft' : matches(reviewerSecret) ? 'reviewer' : null;
+    const csrfHeader = req.headers['x-csrf-token'];
+    const csrfBytes = Buffer.from(typeof csrfHeader === 'string' ? csrfHeader : '');
+    const expectedCsrf = session ? Buffer.from(session.csrf) : null;
+    const csrfValid = expectedCsrf && csrfBytes.length === expectedCsrf.length && timingSafeEqual(csrfBytes, expectedCsrf);
+    const cookieAuthorized = session && (!origin || origin === localOrigin) && csrfValid && (req.method !== 'POST' || origin === localOrigin);
+    const role = matches(secret) ? 'draft' : matches(reviewerSecret) ? 'reviewer' : cookieAuthorized ? 'reviewer' : null;
     if (!role) { res.writeHead(401).end('Unauthorized'); return; }
-    const url = new URL(req.url, 'http://127.0.0.1');
+    if (url.pathname === '/session' && req.method === 'DELETE' && cookieAuthorized) {
+      pairing.revoke(sessionId); res.writeHead(204, { 'Set-Cookie': 'cw_studio=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0', 'Cache-Control': 'no-store' }).end(); return;
+    }
     if (url.pathname === '/events' && req.method === 'GET') {
       const requestedWorkspace = url.searchParams.get('workspaceId');
       const cursor = req.headers['last-event-id'] ?? url.searchParams.get('after') ?? '0';

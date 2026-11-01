@@ -3,10 +3,14 @@ import { classifyEvent } from './model/event-cursor.js';
 import './modelling-studio.css';
 
 // Stateless MCP Streamable HTTP requests; the token stays in component memory.
+function authHeaders(credential) {
+  return typeof credential === 'string' ? { Authorization: `Bearer ${credential}` } : { 'X-CSRF-Token': credential.csrf };
+}
 async function call(endpoint, token, method, params, signal) {
   const response = await fetch(`${endpoint}/mcp`, {
     method: 'POST', signal,
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', Authorization: `Bearer ${token}`, 'MCP-Protocol-Version': '2025-06-18' },
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...authHeaders(token), 'MCP-Protocol-Version': '2025-06-18' },
     body: JSON.stringify({ jsonrpc: '2.0', id: crypto.randomUUID(), method, params }),
   });
   if (!response.ok) throw new Error(`Service returned ${response.status}`);
@@ -33,6 +37,7 @@ function NeighbourhoodDiagram({ graph }) {
 export default function ModellingStudio() {
   const [endpoint, setEndpoint] = useState(() => window.location.hostname === '127.0.0.1' && !['4173', '5173'].includes(window.location.port) ? window.location.origin : 'http://127.0.0.1:4317');
   const [token, setToken] = useState('');
+  const [pairingCode, setPairingCode] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
   const [connection, setConnection] = useState(null);
   const [snapshot, setSnapshot] = useState(null);
@@ -53,6 +58,19 @@ export default function ModellingStudio() {
   const [error, setError] = useState('');
   const cursor = useRef(0);
   const currentRevision = useRef(null);
+
+  useEffect(() => {
+    if (window.location.protocol !== 'http:' || window.location.hostname !== '127.0.0.1') return undefined;
+    const abort = new AbortController();
+    fetch('/session', { credentials: 'same-origin', signal: abort.signal }).then(async response => {
+      if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) return;
+      const session = await response.json();
+      setWorkspaceId(session.workspaceId);
+      setEndpoint(window.location.origin);
+      setConnection({ endpoint: window.location.origin, token: { csrf: session.csrf }, workspaceId: session.workspaceId });
+    }).catch(() => {});
+    return () => abort.abort();
+  }, []);
 
   useEffect(() => {
     if (!connection) return undefined;
@@ -82,7 +100,7 @@ export default function ModellingStudio() {
         while (!abort.signal.aborted) {
           try {
             if (needsRefresh) { await refresh(); needsRefresh = false; }
-            const response = await fetch(`${url}/events?workspaceId=${encodeURIComponent(id)}&after=${cursor.current}`, { headers: { Authorization: `Bearer ${credential}` }, signal: abort.signal });
+            const response = await fetch(`${url}/events?workspaceId=${encodeURIComponent(id)}&after=${cursor.current}`, { headers: authHeaders(credential), credentials: 'same-origin', signal: abort.signal });
             if (!response.ok || !response.body) throw new Error(`Event feed returned ${response.status}`);
             setStatus('Connected');
             setOnline(true);
@@ -236,9 +254,35 @@ export default function ModellingStudio() {
       setConnection({ endpoint: url.origin, token, workspaceId });
     } catch (problem) { setError(problem.message); setStatus('Disconnected'); }
   }
+  async function pair(event) {
+    event.preventDefault(); setError(''); setOnline(false); setStatus('Connecting');
+    try {
+      if (window.location.protocol !== 'http:' || window.location.hostname !== '127.0.0.1') throw new Error('Open the local studio URL before pairing.');
+      const response = await fetch('/pair', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: pairingCode }) });
+      if (!response.ok) throw new Error('Pairing code is invalid, expired, or unavailable.');
+      const session = await response.json();
+      setPairingCode(''); setWorkspaceId(session.workspaceId); setEndpoint(window.location.origin);
+      setConnection({ endpoint: window.location.origin, token: { csrf: session.csrf }, workspaceId: session.workspaceId });
+    } catch (problem) { setStatus('Disconnected'); setError(problem.message); }
+  }
+  async function disconnect() {
+    let revokeFailed = false;
+    if (connection && typeof connection.token !== 'string') {
+      try {
+        const response = await fetch('/session', { method: 'DELETE', credentials: 'same-origin', headers: authHeaders(connection.token) });
+        revokeFailed = !response.ok;
+      } catch { revokeFailed = true; }
+    }
+    setConnection(null); setOnline(false); setSnapshot(null); setSelected(null); setStatus('Disconnected');
+    if (revokeFailed) setError('Could not confirm session revocation. Reconnect and try Disconnect again, or restart the service.');
+  }
   return <main id="main" className="container modelling-studio">
     <h1>Ontology modelling studio</h1>
     <p>Use Codex to propose changes; inspect and refine them here.</p>
+    <form className="studio-connect" onSubmit={pair}>
+      <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
+      <button type="submit">Pair local studio</button>
+    </form>
     <form className="studio-connect" onSubmit={connect}>
       <label>Local service <input value={endpoint} onChange={event => setEndpoint(event.target.value)} required /></label>
       <label>Workspace ID <input value={workspaceId} onChange={event => setWorkspaceId(event.target.value)} required /></label>
@@ -246,6 +290,7 @@ export default function ModellingStudio() {
       <button type="submit">Connect</button>
     </form>
     <p role="status">{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
+    {connection && <button type="button" onClick={disconnect}>Disconnect</button>}
     {error && <p role="alert">{error}</p>}
     {snapshot && <fieldset className="studio-workspace" disabled={!online}><legend className="sr-only">Modelling workspace</legend><div className="studio-panels">
       <section><h2>Discover concepts</h2><form onSubmit={search}><label>Search model <input value={query} onChange={event => setQuery(event.target.value)} /></label><button>Search</button></form>
