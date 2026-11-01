@@ -41,5 +41,9 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByRole('button', { name: 'Add field' }).click();
     await expect(page.getByRole('status')).toContainText('revision 3');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('windowNote:string?');
+    await page.getByRole('button', { name: 'Undo latest command group' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 4');
+    expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
+    await expect(page.getByText(/undid revision 3/)).toBeVisible();
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });

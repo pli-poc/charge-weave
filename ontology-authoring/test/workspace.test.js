@@ -37,6 +37,20 @@ test('typed fields reject unknown targets and reused global properties atomicall
   store.close();
 });
 
+test('undo restores the latest group as an idempotent new revision', () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Undo', baselineCommit: 'a'.repeat(40), schema });
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Changed.' }] });
+  const request = { workspaceId: workspace.id, actor: 'test', operationId: 'undo', expectedRevision: 1, targetRevision: 1 };
+  const result = store.undo(request);
+  assert.equal(result.revision, 2);
+  assert.equal(store.get(workspace.id).schema, schema);
+  assert.deepEqual(store.undo(request), result);
+  assert.throws(() => store.undo({ ...request, operationId: 'again', expectedRevision: 2 }), /latest revision/);
+  assert.equal(store.events(workspace.id)[1].payload.type, 'undo');
+  store.close();
+});
+
 test('real repository schema is searchable and receipts survive restart', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-workspace-'));
   try {

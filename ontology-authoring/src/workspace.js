@@ -57,6 +57,7 @@ export class WorkspaceStore {
       CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT NOT NULL, actor TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id));`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL, status TEXT NOT NULL, output TEXT NOT NULL, FOREIGN KEY(workspace) REFERENCES workspaces(id)); UPDATE jobs SET status = 'interrupted' WHERE status IN ('queued', 'running');`);
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
+    this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
   }
   close() { this.db.close(); }
   createJob(id, revision, digest, actor, operationId, profile = 'structural') {
@@ -153,7 +154,30 @@ export class WorkspaceStore {
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
       const schema = apply(current.schema, commands), revision = current.revision + 1, digest = sourceDigest(schema);
       this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
+      this.db.prepare('INSERT INTO command_groups VALUES (?, ?, ?, ?)').run(workspaceId, revision, current.schema, digest);
       const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ commands, sourceDigest: digest }));
+      const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
+  undo({ workspaceId, actor, operationId, expectedRevision, targetRevision }) {
+    if (!actor || !operationId || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(targetRevision)) throw new Error('Invalid undo identity');
+    const requestHash = hash(JSON.stringify({ type: 'undo', expectedRevision, targetRevision }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        this.db.exec('COMMIT'); return JSON.parse(receipt.result);
+      }
+      const current = this.get(workspaceId);
+      if (current.revision !== expectedRevision || targetRevision !== current.revision) throw new Error('Undo requires the latest revision');
+      const group = this.db.prepare('SELECT * FROM command_groups WHERE workspace = ? AND revision = ?').get(workspaceId, targetRevision);
+      if (!group || group.after_digest !== current.sourceDigest) throw new Error('Command group cannot be undone');
+      const revision = current.revision + 1, digest = sourceDigest(group.before_schema);
+      this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(group.before_schema, revision, digest, workspaceId);
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ type: 'undo', targetRevision, sourceDigest: digest }));
       const result = { workspaceId, revision, sourceDigest: digest, eventSequence: Number(event.lastInsertRowid) };
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
       this.db.exec('COMMIT'); return result;
@@ -163,5 +187,9 @@ export class WorkspaceStore {
     this.get(id);
     if (!Number.isSafeInteger(after) || after < 0) throw new Error('Invalid cursor');
     return this.db.prepare('SELECT sequence, actor, revision, payload FROM events WHERE workspace = ? AND sequence > ? ORDER BY sequence LIMIT 100').all(id, after).map(row => ({ ...row, payload: JSON.parse(row.payload) }));
+  }
+  recentEvents(id) {
+    this.get(id);
+    return this.db.prepare('SELECT sequence, actor, revision, payload FROM events WHERE workspace = ? ORDER BY sequence DESC LIMIT 100').all(id).reverse().map(row => ({ ...row, payload: JSON.parse(row.payload) }));
   }
 }

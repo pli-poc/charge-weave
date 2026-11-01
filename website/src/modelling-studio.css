@@ -13,4 +13,5 @@
 .studio-diagram rect { fill: white; stroke: #147d70; stroke-width: 2; }
 .studio-diagram line { stroke: #147d70; stroke-width: 2; }
 .studio-diagram text { fill: #183a39; font-size: 13px; }
+.studio-activity { margin-top: 1rem; padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; }
 @media (max-width: 900px) { .studio-panels { grid-template-columns: 1fr; } }
