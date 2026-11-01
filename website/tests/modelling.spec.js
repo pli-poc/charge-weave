@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 
 test('browser updates a field with a visible compatibility warning', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\n' });
+  const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string? peer:Record?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -27,6 +27,9 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText(/recordName: potentially-breaking/)).toBeVisible();
     await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
+    await page.getByRole('button', { name: 'Require peer' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    expect(store.get(workspace.id).schema).toContain('peer:Record!');
   } finally { await page.close(); await new Promise(resolve => service.close(resolve)); store.close(); }
 });
 

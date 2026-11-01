@@ -31,6 +31,18 @@ test('two MCP clients share revisioned state and reject stale edits', async () =
   const updateField = { workspaceId: workspace.id, operationId: 'update', expectedRevision: 2, commands: [{ type: 'property.update', owner: 'Example', name: 'exampleLabel', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' }] };
   assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: updateField })).structuredContent.revision, 3);
   assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: { ...updateField, operationId: 'bad-precondition', expectedRevision: 3 } })).isError, true);
+  const templates = await codex.callTool({ name: 'ontology_constraint_templates', arguments: { workspaceId: workspace.id } });
+  assert.ok(templates.structuredContent.templates.some(item => item.id === 'required-relationship'));
+  const addRelation = { workspaceId: workspace.id, operationId: 'relation', expectedRevision: 3, commands: [{ type: 'relationship.add', owner: 'Example', name: 'relatedRecord', range: 'Record', cardinality: '?' }] };
+  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: addRelation })).structuredContent.revision, 4);
+  const requireRelation = { workspaceId: workspace.id, operationId: 'constraint', expectedRevision: 4, commands: [{ type: 'constraint.add', template: 'required-relationship', owner: 'Example', name: 'relatedRecord', expectedRange: 'Record', expectedCardinality: '?' }] };
+  assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: requireRelation })).structuredContent.revision, 5);
+  assert.match(store.get(workspace.id).schema, /relatedRecord:Record!/);
+  const addEnum = { workspaceId: workspace.id, operationId: 'enum', expectedRevision: 5, commands: [{ type: 'property.add', owner: 'Example', name: 'exampleState', range: '{Draft,Final,Archived}', cardinality: '?' }] };
+  assert.equal((await codex.callTool({ name: 'ontology_changeset_apply', arguments: addEnum })).structuredContent.revision, 6);
+  const narrow = { workspaceId: workspace.id, operationId: 'narrow', expectedRevision: 6, commands: [{ type: 'constraint.add', template: 'allowed-values', owner: 'Example', name: 'exampleState', expectedRange: '{Draft,Final,Archived}', expectedCardinality: '?', values: ['Draft', 'Final'] }] };
+  assert.equal((await browser.callTool({ name: 'ontology_changeset_apply', arguments: narrow })).structuredContent.revision, 7);
+  assert.match(store.get(workspace.id).schema, /exampleState:\{Draft,Final\}\?/);
   for (const client of clients) await client.close();
   store.close();
 });

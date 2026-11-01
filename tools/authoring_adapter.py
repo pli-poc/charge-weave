@@ -8,6 +8,10 @@ from domain_schema import parse_schema
 DATATYPES = {'string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI', 'IRI'}
 IDENTIFIER = re.compile(r'^[A-Za-z][A-Za-z0-9]*$')
 ENUM = re.compile(r'^\{([A-Za-z][A-Za-z0-9]*(?:,[A-Za-z][A-Za-z0-9]*)+)\}$')
+TEMPLATES = [
+    {'id': 'required-relationship', 'description': 'Require an existing optional object relationship while preserving its maximum cardinality.', 'sourceOwner': 'model/domain.schema', 'compiler': 'tools/build.py', 'testFactory': 'structural-positive-and-missing-relationship'},
+    {'id': 'allowed-values', 'description': 'Narrow an existing controlled-value set to a strict subset containing at least two values.', 'sourceOwner': 'model/domain.schema', 'compiler': 'tools/build.py', 'testFactory': 'structural-positive-and-disallowed-value'},
+]
 
 
 def apply_commands(schema, commands):
@@ -42,6 +46,25 @@ def apply_commands(schema, commands):
             parts = lines[index].split('|')
             parts[3] = ' '.join(filter(None, [parts[3], f'{name}:{target}{cardinality}']))
             lines[index] = '|'.join(parts)
+        elif kind == 'constraint.add':
+            template = command.get('template')
+            owner, name, old_range, old_cardinality = (command.get(key) for key in ('owner', 'name', 'expectedRange', 'expectedCardinality'))
+            common = {'type', 'template', 'owner', 'name', 'expectedRange', 'expectedCardinality'}
+            if template == 'required-relationship':
+                if set(command) != common or old_range not in classes or old_cardinality not in ('?', '*'):
+                    raise ValueError('Invalid required-relationship template')
+                target, cardinality = old_range, {'?': '!', '*': '+'}[old_cardinality]
+            elif template == 'allowed-values':
+                match = ENUM.fullmatch(old_range) if isinstance(old_range, str) else None
+                values = command.get('values')
+                existing = match.group(1).split(',') if match else []
+                if set(command) != common | {'values'} or not isinstance(values, list) or not 2 <= len(values) <= 50 or any(not isinstance(value, str) or not IDENTIFIER.fullmatch(value) for value in values) or len(values) != len(set(values)) or not set(values) < set(existing) or old_cardinality not in ('!', '?', '+', '*'):
+                    raise ValueError('Invalid allowed-values template')
+                target, cardinality = '{' + ','.join(values) + '}', old_cardinality
+            else:
+                raise ValueError('Unsupported constraint template')
+            candidate = apply_commands('\n'.join(lines), [{'type': 'property.update', 'owner': owner, 'name': name, 'expectedRange': old_range, 'expectedCardinality': old_cardinality, 'range': target, 'cardinality': cardinality}])
+            lines = candidate.split('\n')
         elif kind == 'property.update':
             owner, name, old_range, old_cardinality, target, cardinality = (command.get(key) for key in ('owner', 'name', 'expectedRange', 'expectedCardinality', 'range', 'cardinality'))
             match = ENUM.fullmatch(target) if isinstance(target, str) else None
@@ -104,6 +127,8 @@ def main():
             result = {'schema': apply_commands(request['schema'], request['commands'])}
         elif request['action'] == 'inspect':
             result = {'entity': inspect_entity(request['schema'], request['name'])}
+        elif request['action'] == 'templates':
+            result = {'templates': TEMPLATES}
         else:
             raise ValueError('Unsupported adapter action')
     except (ValueError, TypeError, KeyError, AssertionError, StopIteration) as error:

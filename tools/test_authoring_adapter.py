@@ -1,5 +1,13 @@
 """Tests for bounded, source-preserving schema commands."""
 import unittest
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from shutil import copy2
+
+from rdflib import Graph, Namespace, RDF
+from pyshacl import validate
 
 from authoring_adapter import apply_commands, inspect_entity
 
@@ -61,6 +69,42 @@ class AuthoringAdapterTests(unittest.TestCase):
         self.assertIn('related:Device*', apply_commands(schema, [command]))
         with self.assertRaisesRegex(ValueError, 'precondition'):
             apply_commands(schema.replace('related:Record?', 'related:Record? related:Device*'), [command])
+
+    def test_templates_compile_to_non_vacuous_structural_checks(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|related:Record? state:{Draft,Final,Archived}?\n'
+        commands = [
+            {'type': 'constraint.add', 'template': 'required-relationship', 'owner': 'Device', 'name': 'related', 'expectedRange': 'Record', 'expectedCardinality': '?'},
+            {'type': 'constraint.add', 'template': 'allowed-values', 'owner': 'Device', 'name': 'state', 'expectedRange': '{Draft,Final,Archived}', 'expectedCardinality': '?', 'values': ['Draft', 'Final']},
+        ]
+        candidate = apply_commands(schema, commands)
+        self.assertIn('related:Record! state:{Draft,Final}?', candidate)
+        with self.assertRaisesRegex(ValueError, 'Invalid allowed-values'):
+            apply_commands(schema, [{**commands[1], 'values': ['Draft', 'Unknown']}])
+        with self.assertRaisesRegex(ValueError, 'Invalid required-relationship'):
+            apply_commands(schema, [{**commands[0], 'expectedRange': 'string'}])
+        with tempfile.TemporaryDirectory(prefix='chargeweave-template-test-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            shapes = Graph().parse(root / 'validation/structure.shacl.ttl')
+            cd = Namespace('https://example.org/charge-domain#')
+            ex = Namespace('https://example.org/test/')
+            sh = Namespace('http://www.w3.org/ns/shacl#')
+            valid = Graph()
+            valid.add((ex.device, RDF.type, cd.Device)); valid.add((ex.target, RDF.type, cd.Record))
+            valid.add((cd.state_Draft, RDF.type, cd.StateCode)); valid.add((cd.state_Archived, RDF.type, cd.StateCode))
+            valid.add((ex.device, cd.related, ex.target)); valid.add((ex.device, cd.state, cd.state_Draft))
+            self.assertTrue(validate(valid, shacl_graph=shapes)[0])
+            missing = valid + Graph(); missing.remove((ex.device, cd.related, ex.target))
+            conforms, report, _ = validate(missing, shacl_graph=shapes)
+            self.assertFalse(conforms); self.assertIn(cd.Device_relatedShape, set(report.objects(None, sh.sourceShape)))
+            disallowed = valid + Graph(); disallowed.set((ex.device, cd.state, cd.state_Archived))
+            conforms, report, _ = validate(disallowed, shacl_graph=shapes)
+            self.assertFalse(conforms); self.assertIn(cd.Device_stateShape, set(report.objects(None, sh.sourceShape)))
 
 
 if __name__ == '__main__':

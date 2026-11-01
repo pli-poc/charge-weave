@@ -245,6 +245,11 @@ export class WorkspaceStore {
     const result = adapterCall({ action: 'inspect', schema: workspace.schema, name });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, entity: result.entity };
   }
+  constraintTemplates(id) {
+    const workspace = this.get(id);
+    verifyAdapter(workspace);
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, templates: adapterCall({ action: 'templates' }).templates };
+  }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
