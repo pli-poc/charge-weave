@@ -30,6 +30,7 @@ test('typed fields reject unknown targets and reused global properties atomicall
   assert.throws(() => store.apply({ ...base, operationId: 'bad', commands: [{ type: 'relationship.add', owner: 'Record', name: 'target', range: 'Missing', cardinality: '!' }] }), /Invalid/);
   store.apply({ ...base, operationId: 'good', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '!' }, { type: 'relationship.add', owner: 'Record', name: 'related', range: 'Record', cardinality: '*' }] });
   assert.match(store.get(workspace.id).schema, /title:string! related:Record\*/);
+  assert.deepEqual(store.view(workspace.id, 'Record').edges.map(edge => edge.predicate), ['related']);
   assert.equal(store.diff(workspace.id).changes[0].kind, 'changed');
   assert.equal(store.diff(workspace.id).source.before, schema);
   assert.throws(() => store.apply({ ...base, expectedRevision: 1, operationId: 'duplicate', commands: [{ type: 'property.add', owner: 'Record', name: 'title', range: 'string', cardinality: '?' }] }), /Invalid/);

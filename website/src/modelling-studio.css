@@ -6,4 +6,11 @@
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
 .studio-panels pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
+.studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; border-left: .25rem solid #147d70; }
+.studio-graph ul { list-style: none; padding-left: 1rem; border-left: 2px solid #147d70; }
+.studio-graph li { padding-left: 1rem; }
+.studio-diagram { display: block; width: 100%; max-height: 30rem; }
+.studio-diagram rect { fill: white; stroke: #147d70; stroke-width: 2; }
+.studio-diagram line { stroke: #147d70; stroke-width: 2; }
+.studio-diagram text { fill: #183a39; font-size: 13px; }
 @media (max-width: 900px) { .studio-panels { grid-template-columns: 1fr; } }

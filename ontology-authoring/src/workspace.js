@@ -123,6 +123,22 @@ export class WorkspaceStore {
     const workspace = this.get(id), needle = query.toLowerCase();
     return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
   }
+  view(id, root) {
+    const workspace = this.get(id);
+    const classes = parse(workspace.schema).classes;
+    const entity = classes.get(root);
+    if (!entity) throw new Error('Class not found');
+    const edges = [];
+    const parent = entity.parent === '-' ? 'Record' : entity.parent;
+    if (classes.has(parent)) edges.push({ source: root, target: parent, predicate: 'subClassOf', sourcePath: 'model/domain.schema' });
+    for (const token of entity.fields.split(/\s+/).filter(Boolean)) {
+      const match = /^([A-Za-z][A-Za-z0-9]*):([A-Za-z][A-Za-z0-9]*)[!?+*]$/.exec(token);
+      if (match && classes.has(match[2])) edges.push({ source: root, target: match[2], predicate: match[1], sourcePath: 'model/domain.schema' });
+    }
+    const visible = edges.slice(0, 50);
+    const names = [...new Set([root, ...visible.map(edge => edge.target)])];
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, nodes: names.map(name => classes.get(name)), edges: visible, omitted: edges.length - visible.length };
+  }
   apply({ workspaceId, actor, operationId, expectedRevision, commands }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
     const requestHash = hash(JSON.stringify({ expectedRevision, commands }));
