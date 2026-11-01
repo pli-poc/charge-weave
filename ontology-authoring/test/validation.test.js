@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +18,7 @@ test('generator evidence is bound to its input and becomes stale after edits', a
   const workspace = store.get(created.id);
   const { job } = store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'test', 'job-one');
   assert.equal(store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'test', 'job-one').created, false);
+  assert.throws(() => store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'test', 'concurrent'), /already active/);
   assert.throws(() => store.createJob(workspace.id, 2, workspace.sourceDigest, 'test', 'job-one'), /reused/);
   await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON || process.execPath);
   const finished = store.job(workspace.id, job.id);
@@ -48,6 +49,28 @@ test('validation retry survives restart without starting another job', () => {
     assert.equal(retry.job.status, 'interrupted');
     store.close();
   } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('generator changes to another tracked source fail validation', { skip: !process.env.CHARGEWEAVE_TEST_PYTHON }, async () => {
+  const repository = mkdtempSync(join(tmpdir(), 'chargeweave-drift-'));
+  try {
+    mkdirSync(join(repository, 'model')); mkdirSync(join(repository, 'tools'));
+    const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+    writeFileSync(join(repository, 'model', 'domain.schema'), schema);
+    writeFileSync(join(repository, 'model', 'audit-rules.json'), '{}\n');
+    writeFileSync(join(repository, 'tools', 'build.py'), "from pathlib import Path\nPath('model/audit-rules.json').write_text('{\"rewritten\":true}')\n");
+    const git = args => execFileSync('git', args, { cwd: repository, stdio: 'ignore' });
+    git(['init']); git(['add', '.']); git(['-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-m', 'fixture']);
+    const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
+    const store = new WorkspaceStore(':memory:');
+    const workspace = store.create({ title: 'Drift', baselineCommit: commit, schema });
+    const { job } = store.createJob(workspace.id, 0, workspace.sourceDigest, 'test', 'drift');
+    await runGenerator(store, workspace, job, repository, process.env.CHARGEWEAVE_TEST_PYTHON);
+    const result = store.job(workspace.id, job.id);
+    assert.equal(result.status, 'failed');
+    assert.match(result.output, /Generator rewrote source model\/audit-rules.json/);
+    store.close();
+  } finally { rmSync(repository, { recursive: true, force: true }); }
 });
 
 test('reference profile runs generated model and fixture checks', { skip: !process.env.CHARGEWEAVE_TEST_REFERENCE, timeout: 600000 }, async () => {

@@ -77,6 +77,7 @@ export class WorkspaceStore {
       }
       const workspace = this.get(id);
       if (workspace.revision !== revision || workspace.sourceDigest !== digest) throw new Error('Stale validation input');
+      if (this.db.prepare("SELECT 1 FROM jobs WHERE workspace = ? AND status IN ('queued', 'running') LIMIT 1").get(id)) throw new Error('A validation job is already active for this workspace');
       const jobId = randomUUID();
       this.db.prepare('INSERT INTO jobs (id, workspace, revision, digest, status, output, profile) VALUES (?, ?, ?, ?, ?, ?, ?)').run(jobId, id, revision, digest, 'queued', '', profile);
       this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(id, actor, operationId, requestHash, JSON.stringify({ jobId }));
