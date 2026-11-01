@@ -25,6 +25,9 @@ test('generator evidence is bound to its input and becomes stale after edits', a
   assert.equal(finished.stale, false);
   store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'edit', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
   assert.equal(store.job(workspace.id, job.id).stale, true);
+  store.undo({ workspaceId: workspace.id, actor: 'test', operationId: 'undo-edit', expectedRevision: 2, targetRevision: 2 });
+  assert.equal(store.get(workspace.id).sourceDigest, workspace.sourceDigest);
+  assert.equal(store.job(workspace.id, job.id).stale, true);
   assert.throws(() => store.createJob(workspace.id, 1, workspace.sourceDigest, 'test', 'job-two'), /Stale/);
   store.close();
 });

@@ -87,7 +87,17 @@ export class WorkspaceStore {
   job(workspaceId, jobId) {
     const row = this.db.prepare('SELECT id, workspace, revision, digest, status, output, profile FROM jobs WHERE workspace = ? AND id = ?').get(workspaceId, jobId);
     if (!row) throw new Error('Job not found');
-    return { ...row, stale: this.get(workspaceId).sourceDigest !== row.digest };
+    const workspace = this.get(workspaceId);
+    return { ...row, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
+  }
+  reviewReadiness(workspaceId) {
+    const workspace = this.get(workspaceId);
+    const jobs = this.db.prepare("SELECT id, profile, revision, digest, status FROM jobs WHERE workspace = ? AND status = 'passed' AND digest = ? AND revision = ? ORDER BY rowid DESC").all(workspaceId, workspace.sourceDigest, workspace.revision);
+    const evidence = ['structural', 'reference'].map(profile => ({ profile, job: jobs.find(job => job.profile === profile) ?? null }));
+    const missing = evidence.filter(item => !item.job).map(item => item.profile);
+    // Remaining independent acceptance tiers and reviewer decisions are not implemented.
+    missing.push('independent acceptance and publication evidence');
+    return { workspaceId, baselineCommit: workspace.baselineCommit, revision: workspace.revision, sourceDigest: workspace.sourceDigest, evidence, missing, canAccept: false };
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
   create({ title, baselineCommit, schema }) {

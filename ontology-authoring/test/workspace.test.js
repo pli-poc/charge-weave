@@ -20,6 +20,7 @@ test('atomic edits, durable receipts and stale revisions', () => {
   assert.equal(store.search(workspace.id, 'example').results[0].definition, 'An example.');
   assert.equal(store.events(workspace.id).length, 1);
   assert.equal(store.snapshot(workspace.id).eventSequence, result.eventSequence);
+  assert.equal(store.reviewReadiness(workspace.id).canAccept, false);
   store.close();
 });
 

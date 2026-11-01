@@ -5,9 +5,11 @@ import { createServer } from './mcp.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, allowedOrigin, repository, python }) {
+export function createHttpService({ store, token, reviewerToken, allowedOrigin, repository, python }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
+  if (reviewerToken !== undefined && (typeof reviewerToken !== 'string' || Buffer.byteLength(reviewerToken) < 32 || reviewerToken === token)) throw new Error('Reviewer token must be distinct and at least 32 bytes');
   const secret = Buffer.from(token);
+  const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
   return createHttpServer(async (req, res) => {
     if (!/^127\.0\.0\.1(?::\d+)?$/.test(req.headers.host ?? '')) { res.writeHead(403).end('Host forbidden'); return; }
     const origin = req.headers.origin;
@@ -21,7 +23,9 @@ export function createHttpService({ store, token, allowedOrigin, repository, pyt
     if (req.method === 'OPTIONS' && origin) { res.writeHead(204).end(); return; }
     const authorization = req.headers.authorization ?? '';
     const supplied = Buffer.from(authorization.startsWith('Bearer ') ? authorization.slice(7) : '');
-    if (supplied.length !== secret.length || !timingSafeEqual(supplied, secret)) { res.writeHead(401).end('Unauthorized'); return; }
+    const matches = candidate => candidate && supplied.length === candidate.length && timingSafeEqual(supplied, candidate);
+    const role = matches(secret) ? 'draft' : matches(reviewerSecret) ? 'reviewer' : null;
+    if (!role) { res.writeHead(401).end('Unauthorized'); return; }
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/events' && req.method === 'GET') {
       const workspaceId = url.searchParams.get('workspaceId');
@@ -47,7 +51,7 @@ export function createHttpService({ store, token, allowedOrigin, repository, pyt
     }
     if (req.url !== '/mcp' || req.method !== 'POST') { res.writeHead(404).end('Not found'); return; }
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
-    const server = createServer(store, 'local-draft-session', { repository, python });
+    const server = createServer(store, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);
