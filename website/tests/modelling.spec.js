@@ -897,7 +897,7 @@ test('advanced connection identifies an invalid workspace ID without treating th
     await page.getByLabel('Workspace ID').fill(workspace.id);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
-    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     const workflow = page.getByRole('region', { name: 'Review workflow' });
     await expect(workflow).toContainText('Reviewer access is required to record a decision.');
     await workflow.getByRole('button', { name: 'Go to reviewer decision' }).click();
@@ -1207,7 +1207,7 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await expect(page.getByText('Source patch: tests/negative-cases.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/business-acceptance.json')).toBeVisible();
     expect(JSON.parse(store.get(workspace.id).sourceOverlays['tests/business-acceptance.json']).filter(item => item.rule === 'B900').every(item => item.provenance === 'template-derived')).toBe(true);
-    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByLabel('Requirement ID', { exact: true }).fill('BR-012');
     await page.getByLabel('Rule ID', { exact: true }).fill('B900');
     await page.getByLabel('Unique case ID').fill('BR-012-B900-REVIEW-PASS');
@@ -1248,7 +1248,7 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
     await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Target main: matches-baseline');
@@ -1310,7 +1310,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByText(/Publisher permission: not checked/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect publication history' }).click();
     await expect(page.getByText(/Publisher permission: enabled/)).toBeVisible();
@@ -1324,7 +1324,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await page.getByLabel('Draft token').fill('test-token-'.repeat(4));
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
-    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByText(/Publisher permission: unavailable for this connection/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Inspect publication history' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Create draft pull request' })).toHaveCount(0);
@@ -1630,6 +1630,12 @@ test('review workflow links to separate review and publication steps', async ({ 
     await reviewLink.click();
     const workflow = page.getByRole('region', { name: 'Review workflow' });
     await expect(workflow.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
+    const documents = page.getByRole('navigation', { name: 'Editor documents' });
+    await expect(documents.getByRole('button', { name: 'Review', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await documents.getByRole('button', { name: 'Diagram view' }).click();
+    await expect(workflow).toBeHidden();
+    await documents.getByRole('button', { name: 'Review', exact: true }).click();
+    await expect(workflow).toBeVisible();
     const reviewTools = page.getByRole('region', { name: 'Review and publication' });
     for (const heading of ['Review readiness', 'Reviewer decision', 'Publication preflight', 'GitHub commit checks']) {
       await expect(reviewTools.getByRole('heading', { name: heading, exact: true })).toBeVisible();
@@ -1991,11 +1997,12 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await navigation.getByRole('button', { name: 'Results', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
     await expect(page.locator('.studio-panels')).toBeHidden();
-    await expect(page.getByRole('heading', { name: 'Publication preflight' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Publication preflight' })).toHaveCount(0);
     await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
     await expect(page.getByRole('textbox', { name: 'Definition', exact: true })).toHaveValue('Unapplied compact edit.');
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Publication preflight' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Activity' }).click();
     await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeFocused();
     await navigation.getByRole('button', { name: 'Model', exact: true }).click();
@@ -2211,6 +2218,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect explicit impact references' }).click();
     await expect(page.getByText(/Changed classes: ChargingStation/)).toBeVisible();
     await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: 'Change impact' }) }).getByText(/requirement BR-/).first()).toBeVisible();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByLabel('Reason', { exact: true }).fill('Add a deliberate negative fixture.');
     await page.getByRole('button', { name: 'Record reviewer decision' }).click();
     await expect(page.getByText('Add a deliberate negative fixture.')).toBeVisible();
@@ -2219,13 +2227,15 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A revised station definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
-    await surface('Results');
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · stale/)).toBeVisible();
+    await surface('Results');
     await page.getByLabel('Search requirements').fill('BR-001');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.locator('li').filter({ hasText: 'BR-001' }).getByRole('button', { name: 'Link selected concept' }).click();
     await expect(page.getByRole('status')).toContainText('revision 3');
     await surface('Diagram');
+    await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Diagram view' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
     await surface('Results');
@@ -2446,7 +2456,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     if (isMobile) await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
     await surface('Inspector');
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
-    await surface('Results');
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByRole('button', { name: 'Inspect review gates' }).click();
     await expect(page.getByText('structural: not run for this draft')).toBeVisible();
     await surface('Diagram');
@@ -2514,9 +2524,11 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
     await expect(historical).toHaveCount(0);
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByLabel('Decision').selectOption('reject');
     await page.getByLabel('Reason', { exact: true }).fill('The proposal needs revision.');
     await page.getByRole('button', { name: 'Record reviewer decision' }).click();
+    await surface('Results');
     await expect(page.getByText(/Clarify and extend the record. · rejected/)).toBeVisible();
     await page.getByRole('button', { name: 'Reopen change set' }).click();
     await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();

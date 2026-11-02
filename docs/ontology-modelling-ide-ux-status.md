@@ -20,7 +20,7 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 | U3 Canvas | Started | Initial framing targets the selected concept; cards show a module and field preview. Bounded incoming and outgoing expansion, view-local positions, neighbourhood history and a legend exist; additional modelling controls remain. |
 | U4 Editing | Started | Field editing and a field table are in the inspector; definition and field conflicts and some unsaved navigation are guarded. Other forms, richer controls and perspectives need further work. |
 | U5 Checks and AI | Started | A results dock offers Problems, Checks, Activity and Output; validation details, recent activity and historical comparisons are available. A separate Changes editor groups before/after details and marks old comparisons out of date. Fuller change navigation and AI collaboration remain. |
-| U6-U8 | Not complete | A review guide links inspect, validate, decide, publish and verify actions, with capability-aware controls and scoped last-inspected evidence. Review and publication controls are grouped together, while validation changes from another client invalidate the last inspection. A dedicated review editor, accessibility, performance, full feature parity and human acceptance remain. |
+| U6-U8 | Not complete | A dedicated Review editor groups the guide, review gates, decisions and publication controls, separate from the diagram and Changes documents. Validation changes from another client invalidate the last inspection. A complete staged review experience, accessibility, performance, full feature parity and human acceptance remain. |
 
 ## Local integration check
 
