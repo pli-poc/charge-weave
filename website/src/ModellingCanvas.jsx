@@ -27,7 +27,7 @@ function loadPositions(workspaceId) {
   } catch { return Object.create(null); }
 }
 
-export default function ModellingCanvas({ graph, onSelect, onManualInteraction, onConnect }) {
+export default function ModellingCanvas({ graph, selectedName, onSelect, onManualInteraction, onConnect }) {
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
@@ -44,7 +44,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
   useEffect(() => {
     byName.current = new Map(graph.nodes.map(node => [node.name, node]));
     const newNames = new Set(graph.nodes.filter(node => !positions.current[node.name]).map(node => node.name));
-    const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === graph.root }));
+    const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === selectedName }));
     setNodes(next);
     const changedRoot = lastRoot.current !== graph.root;
     lastRoot.current = graph.root;
@@ -89,7 +89,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
-  }, [graph]);
+  }, [graph, selectedName]);
   const onNodesChange = useCallback(changes => {
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }

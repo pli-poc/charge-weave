@@ -686,6 +686,12 @@ test('interactive graph preserves view positions and supports keyboard selection
     await expect(restored.locator('.react-flow__node[data-id="Device"]')).toHaveAttribute('style', moved);
     const parent = restored.locator('.react-flow__node[data-id="Record"]');
     await parent.focus(); await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A changed record.');
+    await expect(page.getByRole('button', { name: 'Save definition' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
