@@ -1,9 +1,9 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
+import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import '@xyflow/react/dist/style.css';
 
-const keyFor = workspaceId => `chargeweave.canvas.v1.${workspaceId}`;
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 const ConceptNode = memo(function ConceptNode({ data }) {
   const fields = typeof data.fields === 'string' ? data.fields.split(/\s+/).filter(Boolean) : Array.isArray(data.fields) ? data.fields.map(field => `${field.property}:${field.range}${field.cardinality ?? ''}`) : [];
@@ -27,20 +27,15 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
-function loadPositions(workspaceId) {
-  try {
-    const data = JSON.parse(sessionStorage.getItem(keyFor(workspaceId)) || '{}');
-    const result = Object.create(null);
-    for (const [name, value] of Object.entries(data).slice(0, 500)) if (/^[A-Za-z][A-Za-z0-9]*$/.test(name) && Number.isFinite(value?.x) && Number.isFinite(value?.y) && Math.abs(value.x) < 100000 && Math.abs(value.y) < 100000) result[name] = { x: value.x, y: value.y };
-    return result;
-  } catch { return Object.create(null); }
-}
-
-export default function ModellingCanvas({ graph, selectedName, onSelect, onManualInteraction, onConnect }) {
+export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect }) {
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
-  const positions = useRef(loadPositions(graph.workspaceId));
+  const [initialPositions] = useState(() => {
+    try { return readCanvasPositions(sessionStorage, graph.workspaceId, viewId); }
+    catch { return Object.create(null); }
+  });
+  const positions = useRef(initialPositions);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
   const byName = useRef(new Map());
   useEffect(() => {
@@ -85,6 +80,7 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
         occupied.push(position); positions.current[node.name] = position; placed.set(node.name, position);
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
+      try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* Layout remains available for this session. */ }
       setLayoutState('ready');
       // Start at a readable scale around the selected concept. Fitting every
       // neighbour on a dense graph can shrink all labels beyond recognition;
@@ -98,17 +94,17 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
       }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
-  }, [graph, selectedName]);
+  }, [graph, selectedName, viewId]);
   const onNodesChange = useCallback(changes => {
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }
-    if (moved) try { sessionStorage.setItem(keyFor(graph.workspaceId), JSON.stringify(positions.current)); } catch { /* layout remains available for this session */ }
+    if (moved) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
     setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'remove'), current));
-  }, [graph.workspaceId]);
+  }, [graph.workspaceId, viewId]);
   const onNodeDragStop = useCallback((_event, node) => {
     positions.current[node.id] = { x: node.position.x, y: node.position.y };
-    try { sessionStorage.setItem(keyFor(graph.workspaceId), JSON.stringify(positions.current)); } catch { /* layout remains available for this session */ }
-  }, [graph.workspaceId]);
+    try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
+  }, [graph.workspaceId, viewId]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
   const focusSelected = useCallback(() => {
     const point = positions.current[selectedName];

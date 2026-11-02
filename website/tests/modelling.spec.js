@@ -12,6 +12,46 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('named diagram views keep independent local positions', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop pointer interaction is covered here.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Independent views', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    const node = canvas.locator('.react-flow__node[data-id="Device"]');
+    async function move(dx, dy) {
+      await expect(canvas).toHaveAttribute('data-layout', 'ready');
+      await node.scrollIntoViewIfNeeded();
+      const box = await node.boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2 + dy, { steps: 5 }); await page.mouse.up();
+    }
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText('Shared view saved.')).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').definition.positions.Device).toBeDefined();
+    await move(40, 30);
+    const firstPosition = await node.getAttribute('style');
+    await page.getByLabel('View ID').fill('other');
+    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await move(95, 65);
+    const secondPosition = await node.getAttribute('style');
+    expect(secondPosition).not.toBe(firstPosition);
+    await page.getByLabel('View ID').fill('default');
+    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await expect(node).toHaveAttribute('style', firstPosition);
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('outgoing diagram relationships start bounded and expand without editing', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const fields = Array.from({ length: 16 }, (_, i) => `link${i}:Record?`).join(' ');
@@ -784,6 +824,9 @@ test('interactive graph preserves view positions and supports keyboard selection
     await canvas.locator('.react-flow__controls-fitview').click();
     await canvas.getByRole('button', { name: 'Focus selected concept' }).click();
     await expect(canvas.locator('.react-flow__viewport')).toHaveAttribute('style', /scale\(1\)/);
+    await page.getByLabel('View ID').fill('maintenance');
+    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toHaveAttribute('data-layout', 'ready');
     await node.scrollIntoViewIfNeeded();
     const initial = await node.getAttribute('style');
     const box = await node.boundingBox();
@@ -792,8 +835,6 @@ test('interactive graph preserves view positions and supports keyboard selection
     await expect(node).not.toHaveAttribute('style', initial);
     const moved = await node.getAttribute('style');
     expect(store.get(workspace.id).revision).toBe(0);
-    await page.getByLabel('View ID').fill('maintenance');
-    await page.getByRole('button', { name: 'Choose view ID' }).click();
     await page.getByText('View groups and annotations').click();
     await page.getByLabel('Group name').fill('Core');
     await page.getByLabel('Group concepts (comma separated)').fill('Device, Record');
@@ -811,7 +852,7 @@ test('interactive graph preserves view positions and supports keyboard selection
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A remotely updated device.' }] });
     await expect(page.getByRole('status')).toContainText('revision 1');
     await expect(node).toHaveAttribute('style', moved);
-    await page.evaluate(id => sessionStorage.removeItem(`chargeweave.canvas.v1.${id}`), workspace.id);
+    await page.evaluate(id => sessionStorage.removeItem(`chargeweave.canvas.v2.${id}.maintenance`), workspace.id);
     await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 1');
     await page.getByLabel('Search model').fill('Device');
