@@ -256,11 +256,14 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await views.getByRole('button', { name: 'default', exact: true }).click();
     await expect(node).toHaveAttribute('style', firstPosition);
     await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
-    store.saveView({ workspaceId: workspace.id, viewId: 'other', actor: 'other modeller', operationId: 'other-view-change', expectedViewRevision: 0, definition: { root: 'Device', positions: {} } });
+    const remote = store.saveView({ workspaceId: workspace.id, viewId: 'other', actor: 'other modeller', operationId: 'other-view-change', expectedViewRevision: 0, definition: { root: 'Device', positions: {} } });
+    await expect(page.locator('.studio-connection-settings')).toContainText(`last event cursor: ${remote.eventSequence}`, { timeout: 15000 });
+    await expect(page.locator('.studio-workspace')).toBeEnabled();
     await views.getByRole('button', { name: 'other, local changes' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await expect(page.getByText('Equipment: Device')).toBeVisible();
     await expect(page.getByText('Device: Local note')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Save shared view' })).toBeEnabled();
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await expect(page.getByText(/Could not save view/)).toBeVisible();
     await expect(page.getByText('Device: Local note')).toBeVisible();
