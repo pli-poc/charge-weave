@@ -28,6 +28,12 @@ test('navigator search refreshes when another client changes the draft', async (
     await page.getByRole('button', { name: 'Hide navigator' }).click();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Search model')).toBeFocused();
+    const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
+    await expect(tree.getByText('foundation', { exact: false })).toBeVisible();
+    await expect(tree.getByRole('button', { name: 'Device', exact: true })).toBeVisible();
+    await tree.locator('summary').click();
+    await expect(tree.getByRole('button', { name: 'Device', exact: true })).toBeHidden();
+    await tree.locator('summary').click();
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText('Original device.')).toBeVisible();
