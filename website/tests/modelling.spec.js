@@ -22,6 +22,10 @@ test('navigator search refreshes when another client changes the draft', async (
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const workspaceStatus = page.getByRole('region', { name: 'Workspace status' });
+    await expect(workspaceStatus).toContainText('Connected');
+    await expect(workspaceStatus).toContainText('Revision 0');
+    await expect(workspaceStatus.getByRole('link', { name: 'Checks: no result displayed' })).toBeVisible();
     const validation = page.getByRole('region', { name: 'Validation issues' });
     await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
@@ -39,6 +43,7 @@ test('navigator search refreshes when another client changes the draft', async (
     await expect(page.getByText('Original device.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-search-result', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'Updated device definition.' }] });
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(workspaceStatus).toContainText('Revision 1');
     await expect(page.getByText('Updated device definition.')).toBeVisible();
     await expect(page.getByLabel('Search model')).toHaveValue('Device');
   } finally { await page.close(); await service.shutdown(); store.close(); }
