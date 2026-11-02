@@ -686,7 +686,8 @@ export default function ModellingStudio() {
     try {
       const url = new URL(endpoint);
       if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error('Use a loopback service URL such as http://127.0.0.1:4317');
-      setConnection({ endpoint: url.origin, token, workspaceId });
+      if (!/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|0{8}-0{4}-0{4}-0{4}-0{12}|f{8}-f{4}-f{4}-f{4}-f{12})$/i.test(workspaceId.trim())) throw new Error('Workspace ID must be a UUID, such as 12345678-1234-4123-8123-123456789abc. The draft token is a separate value.');
+      setConnection({ endpoint: url.origin, token, workspaceId: workspaceId.trim() });
     } catch (problem) { setError(problem.message); setStatus('Disconnected'); }
   }
   async function pair(event) {
@@ -762,12 +763,13 @@ export default function ModellingStudio() {
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
       <button type="submit">Pair local studio</button>
     </form>
-    <form className="studio-connect" onSubmit={connect} hidden={Boolean(connection)}>
+    <details className="studio-advanced-connection" hidden={Boolean(connection)}><summary>Advanced connection with workspace ID and token</summary>
+    <form className="studio-connect" onSubmit={connect}>
       <label>Local service <input value={endpoint} onChange={event => setEndpoint(event.target.value)} required /></label>
-      <label>Workspace ID <input value={workspaceId} onChange={event => setWorkspaceId(event.target.value)} required /></label>
+      <label>Workspace ID <input value={workspaceId} onChange={event => setWorkspaceId(event.target.value)} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required /></label>
       <label>Draft token <input type="password" value={token} onChange={event => setToken(event.target.value)} required autoComplete="off" /></label>
       <button type="submit">Connect</button>
-    </form>
+    </form></details>
     <p role="status">{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
     {connection && <section className="studio-workspaces"><h2>Workspaces</h2><label>Current workspace <select value={connection.workspaceId} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</section>}
     {error && <p role="alert">{error}</p>}

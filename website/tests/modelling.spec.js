@@ -12,6 +12,25 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('advanced connection identifies an invalid workspace ID without treating the token as a UUID', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Connection', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const token = 'test-token-'.repeat(4);
+  const service = createHttpService({ store, token, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByText('Advanced connection with workspace ID and token').click();
+    await page.getByLabel('Workspace ID').fill(token);
+    await page.getByLabel('Draft token').fill(token);
+    await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    await expect(page.getByRole('alert')).toContainText('Workspace ID must be a UUID');
+    await page.getByLabel('Workspace ID').fill(workspace.id);
+    await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('revision 0');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('a remote definition edit preserves local input and requires conflict review', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Definition conflict', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original definition.|\n' });
