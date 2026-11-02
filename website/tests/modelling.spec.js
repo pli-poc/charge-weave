@@ -781,6 +781,9 @@ test('interactive graph preserves view positions and supports keyboard selection
     await expect(canvas.locator('.react-flow__edge-path').first()).toHaveAttribute('marker-end', /url/);
     const relationshipPaths = await canvas.locator('.react-flow__edge-path').evaluateAll(paths => paths.map(path => path.getAttribute('d')));
     expect(new Set(relationshipPaths).size).toBe(2);
+    await canvas.locator('.react-flow__controls-fitview').click();
+    await canvas.getByRole('button', { name: 'Focus selected concept' }).click();
+    await expect(canvas.locator('.react-flow__viewport')).toHaveAttribute('style', /scale\(1\)/);
     await node.scrollIntoViewIfNeeded();
     const initial = await node.getAttribute('style');
     const box = await node.boundingBox();

@@ -88,6 +88,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   width: 32px; height: 32px; min-height: 0; padding: 5px;
 }
 .modelling-studio .studio-flow .react-flow__controls button svg { width: 14px; height: 14px; }
+.modelling-studio .studio-flow .react-flow__controls .studio-focus-control svg { fill: none; stroke: currentColor; stroke-width: 2; }
 @media (max-width: 900px) {
   .modelling-studio > h1 { font-size: 2rem; }
   .studio-connect { align-items: stretch; }

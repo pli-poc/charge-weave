@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Background, BaseEdge, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import '@xyflow/react/dist/style.css';
 
@@ -110,6 +110,12 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
     try { sessionStorage.setItem(keyFor(graph.workspaceId), JSON.stringify(positions.current)); } catch { /* layout remains available for this session */ }
   }, [graph.workspaceId]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
+  const focusSelected = useCallback(() => {
+    const point = positions.current[selectedName];
+    if (!point || !byName.current.has(selectedName) || !instance.current) return;
+    onManualInteraction();
+    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
+  }, [selectedName, onManualInteraction]);
   const offsets = parallelEdgeOffsets(graph.edges);
   return <div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
     onKeyDownCapture={event => {
@@ -123,7 +129,7 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
-      <Background /><Controls showInteractive={false} />
+      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls>
     </ReactFlow>
   </div>;
 }
