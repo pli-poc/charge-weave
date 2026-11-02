@@ -544,6 +544,26 @@ export class WorkspaceStore {
     if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, rules: item.rules, source: requirementsPath })) };
   }
+  incoming(id, root, expectedRevision, offset = 0, limit = 50) {
+    if (!identifier.test(root ?? '') || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid incoming reference request');
+    const workspace = this.get(id);
+    if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    const classes = parse(workspace.schema).classes;
+    if (!classes.has(root)) throw new Error('Class not found');
+    const lines = new Map(workspace.schema.split(/\r?\n/).map((line, index) => [line.split('|', 1)[0], index + 1]));
+    const references = [];
+    for (const item of classes.values()) {
+      const parent = item.parent === '-' ? 'Record' : item.parent;
+      if (parent === root) references.push({ source: item.name, target: root, predicate: 'subClassOf', cardinality: null, sourceRef: { path: 'model/domain.schema', line: lines.get(item.name) } });
+      for (const token of item.fields.split(/\s+/).filter(Boolean)) {
+        const match = /^([A-Za-z][A-Za-z0-9]*):([A-Za-z][A-Za-z0-9]*)([!?+*])$/.exec(token);
+        if (match && match[2] === root) references.push({ source: item.name, target: root, predicate: match[1], cardinality: match[3], sourceRef: { path: 'model/domain.schema', line: lines.get(item.name) } });
+      }
+    }
+    references.sort((a, b) => a.source < b.source ? -1 : a.source > b.source ? 1 : a.predicate < b.predicate ? -1 : a.predicate > b.predicate ? 1 : 0);
+    const results = references.slice(offset, offset + limit);
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, results, total: references.length, nextOffset: offset + results.length < references.length ? offset + results.length : null };
+  }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');

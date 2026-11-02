@@ -12,6 +12,27 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('inspector finds direct incoming references and navigates to their source', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Incoming references', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nStation|Device|A station.|device:Device!\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByText('Referenced by', { exact: true }).click();
+    await page.getByRole('button', { name: 'Find references' }).click();
+    await expect(page.getByText('Showing 2 of 2 references.')).toBeVisible();
+    await expect(page.getByText(/Station.*device/)).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect Station' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('concept creation offers existing modules and validates its definition', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const extra = Array.from({ length: 60 }, (_, i) => `Asset${String(i).padStart(3, '0')}|Record|An asset.|`).join('\n');
