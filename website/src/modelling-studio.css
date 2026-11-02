@@ -125,6 +125,14 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio > .studio-status-bar { position: fixed; z-index: 12; inset: auto 0 0; display: flex; gap: .5rem 1.25rem; align-items: center; flex-wrap: wrap; min-height: 2rem; margin: 0; padding: .25rem 1rem; background: #17343a; border: 0; border-top: 1px solid #49666a; border-radius: 0; color: #d8e9e5; font-size: .75rem; }
 .studio-status-bar a { color: #a4e6d0; }
 .studio-status-bar a:focus-visible { outline: 2px solid #7cddc2; outline-offset: 2px; }
+.studio-bottom-dock { margin-top: 1rem; border: 1px solid #30494e; border-radius: .4rem; background: #102127; }
+.studio-bottom-dock > nav { display: flex; gap: .25rem; align-items: center; padding: .25rem .5rem; }
+.modelling-studio .studio-bottom-dock > nav button { border-color: transparent; background: transparent; }
+.modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom: 2px solid #7cddc2; border-radius: 0; color: #e4eeef; }
+.studio-bottom-dock > nav button[aria-label="Close results panel"] { margin-left: auto; }
+.studio-bottom-content { max-height: 35vh; overflow: auto; padding: .75rem; border-top: 1px solid #30494e; overscroll-behavior: contain; }
+.studio-bottom-content > div > .studio-validation-dock { margin: 0; padding: 0; border: 0; }
+.studio-bottom-content a { color: #a4e6d0; }
 .modelling-studio.container { padding-bottom: 5rem; }
 .studio-home-link { color: #a4e6d0; font-weight: 700; text-decoration: none; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
