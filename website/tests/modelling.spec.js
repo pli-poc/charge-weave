@@ -255,6 +255,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
+    await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
