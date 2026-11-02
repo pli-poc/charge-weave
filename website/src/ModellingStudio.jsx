@@ -680,8 +680,12 @@ export default function ModellingStudio() {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_save', arguments: { workspaceId: connection.workspaceId, viewId, operationId: crypto.randomUUID(), expectedViewRevision: savedViewRevision, definition: { root: viewRoot, positions, ...viewMetadata, groups: viewGroups, annotations: viewAnnotations } } });
       if (context !== viewContext.current) return;
       setSavedViewRevision(response.structuredContent.viewRevision); setViewNotice('Shared view saved.');
-      const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } });
-      if (context === viewContext.current) setSavedViews(listing.structuredContent.views);
+      try {
+        const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } });
+        if (context === viewContext.current) setSavedViews(listing.structuredContent.views);
+      } catch (problem) {
+        if (context === viewContext.current) setViewNotice(`Shared view saved, but the view list could not be refreshed: ${problem.message}`);
+      }
     } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not save view: ${problem.message}. Load the shared view to refresh its revision.`); }
   }
   async function loadLayout() {

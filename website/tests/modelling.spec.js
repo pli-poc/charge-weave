@@ -27,8 +27,15 @@ test('a delayed shared-view load cannot overwrite a newly selected view', async 
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const failList = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_view_saved_list') await route.abort();
+      else await route.continue();
+    };
+    await page.route('**/mcp', failList);
     await page.getByRole('button', { name: 'Save shared view' }).click();
-    await expect(page.getByText('Shared view saved.')).toBeVisible();
+    await expect(page.getByText(/Shared view saved, but the view list could not be refreshed/)).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').viewRevision).toBe(1);
+    await page.unroute('**/mcp', failList);
     await page.route('**/mcp', async route => {
       const params = route.request().postDataJSON()?.params;
       if (params?.name === 'ontology_view_saved_get' && params.arguments?.viewId === 'default') { interceptedResolve(); await gate; }
