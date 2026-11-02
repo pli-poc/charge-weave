@@ -709,10 +709,25 @@ test('desktop workbench keeps the main panels within the initial viewport', asyn
     const expanded = await page.evaluate(() => ({ panel: document.querySelector('#studio-editor-pane').getBoundingClientRect().toJSON(), dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
     expect(expanded.panel.height).toBeLessThan(bounds.panel.height);
     expect(expanded.dock.bottom).toBeLessThanOrEqual(expanded.status.top + 2);
+    const splitter = results.getByRole('separator', { name: 'Resize results panel' });
+    await expect(splitter).toHaveAttribute('aria-valuenow', '184');
+    await splitter.focus(); await page.keyboard.press('ArrowUp');
+    await expect(splitter).toHaveAttribute('aria-valuenow', '200');
+    const handle = await splitter.boundingBox();
+    await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
+    await page.mouse.down(); await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2 + 20, { steps: 4 }); await page.mouse.up();
+    await expect(splitter).toHaveAttribute('aria-valuenow', '180');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('chargeweave.studio.results-height.v1'))).toBe('180');
     await page.setViewportSize({ width: 1024, height: 768 });
+    await expect(splitter).toHaveAttribute('aria-valuenow', '176');
     await page.evaluate(() => window.scrollTo(0, 0));
     const compact = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
     expect(compact.dock.bottom).toBeLessThanOrEqual(compact.status.top + 2);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('chargeweave.studio.results-height.v1'))).toBe('176');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.reload();
+    await results.getByRole('button', { name: 'Checks', exact: true }).click();
+    await expect(results.getByRole('separator', { name: 'Resize results panel' })).toHaveAttribute('aria-valuenow', '176');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -764,8 +779,13 @@ test('desktop panel sizes can be adjusted with the keyboard and restored', async
     await page.getByRole('button', { name: 'Reset panel sizes' }).click();
     await expect(page.getByLabel('Navigator width')).toHaveValue('240');
     await page.getByRole('button', { name: 'Hide navigator' }).click();
+    await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true }).click();
+    const resultsSplitter = page.getByRole('separator', { name: 'Resize results panel' });
+    await resultsSplitter.focus(); await page.keyboard.press('End');
+    await expect(resultsSplitter).not.toHaveAttribute('aria-valuenow', '184');
     await page.getByRole('button', { name: 'Reset layout' }).click();
     await expect(page.locator('#studio-navigator-pane')).toBeVisible();
+    await expect(resultsSplitter).toHaveAttribute('aria-valuenow', '184');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
