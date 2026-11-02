@@ -22,6 +22,21 @@ From this directory, run `npm ci`, then create a workspace from the committed re
 
 Set `CHARGEWEAVE_WORKSPACE_ID` to the returned ID and `CHARGEWEAVE_DRAFT_TOKEN` to a long random secret of at least 32 bytes, then run `npm start`. The server listens only on `127.0.0.1:4317` (override the port with `CHARGEWEAVE_PORT`). MCP clients send the token in the `Authorization: Bearer` header. Do not commit or share the token. To permit a separate browser origin, explicitly set `CHARGEWEAVE_BROWSER_ORIGIN` to its exact origin; other origins are rejected. The draft token grants access to workspaces authorized in this service run, starting with the configured workspace; it does not grant reviewer or publisher operations.
 
+To connect a local Codex CLI to the same running service, provide the same draft token in Codex's process environment and configure an HTTP MCP server. For example, in a private PowerShell session create a fresh token before starting the service:
+
+```powershell
+$env:CHARGEWEAVE_DRAFT_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+In Bash, the equivalent is `export CHARGEWEAVE_DRAFT_TOKEN="$(openssl rand -hex 32)"`. Start Codex from an environment containing the same value as the running service; generating another token in a second terminal will not authenticate it. Add the configuration explicitly in your own Codex environment:
+
+```text
+codex mcp add chargeweave --url http://127.0.0.1:4317/mcp --bearer-token-env-var CHARGEWEAVE_DRAFT_TOKEN
+codex mcp list
+```
+
+Use the configured service port if different. The equivalent Codex configuration is `[mcp_servers.chargeweave]` with `url = "http://127.0.0.1:4317/mcp"` and `bearer_token_env_var = "CHARGEWEAVE_DRAFT_TOKEN"`; store only the environment variable name, never its value. See the [official Codex MCP documentation](https://developers.openai.com/codex/mcp). The installed CLI's `mcp add --help` was checked for these flags, but a live Codex modelling session has not yet been verified. The service uses scoped draft authorization; Codex's own tool and filesystem permissions remain separate.
+
 MCP clients can read versioned resource templates under `ontology://workspace/{workspaceId}/v1/`: `summary`, `entity/{entity}`, `changes`, and, when repository validation is configured, `evidence/{evidenceId}`. Entity identifiers may be local names or percent-encoded ChargeWeave development IRIs. These are bounded summaries; source patches and full job output remain available through the existing tools. Resource reads use the same session and workspace authorization as tool calls; knowing a URI does not grant access.
 
 Application-level tool failures return `isError` and a structured `error` with a code, plain-language message and recovery guidance. Recognized conflicts, authorization failures, stale checks and uncertain publication outcomes have distinct codes. Unknown failures use a generic code without copying potentially sensitive exception text. MCP protocol and argument-schema errors remain separate.
