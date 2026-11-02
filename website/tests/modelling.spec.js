@@ -12,6 +12,30 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('a partially edited field is retained until navigation is confirmed', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Unsaved field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit recordName' }).click();
+    await page.getByLabel('New cardinality').selectOption('!');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(page.getByLabel('New cardinality')).toHaveValue('!');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard and open Device' }).click();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('switching concepts preserves an unapplied definition until the modeller decides', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unsaved navigation', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
@@ -26,7 +50,7 @@ test('switching concepts preserves an unapplied definition until the modeller de
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('An unsaved definition.');
     await page.getByRole('button', { name: 'Device', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Unsaved definition' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
@@ -221,7 +245,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('Unapplied workspace edit.');
     await page.getByLabel('Current workspace').selectOption(original.id);
-    await expect(page.getByRole('dialog', { name: 'Unsaved definition' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('Unapplied workspace edit.');
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');

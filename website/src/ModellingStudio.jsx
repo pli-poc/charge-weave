@@ -127,6 +127,8 @@ export default function ModellingStudio() {
   const [relationshipDraft, setRelationshipDraft] = useState(null);
   const [relationshipSubmitting, setRelationshipSubmitting] = useState(false);
   const [fieldEdit, setFieldEdit] = useState(null);
+  const fieldEditRef = useRef(fieldEdit);
+  fieldEditRef.current = fieldEdit;
   const [status, setStatus] = useState('Disconnected');
   const [online, setOnline] = useState(false);
   const [serverInfo, setServerInfo] = useState(null);
@@ -356,9 +358,13 @@ export default function ModellingStudio() {
   useEffect(() => { setHistoryDetail(null); }, [connection]);
   useEffect(() => { setRationale(''); }, [connection]);
 
+  function hasUnsavedInspectorEdits() {
+    const field = fieldEditRef.current;
+    return Boolean((selected && definitionRef.current !== selected.definition) || (field && (field.range !== field.expectedRange || field.cardinality !== field.expectedCardinality)));
+  }
   function selectConcept(item) {
     if (!item || item.name === selected?.name) return;
-    if (selected && definitionRef.current !== selected.definition) { setPendingSelection(item); return; }
+    if (hasUnsavedInspectorEdits()) { setPendingSelection(item); return; }
     setSelected(item); setDefinition(item.definition);
   }
   function discardDefinitionAndSelect() {
@@ -425,7 +431,7 @@ export default function ModellingStudio() {
   }
   useEffect(() => {
     if (!followSuggestions || followPaused || !connection || !snapshot) return;
-    if (selected && definitionRef.current !== selected.definition) { pauseFollowing(); return; }
+    if (hasUnsavedInspectorEdits()) { pauseFollowing(); return; }
     const pending = history.filter(event => event.sequence > followCursor.current && eventConcept(event));
     if (!pending.length) return;
     followCursor.current = Math.max(...pending.map(event => event.sequence));
@@ -760,7 +766,7 @@ export default function ModellingStudio() {
     } catch (problem) { setStatus('Disconnected'); setError(problem.message); }
   }
   async function disconnect(discardUnsaved = false) {
-    if (!discardUnsaved && selected && definitionRef.current !== selected.definition) {
+    if (!discardUnsaved && hasUnsavedInspectorEdits()) {
       setPendingSelection({ kind: 'disconnect', name: 'disconnect' });
       return;
     }
@@ -796,7 +802,7 @@ export default function ModellingStudio() {
   }
   function switchWorkspace(id, discardUnsaved = false) {
     if (!connection || id === connection.workspaceId) return;
-    if (!discardUnsaved && selected && definitionRef.current !== selected.definition) {
+    if (!discardUnsaved && hasUnsavedInspectorEdits()) {
       const workspace = workspaces.find(item => item.workspaceId === id);
       setPendingSelection({ kind: 'workspace-switch', workspaceId: id, name: workspace?.title ?? 'the selected workspace' });
       return;
@@ -840,7 +846,7 @@ export default function ModellingStudio() {
     <p role="status">{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
     {connection && <section className="studio-workspaces"><h2>Workspaces</h2><label>Current workspace <select value={connection.workspaceId} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</section>}
     {error && <p role="alert">{error}</p>}
-    {pendingSelection && <dialog ref={unsavedDialog} aria-labelledby="studio-unsaved-heading" className="studio-unsaved-dialog" onCancel={event => { event.preventDefault(); setPendingSelection(null); }}><h2 id="studio-unsaved-heading">Unsaved definition</h2><p>Your definition for {selected?.name} has not been applied. Stay to save it, or discard it and {pendingSelection.kind === 'disconnect' ? 'disconnect' : `open ${pendingSelection.name}`}.</p><button type="button" onClick={() => setPendingSelection(null)}>Stay and keep editing</button><button type="button" onClick={discardDefinitionAndSelect}>{pendingSelection.kind === 'disconnect' ? 'Discard and disconnect' : `Discard and open ${pendingSelection.name}`}</button></dialog>}
+    {pendingSelection && <dialog ref={unsavedDialog} aria-labelledby="studio-unsaved-heading" className="studio-unsaved-dialog" onCancel={event => { event.preventDefault(); setPendingSelection(null); }}><h2 id="studio-unsaved-heading">Unsaved inspector edits</h2><p>Your edits for {selected?.name} have not been applied. Stay to apply them, or discard them and {pendingSelection.kind === 'disconnect' ? 'disconnect' : `open ${pendingSelection.name}`}.</p><button type="button" onClick={() => setPendingSelection(null)}>Stay and keep editing</button><button type="button" onClick={discardDefinitionAndSelect}>{pendingSelection.kind === 'disconnect' ? 'Discard and disconnect' : `Discard and open ${pendingSelection.name}`}</button></dialog>}
     {snapshot && <fieldset className="studio-workspace" disabled={!online} onFocusCapture={event => { if (event.target.matches('input:not([type=checkbox]), textarea, select, [contenteditable=true]')) pauseFollowing(); }}><legend className="sr-only">Modelling workspace</legend><div className="studio-primary-actions"><button type="button" onClick={() => runChecks('structural')} disabled={checkStarting}>Check draft</button><button type="button" onClick={reviewDraftChanges}>Review draft changes</button>{job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) && <button type="button" onClick={() => { const heading = document.getElementById('studio-validation-heading'); heading?.scrollIntoView({ block: 'nearest' }); heading?.focus({ preventScroll: true }); }}>View check details</button>}{job && <span>Latest {job.profile} operation: {job.status}{job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest ? ' · out of date' : ''}</span>}</div><div className="studio-panel-controls"><button type="button" aria-pressed={!hideNavigator} onClick={() => setHideNavigator(!hideNavigator)}>{hideNavigator ? 'Show navigator' : 'Hide navigator'}</button><button type="button" aria-pressed={!hideInspector} onClick={() => setHideInspector(!hideInspector)}>{hideInspector ? 'Show inspector' : 'Hide inspector'}</button><details className="studio-panel-sizing"><summary>Panel sizes</summary><label>Navigator width <input type="range" min="200" max="360" step="10" value={navigatorWidth} onChange={event => setNavigatorWidth(Number(event.target.value))} /><output>{navigatorWidth} px</output></label><label>Inspector width <input type="range" min="280" max="440" step="10" value={inspectorWidth} onChange={event => setInspectorWidth(Number(event.target.value))} /><output>{inspectorWidth} px</output></label><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); }}>Reset panel sizes</button></details></div><div className="studio-panels" data-hide-navigator={hideNavigator} data-hide-inspector={hideInspector} style={{ '--navigator-width': navigatorWidth + 'px', '--inspector-width': inspectorWidth + 'px' }}>
       <section hidden={hideNavigator}><h2>Discover concepts</h2><form onSubmit={search}><label>Search model <input ref={searchInput} value={query} onChange={event => { searchSequence.current += 1; setQuery(event.target.value); setResults([]); setSearchDone(false); }} /></label><button>Search</button></form>
         {!searchDone && !query && <div className="studio-browse"><h3>Browse concepts</h3>{!browse ? <p>Loading concepts…</p> : browse.error ? <p role="status">Browse unavailable: {browse.error}. Search remains available.</p> : <><label>Filter by module <select value={browse.module ?? ""} onChange={event => browseModule(event.target.value)}><option value="">All modules</option>{browse.modules.map(item => <option key={item.name} value={item.name}>{item.name} ({item.count})</option>)}</select></label><p>Showing {browse.results.length} of {browse.total} concepts.</p><ul>{browse.results.map(item => <li key={item.name}><button type="button" onClick={() => { pauseFollowing(); selectConcept(item); }}>{item.name}</button> <small>{item.module}</small></li>)}</ul>{browse.nextCursor && <button type="button" onClick={loadMoreConcepts}>Load more concepts</button>}</>}</div>}
