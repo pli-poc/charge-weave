@@ -944,6 +944,8 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await expect(page.getByLabel('New datatype or target class')).toBeFocused();
+    await expect(page.locator('#studio-field-type-suggestions option[value="dateTime"]')).toHaveAttribute('label', 'Datatype');
+    await expect(page.locator('#studio-field-type-suggestions option[value="Record"]')).toHaveAttribute('label', 'Loaded concept');
     await page.getByRole('button', { name: 'Cancel field edit' }).click();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeFocused();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
