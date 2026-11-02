@@ -1630,6 +1630,10 @@ test('review workflow links to separate review and publication steps', async ({ 
     await reviewLink.click();
     const workflow = page.getByRole('region', { name: 'Review workflow' });
     await expect(workflow.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
+    const reviewTools = page.getByRole('region', { name: 'Review and publication' });
+    for (const heading of ['Review readiness', 'Reviewer decision', 'Publication preflight', 'GitHub commit checks']) {
+      await expect(reviewTools.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+    }
     await expect(workflow).toContainText(workspace.sourceDigest);
     await expect(workflow).toContainText('Checks and review decisions do not publish the draft.');
     await expect(workflow).toContainText('Comparison not opened');
