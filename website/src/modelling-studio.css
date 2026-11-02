@@ -79,6 +79,10 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-primary-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
 .studio-primary-actions button:first-child { background: #17665c; border-color: #55a991; }
 .studio-primary-actions span { color: #b8cbcc; font-size: .82rem; }
+.studio-destinations { display: flex; flex-wrap: wrap; gap: .25rem; margin: .5rem 0; border-bottom: 1px solid #30494e; }
+.studio-destinations a { display: inline-block; padding: .45rem .7rem; color: #b8cbcc; text-decoration: none; border-bottom: 2px solid transparent; }
+.studio-destinations a:hover { color: #e8f6f2; border-color: #79cbb6; }
+.studio-destinations a:focus-visible { outline: 2px solid #7cddc2; outline-offset: -2px; }
 .modelling-studio details { margin: .75rem 0; }
 .modelling-studio summary { color: #a4e6d0; font-weight: 650; cursor: pointer; }
 .modelling-studio code { overflow-wrap: anywhere; color: #a4e6d0; }
