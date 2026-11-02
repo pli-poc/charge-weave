@@ -50,8 +50,14 @@ test('reviewer creates a scoped workspace idempotently from a committed baseline
   const store = new WorkspaceStore(':memory:');
   const original = store.create({ title: 'Original', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const hidden = store.create({ title: 'Hidden', baselineCommit, schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  // Exercise the service through the store operations, without exposing its SQLite handle.
+  const storePort = new Proxy(store, { get(target, property) {
+    if (property === 'db') throw new Error('The HTTP service must not access the database directly');
+    const value = target[property];
+    return typeof value === 'function' ? value.bind(target) : value;
+  } });
   const token = 'a'.repeat(32), reviewerToken = 'b'.repeat(32);
-  let service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
+  let service = createHttpService({ store: storePort, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   const url = new URL(`http://127.0.0.1:${service.address().port}/mcp`);
   const clients = [];
@@ -76,7 +82,7 @@ test('reviewer creates a scoped workspace idempotently from a committed baseline
     assert.equal((await draft.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: hidden.id } })).isError, true);
     for (const client of clients.splice(0)) await client.close();
     await service.shutdown();
-    service = createHttpService({ store, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
+    service = createHttpService({ store: storePort, token, reviewerToken, workspaceId: original.id, repository: repo, allowWorkspaceCreate: true });
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
     const restarted = new Client({ name: 'reviewer-after-restart', version: '1' });
     await restarted.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${reviewerToken}` } } })); clients.push(restarted);
