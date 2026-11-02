@@ -1437,6 +1437,37 @@ test('draft comparison groups added and changed concepts with before and after',
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('concept context can be previewed and copied for the current draft', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Context', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const token = 'test-token-'.repeat(4);
+  const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, repository: '.', staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  await page.addInitScript(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.copiedContext = text; } } }));
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByText('Prepare context for Codex').click();
+    const preview = page.getByLabel('Context preview');
+    await expect(preview).toHaveValue(/Selected concept: Record/);
+    await expect(preview).toHaveValue(/revision: 0/);
+    await page.getByRole('button', { name: 'Copy context' }).click();
+    const copied = await page.evaluate(() => window.copiedContext);
+    expect(copied).toContain(workspace.id);
+    expect(copied).not.toContain(token);
+    expect(copied).not.toContain(pairingCode);
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'context-update', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A revised record.' }] });
+    await expect(preview).toHaveValue(/revision: 1/);
+    await expect(preview).toHaveValue(/A revised record/);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('check profile selects the scope sent to the shared service', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Check scope', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
