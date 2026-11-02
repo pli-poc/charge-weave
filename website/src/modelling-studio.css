@@ -74,6 +74,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio > section { margin: 1rem 0; padding: 1rem; border: 1px solid #30494e; border-radius: .65rem; }
 .studio-activity, .studio-panels section { border-radius: .65rem; }
 .studio-panel-controls { margin: 1rem 0; }
+.studio-primary-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+.studio-primary-actions button:first-child { background: #17665c; border-color: #55a991; }
+.studio-primary-actions span { color: #b8cbcc; font-size: .82rem; }
 .modelling-studio details { margin: .75rem 0; }
 .modelling-studio summary { color: #a4e6d0; font-weight: 650; cursor: pointer; }
 .modelling-studio code { overflow-wrap: anywhere; color: #a4e6d0; }

@@ -400,7 +400,8 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.get(workspace.id).schema).toContain('recordName:string!');
-    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText(/recordName: potentially-breaking/)).toBeVisible();
     await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
     await page.getByRole('button', { name: 'Require peer' }).click();
@@ -754,7 +755,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    await page.getByRole('button', { name: 'Run structural generator' }).click();
+    await page.getByRole('button', { name: 'Check draft', exact: true }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
     await issues.getByText('Recorded check output').click();
