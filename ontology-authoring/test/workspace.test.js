@@ -191,6 +191,12 @@ test('version-four drafts atomically link an existing requirement and undo both 
   assert.notEqual(changed.sourceDigest, workspace.sourceDigest);
   const source = changed.sourceOverlays['requirements/business-requirements.json'];
   assert.ok(JSON.parse(source).find(item => item.id === requirement.id).classes.includes('NewDomainConcept'));
+  const links = store.requirementLinks(workspace.id, 'NewDomainConcept', 1, 0, 1);
+  assert.equal(links.total, 1);
+  assert.equal(links.nextOffset, null);
+  assert.equal(links.results[0].id, requirement.id);
+  assert.throws(() => store.requirementLinks(workspace.id, 'NewDomainConcept', 0), /Revision conflict/);
+  assert.throws(() => store.requirementLinks(workspace.id, 'MissingConcept', 1), /existing concept/);
   const diff = store.diff(workspace.id);
   assert.equal(diff.additionalSources.length, 2);
   assert.equal(applyPatch(requirements, diff.additionalSources.find(item => item.path === 'requirements/business-requirements.json').patch), source);
@@ -212,6 +218,27 @@ test('version-four drafts atomically link an existing requirement and undo both 
   assert.equal(applyPatch(policy, historical.additionalSources.find(item => item.path === 'model/temporal-policy.json').patch), changed.sourceOverlays['model/temporal-policy.json']);
   store.close();
 });
+test('concept requirement links are bounded, ordered and revision pinned', () => {
+  const baselineSchema = 'MODULE|foundation\nRecord|root|A record.|\nOther|Record|Another record.|\n';
+  const requirements = JSON.stringify([{ id: 'BR-002', statement: 'Second', classes: ['Record'] }, { id: 'BR-001', statement: 'First', classes: ['Record'] }, { id: 'BR-003', statement: 'Other', classes: ['Other'] }]);
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const manifest = [{ path: 'model/domain.schema', sha256: hash(baselineSchema) }, { path: 'requirements/business-requirements.json', sha256: hash(requirements) }];
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const workspace = store.create({ title: 'Linked requirements', baselineCommit: 'a'.repeat(40), schema: baselineSchema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+    const first = store.requirementLinks(workspace.id, 'Record', 0, 0, 1);
+    assert.equal(first.total, 2);
+    assert.equal(first.results[0].id, 'BR-001');
+    assert.equal(first.nextOffset, 1);
+    const second = store.requirementLinks(workspace.id, 'Record', 0, first.nextOffset, 1);
+    assert.equal(second.results[0].id, 'BR-002');
+    assert.equal(second.nextOffset, null);
+    assert.equal(store.requirementLinks(workspace.id, 'Other', 0).total, 1);
+    assert.throws(() => store.requirementLinks(workspace.id, 'Record', 1), /Revision conflict/);
+    assert.throws(() => store.requirementLinks(workspace.id, 'Record', 0, 0, 51), /Invalid/);
+  } finally { store.close(); }
+});
+
 test('version-four source overlays and receipts survive restart', () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-sources-'));
   let store;

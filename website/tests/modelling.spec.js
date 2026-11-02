@@ -2295,6 +2295,9 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.locator('li').filter({ hasText: 'BR-001' }).getByRole('button', { name: 'Link selected concept' }).click();
     await expect(page.getByRole('status')).toContainText('revision 3');
+    await surface('Inspector');
+    await page.getByText('Prepare context for Codex').click();
+    await expect(page.getByLabel('Context preview')).toHaveValue(/Explicit concept requirement links:.*BR-001/);
     await surface('Diagram');
     await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Diagram view' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();

@@ -42,6 +42,9 @@ test('interval template creates and undoes the complete multi-source draft', asy
     assert.throws(() => store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'reuse', expectedRevision: 0, commands: [{ ...commands.at(-1), owner: 'TimeWindow', startProperty: 'startsAt', endProperty: 'endsAt' }] }), /review existing rules for reuse/);
     const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'interval', expectedRevision: 0, commands } });
     assert.equal(result.structuredContent.revision, 1, JSON.stringify(result));
+    const links = await client.callTool({ name: 'ontology_requirement_links', arguments: { workspaceId: workspace.id, name: 'PlannedServiceWindow', expectedRevision: 1, limit: 1 } });
+    assert.equal(links.structuredContent.results[0].id, 'BR-012');
+    assert.equal(links.structuredContent.total, 1);
     const candidate = store.get(workspace.id), diff = store.diff(workspace.id);
     assert.equal(diff.additionalSources.length, 6);
     for (const item of diff.additionalSources) assert.equal(applyPatch(sourceBlobs[item.path], item.patch), candidate.sourceOverlays[item.path]);

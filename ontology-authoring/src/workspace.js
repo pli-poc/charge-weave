@@ -551,6 +551,18 @@ export class WorkspaceStore {
     if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, rules: item.rules, source: requirementsPath })) };
   }
+  requirementLinks(id, name, expectedRevision, offset = 0, limit = 50) {
+    if (!identifier.test(name ?? '') || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Invalid requirement links request');
+    const workspace = this.get(id);
+    if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    if (workspace.digestVersion !== 4 || !parse(workspace.schema).classes.has(name)) throw new Error('Requirement links need an existing concept in a version-four workspace');
+    const row = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(id, requirementsPath);
+    if (!row) throw new Error('Requirements source is unavailable');
+    const entries = JSON.parse(row.content);
+    if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
+    const matches = entries.filter(item => Array.isArray(item.classes) && item.classes.includes(name)).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, name, total: matches.length, nextOffset: offset + limit < matches.length ? offset + limit : null, results: matches.slice(offset, offset + limit).map(item => ({ id: item.id, statement: item.statement, source: requirementsPath })) };
+  }
   incoming(id, root, expectedRevision, offset = 0, limit = 50) {
     if (!identifier.test(root ?? '') || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid incoming reference request');
     const workspace = this.get(id);
