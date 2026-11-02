@@ -40,7 +40,15 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
     }
     const requestId = ++sequence.current;
     if (!worker.current) return;
-    if (!newNames.size) { setLayoutState('ready'); return; }
+    if (!newNames.size) {
+      setLayoutState('ready');
+      const root = positions.current[graph.root];
+      if (!fitted.current && instance.current && root) {
+        fitted.current = true;
+        requestAnimationFrame(() => instance.current?.setCenter(root.x + 95, root.y + 32, { zoom: 1, duration: motionDuration(200) }));
+      }
+      return;
+    }
     setLayoutState('pending');
     worker.current.onmessage = event => {
       if (event.data.requestId !== sequence.current) return;
@@ -55,7 +63,16 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
       setLayoutState('ready');
-      if (!fitted.current && instance.current) { fitted.current = true; requestAnimationFrame(() => instance.current?.fitView({ padding: 0.2, duration: motionDuration(200) })); }
+      // Start at a readable scale around the selected concept. Fitting every
+      // neighbour on a dense graph can shrink all labels beyond recognition;
+      // the built-in Fit View control remains available for an overview.
+      if (!fitted.current && instance.current) {
+        const root = positions.current[graph.root];
+        if (root) {
+          fitted.current = true;
+          requestAnimationFrame(() => instance.current?.setCenter(root.x + 95, root.y + 32, { zoom: 1, duration: motionDuration(200) }));
+        }
+      }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
   }, [graph]);
@@ -81,7 +98,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
     <ReactFlow nodes={nodes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.predicate, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
-      nodesConnectable deleteKeyCode={null} fitView minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
+      nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <Background /><Controls showInteractive={false} />
     </ReactFlow>
   </div>;
