@@ -24,6 +24,10 @@ test('inherited fields link to their declaring concept', async ({ page }) => {
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    await page.getByRole('button', { name: 'Inspect parent Record' }).click();
+    await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect owner Record' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeVisible();
