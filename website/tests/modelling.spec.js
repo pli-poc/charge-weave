@@ -674,6 +674,27 @@ test('command palette supports keyboard search, execution and dismissal', async 
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('desktop workbench keeps the main panels within the initial viewport', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Compact screens use stacked navigation.');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Workbench', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.locator('.studio-app-bar').getByLabel('Current workspace')).toBeVisible();
+    const bounds = await page.evaluate(() => ({ scrollY: window.scrollY, header: document.querySelector('.studio-app-bar').getBoundingClientRect().toJSON(), panel: document.querySelector('#studio-editor-pane').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
+    expect(bounds.scrollY).toBe(0);
+    expect(bounds.header.top).toBeGreaterThanOrEqual(0);
+    expect(bounds.panel.height).toBeGreaterThan(400);
+    expect(bounds.panel.bottom).toBeLessThanOrEqual(bounds.status.top + 2);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('desktop panel sizes can be adjusted with the keyboard and restored', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Compact layout uses stacked panels.');
   const store = new WorkspaceStore(':memory:');
@@ -935,7 +956,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByRole('button', { name: 'Create workspace' }).click();
     await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
-    await expect(page.locator('.studio-app-bar')).toContainText('Workspace: New proposal');
+    await expect(page.locator('.studio-app-bar').getByLabel('Current workspace')).toBeVisible();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('Unapplied workspace edit.');
@@ -947,7 +968,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByLabel('Current workspace').selectOption(original.id);
     await page.getByRole('button', { name: 'Discard and open Original' }).click();
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
-    await expect(page.locator('.studio-app-bar')).toContainText('Workspace: Original');
+    await expect(page.locator('.studio-app-bar').getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
   } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
 
