@@ -149,6 +149,10 @@ test('navigator search refreshes when another client changes the draft', async (
     await expect(workspaceStatus).toContainText('Revision 1');
     await expect(page.getByText('Updated device definition.')).toBeVisible();
     await expect(page.getByLabel('Search model')).toHaveValue('Device');
+    await expect(page.getByText('1 matching concept shown.')).toBeVisible();
+    await page.getByRole('button', { name: 'Clear search' }).click();
+    await expect(page.getByLabel('Search model')).toHaveValue('');
+    await expect(page.getByRole('heading', { name: 'Browse concepts' })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
