@@ -128,7 +128,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-bottom-dock { position: relative; margin-top: 1rem; border: 1px solid #30494e; border-radius: .4rem; background: #102127; }
 .studio-results-splitter { position: absolute; z-index: 5; inset: -6px 0 auto; height: 12px; cursor: row-resize; touch-action: none; }
 .studio-results-splitter:hover, .studio-results-splitter:focus-visible { background: #55a991; outline: none; }
-.studio-bottom-dock > nav { display: flex; gap: .25rem; align-items: center; padding: .25rem .5rem; }
+.studio-bottom-dock > nav { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; padding: .25rem .5rem; }
 .modelling-studio .studio-bottom-dock > nav button { border-color: transparent; background: transparent; }
 .modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom: 2px solid #7cddc2; border-radius: 0; color: #e4eeef; }
 .studio-bottom-dock > nav button[aria-label="Close results panel"] { margin-left: auto; }

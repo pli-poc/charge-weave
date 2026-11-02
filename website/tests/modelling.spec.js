@@ -159,6 +159,8 @@ test('navigator search refreshes when another client changes the draft', async (
     await expect(workspaceStatus.getByRole('link', { name: 'Checks: no result displayed' })).toBeVisible();
     const results = page.getByRole('region', { name: 'Workspace results' });
     const resultNav = results.getByRole('navigation', { name: 'Results panels' });
+    await resultNav.getByRole('button', { name: 'Problems', exact: true }).click();
+    await expect(results.getByText('No validation result is displayed. Run a check to inspect failures.')).toBeVisible();
     await resultNav.getByRole('button', { name: 'Activity', exact: true }).click();
     await expect(results.getByRole('region', { name: 'Recent activity' })).toBeVisible();
     await resultNav.getByRole('button', { name: 'Output', exact: true }).click();
@@ -1701,6 +1703,10 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.getByRole('button', { name: 'Collapse validation' }).click();
     await page.getByRole('button', { name: 'Close results panel' }).click();
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
+    const problems = page.getByRole('region', { name: 'Problems' });
+    await expect(problems.getByText('tools/example-check.py', { exact: true })).toBeVisible();
+    await expect(problems.getByText(/does not automatically identify a model defect/)).toBeVisible();
+    await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
     await issues.getByLabel('Filter failed checks').fill('unmatched check');
@@ -1723,6 +1729,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
     await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
+    await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     await expect(issues.getByText('missing-station: expected rejection, observed conformance.')).toBeVisible();
     await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeVisible();
     await expect(issues.getByText(/reversed-shared-interval: expected/)).toHaveCount(0);
