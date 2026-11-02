@@ -655,6 +655,10 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await result.focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    await page.getByLabel('Search model').fill('Thing');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page.getByText('25 matching concepts shown.')).toBeVisible();
+    await expect(page.getByText(/Search shows up to 25 matches/)).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
