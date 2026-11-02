@@ -82,6 +82,7 @@ export default function ModellingStudio() {
   const lastSearch = useRef(null);
   const [browse, setBrowse] = useState(null);
   const browseRequest = useRef(0);
+  const browseSelection = useRef({ endpoint: null, workspaceId: null, module: '' });
   const [selected, setSelected] = useState(null);
   const [viewRoot, setViewRoot] = useState(null);
   const [graph, setGraph] = useState(null);
@@ -391,8 +392,10 @@ export default function ModellingStudio() {
     const request = ++browseRequest.current;
     setBrowse(null);
     if (!connection || !snapshot) return undefined;
+    if (browseSelection.current.endpoint !== connection.endpoint || browseSelection.current.workspaceId !== connection.workspaceId) browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module: '' };
+    const module = browseSelection.current.module;
     const abort = new AbortController();
-    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, limit: 50 } }, abort.signal)
+    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, limit: 50, ...(module ? { module } : {}) } }, abort.signal)
       .then(response => { if (!abort.signal.aborted && request === browseRequest.current && response.structuredContent.revision === currentRevision.current) setBrowse(response.structuredContent); })
       .catch(problem => { if (!abort.signal.aborted && request === browseRequest.current) setBrowse({ error: problem.message }); });
     return () => abort.abort();
@@ -411,6 +414,7 @@ export default function ModellingStudio() {
   }, [conceptFormOpen, connection, snapshot?.revision, newClass.parent]);
   async function browseModule(module) {
     if (!connection || !snapshot) return;
+    browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module };
     const request = ++browseRequest.current;
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, limit: 50, ...(module ? { module } : {}) } });

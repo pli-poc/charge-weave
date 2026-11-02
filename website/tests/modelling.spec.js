@@ -486,6 +486,10 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByRole('heading', { name: 'Thing054', exact: true })).toBeVisible();
     await page.getByLabel('Filter by module').selectOption('operations');
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-filtered-module', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Station', definition: 'Updated station.' }] });
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(page.getByLabel('Filter by module')).toHaveValue('operations');
+    await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Station', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
