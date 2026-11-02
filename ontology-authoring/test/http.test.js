@@ -12,6 +12,28 @@ import { WorkspaceStore } from '../src/workspace.js';
 import { createHttpService } from '../src/http.js';
 import { editableSourcePaths } from '../src/source-manifest.js';
 
+test('committed MCP edits wake an event stream without waiting for polling', { timeout: 10000 }, async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Event wake', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const token = 'a'.repeat(32);
+  const service = createHttpService({ store, token, workspaceId: workspace.id, eventPollMs: 10000 });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const origin = `http://127.0.0.1:${service.address().port}`;
+  const client = new Client({ name: 'event-wake-test', version: '1' });
+  const abort = new AbortController();
+  try {
+    await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+    const stream = await fetch(`${origin}/events?workspaceId=${workspace.id}&after=0`, { headers: { authorization: `Bearer ${token}` }, signal: abort.signal });
+    const reader = stream.body.getReader();
+    const pending = reader.read();
+    const applied = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'wake', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated immediately.' }] } });
+    assert.equal(applied.isError, undefined);
+    const chunk = await Promise.race([pending, new Promise((_, reject) => setTimeout(() => reject(new Error('Event was not delivered promptly')), 2000))]);
+    const text = new TextDecoder().decode(chunk.value);
+    assert.match(text, /event: workspace-change/); assert.match(text, /Updated immediately/);
+  } finally { abort.abort(); await client.close(); await service.shutdown(); store.close(); }
+});
+
 test('reviewer creates a scoped workspace idempotently from a committed baseline', { timeout: 120000 }, async () => {
   const repo = mkdtempSync(join(tmpdir(), 'chargeweave-create-'));
   const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();

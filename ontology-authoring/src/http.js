@@ -12,7 +12,7 @@ import { createWorkspaceFromRepository } from './workspace-create.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
-export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, pullRequestFetch, allowPublish = false, allowWorkspaceCreate = false, githubToken }) {
+export function createHttpService({ store, token, reviewerToken, pairingCode, allowedOrigin, repository, python, workspaceId, staticDirectory, validationRunner = runGenerator, publicationFixture, ciFetch, pullRequestFetch, allowPublish = false, allowWorkspaceCreate = false, githubToken, eventPollMs = 500 }) {
   if (typeof token !== 'string' || Buffer.byteLength(token) < 32) throw new Error('A bearer token of at least 32 bytes is required');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(workspaceId ?? '')) throw new Error('A specific workspace grant is required');
   store.get(workspaceId);
@@ -23,6 +23,8 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
   const reviewerSecret = reviewerToken ? Buffer.from(reviewerToken) : null;
   const pairing = pairingCode ? new PairingSessions(pairingCode) : null;
   const grantedWorkspaces = new Set([workspaceId]);
+  const listeners = new Map();
+  const eventMutators = new Set(['apply', 'applyReviewerCase', 'undo', 'saveView', 'openChangeSet', 'reopenChangeSet', 'suggestView', 'recordReview', 'reservePublication']);
   const scopedStore = new Proxy(store, {
     get(target, property) {
       const member = target[property];
@@ -30,7 +32,9 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       return (...args) => {
         const requested = ['apply', 'applyReviewerCase', 'undo', 'saveView', 'openChangeSet', 'reopenChangeSet'].includes(property) ? args[0]?.workspaceId : args[0];
         if (!grantedWorkspaces.has(requested)) throw new Error('Workspace not authorized');
-        return member.apply(target, args);
+        const result = member.apply(target, args);
+        if (eventMutators.has(property)) for (const listener of listeners.get(requested) ?? []) listener();
+        return result;
       };
     },
   });
@@ -123,10 +127,12 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
           }
         } catch { res.end(); }
       };
+      if (!listeners.has(requestedWorkspace)) listeners.set(requestedWorkspace, new Set());
+      listeners.get(requestedWorkspace).add(send);
       send();
-      const timer = setInterval(send, 500);
+      const timer = setInterval(send, eventPollMs);
       const heartbeat = setInterval(() => { if (!res.write(': heartbeat\n\n')) res.end(); }, 15000);
-      res.on('close', () => { clearInterval(timer); clearInterval(heartbeat); });
+      res.on('close', () => { clearInterval(timer); clearInterval(heartbeat); const group = listeners.get(requestedWorkspace); group?.delete(send); if (!group?.size) listeners.delete(requestedWorkspace); });
       return;
     }
     if (req.url !== '/mcp' || req.method !== 'POST') { res.writeHead(404).end('Not found'); return; }
