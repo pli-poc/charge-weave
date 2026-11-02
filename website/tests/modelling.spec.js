@@ -732,6 +732,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(historical.getByText('Reason: Clarify the definition.')).toBeVisible();
     await expect(historical.getByText(/Command group:/)).toBeVisible();
     await expect(page.getByRole('status')).toContainText('revision 4');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
     await expect(historical).toHaveCount(0);
     await page.getByLabel('Decision').selectOption('reject');
