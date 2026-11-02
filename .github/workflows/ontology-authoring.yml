@@ -155,15 +155,15 @@ jobs:
       - run: npm ci --prefix client-runtime
       - run: npm ci --prefix website
       - run: npm run build --prefix website
-      - run: node --test src/model/event-cursor.test.js src/model/canvas-pins.test.js src/model/canvas-history.test.js
+      - run: node --test src/model/event-cursor.test.js src/model/canvas-pins.test.js src/model/canvas-history.test.js src/model/canvas-viewport.test.js
         working-directory: website
       - run: npx playwright install --with-deps chromium
         working-directory: website
       - run: npx playwright test tests/modelling.spec.js --project=desktop
         working-directory: website
-      - run: npx playwright test tests/canvas-layout.spec.js tests/canvas-relationship.spec.js tests/canvas-alignment.spec.js tests/canvas-pins.spec.js tests/canvas-undo.spec.js tests/canvas-zoom.spec.js tests/studio-theme.spec.js tests/studio-density.spec.js tests/studio-theme-accessibility.spec.js tests/studio-keyboard-contrast.spec.js --project=desktop
+      - run: npx playwright test tests/canvas-layout.spec.js tests/canvas-relationship.spec.js tests/canvas-alignment.spec.js tests/canvas-pins.spec.js tests/canvas-undo.spec.js tests/canvas-zoom.spec.js tests/canvas-viewport.spec.js tests/studio-card-readability.spec.js tests/studio-allowed-values.spec.js tests/studio-theme.spec.js tests/studio-density.spec.js tests/studio-theme-accessibility.spec.js tests/studio-keyboard-contrast.spec.js --project=desktop
         working-directory: website
       - run: npx playwright test tests/modelling.spec.js --project=mobile -g "mobile relationship list"
         working-directory: website
-      - run: npx playwright test tests/studio-zoom-reflow.spec.js tests/studio-density.spec.js tests/studio-touch-targets.spec.js --project=mobile
+      - run: npx playwright test tests/studio-zoom-reflow.spec.js tests/studio-density.spec.js tests/studio-touch-targets.spec.js tests/studio-allowed-values.spec.js --project=mobile
         working-directory: website

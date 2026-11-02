@@ -4,6 +4,7 @@ import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
 import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
+import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
 import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
@@ -55,6 +56,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [pinRecoveryNeeded, setPinRecoveryNeeded] = useState(!initialPins.writable);
   const [pinNotice, setPinNotice] = useState('');
   const [layoutNotice, setLayoutNotice] = useState('');
+  const [viewportNotice, setViewportNotice] = useState('');
   const [layoutHistory, setLayoutHistory] = useState([]);
   const [draggingLayout, setDraggingLayout] = useState(false);
   const [layoutState, setLayoutState] = useState('pending');
@@ -71,6 +73,20 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const arranging = useRef(false), layoutMenu = useRef(null);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
+  const frameRoot = useCallback(root => {
+    if (!instance.current || lastRoot.current !== root) return false;
+    const saved = readCanvasViewport(sessionStorage, graph.workspaceId, viewId, root);
+    if (saved) {
+      fitted.current = true;
+      void instance.current.setViewport(saved, { duration: 0 });
+      return true;
+    }
+    const point = positions.current[root];
+    if (!point) return false;
+    fitted.current = true;
+    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(200) });
+    return true;
+  }, [graph.workspaceId, viewId]);
   const recordLayoutChange = useCallback((before, after, names, label) => {
     const entry = positionChange(before, after, names, label);
     if (entry) setLayoutHistory(previous => [...previous.slice(-19), entry]);
@@ -93,21 +109,14 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields, changeStatus: node.changeStatus }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === selectedName }));
     setNodes(next);
     const changedRoot = lastRoot.current !== graph.root;
-    lastRoot.current = graph.root;
-    if (changedRoot && positions.current[graph.root] && instance.current && fitted.current) {
-      const point = positions.current[graph.root];
-      void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
-    }
+    if (changedRoot) { lastRoot.current = graph.root; fitted.current = false; }
+    if (!fitted.current && instance.current) frameRoot(graph.root);
     const requestId = ++sequence.current;
     if (!worker.current) return;
     if (!newNames.size) {
       setLayoutState('ready');
       if (layoutAttempt > 0 && storageWritable.current) setLayoutNotice('Automatic layout is ready.');
-      const root = positions.current[graph.root];
-      if (!fitted.current && instance.current && root) {
-        fitted.current = true;
-        requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
-      }
+      if (!fitted.current && instance.current) requestAnimationFrame(() => frameRoot(graph.root));
       return;
     }
     setLayoutState('pending');
@@ -130,15 +139,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       // neighbour on a dense graph can shrink all labels beyond recognition;
       // the built-in Fit View control remains available for an overview.
       if (!fitted.current && instance.current) {
-        const root = positions.current[graph.root];
-        if (root) {
-          fitted.current = true;
-          requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
-        }
+        requestAnimationFrame(() => frameRoot(graph.root));
       }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
-  }, [graph, selectedName, viewId, layoutAttempt]);
+  }, [graph, selectedName, viewId, layoutAttempt, frameRoot]);
   const onNodesChange = useCallback(changes => {
     const before = { ...positions.current };
     let moved = false;
@@ -363,19 +368,17 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       </details>
     </details>
     <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
-      onInit={value => {
-        instance.current = value;
-        const root = positions.current[graph.root];
-        if (!fitted.current && root) {
-          fitted.current = true;
-          requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
-        }
-      }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
+      onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
+        if (!lastRoot.current) return;
+        try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
+        catch { setViewportNotice('This browser tab could not remember the diagram position.'); }
+      }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} />
     </ReactFlow>
   </div>
+    {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
     {graph.edges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{graph.edges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
     {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
       <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>

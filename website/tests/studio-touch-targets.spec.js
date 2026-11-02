@@ -38,3 +38,24 @@ for (const width of [320, 390]) {
     } finally { await page.close(); await service.shutdown(); store.close(); }
   });
 }
+
+test('touch tablet keeps the expanded results and status in the viewport', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Touch layout is exercised on the mobile device profile.');
+  await page.setViewportSize({ width: 1024, height: 768 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Touch tablet', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Problems' }).click();
+    const bounds = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON(), viewport: window.innerHeight, overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth }));
+    expect(bounds.dock.bottom).toBeLessThanOrEqual(bounds.status.top + 1);
+    expect(bounds.status.bottom).toBeLessThanOrEqual(bounds.viewport + 1);
+    expect(bounds.overflow).toBe(false);
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

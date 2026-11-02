@@ -56,16 +56,17 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-layout-notice { position: absolute; z-index: 5; max-width: min(32rem, 90%); padding: .5rem; background: #fff5db; border: 1px solid #9a5c00; color: #183a39; }
 .studio-flow .studio-flow-node { width: 190px; min-height: 64px; display: flex; align-items: center; justify-content: center; border: 2px solid #147d70; border-radius: .4rem; background: white; color: #183a39; font-size: 1rem; }
 .studio-flow .studio-flow-node { width: 220px; height: 128px; display: block; font-size: 12px; text-align: left; }
-.studio-concept-card { height: 100%; overflow: hidden; padding: 9px 11px; }
-.studio-concept-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.studio-concept-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-.studio-concept-kind { flex: none; color: #17665c; font-size: 9px; font-weight: 800; letter-spacing: .05em; }
-.studio-concept-module { color: #506d69; font-size: 11px; margin: 3px 0 5px; }
-.studio-concept-change { color: #704600; font-size: 10px; font-weight: 700; line-height: 14px; }
+.studio-concept-card { height: 100%; overflow: hidden; padding: 6px 10px; line-height: 15px; }
+.studio-concept-heading { display: flex; align-items: center; gap: 6px; min-width: 0; line-height: 18px; }
+.studio-concept-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.studio-concept-kind { flex: none; color: #17665c; font-size: 12px; font-weight: 800; letter-spacing: .05em; }
+.studio-concept-module { color: #506d69; font-size: 12px; line-height: 14px; margin: 1px 0 2px; }
+.studio-concept-change { color: #704600; font-size: 11px; font-weight: 700; line-height: 14px; }
+.studio-flow .studio-concept-card :is(.studio-concept-change, .studio-concept-layout-selected, .studio-concept-layout-pinned) { display: inline-block; margin-right: .3rem; font-size: 11px; line-height: 14px; vertical-align: top; }
 .studio-flow-added .studio-concept-change { color: #12643d; }
 .studio-flow .studio-concept-card ul { list-style: none; padding: 0; margin: 0; border: 0; }
-.studio-flow .studio-concept-card li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; margin: 0; line-height: 17px; }
-.studio-concept-more { color: #506d69; font-size: 10px; }
+.studio-flow .studio-concept-card li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; margin: 0; line-height: 15px; }
+.studio-concept-more { color: #506d69; font-size: 11px; line-height: 14px; }
 .studio-flow .studio-flow-added { border-style: dashed; background: #e3f7ec; }
 .studio-flow .studio-flow-changed { border-color: #9a5c00; background: #fff5db; }
 .studio-flow .react-flow__node.selected { outline: 3px solid #173f74; outline-offset: 2px; }
