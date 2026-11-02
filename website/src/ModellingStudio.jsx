@@ -259,6 +259,7 @@ export default function ModellingStudio() {
   fieldEditRef.current = fieldEdit;
   const [status, setStatus] = useState('Disconnected');
   const [online, setOnline] = useState(false);
+  const [workspaceFocus, setWorkspaceFocus] = useState(null);
   const [serverInfo, setServerInfo] = useState(null);
   const [diagnosticMessage, setDiagnosticMessage] = useState('');
   const [connectionCopyMessage, setConnectionCopyMessage] = useState('');
@@ -275,6 +276,20 @@ export default function ModellingStudio() {
   const connectionAbort = useRef(null);
 
   useEffect(() => { if (!online) setCommandsOpen(false); }, [online]);
+
+  useEffect(() => {
+    if (!online || !workspaceFocus) return undefined;
+    const frame = requestAnimationFrame(() => {
+      const target = workspaceFocus.kind === 'view'
+        ? [...document.querySelectorAll('.studio-view-tabs [data-view-id]')].find(button => button.dataset.viewId === workspaceFocus.id)
+        : document.getElementById('studio-diff-heading');
+      if (!target || target.matches(':disabled')) return;
+      target.scrollIntoView({ block: 'nearest' });
+      target.focus({ preventScroll: true });
+      if (document.activeElement === target) setWorkspaceFocus(null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [online, workspaceFocus, diff, openViewIds]);
 
   useEffect(() => {
     try {
@@ -676,7 +691,7 @@ export default function ModellingStudio() {
     const next = id === viewId ? remaining[Math.max(0, openViewIds.indexOf(id) - 1)] : viewId;
     if (id === viewId) switchView(next);
     updateOpenViews(remaining);
-    requestAnimationFrame(() => [...document.querySelectorAll('.studio-view-tabs [data-view-id]')].find(button => button.dataset.viewId === next)?.focus());
+    setWorkspaceFocus({ kind: 'view', id: next });
   }
   function focusViewRoot(name) {
     if (viewRoot && viewRoot !== name) markViewEdited();
@@ -1031,15 +1046,11 @@ export default function ModellingStudio() {
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_changeset_diff', arguments: { workspaceId: connection.workspaceId } });
       setDiff(response.structuredContent);
-    } catch (problem) { setError(problem.message); }
+      return true;
+    } catch (problem) { setError(problem.message); return false; }
   }
   async function reviewDraftChanges() {
-    await inspectChanges();
-    requestAnimationFrame(() => {
-      const heading = document.getElementById('studio-diff-heading');
-      heading?.scrollIntoView({ block: 'nearest' });
-      heading?.focus({ preventScroll: true });
-    });
+    if (await inspectChanges()) setWorkspaceFocus({ kind: 'review' });
   }
   async function inspectReadiness() {
     setError('');
@@ -1183,6 +1194,7 @@ export default function ModellingStudio() {
     }
     cacheCurrentView();
     connectionAbort.current?.abort();
+    setWorkspaceFocus(null);
     followGeneration.current += 1;
     setFollowSuggestions(false);
     setFollowPaused(false);
@@ -1223,6 +1235,7 @@ export default function ModellingStudio() {
     }
     cacheCurrentView();
     connectionAbort.current?.abort();
+    setWorkspaceFocus(null);
     followGeneration.current += 1; currentRevision.current = null; cursor.current = 0;
     setSnapshot(null); setSelected(null); setGraph(null); setEntityInfo(null); setTemporal(null); setResponsibility(null); setImpact(null);
     setResults([]); setSearchDone(false); setHistory([]); setHistoryDetail(null); setDiff(null); setJob(null); setReadiness(null); setReviews([]); setPublication(null); setPublicationHistory([]); setCommitWorkflows(null); setRequiredChecks(null); setRequirements([]); setViewId('default'); setViewIdInput('default'); setError('');
