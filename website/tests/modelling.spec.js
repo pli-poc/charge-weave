@@ -390,7 +390,7 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     const secondPosition = await node.getAttribute('style');
     expect(secondPosition).not.toBe(firstPosition);
     await page.getByText('View groups and annotations').click();
-    await page.getByLabel('Group name').fill('Equipment');
+    await page.getByLabel('Group name', { exact: true }).fill('Equipment');
     await page.getByLabel('Group concepts (comma separated)').fill('Device');
     await page.getByRole('button', { name: 'Add view group' }).click();
     await page.getByLabel('Note for selected concept').fill('Local note');
@@ -2180,7 +2180,7 @@ test('interactive graph preserves view positions and supports keyboard selection
     const moved = await node.getAttribute('style');
     expect(store.get(workspace.id).revision).toBe(0);
     await page.getByText('View groups and annotations').click();
-    await page.getByLabel('Group name').fill('Core');
+    await page.getByLabel('Group name', { exact: true }).fill('Core');
     await page.getByLabel('Group concepts (comma separated)').fill('Device, Record');
     await page.getByRole('button', { name: 'Add view group' }).click();
     await page.getByLabel('Note for selected concept').fill('Review the device.');

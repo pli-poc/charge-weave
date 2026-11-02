@@ -1,0 +1,51 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('build a controlled-value field with duplicate detection and guarded input', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Controlled field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByText('Add a field or relationship', { exact: true }).click();
+    await page.getByLabel('Field name', { exact: true }).fill('state');
+    await page.getByText('Build controlled values', { exact: true }).click();
+    await page.getByRole('button', { name: 'Start controlled values' }).click();
+    const input = page.getByLabel('New allowed value');
+    const addField = page.getByRole('button', { name: 'Add field', exact: true });
+    await expect(addField).toBeDisabled();
+    await input.fill('Draft');
+    await input.press('Enter');
+    await expect(page.getByRole('button', { name: 'Remove value Draft' })).toBeVisible();
+    await input.fill('Draft');
+    await expect(page.getByText('This value is already included.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add allowed value' })).toBeDisabled();
+    await input.fill('Final');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Record', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Unapplied edits' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await expect(input).toHaveValue('Final');
+    await page.getByRole('button', { name: 'Add allowed value' }).click();
+    await expect(page.getByLabel('Datatype or target class')).toHaveValue('{Draft,Final}');
+    await expect(addField).toBeEnabled();
+    await page.getByRole('button', { name: 'Remove value Draft' }).click();
+    await expect(addField).toBeDisabled();
+    await input.fill('Draft');
+    await page.getByRole('button', { name: 'Add allowed value' }).click();
+    await addField.click();
+    await expect.poll(() => store.get(workspace.id).revision).toBe(1);
+    expect(store.get(workspace.id).schema).toContain('state:{Final,Draft}?');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import StudioScrollableText from './StudioScrollableText.jsx';
 
 function fixtureFailures(step) {
   if (!step.checkName.includes('tools/test_authoring_maintenance_demo.py')) return [];
@@ -49,7 +50,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
       <h3>Failed check: {step.checkName}</h3>
       <p>Severity: error. Affected concept and cause are not determined by this check summary; inspect its output before choosing a repair.</p>
       {fixtureFailures(step).length > 0 && <><h4>Synthetic fixture mismatches</h4><p>These are test examples, not live data or a claim that the model is incomplete.</p><ul>{fixtureFailures(step).map(item => <li key={item.case}>{item.case}: expected {item.expectedConformance ? 'conformance' : 'rejection'}, observed {item.actualConformance ? 'conformance' : 'rejection'}.{fixtureConcepts[item.case] && <> Fixture target: {fixtureConcepts[item.case].join('.')}. <button type="button" disabled={stale} onClick={() => onFocusConcept(fixtureConcepts[item.case][0])}>Inspect {fixtureConcepts[item.case][0]}</button></>}</li>)}</ul></>}
-      <details><summary>Recorded check output</summary><pre>{step.output || job.output || 'No output was recorded.'}</pre></details>
+      <details><summary>Recorded check output</summary><StudioScrollableText label={`Recorded output: ${step.checkName}`}>{step.output || job.output || 'No output was recorded.'}</StudioScrollableText></details>
       <button type="button" onClick={() => copyRepair(step)}>Copy repair instruction</button>
     </article>)}
     {copyMessage && <p aria-live="polite">{copyMessage}</p>}

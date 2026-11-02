@@ -1,11 +1,12 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
+import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, ViewportPortal, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
 import { readCanvasHidden, writeCanvasHidden } from './model/canvas-hidden.js';
 import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
 import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
+import { canvasGroupFrames } from './model/canvas-groups.js';
 import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
@@ -51,10 +52,12 @@ function ZoomReadout({ onManualInteraction, onOverviewChange }) {
     <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
 }
-export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange }) {
+export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
+  const [newGroupName, setNewGroupName] = useState('');
+  const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
   const [initialPins] = useState(() => {
     try { return { pins: readCanvasPins(sessionStorage, graph.workspaceId, viewId), writable: true }; }
@@ -189,6 +192,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     });
   }, [visibleNames]);
   const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames]);
+  const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
     if (!visibleNames.has(name)) return;
     onManualInteraction();
@@ -217,6 +221,24 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     setNodes(current => current.map(node => names.includes(node.id) ? { ...node, position: next[node.id] } : node));
     onManualInteraction(); onLayoutChange();
     setLayoutNotice(`Aligned ${names.length} concepts locally. Save the shared view to share this layout.`);
+  }
+  function createSelectedGroup(event) {
+    event.preventDefault();
+    const name = newGroupName.trim(), members = [...layoutSelection].filter(item => visibleNames.has(item)).sort();
+    if (!groupsEditable || !onCreateGroup || layoutState === 'pending') { setGroupNotice('Load the current shared view before editing its groups.'); return; }
+    if (!name || name.length > 100 || !members.length || members.length > 100 || viewGroups.length >= 50) { setGroupNotice('Enter a group name and select 1–100 visible concepts; a view supports up to 50 groups.'); return; }
+    if (viewGroups.some(group => group.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase())) { setGroupNotice('A group with that name already exists in this view.'); return; }
+    try {
+      if (onCreateGroup({ name, members }) === false) { setGroupNotice('The view changed. Review it before adding a group.'); return; }
+      setNewGroupName(''); setGroupNotice(`Added ${name} to this local view. Save the shared view to share it.`); onManualInteraction();
+    } catch { setGroupNotice('Could not add the group. No group was added.'); }
+  }
+  function removeViewGroup(index, group) {
+    if (!groupsEditable || !onRemoveGroup || layoutState === 'pending') { setGroupNotice('Load the current shared view before editing its groups.'); return; }
+    try {
+      if (onRemoveGroup(index, group) === false) { setGroupNotice('The view changed. Review it before removing the group.'); return; }
+      setGroupNotice(`Removed ${group.name} from this local view. Save the shared view to share it.`); onManualInteraction();
+    } catch { setGroupNotice('Could not remove the group. No group was removed.'); }
   }
   function setSelectedPins(pinned) {
     if (layoutState !== 'ready' || pinRecoveryNeeded || !storageWritable.current || !layoutSelection.size) return;
@@ -409,6 +431,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
           <button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button>
           <button type="button" disabled={layoutState === 'pending' || hiddenRecoveryNeeded || ![...layoutSelection].some(name => visibleNames.has(name) && name !== graph.root && name !== selectedName)} onClick={hideSelected}>Hide selected from diagram</button>
         </div>
+        <form onSubmit={createSelectedGroup} className="studio-canvas-group-form">
+          <label>New group name <input value={newGroupName} onChange={event => setNewGroupName(event.target.value)} maxLength={100} /></label>
+          <button type="submit" disabled={!groupsEditable || !onCreateGroup || layoutState === 'pending' || !layoutSelection.size || !newGroupName.trim() || viewGroups.length >= 50}>Group selected concepts</button>
+        </form>
+        <p>Grouping is presentation data for this view. Save the shared view to share it.</p>
+        {!groupsEditable && <p>Load the current shared view before changing groups.</p>}
+        {groupNotice && <p aria-live="polite">{groupNotice}</p>}
       </details>
       <details>
         <summary>Hidden concepts ({hiddenNodes.size})</summary>
@@ -425,10 +454,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
+      <ViewportPortal>{groupFrames.map(frame => <div key={frame.index} className="studio-canvas-group-frame" aria-hidden="true" style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}><span>{frame.name}</span></div>)}</ViewportPortal>
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} />
     </ReactFlow>
   </div>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
+    {viewGroups.length > 0 && <section className="studio-canvas-groups" aria-label="Diagram groups"><h3>Diagram groups</h3><p>Groups organize this view only; they do not add ontology relationships.</p><ul>{viewGroups.map((group, index) => <li key={`${index}-${group.name}`}><strong>{group.name}</strong> · {new Set(group.members.filter(name => visibleNames.has(name))).size} of {new Set(group.members).size} concepts shown<ul>{[...new Set(group.members)].map(name => <li key={name}>{name}{!visibleNames.has(name) ? ' — not shown' : ''}</li>)}</ul><button type="button" disabled={!groupsEditable || !onRemoveGroup || layoutState === 'pending'} onClick={() => removeViewGroup(index, group)}>Remove {group.name} from view</button></li>)}</ul></section>}
     {activeEdges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{activeEdges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
     {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
       <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>

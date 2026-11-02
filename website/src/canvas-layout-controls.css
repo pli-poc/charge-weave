@@ -19,6 +19,14 @@
 .studio-canvas-layout-menu .studio-layout-choices legend { font-size: .78rem; font-weight: 700; }
 .modelling-studio .studio-canvas-layout-menu .studio-layout-choice { display: flex; align-items: center; gap: .4rem; margin: .25rem 0; color: #183a39; font-size: .8rem; }
 .modelling-studio .studio-canvas-layout-menu .studio-layout-choice input { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; }
+.modelling-studio .studio-canvas-group-form label { color: #183a39; }
+.modelling-studio .studio-canvas-group-form input { color: #183a39; background: #fff; border-color: #6d8985; }
+.studio-flow .react-flow__viewport-portal { z-index: -1; pointer-events: none; }
+.studio-canvas-group-frame { position: absolute; box-sizing: border-box; border: 2px dashed #4b7e73; border-radius: .65rem; background: rgb(68 142 123 / 7%); pointer-events: none; }
+.studio-canvas-group-frame span { position: absolute; top: 5px; left: 8px; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 5px; border-radius: .2rem; background: #eef8f4; color: #22594d; font-size: 12px; font-weight: 700; }
+.modelling-studio .studio-canvas-groups { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
+.studio-canvas-groups h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
+.studio-canvas-groups li { overflow-wrap: anywhere; }
 .studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
 .studio-flow .studio-concept-card .studio-concept-module { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-flow .studio-concept-card .studio-concept-badges { display: flex; flex-wrap: wrap; column-gap: 4px; row-gap: 0; max-height: 28px; line-height: 14px; }

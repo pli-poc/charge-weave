@@ -48,6 +48,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-explorer-fields ul { padding-left: 1rem; }
 .studio-explorer-fields li { overflow-wrap: anywhere; }
 .modelling-studio pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
+.modelling-studio .studio-scrollable-text:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
 .studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; color: #183a39; border-left: .25rem solid #147d70; }
 .studio-graph h3 { color: #183a39; }
 .studio-graph ul { list-style: none; padding-left: 1rem; border-left: 2px solid #147d70; }
@@ -361,6 +362,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 }
 @media (forced-colors: active) {
   .modelling-studio :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  .modelling-studio .studio-scrollable-text:focus-visible { outline-color: Highlight; }
   html[data-studio-theme] .modelling-studio .studio-graph :is(button, input, select, textarea, summary, a):focus-visible,
   html[data-studio-theme] .modelling-studio .studio-graph .studio-canvas-edge-details :is(button, input, select, textarea, summary, a):focus-visible,
   html[data-studio-theme] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: Highlight; }

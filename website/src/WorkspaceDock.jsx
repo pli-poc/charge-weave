@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ValidationIssues from './ValidationIssues.jsx';
+import StudioScrollableText from './StudioScrollableText.jsx';
 
 function describeActivity(event) {
   const payload = event.payload;
@@ -74,14 +75,14 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         {historyDetail ? <section aria-label="Activity revision detail">
           <h3 ref={detailHeading} tabIndex={-1}>Historical revision {historyDetail.revision}</h3>
           <p>Read-only comparison; the current draft is unchanged.</p>
-          {historyDetail.available ? <><p>Actor: {historyDetail.actor}; source digest: <code>{historyDetail.sourceDigest}</code>.</p>{historyDetail.rationale && <p>Reason: {historyDetail.rationale}</p>}<details open><summary>Command group patch</summary><pre>{historyDetail.patch}</pre></details><details><summary>Compare with baseline</summary><pre>{historyDetail.baselinePatch}</pre></details>{historyDetail.additionalSources.map(source => <details key={source.path}><summary>Historical source patch: {source.path}</summary><pre>{source.patch}</pre></details>)}</> : <p>{historyDetail.reason}</p>}
+          {historyDetail.available ? <><p>Actor: {historyDetail.actor}; source digest: <code>{historyDetail.sourceDigest}</code>.</p>{historyDetail.rationale && <p>Reason: {historyDetail.rationale}</p>}<details open><summary>Command group patch</summary><StudioScrollableText label="Historical command group patch">{historyDetail.patch}</StudioScrollableText></details><details><summary>Compare with baseline</summary><StudioScrollableText label="Historical comparison with baseline">{historyDetail.baselinePatch}</StudioScrollableText></details>{historyDetail.additionalSources.map(source => <details key={source.path}><summary>Historical source patch: {source.path}</summary><StudioScrollableText label={`Historical source patch: ${source.path}`}>{source.patch}</StudioScrollableText></details>)}</> : <p>{historyDetail.reason}</p>}
           <button type="button" onClick={() => { onCloseHistory(); requestAnimationFrame(() => activityHeading.current?.focus()); }}>Back to recent activity</button>
         </section> : history.length ? <><p>Showing the most recent {Math.min(history.length, 10)} loaded workspace events.</p><ol>{history.slice(-10).reverse().map(event => { const concept = activityConcept(event); const date = event.createdAt && new Date(event.createdAt); return <li key={event.sequence}><strong>{describeActivity(event)}</strong> · {event.actor} · revision {event.revision}{date && !Number.isNaN(date.getTime()) && <> · <time dateTime={event.createdAt}>{date.toLocaleString()}</time></>}{event.payload.rationale && <p>Reason: {event.payload.rationale}</p>}{event.payload.type === 'view_suggestion' && event.payload.explanation && <p>{event.payload.explanation}</p>}{concept && <button type="button" onClick={() => onFocusConcept(concept)}>Inspect current {concept}</button>}{event.payload.commands?.length > 0 && <button type="button" disabled={historyPending} onClick={() => onInspectRevision(event.revision)}>Inspect revision {event.revision}</button>}</li>; })}</ol></> : <p>No activity is available for this workspace.</p>}
         <a href="#studio-activity-heading">Open full activity history</a>
       </section>}
       <section hidden={panel !== 'output'} aria-label="Job output">
         <h2>Job output</h2>
-        {job ? <><p>{job.profile}: {job.status} at revision {job.revision}.</p><pre>{job.output || 'No output has been recorded yet.'}</pre></> : <p>No job output is available.</p>}
+        {job ? <><p>{job.profile}: {job.status} at revision {job.revision}.</p><StudioScrollableText label="Recorded job output">{job.output || 'No output has been recorded yet.'}</StudioScrollableText></> : <p>No job output is available.</p>}
       </section>
     </div>
   </section>;
