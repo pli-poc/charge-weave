@@ -12,6 +12,25 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('navigator browses beyond the first page without searching', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const classes = Array.from({ length: 55 }, (_, i) => `Thing${String(i).padStart(3, '0')}|Record|A concept.|`).join('\n');
+  const workspace = store.create({ title: 'Browse', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|A record.|\n${classes}\n` });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByText('Showing 50 of 56 concepts.')).toBeVisible();
+    await page.getByRole('button', { name: 'Load more concepts' }).click();
+    await expect(page.getByText('Showing 56 of 56 concepts.')).toBeVisible();
+    await page.getByRole('button', { name: 'Thing054', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Thing054', exact: true })).toBeVisible();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('two studio tabs share edits while keeping independent selections', async ({ page, context }) => {
   test.setTimeout(60000);
   const store = new WorkspaceStore(':memory:');

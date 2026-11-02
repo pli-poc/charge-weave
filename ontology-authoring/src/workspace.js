@@ -499,6 +499,17 @@ export class WorkspaceStore {
       patch: createPatch('model/domain.schema', group.before_schema, group.after_schema, 'before', 'after', { context: 3 }),
       baselinePatch: createPatch('model/domain.schema', baseline, group.after_schema, 'baseline', 'historical revision', { context: 3 }), additionalSources };
   }
+  explore(id, { expectedRevision, cursor, limit = 50, module } = {}) {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128))) throw new Error('Invalid explorer request');
+    const workspace = this.get(id);
+    if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    const classes = [...parse(workspace.schema).classes.values()]
+      .filter(item => module === undefined || item.module === module)
+      .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    const remaining = classes.filter(item => cursor === undefined || item.name > cursor);
+    const results = remaining.slice(0, limit);
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results, total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
+  }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
     const workspace = this.get(id), needle = query.toLowerCase();
