@@ -1315,6 +1315,36 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('undo identifies the author and refuses a newer draft', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Undo review', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original.|\n' });
+  store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'first', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'First change.' }] });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    const undo = page.getByRole('button', { name: 'Undo latest command group' });
+    await undo.click();
+    const confirmation = page.getByRole('region', { name: 'Confirm undo' });
+    await expect(confirmation).toContainText("other-client's command group: class.describe");
+    await confirmation.getByRole('button', { name: 'Cancel undo' }).click();
+    expect(store.get(workspace.id).revision).toBe(1);
+    await undo.click();
+    store.apply({ workspaceId: workspace.id, actor: 'third-client', operationId: 'newer', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Newer change.' }] });
+    await expect(page.locator('.studio-sr-status')).toContainText('revision 2');
+    await expect(confirmation.getByText('The draft changed. Cancel and review the latest revision before undoing.')).toBeVisible();
+    await expect(confirmation.getByRole('button', { name: 'Confirm undo revision 1' })).toBeDisabled();
+    await confirmation.getByRole('button', { name: 'Cancel undo' }).click();
+    await undo.click();
+    await expect(confirmation).toContainText("third-client's command group: class.describe");
+    expect(store.get(workspace.id).revision).toBe(2);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('recent activity describes a suggestion and opens the current concept', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Recent activity', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
@@ -1720,6 +1750,8 @@ test('browser maps an existing responsibility relationship without inventing one
     await page.route('**/mcp', delayUndo);
     try {
       await page.getByRole('button', { name: 'Undo latest command group' }).click();
+      await expect(page.getByRole('region', { name: 'Confirm undo' })).toContainText('viewpoint.binding_add');
+      await page.getByRole('button', { name: 'Confirm undo revision 1' }).click();
       await undoIntercepted;
       await expect(page.getByRole('button', { name: 'Undo latest command group' })).toBeDisabled();
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
@@ -2091,6 +2123,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('windowNote:string?');
     await surface('Results');
     await page.getByRole('button', { name: 'Undo latest command group' }).click();
+    await page.getByRole('button', { name: 'Confirm undo revision 3' }).click();
     await expect(page.getByRole('status')).toContainText('revision 4');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
     await expect(page.getByText(/undid revision 3/)).toBeVisible();

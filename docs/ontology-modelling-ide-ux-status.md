@@ -15,15 +15,15 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 | Phase | State | Evidence and remaining work |
 |---|---|---|
 | U0 Baseline | Started | Source and browser tests inspected; capture before screenshots and complete feature inventory. |
-| U1 Shell | Started | Dedicated header, status bar, resizable panes, narrow-desktop inspector overlay and compact navigation exist. A full-height shell, themes and complete responsive behavior remain. |
-| U2 Explorer | Started | Revision-pinned pagination, module groups and filtering, selection highlighting and stale-search protection exist. Complete hierarchical navigation, view tabs, command palette and controller extraction remain. |
+| U1 Shell | Started | Dedicated header, status bar, resizable panes, narrow-desktop inspector overlay and compact one-surface navigation exist. Themes, complete responsive behavior and human visual review remain. |
+| U2 Explorer | Started | Revision-pinned pagination, module groups and filtering, selection highlighting, view tabs, a command palette and stale-search protection exist. Complete hierarchical navigation and controller extraction remain. |
 | U3 Canvas | Started | Initial framing targets the selected concept; cards show a module and field preview. Bounded incoming and outgoing expansion, view-local positions, neighbourhood history and a legend exist; additional modelling controls remain. |
 | U4 Editing | Started | Field editing and a field table are in the inspector; definition and field conflicts and some unsaved navigation are guarded. Other forms, richer controls and perspectives need further work. |
-| U5 Checks and AI | Started | Check/review actions and collapsible, filterable validation details are available. Dedicated Problems, Changes and AI panels remain. |
+| U5 Checks and AI | Started | A results dock offers Problems, Checks, Activity and Output; validation details, recent activity and historical comparisons are available. A dedicated Changes workspace and fuller AI collaboration remain. |
 | U6-U8 | Not complete | Guided review/publication, accessibility, performance, full feature parity and human acceptance remain. |
 
 ## Local integration check
 
 On implementation commit `e35a13bdf493458219cbdecb38aec74f1e71b690`, the full desktop and mobile `website/tests/modelling.spec.js` suite completed with **68 passed and six project-specific skips**. These tests used isolated synthetic workspaces; the publication scenario was simulated.
 
-The three pull-request workflows for that exact commit were running or queued when inspected. Local results do not establish GitHub verification, real publication or independent usability acceptance. Subsequent changes require their own verification.
+On compact-workbench commit `3bacd1ce64c3173afec15affc81391e5cbdd2ec3`, the full modelling browser suite completed locally with **80 passed and eight project-specific skips**. The focused modelling matrix succeeded on GitHub; ontology CI, ontology authoring, and the website workflow were still queued or running when inspected. These results do not establish real publication or independent usability acceptance. Subsequent changes require their own exact-commit verification.
