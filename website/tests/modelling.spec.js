@@ -1359,6 +1359,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(inheritedField).toContainText('string');
     await expect(inheritedField).toContainText('Inherited from Record');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
+    await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');
     await expect(page.getByText('subClassOf →')).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await page.getByText('Add a field or relationship').click();

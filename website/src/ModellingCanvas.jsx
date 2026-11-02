@@ -12,6 +12,7 @@ const ConceptNode = memo(function ConceptNode({ data }) {
     <div className="studio-concept-card">
       <div className="studio-concept-heading"><span className="studio-concept-kind">CLASS</span><strong title={data.label}>{data.label}</strong></div>
       <div className="studio-concept-module">{data.module || 'Ontology concept'}</div>
+      {['added', 'changed'].includes(data.changeStatus) && <div className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</div>}
       {fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
       {fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
     </div>
@@ -48,7 +49,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   useEffect(() => {
     byName.current = new Map(graph.nodes.map(node => [node.name, node]));
     const newNames = new Set(graph.nodes.filter(node => !positions.current[node.name]).map(node => node.name));
-    const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === selectedName }));
+    const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields, changeStatus: node.changeStatus }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === selectedName }));
     setNodes(next);
     const changedRoot = lastRoot.current !== graph.root;
     lastRoot.current = graph.root;

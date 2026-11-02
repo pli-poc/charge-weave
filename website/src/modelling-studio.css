@@ -26,6 +26,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-concept-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
 .studio-concept-kind { flex: none; color: #17665c; font-size: 9px; font-weight: 800; letter-spacing: .05em; }
 .studio-concept-module { color: #506d69; font-size: 11px; margin: 3px 0 5px; }
+.studio-concept-change { color: #704600; font-size: 10px; font-weight: 700; line-height: 14px; }
+.studio-flow-added .studio-concept-change { color: #12643d; }
 .studio-flow .studio-concept-card ul { list-style: none; padding: 0; margin: 0; border: 0; }
 .studio-flow .studio-concept-card li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; margin: 0; line-height: 17px; }
 .studio-concept-more { color: #506d69; font-size: 10px; }
