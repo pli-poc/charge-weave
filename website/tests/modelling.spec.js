@@ -246,7 +246,8 @@ test('unapplied concept input requests a browser warning before leaving', async 
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
     expect(await warningRequested()).toBe(false);
-    await page.getByText('Add a concept', { exact: true }).click();
+    await page.getByRole('button', { name: 'Create a concept' }).click();
+    await expect(page.getByLabel('Class name')).toBeFocused();
     await page.getByLabel('Class name').fill('UnfinishedConcept');
     expect(await warningRequested()).toBe(true);
     await page.getByLabel('Class name').fill('');
@@ -338,7 +339,8 @@ test('concept creation offers existing modules and validates its definition', as
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByText('Showing 50 of 62 concepts.')).toBeVisible();
-    await page.getByText('Add a concept', { exact: true }).click();
+    await page.getByRole('button', { name: 'Create a concept' }).click();
+    await expect(page.getByLabel('Class name')).toBeFocused();
     await page.getByLabel('Class name').fill('ServiceWindow');
     await page.getByLabel('Concept module').selectOption('assets');
     await page.getByLabel('Parent class').fill('ZDev');
