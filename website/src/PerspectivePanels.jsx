@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-export default function PerspectivePanels({ selected, snapshot, entityInfo, responsibility, temporal, temporalPolicy, setTemporalPolicy, inspectResponsibility, inspectTemporal, saveTemporalPolicy, selectConcept, addRelationship, addBinding, commandPending }) {
+export default function PerspectivePanels({ selected, snapshot, entityInfo, responsibility, temporal, temporalPolicy, setTemporalPolicy, inspectResponsibility, inspectTemporal, saveTemporalPolicy, selectConcept, addRelationship, addBinding, commandPending, binding, setBinding }) {
   const [category, setCategory] = useState('all');
-  const [binding, setBinding] = useState({ property: '', label: '', category: 'ownership' });
-  useEffect(() => { setBinding({ property: '', label: '', category: 'ownership' }); }, [selected?.name]);
   const currentResponsibility = responsibility && responsibility.root === selected?.name && responsibility.revision === snapshot.revision ? responsibility : null;
   const currentTemporal = temporal && temporal.root === selected?.name && temporal.revision === snapshot.revision ? temporal : null;
   const visible = currentResponsibility?.bindings.filter(binding => category === 'all' || binding.category === category) || [];

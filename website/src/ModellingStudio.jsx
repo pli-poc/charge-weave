@@ -151,6 +151,7 @@ export default function ModellingStudio() {
   const [requirementQuery, setRequirementQuery] = useState('');
   const [requirements, setRequirements] = useState([]);
   const [intervalRule, setIntervalRule] = useState({ startProperty: '', endProperty: '', ruleId: '' });
+  const [binding, setBinding] = useState({ property: '', label: '', category: 'ownership' });
   const [diff, setDiff] = useState(null);
   const [job, setJob] = useState(null);
   const [checkStarting, setCheckStarting] = useState(false);
@@ -519,6 +520,7 @@ export default function ModellingStudio() {
   }, [connection, snapshot?.revision]);
   useEffect(() => { if (fieldEdit) fieldEditInput.current?.focus(); }, [fieldEdit?.name]);
   useEffect(() => { setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' }); }, [connection, selected?.name]);
+  useEffect(() => { setBinding({ property: '', label: '', category: 'ownership' }); }, [connection, selected?.name]);
   useEffect(() => { setRelationshipDraft(null); }, [connection]);
   useEffect(() => { historyRequest.current += 1; setHistoryDetail(null); }, [connection]);
   useEffect(() => { setRationale(''); }, [connection]);
@@ -528,7 +530,8 @@ export default function ModellingStudio() {
     return Boolean((selected && definitionRef.current !== selected.definition)
       || (editedField && (editedField.range !== editedField.expectedRange || editedField.cardinality !== editedField.expectedCardinality))
       || field.name.trim() || field.range !== 'string' || field.cardinality !== '?' || relationshipDraft
-      || intervalRule.startProperty || intervalRule.endProperty || intervalRule.ruleId.trim());
+      || intervalRule.startProperty || intervalRule.endProperty || intervalRule.ruleId.trim()
+      || binding.property || binding.label.trim() || binding.category !== 'ownership');
   }
   function hasUnsavedWorkspaceEdits() {
     return Boolean(hasUnsavedInspectorEdits() || newClass.name.trim() || newClass.definition.trim());
@@ -542,7 +545,7 @@ export default function ModellingStudio() {
     }
     window.addEventListener('beforeunload', warnBeforeLeaving);
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
-  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, intervalRule, newClass.name, newClass.definition]);
+  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, intervalRule, binding, newClass.name, newClass.definition]);
   const activeViewKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
   if (viewContextKey.current !== activeViewKey) { viewContextKey.current = activeViewKey; viewContext.current += 1; }
   function focusViewRoot(name) {
@@ -575,7 +578,7 @@ export default function ModellingStudio() {
   }
   function discardDefinitionAndSelect() {
     if (!pendingSelection) return;
-    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' });
+    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' }); setBinding({ property: '', label: '', category: 'ownership' });
     if (['workspace-switch', 'disconnect'].includes(pendingSelection.kind)) setNewClass({ name: '', module: 'foundation', parent: 'Record', definition: '' });
     if (pendingSelection.kind === 'disconnect') {
       setPendingSelection(null);
@@ -1138,7 +1141,7 @@ export default function ModellingStudio() {
     <ValidationIssues job={job} snapshot={snapshot} onRetry={runChecks} onFocusConcept={selectPerspectiveConcept} />
     {job && ['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status) && <button type="button" onClick={downloadEvidence}>Download evidence report</button>}
     <section className="studio-activity"><h2>Change set</h2>{snapshot.changeSet ? <><p>{snapshot.changeSet.intent} · {snapshot.changeSet.status} · <code>{snapshot.changeSet.id}</code></p><p>Requirement references: {snapshot.changeSet.requirements.join(', ') || 'none'}.</p>{['accepted', 'rejected'].includes(snapshot.changeSet.status) && <><p>Editing is locked until a reviewer reopens this change set. Reopening invalidates its acceptance.</p><button type="button" onClick={reopenChangeSet}>Reopen change set</button></>}{snapshot.changeSet.status === 'published' && <p>This change set was pushed. Start a new workspace from the reviewed target before another proposal.</p>}</> : <><p>Opening a change set records intent for the whole current draft, including any edits already made.</p><form onSubmit={openChangeSet}><label>Change-set intent <input value={changeSetIntent} onChange={event => setChangeSetIntent(event.target.value)} maxLength={1000} required /></label><label>Requirement IDs (comma separated, optional) <input value={changeSetRequirements} onChange={event => setChangeSetRequirements(event.target.value)} /></label><button>Open change set</button></form></>}</section>
-    <PerspectivePanels commandPending={commandPending} selected={selected} snapshot={snapshot} entityInfo={entityInfo} responsibility={responsibility} temporal={temporal} temporalPolicy={temporalPolicy} setTemporalPolicy={setTemporalPolicy} inspectResponsibility={inspectResponsibility} inspectTemporal={inspectTemporal} saveTemporalPolicy={saveTemporalPolicy} selectConcept={selectPerspectiveConcept} addRelationship={openRelationshipAuthoring} addBinding={applyCommand} />
+    <PerspectivePanels binding={binding} setBinding={setBinding} commandPending={commandPending} selected={selected} snapshot={snapshot} entityInfo={entityInfo} responsibility={responsibility} temporal={temporal} temporalPolicy={temporalPolicy} setTemporalPolicy={setTemporalPolicy} inspectResponsibility={inspectResponsibility} inspectTemporal={inspectTemporal} saveTemporalPolicy={saveTemporalPolicy} selectConcept={selectPerspectiveConcept} addRelationship={openRelationshipAuthoring} addBinding={applyCommand} />
     <section className="studio-activity"><h2>Requirement links</h2>{snapshot.digestVersion === 4 ? <><p>Linking a concept records a relationship in the requirement register; it does not prove coverage or acceptance.</p><form onSubmit={searchRequirements}><label>Search requirements <input value={requirementQuery} onChange={event => setRequirementQuery(event.target.value)} /></label><button>Search requirements</button></form><ul>{requirements.map(item => <li key={item.id}><strong>{item.id}</strong>: {item.statement} <button type="button" disabled={!selected || item.classes.includes(selected.name)} onClick={() => linkRequirement(item)}>Link selected concept</button>{selected && item.classes.includes(selected.name) && ['model/audit-rules.json', 'model/authoring-example-overrides.json', 'tests/business-acceptance.json', 'tests/negative-cases.json'].every(path => snapshot.editableSources?.includes(path)) && <details><summary>Add interval rule for {item.id}</summary><p>Only a new class with two new, declared date-time fields is supported. The generated cases are draft examples and require independent review.</p><form onSubmit={event => addIntervalRule(event, item)}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Interval rule change</legend><label>Interval start <select value={intervalRule.startProperty} onChange={event => setIntervalRule({ ...intervalRule, startProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>Interval end <select value={intervalRule.endProperty} onChange={event => setIntervalRule({ ...intervalRule, endProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>New rule ID <input value={intervalRule.ruleId} onChange={event => setIntervalRule({ ...intervalRule, ruleId: event.target.value })} pattern="B[0-9]{3,6}" required /></label><button>Add interval constraint</button></fieldset></form></details>}</li>)}</ul></> : <p>Create a version-four workspace to edit requirement links.</p>}</section>
     <section className="studio-activity"><h2>Change impact</h2><button type="button" onClick={inspectImpact}>Inspect explicit impact references</button>{impact && impact.revision === snapshot.revision && <><p>{impact.note}</p><p>Changed classes: {impact.changedClasses.join(', ') || 'none'}; changed properties: {impact.changedProperties.join(', ') || 'none'}.</p>{impact.references.length ? <ul>{impact.references.map(item => <li key={`${item.kind}-${item.id}`}>{item.kind} {item.id}: {item.title} · {item.source} · references {item.terms.join(', ')}</li>)}</ul> : <p>No indexed baseline references matched.</p>}{impact.omitted > 0 && <p>{impact.omitted} additional references omitted.</p>}</>}</section>
     {job?.artifactSummary && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) && <section className="studio-activity"><h2>Generated artifact comparison</h2><p>Revision {job.revision} · {job.artifactSummary.changedCount} files differ in exact bytes{job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest ? ' · stale' : ''}.</p><p>{job.artifactSummary.note}</p><p>Baseline manifest: <code>{job.artifactSummary.baselineManifestSha256}</code>; candidate manifest: <code>{job.artifactSummary.candidateManifestSha256}</code>.</p>{job.artifactSummary.changes.length > 0 && <ul>{job.artifactSummary.changes.map(item => <li key={item.path}>{item.kind}: {item.path}</li>)}</ul>}{job.artifactSummary.omitted > 0 && <p>{job.artifactSummary.omitted} additional changes omitted.</p>}</section>}

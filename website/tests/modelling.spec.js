@@ -1209,6 +1209,13 @@ test('browser maps an existing responsibility relationship without inventing one
     await page.getByText('Map an existing responsibility relationship').click();
     await page.getByLabel('Declared object relationship').selectOption('owner');
     await page.getByLabel('Responsibility label').fill('Accountable party');
+    expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(page.getByLabel('Responsibility label')).toHaveValue('Accountable party');
     let releaseMapping, interceptedMapping;
     const mappingGate = new Promise(resolve => { releaseMapping = resolve; });
     const mappingIntercepted = new Promise(resolve => { interceptedMapping = resolve; });
