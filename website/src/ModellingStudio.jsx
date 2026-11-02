@@ -403,6 +403,9 @@ export default function ModellingStudio() {
   const [binding, setBinding] = useState({ property: '', label: '', category: 'ownership' });
   const [diff, setDiff] = useState(null);
   const [job, setJob] = useState(null);
+  const jobRef = useRef(job);
+  jobRef.current = job;
+  const [validationRefresh, setValidationRefresh] = useState(0);
   const [checkStarting, setCheckStarting] = useState(false);
   const [checkProfile, setCheckProfile] = useState('structural');
   const [jobRestoreNotice, setJobRestoreNotice] = useState('');
@@ -719,6 +722,7 @@ export default function ModellingStudio() {
                   if (disposition !== 'duplicate') { setOnline(false); await refresh(); setOnline(true); }
                 } else if (event.includes('event: validation-evidence')) {
                   invalidateReadiness();
+                  if (!checkInFlight.current && !jobRef.current?.profile?.startsWith('publication-')) setValidationRefresh(value => value + 1);
                 }
               }
             }
@@ -764,7 +768,7 @@ export default function ModellingStudio() {
     }
     void restore();
     return () => abort.abort();
-  }, [connection, availableTools]);
+  }, [connection, availableTools, validationRefresh]);
 
   useEffect(() => {
     const key = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);

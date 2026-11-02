@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
@@ -18,8 +18,8 @@ const ConceptNode = memo(function ConceptNode({ data }) {
       {['added', 'changed'].includes(data.changeStatus) && <div className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</div>}
       {data.layoutSelected && <span className="studio-concept-layout-selected">Selected for layout</span>}
       {data.layoutPinned && <span className="studio-concept-layout-pinned">Pinned</span>}
-      {fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
-      {fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
+      {!data.overview && fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
+      {!data.overview && fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
     </div>
     <Handle type="source" position={Position.Right} />
   </>;
@@ -33,10 +33,20 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
+function ZoomReadout({ onManualInteraction, onOverviewChange }) {
+  const { zoom } = useViewport();
+  const { zoomTo } = useReactFlow();
+  useEffect(() => { onOverviewChange(zoom < 0.6); }, [zoom, onOverviewChange]);
+  return <div className="studio-canvas-zoom" role="group" aria-label="Diagram zoom">
+    <span aria-label="Diagram zoom level">{Math.round(zoom * 100)}%</span>
+    <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
+  </div>;
+}
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
+  const [overview, setOverview] = useState(false);
   const [initialPins] = useState(() => {
     try { return { pins: readCanvasPins(sessionStorage, graph.workspaceId, viewId), writable: true }; }
     catch { return { pins: new Set(), writable: false }; }
@@ -156,7 +166,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       return retained.length === previous.size ? previous : new Set(retained);
     });
   }, [graph.nodes]);
-  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id) } })), [nodes, layoutSelection, layoutPins]);
+  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview]);
   function toggleLayoutSelection(name) {
     if (!graph.nodes.some(node => node.name === name)) return;
     onManualInteraction();
@@ -308,7 +318,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <><div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
+  return <><div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
     onMouseDownCapture={event => {
       if (!event.shiftKey || event.button !== 0) return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
@@ -363,7 +373,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
-      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls>
+      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} />
     </ReactFlow>
   </div>
     {graph.edges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{graph.edges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}

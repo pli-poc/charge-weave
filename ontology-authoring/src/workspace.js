@@ -204,7 +204,7 @@ export class WorkspaceStore {
     const workspace = this.db.prepare('SELECT revision, digest FROM workspaces WHERE id = ?').get(workspaceId);
     if (!workspace) throw new Error('Workspace not found');
     const latest = this.db.prepare('SELECT id, status FROM jobs WHERE workspace = ? AND revision = ? AND digest = ? AND profile = ? ORDER BY rowid DESC LIMIT 1');
-    return JSON.stringify([workspace.revision, workspace.digest, ...['structural', 'reference', 'audit', 'acceptance'].map(profile => latest.get(workspaceId, workspace.revision, workspace.digest, profile) ?? null)]);
+    return JSON.stringify([workspace.revision, workspace.digest, ...['structural', 'reference', 'audit', 'acceptance', 'maintenance-demo'].map(profile => latest.get(workspaceId, workspace.revision, workspace.digest, profile) ?? null)]);
   }
   reviewReadiness(workspaceId) {
     const workspace = this.get(workspaceId);

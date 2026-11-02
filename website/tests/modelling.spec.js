@@ -1613,6 +1613,33 @@ test('a running validation is restored and monitored after reload', async ({ pag
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('validation started by another client updates the connected studio', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Shared checks', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', eventPollMs: 100, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    const stream = page.waitForResponse(response => response.url().includes('/events?') && response.status() === 200);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await stream;
+    const job = store.createJob(workspace.id, 0, workspace.sourceDigest, 'other-client', 'check', 'structural').job;
+    store.updateJob(job.id, 'running');
+    await expect(page.getByText(/Latest structural operation: running/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Check draft', exact: true })).toBeDisabled();
+    store.updateJob(job.id, 'passed');
+    await expect(page.getByText(/Latest structural operation: passed/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Check draft', exact: true })).toBeEnabled();
+    const demo = store.createJob(workspace.id, 0, workspace.sourceDigest, 'other-client', 'demo', 'maintenance-demo').job;
+    store.updateJob(demo.id, 'running');
+    await expect(page.getByText(/Latest maintenance-demo operation: running/)).toBeVisible();
+    store.updateJob(demo.id, 'passed');
+    await expect(page.getByText(/Latest maintenance-demo operation: passed/)).toBeVisible();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('an older validation restore cannot replace a newly started check', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Validation restore race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
