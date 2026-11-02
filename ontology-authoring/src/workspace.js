@@ -562,7 +562,8 @@ export class WorkspaceStore {
     }
     references.sort((a, b) => a.source < b.source ? -1 : a.source > b.source ? 1 : a.predicate < b.predicate ? -1 : a.predicate > b.predicate ? 1 : 0);
     const results = references.slice(offset, offset + limit);
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, results, total: references.length, nextOffset: offset + results.length < references.length ? offset + results.length : null };
+    const nodes = [...new Set(results.map(item => item.source))].map(name => ({ ...classes.get(name), sourceRef: { path: 'model/domain.schema', line: lines.get(name) } }));
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, results, nodes, total: references.length, nextOffset: offset + results.length < references.length ? offset + results.length : null };
   }
   view(id, root, expectedRevision) {
     const workspace = this.get(id);

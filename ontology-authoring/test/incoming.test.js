@@ -10,6 +10,8 @@ test('incoming references are bounded, direct and revision-pinned', () => {
     const first = store.incoming(workspace.id, 'Record', 0, 0, 1);
     assert.equal(first.total, 2);
     assert.equal(first.nextOffset, 1);
+    assert.equal(first.nodes[0].name, 'Device');
+    assert.equal(first.nodes[0].module, 'foundation');
     assert.deepEqual([first.results[0].source, first.results[0].predicate], ['Device', 'owner']);
     const second = store.incoming(workspace.id, 'Record', 0, first.nextOffset, 1);
     assert.deepEqual([second.results[0].source, second.results[0].predicate], ['Device', 'subClassOf']);

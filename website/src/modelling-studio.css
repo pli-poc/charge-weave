@@ -102,6 +102,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
 .studio-view-controls > label { flex: 1 1 12rem; }
+.studio-graph .studio-incoming-toggle { display: flex; align-items: center; gap: .45rem; margin: .5rem 0; }
+.studio-graph .studio-incoming-toggle input { width: auto; }
 .studio-graph > details { margin: .3rem 0; }
 .studio-editor > .studio-graph { margin-top: .5rem; }
 .studio-editor-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; color: #a9bcbd; border: 1px dashed #435a60; border-radius: .4rem; }

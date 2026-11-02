@@ -23,10 +23,14 @@ test('inspector finds direct incoming references and navigates to their source',
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByLabel('Show incoming references').check();
+    const diagram = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(diagram.locator('.react-flow__node[data-id="Station"]')).toBeVisible();
+    await expect(page.locator('.studio-graph li').filter({ hasText: 'device from' })).toContainText('Station');
     await page.getByText('Referenced by', { exact: true }).click();
     await page.getByRole('button', { name: 'Find references' }).click();
     await expect(page.getByText('Showing 2 of 2 references.')).toBeVisible();
-    await expect(page.getByText(/Station.*device/)).toBeVisible();
+    await expect(page.locator('#studio-inspector-pane').getByText(/Station.*device/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect Station' }).first().click();
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
