@@ -2541,6 +2541,13 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     const inheritedField = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
     await expect(inheritedField).toContainText('string');
     await expect(inheritedField).toContainText('Inherited from Record');
+    await page.getByLabel('Field origin').selectOption('inherited');
+    await expect(inheritedField).toBeVisible();
+    await expect(inheritedField.getByRole('button', { name: 'Edit recordName' })).toHaveCount(0);
+    await page.getByLabel('Field origin').selectOption('declared');
+    await expect(inheritedField).toHaveCount(0);
+    await expect(page.getByText('No fields match these filters. Clear the text or change the origin.')).toBeVisible();
+    await page.getByLabel('Field origin').selectOption('all');
     await surface('Diagram');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');

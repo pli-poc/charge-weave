@@ -183,15 +183,17 @@ function InspectorIdentifier({ iri }) {
 function InspectorFields({ fields, onEdit, onRequire, onInspectOwner, commandPending }) {
   const [filter, setFilter] = useState('');
   const [sort, setSort] = useState('source');
+  const [origin, setOrigin] = useState('all');
   if (!fields.length) return <p>No fields.</p>;
   const term = filter.trim().toLocaleLowerCase();
-  const visible = fields.filter(item => `${item.property} ${item.range} ${item.description || ''}`.toLocaleLowerCase().includes(term));
+  const visible = fields.filter(item => (origin === 'all' || (origin === 'inherited') === item.inherited) && `${item.property} ${item.range} ${item.description || ''} ${item.owner}`.toLocaleLowerCase().includes(term));
   if (sort === 'name') visible.sort((a, b) => a.property.localeCompare(b.property));
-  return <><div className="studio-field-controls"><label>Filter fields <input value={filter} onChange={event => setFilter(event.target.value)} /></label><label>Sort fields <select value={sort} onChange={event => setSort(event.target.value)}><option value="source">Source order</option><option value="name">Name</option></select></label></div><p aria-live="polite">Showing {visible.length} of {fields.length} fields.</p><div className="studio-field-table-wrap"><table className="studio-field-table">
-    <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Cardinality</th><th scope="col">Actions</th></tr></thead>
+  if (sort === 'type') visible.sort((a, b) => a.range.localeCompare(b.range) || a.property.localeCompare(b.property));
+  return <><div className="studio-field-controls"><label>Filter fields <input value={filter} onChange={event => setFilter(event.target.value)} /></label><label>Field origin <select value={origin} onChange={event => setOrigin(event.target.value)}><option value="all">All fields</option><option value="declared">Declared here</option><option value="inherited">Inherited</option></select></label><label>Sort fields <select value={sort} onChange={event => setSort(event.target.value)}><option value="source">Source order</option><option value="name">Name</option><option value="type">Type</option></select></label></div><p aria-live="polite">Showing {visible.length} of {fields.length} fields.</p>{!visible.length && <p>No fields match these filters. Clear the text or change the origin.</p>}<div className="studio-field-table-wrap"><table className="studio-field-table">
+    <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Cardinality</th><th scope="col">Origin</th><th scope="col">Actions</th></tr></thead>
     <tbody>{visible.map((item, index) => <tr key={`${item.owner}-${item.property}-${index}`}>
-      <th scope="row">{item.property}<small>{item.inherited ? `Inherited from ${item.owner}` : 'Declared'} · {item.source.path}:{item.source.line}</small>{item.description && <small>{item.description}</small>}</th>
-      <td>{item.range}</td><td>{cardinalityLabels[item.cardinality] ?? item.cardinality}</td><td>
+      <th scope="row">{item.property}<small>{item.source.path}:{item.source.line}</small>{item.description && <small>{item.description}</small>}</th>
+      <td>{item.range}</td><td>{cardinalityLabels[item.cardinality] ?? item.cardinality}</td><td>{item.inherited ? `Inherited from ${item.owner}` : 'Declared here'}</td><td>
         {item.inherited && <button type="button" onClick={() => onInspectOwner(item.owner)}>Inspect owner {item.owner}</button>}
         {!item.inherited && <button type="button" onClick={event => onEdit(item, event.currentTarget)}>Edit {item.property}</button>}
         {!item.inherited && item.type === 'object' && ['?', '*'].includes(item.cardinality) && <button type="button" disabled={commandPending} title="Requiring a relationship may break existing data." onClick={() => onRequire(item)}>Require {item.property}</button>}
