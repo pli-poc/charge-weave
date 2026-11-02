@@ -7,7 +7,7 @@ self.onmessage = async event => {
     const result = await elk.layout({
       id: 'workspace',
       layoutOptions: { 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT', 'elk.spacing.nodeNode': '40', 'elk.layered.spacing.nodeNodeBetweenLayers': '280' },
-      children: nodes.map(id => ({ id, width: 190, height: 64 })),
+      children: nodes.map(id => ({ id, width: 220, height: 128 })),
       edges: edges.map(edge => ({ id: edge.id, sources: [edge.source], targets: [edge.target] })),
     });
     self.postMessage({ requestId, positions: result.children.map(node => ({ id: node.id, x: node.x, y: node.y })) });

@@ -1,9 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Background, Controls, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Background, Controls, Handle, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 const keyFor = workspaceId => `chargeweave.canvas.v1.${workspaceId}`;
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
+const ConceptNode = memo(function ConceptNode({ data }) {
+  const fields = typeof data.fields === 'string' ? data.fields.split(/\s+/).filter(Boolean) : Array.isArray(data.fields) ? data.fields.map(field => `${field.property}:${field.range}${field.cardinality ?? ''}`) : [];
+  return <>
+    <Handle type="target" position={Position.Left} />
+    <div className="studio-concept-card">
+      <div className="studio-concept-heading"><span className="studio-concept-kind">CLASS</span><strong title={data.label}>{data.label}</strong></div>
+      <div className="studio-concept-module">{data.module || 'Ontology concept'}</div>
+      {fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
+      {fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
+    </div>
+    <Handle type="source" position={Position.Right} />
+  </>;
+});
+const nodeTypes = { concept: ConceptNode };
 function loadPositions(workspaceId) {
   try {
     const data = JSON.parse(sessionStorage.getItem(keyFor(workspaceId)) || '{}');
@@ -30,13 +44,13 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
   useEffect(() => {
     byName.current = new Map(graph.nodes.map(node => [node.name, node]));
     const newNames = new Set(graph.nodes.filter(node => !positions.current[node.name]).map(node => node.name));
-    const next = graph.nodes.map((node, index) => ({ id: node.name, position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 90 : 0 }, sourcePosition: 'right', targetPosition: 'left', data: { label: node.label }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === graph.root }));
+    const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === graph.root }));
     setNodes(next);
     const changedRoot = lastRoot.current !== graph.root;
     lastRoot.current = graph.root;
     if (changedRoot && positions.current[graph.root] && instance.current && fitted.current) {
       const point = positions.current[graph.root];
-      void instance.current.setCenter(point.x + 95, point.y + 32, { zoom: 1, duration: motionDuration(250) });
+      void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
     }
     const requestId = ++sequence.current;
     if (!worker.current) return;
@@ -45,7 +59,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       const root = positions.current[graph.root];
       if (!fitted.current && instance.current && root) {
         fitted.current = true;
-        requestAnimationFrame(() => instance.current?.setCenter(root.x + 95, root.y + 32, { zoom: 1, duration: motionDuration(200) }));
+        requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
       }
       return;
     }
@@ -58,7 +72,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       for (const node of graph.nodes) {
         if (!newNames.has(node.name) || positions.current[node.name] || !layout.has(node.name)) continue;
         const point = layout.get(node.name), position = { x: point.x, y: point.y };
-        while (occupied.some(other => Math.abs(other.x - position.x) < 210 && Math.abs(other.y - position.y) < 84)) position.y += 90;
+        while (occupied.some(other => Math.abs(other.x - position.x) < 240 && Math.abs(other.y - position.y) < 148)) position.y += 150;
         occupied.push(position); positions.current[node.name] = position; placed.set(node.name, position);
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
@@ -70,7 +84,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
         const root = positions.current[graph.root];
         if (root) {
           fitted.current = true;
-          requestAnimationFrame(() => instance.current?.setCenter(root.x + 95, root.y + 32, { zoom: 1, duration: motionDuration(200) }));
+          requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
         }
       }
     };
@@ -95,7 +109,7 @@ export default function ModellingCanvas({ graph, onSelect, onManualInteraction, 
       event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
     }}>
     {layoutNotice && <p role="status">{layoutNotice}</p>}
-    <ReactFlow nodes={nodes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.predicate, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.predicate, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">

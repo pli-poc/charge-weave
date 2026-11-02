@@ -335,6 +335,8 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     const from = graph.locator('.react-flow__node[data-id="Device"] .react-flow__handle.source');
     const to = graph.locator('.react-flow__node[data-id="Record"] .react-flow__handle.target');
     await graph.scrollIntoViewIfNeeded();
+    // The initial view prioritizes readable scale; fit both endpoints before dragging.
+    await graph.locator('.react-flow__controls-fitview').click();
     await from.scrollIntoViewIfNeeded();
     const sourceBox = await from.boundingBox(), targetBox = await to.boundingBox();
     await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
@@ -369,7 +371,7 @@ test('interactive graph preserves view positions and supports keyboard selection
   test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|serial:string?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -384,6 +386,7 @@ test('interactive graph preserves view positions and supports keyboard selection
     await expect(canvas).toHaveAttribute('data-layout', 'ready');
     const node = canvas.locator('.react-flow__node[data-id="Device"]');
     await expect(node).toBeVisible();
+    await expect(node.getByText('serial:string?')).toBeVisible();
     await node.scrollIntoViewIfNeeded();
     const initial = await node.getAttribute('style');
     const box = await node.boundingBox();
