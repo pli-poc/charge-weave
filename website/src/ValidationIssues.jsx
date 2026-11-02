@@ -26,7 +26,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
     catch { setCopyMessage('Clipboard unavailable; select and copy the recorded output below.'); }
   }
   return <section className="studio-activity" aria-label="Validation issues">
-    <h2>Validation issues</h2>
+    <h2 id="studio-validation-heading" tabIndex={-1}>Validation issues</h2>
     <p>{job.profile} check at revision {job.revision}: {job.status}{stale ? ' — stale for the current draft' : ''}.</p>
     {!issues.length && <p>{job.status === 'passed' ? 'No failed steps in this job. Other required checks may still be missing.' : 'No failed step has been reported.'}</p>}
     {issues.map(step => <article key={step.ordinal}>

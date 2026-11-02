@@ -758,6 +758,8 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
+    await page.getByRole('button', { name: 'View check details' }).click();
+    await expect(issues.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
     await issues.getByText('Recorded check output').click();
     await expect(issues.getByText('Synthetic fixture: definition needs correction.')).toBeVisible();
     await page.getByLabel('Search model').fill('Record');
