@@ -832,7 +832,8 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.get(workspace.id).schema).toContain('linkedRecord:Record!');
     expect(store.get(workspace.id).schema).toContain('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.');
-    await expect(page.getByText(/linkedRecord: Record.*The record linked to this device/)).toBeVisible();
+    await expect(page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /linkedRecord/ }) })).toContainText('Record');
+    await expect(page.getByRole('rowheader', { name: /linkedRecord/ })).toContainText('The record linked to this device');
     await page.getByRole('heading', { name: 'Inspector' }).click();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Search model')).toBeFocused();
@@ -1232,7 +1233,9 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByLabel('Search model').fill('MaintenanceWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'MaintenanceWindow', exact: true }).click();
-    await expect(page.getByText(/recordName: string.*inherited from Record/)).toBeVisible();
+    const inheritedField = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
+    await expect(inheritedField).toContainText('string');
+    await expect(inheritedField).toContainText('Inherited from Record');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.getByText('subClassOf →')).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();

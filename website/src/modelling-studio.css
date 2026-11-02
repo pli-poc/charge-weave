@@ -112,6 +112,13 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-editor-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; color: #a9bcbd; border: 1px dashed #435a60; border-radius: .4rem; }
 .studio-editor-empty h3 { color: #e4eeef; }
 .studio-field-list { list-style: none; margin: .5rem 0; padding: 0; }
+.studio-field-table-wrap { overflow-x: auto; }
+.studio-field-table { width: 100%; border-collapse: collapse; font-size: .8rem; text-align: left; }
+.studio-field-table th, .studio-field-table td { padding: .55rem .4rem; border-bottom: 1px solid #30494e; vertical-align: top; }
+.studio-field-table thead th { color: #b8cbcc; font-size: .72rem; }
+.studio-field-table tbody th { min-width: 7rem; }
+.studio-field-table small { display: block; margin-top: .25rem; color: #a9bcbd; font-weight: 400; overflow-wrap: anywhere; }
+.studio-field-table td button { display: block; margin-bottom: .3rem; white-space: nowrap; }
 .studio-module-tree, .studio-module-tree ul { list-style: none; margin: 0; padding: 0; }
 .studio-module-tree details { margin: .25rem 0; }
 .studio-module-tree summary { padding: .35rem 0; overflow-wrap: anywhere; }
