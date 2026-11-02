@@ -362,6 +362,7 @@ test('a remote field change blocks a stale inspector edit while preserving input
     await expect(page.getByLabel('New cardinality')).toHaveValue('+');
     await expect(page.getByRole('button', { name: 'Update field contract' })).toBeDisabled();
     await page.getByRole('button', { name: 'Cancel field edit' }).click();
+    await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeFocused();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await expect(page.getByLabel('New cardinality')).toHaveValue('!');
     expect(store.get(workspace.id).revision).toBe(1);
@@ -839,6 +840,9 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await expect(page.getByLabel('New datatype or target class')).toBeFocused();
+    await page.getByRole('button', { name: 'Cancel field edit' }).click();
+    await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeFocused();
+    await page.getByRole('button', { name: 'Edit recordName' }).click();
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
