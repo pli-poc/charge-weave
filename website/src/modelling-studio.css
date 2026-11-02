@@ -89,3 +89,10 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-home-link { color: #a4e6d0; font-weight: 700; text-decoration: none; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
 @media (max-width: 900px) { .modelling-studio.container { width: 100%; } }
+
+/* Keep the explorer, canvas and inspector independently navigable on desktop. */
+@media (min-width: 901px) {
+  .studio-panels { grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr) minmax(16rem, 22rem); align-items: start; }
+  .studio-panels > section { height: min(74vh, 60rem); min-height: 30rem; overflow: auto; overscroll-behavior: contain; }
+  .studio-panels .studio-flow { height: min(55vh, 38rem); min-height: 24rem; }
+}
