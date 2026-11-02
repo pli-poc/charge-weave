@@ -28,6 +28,7 @@
 .studio-canvas-groups h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
 .studio-canvas-groups li { overflow-wrap: anywhere; }
 .studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
+.studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline: 3px dashed #0056a8; outline-offset: -5px; }
 .studio-flow .studio-concept-card .studio-concept-module { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-flow .studio-concept-card .studio-concept-badges { display: flex; flex-wrap: wrap; column-gap: 4px; row-gap: 0; max-height: 28px; line-height: 14px; }
 .studio-flow .studio-concept-card .studio-concept-badges > * { display: block; flex: 0 0 auto; margin: 0; white-space: nowrap; }

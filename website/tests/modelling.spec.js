@@ -37,8 +37,11 @@ test('explorer expands declared and inherited fields at the current revision', a
     const intercepted = new Promise(resolve => { observed = resolve; });
     const delay = async route => {
       const params = route.request().postDataJSON()?.params;
-      if (params?.name === 'ontology_entity_get' && params.arguments?.name === 'Device' && params.arguments?.expectedRevision === 0) { observed(); await gate; }
-      await route.continue().catch(() => {});
+      if (params?.name === 'ontology_entity_get' && params.arguments?.name === 'Device' && params.arguments?.expectedRevision === 0) {
+        observed(); await gate;
+        // The revision change aborts this intentionally delayed stale request.
+        await route.continue().catch(() => {});
+      } else await route.continue();
     };
     await page.route('**/mcp', delay);
     try {
@@ -46,10 +49,11 @@ test('explorer expands declared and inherited fields at the current revision', a
       await intercepted;
       store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'add-member', expectedRevision: 0, commands: [{ type: 'property.add', owner: 'Device', name: 'modelNumber', range: 'string', cardinality: '?' }] });
       await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
-    } finally { release(); await page.unroute('**/mcp', delay); }
-    await expect(page.getByRole('button', { name: 'Hide fields for Device' })).toHaveAttribute('aria-expanded', 'true');
-    const refreshed = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Hide fields for Device' }) }).last();
-    await expect(refreshed.getByText('modelNumber', { exact: true })).toBeVisible();
+      release();
+      await expect(page.getByRole('button', { name: 'Hide fields for Device' })).toHaveAttribute('aria-expanded', 'true');
+      const refreshed = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Hide fields for Device' }) }).last();
+      await expect(refreshed.getByText('modelNumber', { exact: true })).toBeVisible();
+    } finally { release(); }
     expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
@@ -1530,6 +1534,10 @@ test('draft comparison groups added and changed concepts with before and after',
 test('concept context can be previewed and copied for the current draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Context', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const job = store.createJob(workspace.id, 0, workspace.sourceDigest, 'tester', 'context-check', 'structural').job;
+  store.startJobStep(job.id, 0, 'synthetic-check');
+  store.finishJobStep(job.id, 0, 'failed', 'private recorded output');
+  store.updateJob(job.id, 'failed');
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const token = 'test-token-'.repeat(4);
   const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, repository: '.', staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
@@ -1539,6 +1547,8 @@ test('concept context can be previewed and copied for the current draft', async 
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByText(/Latest structural operation: failed/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
@@ -1547,14 +1557,17 @@ test('concept context can be previewed and copied for the current draft', async 
     const preview = page.getByLabel('Context preview');
     await expect(preview).toHaveValue(/Selected concept: Record/);
     await expect(preview).toHaveValue(/revision: 0/);
+    await expect(preview).toHaveValue(/synthetic-check/);
     await page.getByRole('button', { name: 'Copy context' }).click();
     const copied = await page.evaluate(() => window.copiedContext);
     expect(copied).toContain(workspace.id);
     expect(copied).not.toContain(token);
     expect(copied).not.toContain(pairingCode);
+    expect(copied).not.toContain('private recorded output');
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'context-update', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A revised record.' }] });
     await expect(preview).toHaveValue(/revision: 1/);
     await expect(preview).toHaveValue(/A revised record/);
+    await expect(preview).toHaveValue(/out of date for current draft/);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

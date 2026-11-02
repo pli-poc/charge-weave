@@ -192,7 +192,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       return retained.length === previous.size ? previous : new Set(retained);
     });
   }, [visibleNames]);
-  const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames]);
+  const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
+  const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${selectedEdge && (node.id === selectedEdge.source || node.id === selectedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, selectedEdge]);
   const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
     if (!visibleNames.has(name)) return;
@@ -301,7 +302,6 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setHiddenNodes(new Set()); setHiddenRecoveryNeeded(false); setHiddenNotice('Local visibility settings replaced.');
     } catch { setHiddenNotice('Could not replace local visibility settings.'); }
   }
-  const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
   function inspectEdge(id) {
     if (id && !activeEdges.some(edge => edge.id === id)) return;
     onManualInteraction();
