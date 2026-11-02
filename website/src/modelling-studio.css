@@ -11,17 +11,18 @@
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
 .studio-panels pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
-.studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; border-left: .25rem solid #147d70; }
+.studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; color: #183a39; border-left: .25rem solid #147d70; }
+.studio-graph h3 { color: #183a39; }
 .studio-graph ul { list-style: none; padding-left: 1rem; border-left: 2px solid #147d70; }
 .studio-graph li { padding-left: 1rem; }
 .studio-flow { width: 100%; height: 28rem; background: #f8fbfa; border: 1px solid #b8c5cc; border-radius: .4rem; }
-.studio-flow .studio-flow-node { width: 190px; min-height: 64px; display: flex; align-items: center; justify-content: center; border: 2px solid #147d70; border-radius: .4rem; background: white; color: #183a39; font-size: .85rem; }
+.studio-flow .studio-flow-node { width: 190px; min-height: 64px; display: flex; align-items: center; justify-content: center; border: 2px solid #147d70; border-radius: .4rem; background: white; color: #183a39; font-size: 1rem; }
 .studio-flow .studio-flow-added { border-style: dashed; background: #e3f7ec; }
 .studio-flow .studio-flow-changed { border-color: #9a5c00; background: #fff5db; }
 .studio-flow .react-flow__node.selected { outline: 3px solid #173f74; outline-offset: 2px; }
 .studio-flow .studio-flow-edge-added path { stroke: #14824c; stroke-dasharray: 6 4; }
 .studio-flow .react-flow__edge-textbg { fill: #f8fbfa; fill-opacity: .95; }
-.studio-flow .react-flow__edge-text { fill: #183a39; font-size: 11px; }
+.studio-flow .react-flow__edge-text { fill: #183a39; font-size: 14px; }
 .studio-flow .react-flow__controls button { background: #fff; color: #183a39; border-color: #93aaa7; }
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
