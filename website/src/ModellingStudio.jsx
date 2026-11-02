@@ -6,6 +6,14 @@ import PerspectivePanels from './PerspectivePanels.jsx';
 import { projectView } from './model/project-view.js';
 import './modelling-studio.css';
 
+function panelWidth(key, fallback, minimum, maximum) {
+  try {
+    const stored = localStorage.getItem(`chargeweave.studio.${key}.v1`);
+    if (stored === null || !/^\d+$/.test(stored)) return fallback;
+    return Math.min(maximum, Math.max(minimum, Number(stored)));
+  } catch { return fallback; }
+}
+
 // Stateless MCP Streamable HTTP requests; the token stays in component memory.
 function authHeaders(credential) {
   return typeof credential === 'string' ? { Authorization: `Bearer ${credential}` } : { 'X-CSRF-Token': credential.csrf };
@@ -73,6 +81,8 @@ export default function ModellingStudio() {
   const [viewNotice, setViewNotice] = useState('');
   const [hideNavigator, setHideNavigator] = useState(false);
   const [hideInspector, setHideInspector] = useState(false);
+  const [navigatorWidth, setNavigatorWidth] = useState(() => panelWidth('navigator-width', 240, 200, 360));
+  const [inspectorWidth, setInspectorWidth] = useState(() => panelWidth('inspector-width', 320, 280, 440));
   const [entityInfo, setEntityInfo] = useState(null);
   const [temporal, setTemporal] = useState(null);
   const [temporalPolicy, setTemporalPolicy] = useState('snapshot-versioned');
@@ -126,6 +136,13 @@ export default function ModellingStudio() {
   const searchSequence = useRef(0);
   const fieldEditInput = useRef(null);
   const relationshipOrigin = useRef(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('chargeweave.studio.navigator-width.v1', String(navigatorWidth));
+      localStorage.setItem('chargeweave.studio.inspector-width.v1', String(inspectorWidth));
+    } catch { /* The layout remains available for this session. */ }
+  }, [navigatorWidth, inspectorWidth]);
 
   useEffect(() => {
     function shortcut(event) {
@@ -773,7 +790,7 @@ export default function ModellingStudio() {
     <p role="status">{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
     {connection && <section className="studio-workspaces"><h2>Workspaces</h2><label>Current workspace <select value={connection.workspaceId} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</section>}
     {error && <p role="alert">{error}</p>}
-    {snapshot && <fieldset className="studio-workspace" disabled={!online} onFocusCapture={event => { if (event.target.matches('input:not([type=checkbox]), textarea, select, [contenteditable=true]')) pauseFollowing(); }}><legend className="sr-only">Modelling workspace</legend><div className="studio-panel-controls"><button type="button" aria-pressed={!hideNavigator} onClick={() => setHideNavigator(!hideNavigator)}>{hideNavigator ? 'Show navigator' : 'Hide navigator'}</button><button type="button" aria-pressed={!hideInspector} onClick={() => setHideInspector(!hideInspector)}>{hideInspector ? 'Show inspector' : 'Hide inspector'}</button></div><div className="studio-panels" data-hide-navigator={hideNavigator} data-hide-inspector={hideInspector}>
+    {snapshot && <fieldset className="studio-workspace" disabled={!online} onFocusCapture={event => { if (event.target.matches('input:not([type=checkbox]), textarea, select, [contenteditable=true]')) pauseFollowing(); }}><legend className="sr-only">Modelling workspace</legend><div className="studio-panel-controls"><button type="button" aria-pressed={!hideNavigator} onClick={() => setHideNavigator(!hideNavigator)}>{hideNavigator ? 'Show navigator' : 'Hide navigator'}</button><button type="button" aria-pressed={!hideInspector} onClick={() => setHideInspector(!hideInspector)}>{hideInspector ? 'Show inspector' : 'Hide inspector'}</button><details className="studio-panel-sizing"><summary>Panel sizes</summary><label>Navigator width <input type="range" min="200" max="360" step="10" value={navigatorWidth} onChange={event => setNavigatorWidth(Number(event.target.value))} /><output>{navigatorWidth} px</output></label><label>Inspector width <input type="range" min="280" max="440" step="10" value={inspectorWidth} onChange={event => setInspectorWidth(Number(event.target.value))} /><output>{inspectorWidth} px</output></label><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); }}>Reset panel sizes</button></details></div><div className="studio-panels" data-hide-navigator={hideNavigator} data-hide-inspector={hideInspector} style={{ '--navigator-width': navigatorWidth + 'px', '--inspector-width': inspectorWidth + 'px' }}>
       <section hidden={hideNavigator}><h2>Discover concepts</h2><form onSubmit={search}><label>Search model <input ref={searchInput} value={query} onChange={event => { searchSequence.current += 1; setQuery(event.target.value); setResults([]); setSearchDone(false); }} /></label><button>Search</button></form>
         {!searchDone && !query && <div className="studio-browse"><h3>Browse concepts</h3>{!browse ? <p>Loading concepts…</p> : browse.error ? <p role="status">Browse unavailable: {browse.error}. Search remains available.</p> : <><label>Filter by module <select value={browse.module ?? ""} onChange={event => browseModule(event.target.value)}><option value="">All modules</option>{browse.modules.map(item => <option key={item.name} value={item.name}>{item.name} ({item.count})</option>)}</select></label><p>Showing {browse.results.length} of {browse.total} concepts.</p><ul>{browse.results.map(item => <li key={item.name}><button type="button" onClick={() => { pauseFollowing(); setSelected(item); setDefinition(item.definition); }}>{item.name}</button> <small>{item.module}</small></li>)}</ul>{browse.nextCursor && <button type="button" onClick={loadMoreConcepts}>Load more concepts</button>}</>}</div>}
         {searchDone && !results.length && <p>No matching concepts. Try a shorter or related term before creating a concept.</p>}<ul>{results.map(item => <li key={item.name}><button type="button" onClick={() => { pauseFollowing(); setSelected(item); setDefinition(item.definition); }}>{item.name}</button> <small>Class · {item.module}</small><p>{item.definition}</p></li>)}</ul></section>
