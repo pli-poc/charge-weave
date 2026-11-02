@@ -1398,6 +1398,11 @@ test('draft comparison groups added and changed concepts with before and after',
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const diagram = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(diagram).toHaveAttribute('data-layout', 'ready');
+    const node = diagram.locator('.react-flow__node[data-id="Device"]');
+    const position = await node.getAttribute('style');
     await page.getByRole('button', { name: 'Review draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText('1 added · 1 changed · 0 removed · 0 additional source files changed')).toBeVisible();
@@ -1411,7 +1416,20 @@ test('draft comparison groups added and changed concepts with before and after',
     await expect(page.getByText('Baseline commit:', { exact: false })).toContainText('a'.repeat(40));
     await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
     if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-    expect(store.get(workspace.id).revision).toBe(1);
+    const documents = page.getByRole('navigation', { name: 'Editor documents' });
+    await expect(diagram).toBeHidden();
+    await documents.getByRole('button', { name: 'Diagram view' }).click();
+    await expect(diagram).toBeVisible();
+    await expect(node).toHaveAttribute('style', position);
+    await documents.getByRole('button', { name: 'Changes', exact: true }).click();
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-review', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Record', definition: 'Later record.' }] });
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 2');
+    await expect(page.getByText('This comparison is out of date for the current draft.', { exact: false })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Focus changed Record' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Refresh comparison' }).click();
+    await expect(page.getByRole('heading', { name: 'Changes at revision 2' })).toBeFocused();
+    await expect(page.getByText('After: Later record.')).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(2);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -2078,6 +2096,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByText('Class policy: immutable-aggregate')).toBeVisible();
     await expect(page.getByText(/draft policy from baseline/)).toBeVisible();
     await surface('Diagram');
+    await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Diagram view' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: model/temporal-policy.json')).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
@@ -2261,8 +2280,10 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await page.getByRole('button', { name: 'Inspect review gates' }).click();
     await expect(page.getByText('structural: not run for this draft')).toBeVisible();
     await surface('Diagram');
+    await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Changes', exact: true }).click();
     await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
     await expect(page.locator('pre').filter({ hasText: '+Record|root|An edited record.' })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Diagram view' }).click();
     await page.getByText('Add a concept').click();
     await page.getByLabel('Class name').fill('MaintenanceWindow');
     await page.getByLabel('Class definition').fill('A planned maintenance window.');
