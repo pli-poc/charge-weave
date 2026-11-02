@@ -101,6 +101,8 @@ test('navigator search refreshes when another client changes the draft', async (
     const validation = page.getByRole('region', { name: 'Validation issues' });
     await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Find a concept' }).click();
+    await expect(page.getByLabel('Search model')).toBeFocused();
     const destinations = page.getByRole('navigation', { name: 'Workspace destinations' });
     await destinations.getByRole('link', { name: 'Activity' }).click();
     await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeInViewport();
