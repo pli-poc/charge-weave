@@ -43,6 +43,9 @@ test('a delayed shared-view load cannot overwrite a newly selected view', async 
     });
     await page.getByRole('button', { name: 'Load shared view' }).click();
     await intercepted;
+    await expect(page.getByRole('button', { name: 'Load shared view' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Save shared view' })).toBeDisabled();
+    await expect(page.getByText('Loading shared view…')).toBeVisible();
     await page.getByLabel('View ID').fill('other');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(page.getByText('other', { exact: true }).first()).toBeVisible();
