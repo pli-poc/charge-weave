@@ -881,7 +881,7 @@ test('desktop panel sizes can be adjusted with the keyboard and restored', async
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('advanced connection identifies an invalid workspace ID without treating the token as a UUID', async ({ page }) => {
+test('advanced connection identifies an invalid workspace ID without treating the token as a UUID', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Connection', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const token = 'test-token-'.repeat(4);
@@ -897,6 +897,15 @@ test('advanced connection identifies an invalid workspace ID without treating th
     await page.getByLabel('Workspace ID').fill(workspace.id);
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await expect(page.getByText('Reviewer decisions are unavailable for this connection. Connect with reviewer access.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Record reviewer decision' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Save reviewer case' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Inspect review gates' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Check publication target' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Check required status checks' })).toBeDisabled();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -1296,12 +1305,23 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await expect(page.getByText(/Publisher permission: not checked/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect publication history' }).click();
     await expect(page.getByText(/Publisher permission: enabled/)).toBeVisible();
     await page.getByRole('button', { name: 'Create draft pull request' }).click();
     await expect(page.getByRole('link', { name: 'Pull request #77' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Pull request #77' })).toHaveAttribute('href', 'https://github.com/pli-poc/charge-weave/pull/77');
     expect(store.publication(workspace.id, intent.id).state).toBe('pr_created');
+    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await page.getByText('Advanced connection with workspace ID and token').click();
+    await page.getByLabel('Workspace ID').fill(workspace.id);
+    await page.getByLabel('Draft token').fill('test-token-'.repeat(4));
+    await page.getByRole('button', { name: 'Connect', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await expect(page.getByText(/Publisher permission: unavailable for this connection/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Inspect publication history' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Create draft pull request' })).toHaveCount(0);
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 
@@ -1694,8 +1714,9 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Activity' }).click();
     await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeFocused();
     await navigation.getByRole('button', { name: 'Model', exact: true }).click();
-    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Device', exact: true }).focus();
-    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Discover concepts' })).toBeFocused();
+    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Device', exact: true }).press('Enter');
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Discard and open Device' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
