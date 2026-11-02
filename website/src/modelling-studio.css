@@ -130,6 +130,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-module-tree ul { margin-left: .6rem; padding-left: .65rem; border-left: 1px solid #435a60; }
 .studio-module-tree li { margin: 0; }
 .modelling-studio .studio-module-tree li li button { width: 100%; min-height: 2rem; text-align: left; background: transparent; border-color: transparent; }
+.modelling-studio .studio-module-tree li li button[aria-current="true"] { background: #28524f; border-color: #79cbb6; }
 .studio-field-list .studio-field-row { margin: 0; padding: .7rem 0; border-top: 1px solid #30494e; font-size: .84rem; overflow-wrap: anywhere; }
 .studio-field-row small { display: block; color: #a9bcbd; margin: .25rem 0; }
 .studio-field-row button { margin: .3rem .3rem 0 0; }
