@@ -716,11 +716,11 @@ export default function ModellingStudio() {
   return <main id="main" className="container modelling-studio">
     <h1>Ontology modelling studio</h1>
     <p>Use Codex to propose changes; inspect and refine them here.</p>
-    <form className="studio-connect" onSubmit={pair}>
+    <form className="studio-connect" onSubmit={pair} hidden={Boolean(connection)}>
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
       <button type="submit">Pair local studio</button>
     </form>
-    <form className="studio-connect" onSubmit={connect}>
+    <form className="studio-connect" onSubmit={connect} hidden={Boolean(connection)}>
       <label>Local service <input value={endpoint} onChange={event => setEndpoint(event.target.value)} required /></label>
       <label>Workspace ID <input value={workspaceId} onChange={event => setWorkspaceId(event.target.value)} required /></label>
       <label>Draft token <input type="password" value={token} onChange={event => setToken(event.target.value)} required autoComplete="off" /></label>
