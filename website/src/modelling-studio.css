@@ -55,6 +55,12 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-review-workflow li strong::before { content: counter(review-step) '. '; color: #a4e6d0; }
 .studio-review-workflow li span { color: #b8cbcc; font-size: .8rem; }
 .studio-review-workflow li button { justify-self: start; }
+.studio-change-review .studio-change-group { margin: .75rem 0; padding: .75rem; }
+.studio-change-group > ul { list-style: none; margin: 0; padding: 0; }
+.studio-change-group > ul > li { padding: .75rem 0; border-top: 1px solid #30494e; }
+.studio-change-group > ul > li > button { margin-left: .6rem; }
+.studio-change-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); gap: .5rem; }
+.studio-change-comparison p { padding: .6rem; border: 1px solid #30494e; border-radius: .3rem; }
 .studio-validation-dock { border-top: 3px solid #55a991; }
 .studio-validation-dock > h2 { font-size: 1rem; }
 @media (max-width: 900px) { .modelling-studio.container { width: calc(100% - 40px); } .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }

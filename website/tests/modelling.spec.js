@@ -1387,6 +1387,69 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('draft comparison groups added and changed concepts with before and after', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Change review', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original record.|\n' });
+  store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'reviewed-changes', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }, { type: 'class.add', name: 'Device', module: 'foundation', parent: 'Record', definition: 'A new device.' }] });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
+    await expect(page.getByText('1 added · 1 changed · 0 removed · 0 additional source files changed')).toBeVisible();
+    const added = page.getByRole('region', { name: 'Added concepts' });
+    const changed = page.getByRole('region', { name: 'Changed concepts' });
+    await expect(added).toContainText('added: Device');
+    await expect(added).toContainText('After: A new device.');
+    await expect(changed).toContainText('Before: Original record.');
+    await expect(changed).toContainText('After: Updated record.');
+    await page.getByText('Comparison identity', { exact: true }).click();
+    await expect(page.getByText('Baseline commit:', { exact: false })).toContainText('a'.repeat(40));
+    await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
+    if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    expect(store.get(workspace.id).revision).toBe(1);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('a delayed draft comparison cannot replace the current revision', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Comparison race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed;
+  const gate = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  const delay = async route => {
+    if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_diff') {
+      const response = await route.fetch();
+      observed(); await gate;
+      await route.fulfill({ response });
+    } else await route.continue();
+  };
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.route('**/mcp', delay);
+    await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await intercepted;
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-draft', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated during review.' }] });
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
+    release();
+    await expect(page.getByRole('alert')).toContainText('The draft changed while changes were loading.');
+    await expect(page.getByRole('heading', { name: 'Changes at revision 0' })).toHaveCount(0);
+    await page.unroute('**/mcp', delay);
+    await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
+    await expect(page.getByText('After: Updated during review.')).toBeVisible();
+  } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('review workflow links to separate review and publication steps', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Review workflow', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
