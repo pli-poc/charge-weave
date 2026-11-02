@@ -105,7 +105,7 @@ The modelling canvas displays the selected concept's bounded information neighbo
 
 `ontology_incoming_get` lists direct declared class-valued fields and direct subclasses that reference a selected class. Results are paged and pinned to an expected workspace revision. The inspector exposes these under **Referenced by**. This is a source-grounded navigation aid, not a transitive dependency or complete business-impact analysis.
 
-In the information perspective, **Show incoming references** adds up to 20 direct incoming references to the current diagram. Additional references are counted and can be browsed in the inspector. This display toggle is local to the session and is not part of a saved shared view.
+In the information perspective, **Show incoming references** initially adds up to 20 direct incoming references to the current diagram. The diagram can expand this in steps of 20 up to 100; additional references are counted and can be browsed in the inspector. This display toggle is local to the session and is not part of a saved shared view.
 
 New version-four workspaces can also set an explicit class temporal policy using the expected prior value as a precondition. The policy source shares the same transaction, identity, undo and validation materialization as the schema and requirement register. Selecting a policy does not configure all temporal relationships or establish time-behavior acceptance; those checks and any needed fixtures remain separate. Older version-four workspaces created without the temporal source must be recreated to edit it.
 
