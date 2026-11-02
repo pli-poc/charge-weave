@@ -12,6 +12,38 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('an older search cannot replace newer navigator results', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Search race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed;
+  const delayed = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 0');
+    await page.route('**/mcp', async route => {
+      const body = route.request().postDataJSON();
+      if (body?.params?.name === 'ontology_context_search' && body.params.arguments.query === 'Record') { observed(); await delayed; }
+      await route.continue();
+    });
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await intercepted;
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Device', exact: true })).toBeVisible();
+    const oldResponse = page.waitForResponse(response => response.url().endsWith('/mcp') && response.request().postDataJSON()?.params?.arguments?.query === 'Record');
+    release(); await oldResponse;
+    await expect(page.getByRole('button', { name: 'Device', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Record', exact: true })).toHaveCount(0);
+  } finally { release(); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('navigator browses beyond the first page without searching', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const classes = Array.from({ length: 55 }, (_, i) => `Thing${String(i).padStart(3, '0')}|Record|A concept.|`).join('\n');
@@ -256,6 +288,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
+    await expect(page.getByLabel('New datatype or target class')).toBeFocused();
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
