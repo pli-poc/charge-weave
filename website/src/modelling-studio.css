@@ -81,3 +81,11 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-connect { align-items: stretch; }
   .studio-connect label { flex-basis: 100%; }
 }
+
+/* The authoring route is an application workspace, independent of site chrome. */
+.modelling-studio.container { width: 100%; max-width: none; padding: 0 1.25rem 3rem; }
+.studio-app-bar { display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; margin: 0 -1.25rem 1rem; padding: 0 1.25rem; background: #102127; border-bottom: 1px solid #30494e; }
+.studio-app-bar h1 { margin: 0; font-size: 1rem; letter-spacing: 0; }
+.studio-home-link { color: #a4e6d0; font-weight: 700; text-decoration: none; }
+.studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
+@media (max-width: 900px) { .modelling-studio.container { width: 100%; } }

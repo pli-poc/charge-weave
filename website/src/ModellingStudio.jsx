@@ -714,7 +714,7 @@ export default function ModellingStudio() {
   }
   const latestChange = history.filter(event => event.payload.commands?.length && eventConcept(event)).at(-1);
   return <main id="main" className="container modelling-studio">
-    <h1>Ontology modelling studio</h1>
+    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1></header>
     <p>Use Codex to propose changes; inspect and refine them here.</p>
     <form className="studio-connect" onSubmit={pair} hidden={Boolean(connection)}>
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
