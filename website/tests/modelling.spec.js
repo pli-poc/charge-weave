@@ -592,7 +592,6 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-filtered-module', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Station', definition: 'Updated station.' }] });
     await expect(page.getByRole('status')).toContainText('revision 1');
-    await expect(recordNameRow).toContainText('Exactly one (1)');
     await expect(page.getByLabel('Filter by module')).toHaveValue('operations');
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Station', exact: true }).click();
@@ -868,6 +867,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) })).toContainText('Exactly one (1)');
     expect(store.get(workspace.id).schema).toContain('recordName:string!');
     await page.getByRole('button', { name: 'Review draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
