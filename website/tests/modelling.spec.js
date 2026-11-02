@@ -1028,7 +1028,24 @@ test('relationship gestures and keyboard form do not edit until submitted', asyn
     await page.getByLabel('Relationship description').fill('The record linked to this device.');
     await page.getByLabel('Relationship cardinality').selectOption('!');
     expect(store.get(workspace.id).revision).toBe(0);
-    await page.getByRole('button', { name: 'Create relationship', exact: true }).click();
+    let releaseRelationship, interceptedRelationship;
+    const relationshipGate = new Promise(resolve => { releaseRelationship = resolve; });
+    const relationshipIntercepted = new Promise(resolve => { interceptedRelationship = resolve; });
+    const delayRelationship = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_apply') { interceptedRelationship(); await relationshipGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayRelationship);
+    try {
+      await page.getByRole('button', { name: 'Create relationship', exact: true }).click();
+      await relationshipIntercepted;
+      await expect(page.getByLabel('Predicate name')).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Cancel relationship' })).toBeDisabled();
+      await page.getByRole('form', { name: 'New relationship' }).dispatchEvent('keydown', { key: 'Escape' });
+      await expect(page.getByRole('form', { name: 'New relationship' })).toBeVisible();
+      releaseRelationship();
+      await expect(page.getByRole('status')).toContainText('revision 1');
+    } finally { releaseRelationship(); await page.unroute('**/mcp', delayRelationship); }
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.get(workspace.id).schema).toContain('linkedRecord:Record!');
     expect(store.get(workspace.id).schema).toContain('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.');
