@@ -368,6 +368,9 @@ test('concept creation offers existing modules and validates its definition', as
       await commandIntercepted;
       await expect(page.getByRole('button', { name: 'Add concept', exact: true })).toBeDisabled();
       await expect(page.getByText('Saving model change…')).toBeVisible();
+      await expect(page.getByLabel('Current workspace')).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
+      expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
       releaseCommand();
       await expect(page.getByRole('status')).toContainText('revision 1');
     } finally { releaseCommand(); await page.unroute('**/mcp', delayCommand); }
