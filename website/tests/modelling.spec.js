@@ -767,6 +767,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByRole('button', { name: 'Create workspace' }).click();
     await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
+    await expect(page.locator('.studio-app-bar')).toContainText('Workspace: New proposal');
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('Unapplied workspace edit.');
@@ -778,6 +779,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByLabel('Current workspace').selectOption(original.id);
     await page.getByRole('button', { name: 'Discard and open Original' }).click();
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
+    await expect(page.locator('.studio-app-bar')).toContainText('Workspace: Original');
   } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
 

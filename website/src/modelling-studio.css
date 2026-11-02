@@ -113,6 +113,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio.container { width: 100%; max-width: none; padding: 0 1.25rem 3rem; }
 .studio-app-bar { display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; margin: 0 -1.25rem 1rem; padding: 0 1.25rem; background: #102127; border-bottom: 1px solid #30494e; }
 .studio-app-bar h1 { margin: 0; font-size: 1rem; letter-spacing: 0; }
+.studio-current-workspace { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b8cbcc; font-size: .85rem; }
+@media (max-width: 600px) { .studio-app-bar { flex-wrap: wrap; gap: .3rem .8rem; padding-block: .5rem; } .studio-current-workspace { flex-basis: 100%; } }
 .modelling-studio > .studio-status-bar { position: fixed; z-index: 12; inset: auto 0 0; display: flex; gap: .5rem 1.25rem; align-items: center; flex-wrap: wrap; min-height: 2rem; margin: 0; padding: .25rem 1rem; background: #17343a; border: 0; border-top: 1px solid #49666a; border-radius: 0; color: #d8e9e5; font-size: .75rem; }
 .studio-status-bar a { color: #a4e6d0; }
 .studio-status-bar a:focus-visible { outline: 2px solid #7cddc2; outline-offset: 2px; }

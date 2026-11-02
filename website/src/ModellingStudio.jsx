@@ -1144,7 +1144,7 @@ export default function ModellingStudio() {
     heading?.focus({ preventScroll: true });
   }
   return <main id="main" className="container modelling-studio">
-    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1></header>
+    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1>{snapshot && <span className="studio-current-workspace" title={snapshot.title}>Workspace: {snapshot.title}</span>}</header>
     <p>Use Codex to propose changes; inspect and refine them here.</p>
     <form className="studio-connect" onSubmit={pair} hidden={Boolean(connection)}>
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
