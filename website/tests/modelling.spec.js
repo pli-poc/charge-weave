@@ -344,6 +344,14 @@ test('a remote field change blocks a stale inspector edit while preserving input
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     const recordNameRow = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
     await expect(recordNameRow).toContainText('Optional (0..1)');
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.copiedIdentifier = value; } } }));
+    const iri = await page.locator('.studio-identifier code').innerText();
+    await page.getByRole('button', { name: 'Copy identifier' }).click();
+    await expect(page.getByText('Identifier copied.')).toBeVisible();
+    expect(await page.evaluate(() => window.copiedIdentifier)).toBe(iri);
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('denied'); } } }));
+    await page.getByRole('button', { name: 'Copy identifier' }).click();
+    await expect(page.getByText('Clipboard unavailable; select and copy the identifier shown here.')).toBeVisible();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await page.getByLabel('New cardinality').selectOption('+');
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-field', expectedRevision: 0, commands: [{ type: 'property.update', owner: 'Record', name: 'recordName', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' }] });
