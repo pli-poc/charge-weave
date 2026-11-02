@@ -1370,6 +1370,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await expect(page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) })).toContainText('Exactly one (1)');
     expect(store.get(workspace.id).schema).toContain('recordName:string!');
     await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await page.getByRole('region', { name: 'Review workflow' }).getByRole('button', { name: 'Open draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText(/recordName: potentially-breaking/)).toBeVisible();
     await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
@@ -1406,6 +1407,7 @@ test('draft comparison groups added and changed concepts with before and after',
     const node = diagram.locator('.react-flow__node[data-id="Device"]');
     const position = await node.getAttribute('style');
     await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await page.getByRole('region', { name: 'Review workflow' }).getByRole('button', { name: 'Open draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText('1 added · 1 changed · 0 removed · 0 additional source files changed')).toBeVisible();
     const added = page.getByRole('region', { name: 'Added concepts' });
@@ -1603,6 +1605,7 @@ test('a delayed draft comparison cannot replace the current revision', async ({ 
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.route('**/mcp', delay);
     await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await page.getByRole('region', { name: 'Review workflow' }).getByRole('button', { name: 'Open draft changes' }).click();
     await intercepted;
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-draft', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated during review.' }] });
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
@@ -1611,6 +1614,7 @@ test('a delayed draft comparison cannot replace the current revision', async ({ 
     await expect(page.getByRole('heading', { name: 'Changes at revision 0' })).toHaveCount(0);
     await page.unroute('**/mcp', delay);
     await page.getByRole('button', { name: 'Review draft changes' }).click();
+    await page.getByRole('region', { name: 'Review workflow' }).getByRole('button', { name: 'Open draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText('After: Updated during review.')).toBeVisible();
   } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
@@ -2214,7 +2218,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A reviewed station definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
-    await surface('Results');
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByRole('button', { name: 'Inspect explicit impact references' }).click();
     await expect(page.getByText(/Changed classes: ChargingStation/)).toBeVisible();
     await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: 'Change impact' }) }).getByText(/requirement BR-/).first()).toBeVisible();
