@@ -107,6 +107,18 @@ test('desktop panel sizes can be adjusted with the keyboard and restored', async
     await page.reload();
     await page.locator('summary').filter({ hasText: 'Panel sizes' }).click();
     await expect(page.getByLabel('Navigator width')).toHaveValue('250');
+    const splitter = page.getByRole('separator', { name: 'Resize navigator' });
+    const handle = await splitter.boundingBox();
+    await page.mouse.move(handle.x + handle.width / 2, handle.y + 30);
+    await page.mouse.down(); await page.mouse.move(handle.x + handle.width / 2 + 30, handle.y + 30, { steps: 4 }); await page.mouse.up();
+    await expect(splitter).toHaveAttribute('aria-valuenow', '280');
+    await splitter.focus(); await page.keyboard.press('ArrowLeft');
+    await expect(splitter).toHaveAttribute('aria-valuenow', '270');
+    const inspector = page.getByRole('separator', { name: 'Resize inspector' });
+    const inspectorHandle = await inspector.boundingBox();
+    await page.mouse.move(inspectorHandle.x + inspectorHandle.width / 2, inspectorHandle.y + 30);
+    await page.mouse.down(); await page.mouse.move(inspectorHandle.x + inspectorHandle.width / 2 - 30, inspectorHandle.y + 30, { steps: 4 }); await page.mouse.up();
+    await expect(inspector).toHaveAttribute('aria-valuenow', '350');
     await page.getByRole('button', { name: 'Reset panel sizes' }).click();
     await expect(page.getByLabel('Navigator width')).toHaveValue('240');
   } finally { await page.close(); await service.shutdown(); store.close(); }
