@@ -1202,7 +1202,22 @@ test('browser maps an existing responsibility relationship without inventing one
     await page.getByText('Map an existing responsibility relationship').click();
     await page.getByLabel('Declared object relationship').selectOption('owner');
     await page.getByLabel('Responsibility label').fill('Accountable party');
-    await page.getByRole('button', { name: 'Add responsibility mapping' }).click();
+    let releaseMapping, interceptedMapping;
+    const mappingGate = new Promise(resolve => { releaseMapping = resolve; });
+    const mappingIntercepted = new Promise(resolve => { interceptedMapping = resolve; });
+    const delayMapping = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_apply') { interceptedMapping(); await mappingGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayMapping);
+    try {
+      await page.getByRole('button', { name: 'Add responsibility mapping' }).click();
+      await mappingIntercepted;
+      await expect(page.getByLabel('Responsibility label')).toBeDisabled();
+      await expect(page.getByLabel('Declared object relationship')).toBeDisabled();
+      releaseMapping();
+      await expect(page.getByRole('status')).toContainText('revision 1');
+    } finally { releaseMapping(); await page.unroute('**/mcp', delayMapping); }
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.get(workspace.id).schema).toBe(source);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
@@ -1221,7 +1236,7 @@ test('browser maps an existing responsibility relationship without inventing one
       await expect(page.getByRole('button', { name: 'Undo latest command group' })).toBeDisabled();
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
       releaseUndo();
-      await expect(page.getByRole('status')).toContainText('revision 4');
+      await expect(page.getByRole('status')).toContainText('revision 2');
     } finally { releaseUndo(); await page.unroute('**/mcp', delayUndo); }
     await expect(page.getByRole('status')).toContainText('revision 2');
     expect(store.responsibilityView(workspace.id, 'Device', 2).bindings).toEqual([]);
