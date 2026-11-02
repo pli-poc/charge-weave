@@ -86,7 +86,7 @@ test('runnable scripted demonstration preserves a concurrent manual edit and rej
   const mapping = execFileSync('git', ['show', `${commit}:model/responsibility-bindings.json`], { cwd: repository, encoding: 'utf8' });
   const workspace = store.create({ title: 'Scripted demonstration', baselineCommit: commit, schema, sourceManifest: importSourceManifest(repository, commit), sourceBlobs: { 'model/temporal-policy.json': policy, 'model/responsibility-bindings.json': mapping } });
   const token = 'synthetic-demo-token-'.repeat(2);
-  const service = createHttpService({ store, token, workspaceId: workspace.id });
+  const service = createHttpService({ store, token, workspaceId: workspace.id, repository });
   const clients = [];
   try {
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -106,7 +106,9 @@ test('runnable scripted demonstration preserves a concurrent manual edit and rej
     assert.equal(store.snapshot(workspace.id).changeSet.status, 'draft');
     assert.equal(result.job, null);
     assert.ok(result.graph.edges.some(edge => edge.predicate === 'maintenanceStation' && edge.target === 'ChargingStation'));
-    assert.ok(store.responsibilityView(workspace.id, 'PlannedMaintenanceWindow', 2).bindings.some(binding => binding.property === 'maintenanceAccountableParty'));
+    assert.equal(result.temporal.policy, 'snapshot-versioned');
+    assert.ok(result.temporal.fields.some(field => field.property === 'maintenanceInterval'));
+    assert.ok(result.responsibility.bindings.some(binding => binding.property === 'maintenanceAccountableParty'));
     assert.equal(store.entity(workspace.id, 'PlannedMaintenanceWindow').entity.definition, 'A reviewer-refined maintenance window.');
     assert.ok(messages.some(message => message.includes('stale edit was rejected')));
     assert.equal(store.events(workspace.id).filter(event => event.payload.commands?.length).length, 2);

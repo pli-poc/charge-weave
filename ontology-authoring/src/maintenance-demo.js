@@ -50,6 +50,10 @@ export async function runMaintenanceDemo(client, workspaceId, { waitForEdit = as
   const after = await call('ontology_workspace_get', { workspaceId });
   if (after.revision !== current.revision || after.sourceDigest !== current.sourceDigest) throw new Error('Stale command changed the workspace');
   const graph = await call('ontology_view_get', { workspaceId, root: 'PlannedMaintenanceWindow', expectedRevision: current.revision });
+  const temporal = await call('ontology_temporal_view_get', { workspaceId, root: 'PlannedMaintenanceWindow', expectedRevision: current.revision });
+  const responsibility = await call('ontology_responsibility_view_get', { workspaceId, root: 'PlannedMaintenanceWindow', expectedRevision: current.revision });
+  if ([graph, temporal, responsibility].some(view => view.revision !== current.revision || view.sourceDigest !== current.sourceDigest) || temporal.policy !== 'snapshot-versioned' || !temporal.fields.some(field => field.property === 'maintenanceInterval' && field.range === 'TimeWindow') || !responsibility.bindings.some(binding => binding.property === 'maintenanceAccountableParty' && binding.range === 'LegalEntity')) throw new Error('Maintenance perspectives do not match the current draft');
+  log('Information, temporal and responsibility perspectives agree on the current draft.');
   const diff = await call('ontology_changeset_diff', { workspaceId });
   log('A stale edit was rejected; inspect the current graph and source diff in the studio.');
   let job = null, fixtureJob = null;
@@ -77,5 +81,5 @@ export async function runMaintenanceDemo(client, workspaceId, { waitForEdit = as
       }
     }
   } else log('Reference validation was explicitly skipped for this quick rehearsal.');
-  return { workspaceId, changeSetId, baselineCommit: current.baselineCommit, revision: current.revision, sourceDigest: current.sourceDigest, proposal, graph, diff, job, fixtureJob };
+  return { workspaceId, changeSetId, baselineCommit: current.baselineCommit, revision: current.revision, sourceDigest: current.sourceDigest, proposal, graph, temporal, responsibility, diff, job, fixtureJob };
 }
