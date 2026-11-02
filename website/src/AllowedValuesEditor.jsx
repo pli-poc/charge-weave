@@ -13,7 +13,7 @@ export default function AllowedValuesEditor({ draft, onChange, onCancel, onApply
         {draft.original.map(value => <label key={value}><input type="checkbox" checked={selected.has(value)} onChange={event => onChange(draft.original.filter(item => item === value ? event.target.checked : selected.has(item)))} /> {value}</label>)}
       </fieldset>
       <p aria-live="polite">{selected.size} of {draft.original.length} values selected.{!valid && ' Select at least two but fewer than the original set.'}</p>
-      {stale && <p role="alert">The draft changed since this editor opened. Your selection is retained; cancel and reopen the field to review the current contract.</p>}
+      {stale && <p role="alert">The draft changed since this editor opened, or its change set is different or locked. Your selection is retained; cancel and reopen the field to review the current contract and change set.</p>}
       <button type="submit" disabled={!valid || pending || stale}>Apply allowed values</button>
       <button type="button" disabled={pending} onClick={onCancel}>Cancel allowed values</button>
     </form>

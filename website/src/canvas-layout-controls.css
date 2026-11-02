@@ -20,6 +20,9 @@
 .modelling-studio .studio-canvas-layout-menu .studio-layout-choice { display: flex; align-items: center; gap: .4rem; margin: .25rem 0; color: #183a39; font-size: .8rem; }
 .modelling-studio .studio-canvas-layout-menu .studio-layout-choice input { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; }
 .studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
+.studio-flow .studio-concept-card .studio-concept-module { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-flow .studio-concept-card .studio-concept-badges { display: flex; flex-wrap: wrap; column-gap: 4px; row-gap: 0; max-height: 28px; line-height: 14px; }
+.studio-flow .studio-concept-card .studio-concept-badges > * { display: block; flex: 0 0 auto; margin: 0; white-space: nowrap; }
 .studio-concept-layout-selected { display: block; color: #4d2686; font-size: 10px; font-weight: 700; }
 .studio-concept-layout-pinned { display: block; color: #124f77; font-size: 10px; font-weight: 700; }
 .studio-flow:has(.studio-canvas-layout-menu) .studio-layout-notice { max-width: min(32rem, calc(100% - 6.5rem)); }

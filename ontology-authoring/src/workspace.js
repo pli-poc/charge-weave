@@ -704,10 +704,11 @@ export class WorkspaceStore {
   applyReviewerCase({ workspaceId, actor, operationId, expectedRevision, changeSetId, command }) {
     return this.apply({ workspaceId, actor, operationId, expectedRevision, changeSetId, commands: [command], reviewerCase: true });
   }
-  apply({ workspaceId, actor, operationId, expectedRevision, changeSetId, commands, rationale, reviewerCase = false }) {
+  apply({ workspaceId, actor, operationId, expectedRevision, expectedEventSequence, changeSetId, commands, rationale, reviewerCase = false }) {
     if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || !Number.isSafeInteger(expectedRevision)) throw new Error('Invalid mutation identity');
+    if (expectedEventSequence !== undefined && (!Number.isSafeInteger(expectedEventSequence) || expectedEventSequence < 0)) throw new Error('Invalid expected event sequence');
     if (rationale !== undefined && (typeof rationale !== 'string' || !rationale.trim() || rationale.length > 2000)) throw new Error('Invalid command rationale');
-    const requestHash = hash(JSON.stringify({ expectedRevision, commands, ...(changeSetId === undefined ? {} : { changeSetId }), ...(rationale === undefined ? {} : { rationale }) }));
+    const requestHash = hash(JSON.stringify({ expectedRevision, commands, ...(expectedEventSequence === undefined ? {} : { expectedEventSequence }), ...(changeSetId === undefined ? {} : { changeSetId }), ...(rationale === undefined ? {} : { rationale }) }));
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
@@ -717,6 +718,10 @@ export class WorkspaceStore {
       }
       const current = this.get(workspaceId);
       if (current.revision !== expectedRevision) throw new Error('Stale revision');
+      if (expectedEventSequence !== undefined) {
+        const { cursor } = this.db.prepare('SELECT COALESCE(MAX(sequence), 0) AS cursor FROM events WHERE workspace = ?').get(workspaceId);
+        if (cursor !== expectedEventSequence) throw new Error('Workspace activity changed; review the current change set before applying');
+      }
       if (current.changeSet && (current.changeSet.id !== changeSetId || current.changeSet.status !== 'draft')) throw new Error('Change set is not editable');
       if (!current.changeSet && changeSetId !== undefined) throw new Error('Change set not found');
       if (this.db.prepare("SELECT 1 FROM publications WHERE workspace = ? AND state IN ('push_pending', 'pr_pending') LIMIT 1").get(workspaceId)) throw new Error('Publication push is in progress');

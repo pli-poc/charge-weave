@@ -14,7 +14,7 @@ function fixtureFailures(step) {
 const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maintenanceStation'], 'invalid-planning-state': ['PlannedMaintenanceWindow', 'maintenancePlanningState'], 'reversed-shared-interval': ['TimeWindow', 'endsAt'] };
 
 // A failing check is evidence of a failed check, not automatically a model defect.
-export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept }) {
+export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept, disabled = false }) {
   const [copyMessage, setCopyMessage] = useState('');
   const [filter, setFilter] = useState('');
   const [expanded, setExpanded] = useState(true);
@@ -25,7 +25,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
     <button type="button" aria-expanded={expanded} aria-controls="studio-validation-content" onClick={() => setExpanded(!expanded)}>{expanded ? 'Collapse validation' : 'Expand validation'}</button>
     <div id="studio-validation-content" hidden={!expanded}>
     <p>No validation result is displayed for this draft. Run a structural check to inspect it.</p>
-    <button type="button" onClick={() => onRetry('structural')}>Run structural check</button>
+    <button type="button" disabled={disabled || Boolean(job && ['queued', 'running', 'cancelling'].includes(job.status))} onClick={() => onRetry('structural')}>Run structural check</button>
     </div>
   </section>;
   const stale = job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest;
@@ -53,7 +53,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
       <button type="button" onClick={() => copyRepair(step)}>Copy repair instruction</button>
     </article>)}
     {copyMessage && <p aria-live="polite">{copyMessage}</p>}
-    {['failed', 'cancelled', 'interrupted'].includes(job.status) && <button type="button" onClick={() => onRetry(job.profile)}>Retry {job.profile} check on current draft</button>}
+    {['failed', 'cancelled', 'interrupted'].includes(job.status) && <button type="button" disabled={disabled} onClick={() => onRetry(job.profile)}>Retry {job.profile} check on current draft</button>}
     </div>
   </section>;
 }

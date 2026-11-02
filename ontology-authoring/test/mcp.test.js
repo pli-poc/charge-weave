@@ -5,6 +5,26 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { WorkspaceStore } from '../src/workspace.js';
 import { createServer } from '../src/mcp.js';
 
+test('MCP apply accepts an event cursor and reports intervening activity', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Cursor guard', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createServer(store, 'author', { role: 'draft' });
+  const client = new Client({ name: 'cursor-test', version: '1' });
+  try {
+    await server.connect(serverTransport); await client.connect(clientTransport);
+    const summary = JSON.parse((await client.readResource({ uri: `ontology://workspace/${workspace.id}/v1/summary` })).contents[0].text);
+    store.suggestView(workspace.id, { actor: 'other', operationId: 'suggest', expectedRevision: 0, root: 'Record', viewpoint: 'information', explanation: 'Review this concept.' });
+    const request = { workspaceId: workspace.id, operationId: 'describe', expectedRevision: 0, expectedEventSequence: summary.eventSequence, commands: [{ type: 'class.describe', name: 'Record', definition: 'A clearer record.' }] };
+    const stale = await client.callTool({ name: 'ontology_changeset_apply', arguments: request });
+    assert.equal(stale.isError, true);
+    assert.equal(stale.structuredContent.error.code, 'ACTIVITY_CONFLICT');
+    assert.equal(store.get(workspace.id).revision, 0);
+    const fresh = { ...request, expectedEventSequence: store.snapshot(workspace.id).eventSequence };
+    assert.equal((await client.callTool({ name: 'ontology_changeset_apply', arguments: fresh })).structuredContent.revision, 1);
+  } finally { await client.close(); store.close(); }
+});
+
 test('change-set reopening is available only to the reviewer role', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Change set', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });

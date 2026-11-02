@@ -3,6 +3,7 @@ const cases = [
   [/^Saved view revision conflict$/, 'VIEW_REVISION_CONFLICT', 'The saved view changed.', 'Reload the shared view before saving again.'],
   [/^Saved view not found$/, 'VIEW_NOT_FOUND', 'The shared view has not been saved.', 'Save a shared view before exporting it.'],
   [/^(?:Revision conflict|Stale revision|Undo requires the latest revision|Stale view suggestion)$/, 'REVISION_CONFLICT', 'The workspace changed.', 'Read the current revision and diff before reapplying the edit.'],
+  [/^Workspace activity changed; review the current change set before applying$/, 'ACTIVITY_CONFLICT', 'Workspace activity changed.', 'Review the current change set and workspace activity before reapplying the edit.'],
   [/^Operation ID reused with different request$/, 'IDEMPOTENCY_CONFLICT', 'This operation ID was already used for different content.', 'Inspect the original result and use a new operation ID for a new action.'],
   [/^Stale validation input$/, 'CHECKS_STALE', 'The validation input is no longer current.', 'Reload the workspace and rerun the check for its current revision.'],
   [/^Workspace not authorized$/, 'SCOPE_DENIED', 'This credential cannot access the requested workspace.', 'Connect using a credential authorized for that workspace.'],

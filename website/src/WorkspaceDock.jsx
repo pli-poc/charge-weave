@@ -65,7 +65,7 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         </>}
       </section>
       <div hidden={panel !== 'checks'}>
-        <ValidationIssues job={job} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} />
+        <ValidationIssues job={job} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} disabled={disabled} />
         {terminal && validationJob && <button type="button" onClick={onDownloadEvidence}>Download evidence report</button>}
       </div>
       {panel === 'activity' && <section aria-label="Recent activity">

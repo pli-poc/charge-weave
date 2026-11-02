@@ -11,16 +11,23 @@ import './canvas-layout-controls.css';
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 const ConceptNode = memo(function ConceptNode({ data }) {
   const fields = typeof data.fields === 'string' ? data.fields.split(/\s+/).filter(Boolean) : Array.isArray(data.fields) ? data.fields.map(field => `${field.property}:${field.range}${field.cardinality ?? ''}`) : [];
+  const changed = ['added', 'changed'].includes(data.changeStatus);
+  const badgeCount = Number(changed) + Number(Boolean(data.layoutSelected)) + Number(Boolean(data.layoutPinned));
+  // Reserve room for a second badge row and the overflow count in the fixed
+  // 220 x 128 card used by the layout worker.
+  const previewCount = badgeCount >= 2 ? 2 : 3;
   return <>
     <Handle type="target" position={Position.Left} />
     <div className="studio-concept-card">
       <div className="studio-concept-heading"><span className="studio-concept-kind">CLASS</span><strong title={data.label}>{data.label}</strong></div>
-      <div className="studio-concept-module">{data.module || 'Ontology concept'}</div>
-      {['added', 'changed'].includes(data.changeStatus) && <div className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</div>}
-      {data.layoutSelected && <span className="studio-concept-layout-selected">Selected for layout</span>}
-      {data.layoutPinned && <span className="studio-concept-layout-pinned">Pinned</span>}
-      {!data.overview && fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
-      {!data.overview && fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
+      <div className="studio-concept-module" title={data.module || 'Ontology concept'}>{data.module || 'Ontology concept'}</div>
+      {badgeCount > 0 && <div className="studio-concept-badges">
+        {changed && <span className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</span>}
+        {data.layoutSelected && <span className="studio-concept-layout-selected">Selected for layout</span>}
+        {data.layoutPinned && <span className="studio-concept-layout-pinned">Pinned</span>}
+      </div>}
+      {!data.overview && fields.length > 0 && <ul>{fields.slice(0, previewCount).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
+      {!data.overview && fields.length > previewCount && <span className="studio-concept-more">+{fields.length - previewCount} fields</span>}
     </div>
     <Handle type="source" position={Position.Right} />
   </>;

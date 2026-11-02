@@ -13,6 +13,27 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('optional event cursor atomically guards changes across same-revision review and reopen', () => {
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const workspace = store.create({ title: 'Guarded constraints', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|state:{Draft,Final,Archived}?\n' });
+    const opened = store.openChangeSet({ workspaceId: workspace.id, actor: 'author', operationId: 'open', expectedRevision: 0, intent: 'Review allowed values', requirements: [] });
+    const before = store.snapshot(workspace.id);
+    const command = { type: 'constraint.add', template: 'allowed-values', owner: 'Device', name: 'state', expectedRange: '{Draft,Final,Archived}', expectedCardinality: '?', values: ['Draft', 'Final'] };
+    const request = { workspaceId: workspace.id, actor: 'author', operationId: 'narrow', expectedRevision: 0, expectedEventSequence: before.eventSequence, changeSetId: opened.changeSet.id, commands: [command] };
+    store.recordReview(workspace.id, { actor: 'reviewer', operationId: 'reject', expectedRevision: 0, changeSetId: opened.changeSet.id, sourceDigest: workspace.sourceDigest, decision: 'reject', reason: 'Needs revision.' });
+    store.reopenChangeSet({ workspaceId: workspace.id, actor: 'reviewer', operationId: 'reopen', expectedRevision: 0, changeSetId: opened.changeSet.id });
+    assert.equal(store.get(workspace.id).revision, 0);
+    assert.equal(store.get(workspace.id).changeSet.status, 'draft');
+    assert.throws(() => store.apply(request), /Workspace activity changed/);
+    assert.match(store.get(workspace.id).schema, /state:\{Draft,Final,Archived\}\?/);
+    const fresh = { ...request, expectedEventSequence: store.snapshot(workspace.id).eventSequence };
+    const result = store.apply(fresh);
+    assert.equal(result.revision, 1);
+    assert.deepEqual(store.apply(fresh), result, 'receipt retry remains idempotent after the mutation adds its event');
+    assert.throws(() => store.apply({ ...fresh, expectedEventSequence: before.eventSequence }), /Operation ID reused/);
+  } finally { store.close(); }
+});
 test('latest validation is workspace-scoped and ignores publication jobs', () => {
   const store = new WorkspaceStore(':memory:');
   try {
