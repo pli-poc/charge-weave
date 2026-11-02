@@ -3,6 +3,7 @@ import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Posi
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
+import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
 import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
@@ -44,6 +45,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [pinRecoveryNeeded, setPinRecoveryNeeded] = useState(!initialPins.writable);
   const [pinNotice, setPinNotice] = useState('');
   const [layoutNotice, setLayoutNotice] = useState('');
+  const [layoutHistory, setLayoutHistory] = useState([]);
+  const [draggingLayout, setDraggingLayout] = useState(false);
   const [layoutState, setLayoutState] = useState('pending');
   const [layoutAttempt, setLayoutAttempt] = useState(0);
   const [initialLayout] = useState(() => {
@@ -56,7 +59,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
   const arranging = useRef(false), layoutMenu = useRef(null);
+  const dragBefore = useRef(null);
   const byName = useRef(new Map());
+  const recordLayoutChange = useCallback((before, after, names, label) => {
+    const entry = positionChange(before, after, names, label);
+    if (entry) setLayoutHistory(previous => [...previous.slice(-19), entry]);
+  }, []);
   useEffect(() => {
     if (!storageWritable.current) setLayoutNotice('Local layout could not be read. Diagram changes remain in memory; load a saved shared view to restore its layout before saving.');
   }, []);
@@ -122,17 +130,21 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
   }, [graph, selectedName, viewId, layoutAttempt]);
   const onNodesChange = useCallback(changes => {
+    const before = { ...positions.current };
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }
     if (moved) onLayoutChange();
     if (moved && storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
+    if (moved && !dragBefore.current) recordLayoutChange(before, positions.current, changes.filter(change => change.type === 'position' && change.position && !change.dragging).map(change => change.id), 'move');
     setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'remove'), current));
-  }, [graph.workspaceId, viewId, onLayoutChange]);
+  }, [graph.workspaceId, viewId, onLayoutChange, recordLayoutChange]);
   const onNodeDragStop = useCallback((_event, node) => {
     positions.current[node.id] = { x: node.position.x, y: node.position.y };
     onLayoutChange();
     if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
-  }, [graph.workspaceId, viewId, onLayoutChange]);
+    if (dragBefore.current) recordLayoutChange(dragBefore.current.before, positions.current, dragBefore.current.names, 'move');
+    dragBefore.current = null; setDraggingLayout(false);
+  }, [graph.workspaceId, viewId, onLayoutChange, recordLayoutChange]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item && onSelect(item) !== false) setSelectedEdgeId(''); }, [onSelect]);
   useEffect(() => {
     setSelectedEdgeId(id => id && !graph.edges.some(edge => edge.id === id) ? '' : id);
@@ -168,6 +180,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     if (!changed) { setLayoutNotice(`Selected concepts are already aligned ${axis === 'x' ? 'left' : 'at the top'}.`); return; }
     try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next); }
     catch { setLayoutNotice('Could not store the alignment. No positions were changed.'); return; }
+    recordLayoutChange(positions.current, next, names, 'alignment');
     positions.current = next;
     setNodes(current => current.map(node => names.includes(node.id) ? { ...node, position: next[node.id] } : node));
     onManualInteraction(); onLayoutChange();
@@ -246,6 +259,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         for (const [name, point] of layout) next[name] = point;
         try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next); }
         catch { setLayoutState('ready'); setLayoutNotice('Could not store the arrangement. No positions were changed.'); return; }
+        recordLayoutChange(positions.current, next, [...layout.keys()], 'arrangement');
         positions.current = next;
         setNodes(current => current.map(node => layout.has(node.id) ? { ...node, position: layout.get(node.id) } : node));
         onLayoutChange();
@@ -257,7 +271,10 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     try { worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
     catch { arranging.current = false; setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); }
   }
-  function startNodeDrag() {
+  function startNodeDrag(_event, node, draggedNodes) {
+    const names = draggedNodes?.length ? draggedNodes.map(item => item.id) : [node.id];
+    dragBefore.current = { before: { ...positions.current }, names };
+    setDraggingLayout(true);
     if (arranging.current) {
       arranging.current = false;
       sequence.current += 1;
@@ -265,6 +282,23 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Layout cancelled because you moved a concept.');
     }
     onManualInteraction();
+  }
+  function undoLayout() {
+    const entry = layoutHistory.at(-1);
+    if (!entry || layoutState === 'pending' || draggingLayout || !storageWritable.current) return;
+    let next;
+    try {
+      const stored = readCanvasPositions(sessionStorage, graph.workspaceId, viewId, { strict: true });
+      if (!samePositionMaps(stored, positions.current)) throw new Error('Local layout changed outside this view');
+      next = undoPositionChange(stored, entry);
+      writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next);
+    } catch { setLayoutNotice('Could not undo: the local layout changed or could not be stored. No positions were changed.'); return; }
+    positions.current = next;
+    const affected = new Set(entry.changes.map(change => change.name));
+    setNodes(current => current.map(node => affected.has(node.id) ? { ...node, position: next[node.id] } : node));
+    setLayoutHistory(previous => previous.slice(0, -1));
+    onManualInteraction(); onLayoutChange();
+    setLayoutNotice(`Undid the last layout ${entry.label}. Ontology and pin settings are unchanged.`);
   }
   function replaceUnreadableLayout() {
     try {
@@ -299,6 +333,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {missingPinnedPositions && <p>Some previously pinned positions were unavailable. Check their positions before continuing.</p>}
       {pinRecoveryNeeded && <><p>Local pin settings could not be read. Replacing them removes the stored pins for this view.</p><button type="button" onClick={replaceUnreadablePins}>Replace unreadable pin settings</button></>}
       <button type="button" disabled={layoutState !== 'ready' || layoutRecoveryNeeded || pinRecoveryNeeded} onClick={arrangeVisible}>Arrange visible concepts</button>
+      <button type="button" disabled={!layoutHistory.length || layoutState === 'pending' || draggingLayout || layoutRecoveryNeeded} onClick={undoLayout}>Undo last layout change</button>
+      {layoutHistory.length > 0 && <p>Last {layoutHistory.at(-1).label}: {layoutHistory.at(-1).changes.slice(0, 5).map(change => change.name).join(', ')}{layoutHistory.at(-1).changes.length > 5 ? ` and ${layoutHistory.at(-1).changes.length - 5} more` : ''}. Undo restores positions even if pinned. It does not change the ontology or pin settings; history clears on reload.</p>}
       {layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout...'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}
       <details>
         <summary>Align selected concepts</summary>
