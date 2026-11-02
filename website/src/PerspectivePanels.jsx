@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function PerspectivePanels({ selected, snapshot, entityInfo, responsibility, temporal, temporalPolicy, setTemporalPolicy, inspectResponsibility, inspectTemporal, saveTemporalPolicy, selectConcept, addRelationship, addBinding, commandPending, binding, setBinding }) {
+export default function PerspectivePanels({ selected, snapshot, entityInfo, responsibility, temporal, temporalPolicy, setTemporalPolicy, inspectResponsibility, inspectTemporal, saveTemporalPolicy, selectConcept, addRelationship, addBinding, commandPending, binding, setBinding, temporalDirty, discardTemporal }) {
   const [category, setCategory] = useState('all');
   const currentResponsibility = responsibility && responsibility.root === selected?.name && responsibility.revision === snapshot.revision ? responsibility : null;
   const currentTemporal = temporal && temporal.root === selected?.name && temporal.revision === snapshot.revision ? temporal : null;
@@ -21,6 +21,7 @@ export default function PerspectivePanels({ selected, snapshot, entityInfo, resp
     </section>
     <section className="studio-activity"><h2>Temporal perspective</h2>
       <button type="button" onClick={inspectTemporal} disabled={!selected}>Inspect time for selected concept</button>
+      {temporalDirty && <p>Temporal policy has an unapplied edit. <button type="button" disabled={commandPending} onClick={discardTemporal}>Discard temporal policy edit</button></p>}
       {currentTemporal && <>
         <p>Model revision {currentTemporal.revision}; {currentTemporal.policySource.scope === 'draft' ? 'draft policy from baseline' : 'policy from baseline'} <code>{currentTemporal.baselineCommit}</code>.</p>
         <p>Model revision identifies this schema draft. Business valid time describes when a fact applies; recorded time describes when it became known. The listed fields are explicit contracts, not inferred classifications.</p>

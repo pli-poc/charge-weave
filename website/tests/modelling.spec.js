@@ -1350,6 +1350,17 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await page.getByLabel('Set explicit temporal policy').selectOption('immutable-aggregate');
+    expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await expect(page.getByRole('alert')).toContainText('Apply or discard the temporal policy edit');
+    await expect(page.getByLabel('Set explicit temporal policy')).toHaveValue('immutable-aggregate');
+    await page.getByRole('button', { name: 'Discard temporal policy edit' }).click();
+    await page.getByLabel('Set explicit temporal policy').selectOption('immutable-aggregate');
     await page.getByRole('button', { name: 'Save temporal policy' }).click();
     await expect(page.getByRole('status')).toContainText('revision 4');
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();

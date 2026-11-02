@@ -146,6 +146,7 @@ export default function ModellingStudio() {
   const [entityRevision, setEntityRevision] = useState(null);
   const [temporal, setTemporal] = useState(null);
   const [temporalPolicy, setTemporalPolicy] = useState('snapshot-versioned');
+  const [temporalBaseline, setTemporalBaseline] = useState(null);
   const [responsibility, setResponsibility] = useState(null);
   const [impact, setImpact] = useState(null);
   const [requirementQuery, setRequirementQuery] = useState('');
@@ -481,6 +482,7 @@ export default function ModellingStudio() {
     } catch (problem) { setError(problem.message); }
   }
   useEffect(() => { setTemporal(null); }, [connection, snapshot?.revision, selected?.name]);
+  useEffect(() => { setTemporalBaseline(null); }, [connection, selected?.name]);
   useEffect(() => { incomingRequest.current += 1; setIncoming(null); }, [connection, snapshot?.revision, selected?.name]);
   useEffect(() => { setResponsibility(null); }, [connection, snapshot?.revision, selected?.name]);
   useEffect(() => { setImpact(null); }, [connection, snapshot?.revision]);
@@ -531,7 +533,8 @@ export default function ModellingStudio() {
       || (editedField && (editedField.range !== editedField.expectedRange || editedField.cardinality !== editedField.expectedCardinality))
       || field.name.trim() || field.range !== 'string' || field.cardinality !== '?' || relationshipDraft
       || intervalRule.startProperty || intervalRule.endProperty || intervalRule.ruleId.trim()
-      || binding.property || binding.label.trim() || binding.category !== 'ownership');
+      || binding.property || binding.label.trim() || binding.category !== 'ownership'
+      || (temporalBaseline && temporalBaseline.root === selected?.name && temporalPolicy !== (temporalBaseline.policy ?? 'snapshot-versioned')));
   }
   function hasUnsavedWorkspaceEdits() {
     return Boolean(hasUnsavedInspectorEdits() || newClass.name.trim() || newClass.definition.trim());
@@ -545,7 +548,7 @@ export default function ModellingStudio() {
     }
     window.addEventListener('beforeunload', warnBeforeLeaving);
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
-  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, intervalRule, binding, newClass.name, newClass.definition]);
+  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, intervalRule, binding, temporalBaseline, temporalPolicy, newClass.name, newClass.definition]);
   const activeViewKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
   if (viewContextKey.current !== activeViewKey) { viewContextKey.current = activeViewKey; viewContext.current += 1; }
   function focusViewRoot(name) {
@@ -578,7 +581,7 @@ export default function ModellingStudio() {
   }
   function discardDefinitionAndSelect() {
     if (!pendingSelection) return;
-    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' }); setBinding({ property: '', label: '', category: 'ownership' });
+    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' }); setBinding({ property: '', label: '', category: 'ownership' }); setTemporalBaseline(null);
     if (['workspace-switch', 'disconnect'].includes(pendingSelection.kind)) setNewClass({ name: '', module: 'foundation', parent: 'Record', definition: '' });
     if (pendingSelection.kind === 'disconnect') {
       setPendingSelection(null);
@@ -775,17 +778,19 @@ export default function ModellingStudio() {
 
   async function inspectTemporal() {
     setError('');
+    if (temporalBaseline && temporalBaseline.root === selected?.name && temporalPolicy !== (temporalBaseline.policy ?? 'snapshot-versioned')) { setError('Apply or discard the temporal policy edit before refreshing the perspective.'); return; }
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_temporal_view_get', arguments: { workspaceId: connection.workspaceId, root: selected.name, expectedRevision: snapshot.revision } });
       if (response.structuredContent.revision === currentRevision.current && response.structuredContent.root === selected.name) {
         setTemporal(response.structuredContent);
+        setTemporalBaseline({ root: selected.name, policy: response.structuredContent.policy });
         setTemporalPolicy(response.structuredContent.policy ?? 'snapshot-versioned');
       }
     } catch (problem) { setError(problem.message); }
   }
   async function saveTemporalPolicy(event) {
     event.preventDefault();
-    await applyCommand({ type: 'temporal.policy_set', className: selected.name, expectedPolicy: temporal.policy, policy: temporalPolicy });
+    if (await applyCommand({ type: 'temporal.policy_set', className: selected.name, expectedPolicy: temporal.policy, policy: temporalPolicy })) setTemporalBaseline({ root: selected.name, policy: temporalPolicy });
   }
 
   async function runSearch(searchQuery, sequence, signal) {
@@ -1141,7 +1146,7 @@ export default function ModellingStudio() {
     <ValidationIssues job={job} snapshot={snapshot} onRetry={runChecks} onFocusConcept={selectPerspectiveConcept} />
     {job && ['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status) && <button type="button" onClick={downloadEvidence}>Download evidence report</button>}
     <section className="studio-activity"><h2>Change set</h2>{snapshot.changeSet ? <><p>{snapshot.changeSet.intent} · {snapshot.changeSet.status} · <code>{snapshot.changeSet.id}</code></p><p>Requirement references: {snapshot.changeSet.requirements.join(', ') || 'none'}.</p>{['accepted', 'rejected'].includes(snapshot.changeSet.status) && <><p>Editing is locked until a reviewer reopens this change set. Reopening invalidates its acceptance.</p><button type="button" onClick={reopenChangeSet}>Reopen change set</button></>}{snapshot.changeSet.status === 'published' && <p>This change set was pushed. Start a new workspace from the reviewed target before another proposal.</p>}</> : <><p>Opening a change set records intent for the whole current draft, including any edits already made.</p><form onSubmit={openChangeSet}><label>Change-set intent <input value={changeSetIntent} onChange={event => setChangeSetIntent(event.target.value)} maxLength={1000} required /></label><label>Requirement IDs (comma separated, optional) <input value={changeSetRequirements} onChange={event => setChangeSetRequirements(event.target.value)} /></label><button>Open change set</button></form></>}</section>
-    <PerspectivePanels binding={binding} setBinding={setBinding} commandPending={commandPending} selected={selected} snapshot={snapshot} entityInfo={entityInfo} responsibility={responsibility} temporal={temporal} temporalPolicy={temporalPolicy} setTemporalPolicy={setTemporalPolicy} inspectResponsibility={inspectResponsibility} inspectTemporal={inspectTemporal} saveTemporalPolicy={saveTemporalPolicy} selectConcept={selectPerspectiveConcept} addRelationship={openRelationshipAuthoring} addBinding={applyCommand} />
+    <PerspectivePanels temporalDirty={Boolean(temporalBaseline && temporalBaseline.root === selected?.name && temporalPolicy !== (temporalBaseline.policy ?? 'snapshot-versioned'))} discardTemporal={() => { setTemporalPolicy(temporalBaseline?.policy ?? 'snapshot-versioned'); setError(''); }} binding={binding} setBinding={setBinding} commandPending={commandPending} selected={selected} snapshot={snapshot} entityInfo={entityInfo} responsibility={responsibility} temporal={temporal} temporalPolicy={temporalPolicy} setTemporalPolicy={setTemporalPolicy} inspectResponsibility={inspectResponsibility} inspectTemporal={inspectTemporal} saveTemporalPolicy={saveTemporalPolicy} selectConcept={selectPerspectiveConcept} addRelationship={openRelationshipAuthoring} addBinding={applyCommand} />
     <section className="studio-activity"><h2>Requirement links</h2>{snapshot.digestVersion === 4 ? <><p>Linking a concept records a relationship in the requirement register; it does not prove coverage or acceptance.</p><form onSubmit={searchRequirements}><label>Search requirements <input value={requirementQuery} onChange={event => setRequirementQuery(event.target.value)} /></label><button>Search requirements</button></form><ul>{requirements.map(item => <li key={item.id}><strong>{item.id}</strong>: {item.statement} <button type="button" disabled={!selected || item.classes.includes(selected.name)} onClick={() => linkRequirement(item)}>Link selected concept</button>{selected && item.classes.includes(selected.name) && ['model/audit-rules.json', 'model/authoring-example-overrides.json', 'tests/business-acceptance.json', 'tests/negative-cases.json'].every(path => snapshot.editableSources?.includes(path)) && <details><summary>Add interval rule for {item.id}</summary><p>Only a new class with two new, declared date-time fields is supported. The generated cases are draft examples and require independent review.</p><form onSubmit={event => addIntervalRule(event, item)}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Interval rule change</legend><label>Interval start <select value={intervalRule.startProperty} onChange={event => setIntervalRule({ ...intervalRule, startProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>Interval end <select value={intervalRule.endProperty} onChange={event => setIntervalRule({ ...intervalRule, endProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>New rule ID <input value={intervalRule.ruleId} onChange={event => setIntervalRule({ ...intervalRule, ruleId: event.target.value })} pattern="B[0-9]{3,6}" required /></label><button>Add interval constraint</button></fieldset></form></details>}</li>)}</ul></> : <p>Create a version-four workspace to edit requirement links.</p>}</section>
     <section className="studio-activity"><h2>Change impact</h2><button type="button" onClick={inspectImpact}>Inspect explicit impact references</button>{impact && impact.revision === snapshot.revision && <><p>{impact.note}</p><p>Changed classes: {impact.changedClasses.join(', ') || 'none'}; changed properties: {impact.changedProperties.join(', ') || 'none'}.</p>{impact.references.length ? <ul>{impact.references.map(item => <li key={`${item.kind}-${item.id}`}>{item.kind} {item.id}: {item.title} · {item.source} · references {item.terms.join(', ')}</li>)}</ul> : <p>No indexed baseline references matched.</p>}{impact.omitted > 0 && <p>{impact.omitted} additional references omitted.</p>}</>}</section>
     {job?.artifactSummary && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) && <section className="studio-activity"><h2>Generated artifact comparison</h2><p>Revision {job.revision} · {job.artifactSummary.changedCount} files differ in exact bytes{job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest ? ' · stale' : ''}.</p><p>{job.artifactSummary.note}</p><p>Baseline manifest: <code>{job.artifactSummary.baselineManifestSha256}</code>; candidate manifest: <code>{job.artifactSummary.candidateManifestSha256}</code>.</p>{job.artifactSummary.changes.length > 0 && <ul>{job.artifactSummary.changes.map(item => <li key={item.path}>{item.kind}: {item.path}</li>)}</ul>}{job.artifactSummary.omitted > 0 && <p>{job.artifactSummary.omitted} additional changes omitted.</p>}</section>}
