@@ -67,7 +67,7 @@ function ReviewWorkflow({ snapshot, canReview, publisherAvailable, diff, readine
     <h2 id="studio-review-workflow-heading" tabIndex={-1}>Review workflow</h2>
     <p>Draft revision {snapshot.revision}</p><details><summary>Draft identity</summary><p>Source digest <code>{snapshot.sourceDigest}</code></p></details>
     <p>Each step is separate. Checks and review decisions do not publish the draft.</p>
-    <p>Review gates reflect the last inspection. Inspect them again after checks or changes by other clients.</p>
+    <p>Review gates reflect the last inspection. Check updates clear the inspection; inspect again to see current evidence.</p>
     <ol>
       <li><strong>Inspect</strong><span>Review the draft changes and source patch.</span><small>{comparison}</small><button type="button" onClick={onInspect}>Open draft changes</button></li>
       <li><strong>Validate</strong><span>Inspect checks and their revision.</span><small>{gates}</small><button type="button" onClick={onChecks}>Open validation checks</button></li>
@@ -608,6 +608,8 @@ export default function ModellingStudio() {
                   const data = event.split('\n').find(line => line.startsWith('data: '));
                   const disposition = classifyEvent(data ? JSON.parse(data.slice(6)) : null, cursor.current);
                   if (disposition !== 'duplicate') { setOnline(false); await refresh(); setOnline(true); }
+                } else if (event.includes('event: validation-evidence')) {
+                  invalidateReadiness();
                 }
               }
             }

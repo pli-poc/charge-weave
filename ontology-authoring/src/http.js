@@ -115,6 +115,7 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       let sequence = Number(cursor);
       try { store.get(requestedWorkspace); } catch { res.writeHead(404).end('Workspace not found'); return; }
       if (!store.hasCursor(requestedWorkspace, sequence)) { res.writeHead(409).end('Event cursor unavailable; reload workspace snapshot'); return; }
+      let evidenceVersion = store.reviewEvidenceVersion(requestedWorkspace);
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
       res.flushHeaders();
       const send = () => {
@@ -124,6 +125,11 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
           for (const event of events) {
             sequence = event.sequence;
             if (!res.write(`id: ${sequence}\nevent: workspace-change\ndata: ${JSON.stringify(event)}\n\n`)) { res.end(); return; }
+          }
+          const nextEvidenceVersion = store.reviewEvidenceVersion(requestedWorkspace);
+          if (nextEvidenceVersion !== evidenceVersion) {
+            evidenceVersion = nextEvidenceVersion;
+            if (!res.write('event: validation-evidence\ndata: {}\n\n')) { res.end(); return; }
           }
         } catch { res.end(); }
       };

@@ -104,6 +104,7 @@ export class WorkspaceStore {
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'digest_version')) this.db.exec('ALTER TABLE workspaces ADD COLUMN digest_version INTEGER NOT NULL DEFAULT 1');
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
+    this.db.exec('CREATE INDEX IF NOT EXISTS jobs_review_evidence ON jobs(workspace, revision, digest, profile)');
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'before_overlays')) this.db.exec('ALTER TABLE command_groups ADD COLUMN before_overlays TEXT');
     if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'after_schema')) this.db.exec('ALTER TABLE command_groups ADD COLUMN after_schema TEXT');
@@ -193,6 +194,12 @@ export class WorkspaceStore {
   }
   startJobStep(jobId, ordinal, name) { this.db.prepare('INSERT INTO job_steps VALUES (?, ?, ?, ?, ?, NULL, ?)').run(jobId, ordinal, name, 'running', new Date().toISOString(), ''); }
   finishJobStep(jobId, ordinal, status, output = '') { this.db.prepare('UPDATE job_steps SET status = ?, finished_at = ?, output = ? WHERE job = ? AND ordinal = ?').run(status, new Date().toISOString(), output.slice(-16000), jobId, ordinal); }
+  reviewEvidenceVersion(workspaceId) {
+    const workspace = this.db.prepare('SELECT revision, digest FROM workspaces WHERE id = ?').get(workspaceId);
+    if (!workspace) throw new Error('Workspace not found');
+    const latest = this.db.prepare('SELECT id, status FROM jobs WHERE workspace = ? AND revision = ? AND digest = ? AND profile = ? ORDER BY rowid DESC LIMIT 1');
+    return JSON.stringify([workspace.revision, workspace.digest, ...['structural', 'reference', 'audit', 'acceptance'].map(profile => latest.get(workspaceId, workspace.revision, workspace.digest, profile) ?? null)]);
+  }
   reviewReadiness(workspaceId) {
     const workspace = this.get(workspaceId);
     const jobs = this.db.prepare('SELECT id, profile, revision, digest, status FROM jobs WHERE workspace = ? AND digest = ? AND revision = ? ORDER BY rowid DESC').all(workspaceId, workspace.sourceDigest, workspace.revision);

@@ -1483,6 +1483,31 @@ test('review gate evidence is cleared when checks start and finish', async ({ pa
   } finally { release(); releaseReadiness(); await page.unroute('**/mcp', delayReadiness); await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('checks from another client invalidate review evidence without changing the draft', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Shared evidence', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', eventPollMs: 50, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+    const workflow = page.getByRole('region', { name: 'Review workflow' });
+    const inspect = page.getByRole('button', { name: 'Inspect review gates' });
+    await inspect.click();
+    await expect(workflow).toContainText('Last inspection: review gates incomplete:');
+    const { job } = store.createJob(workspace.id, workspace.revision, workspace.sourceDigest, 'other-client', 'external-check', 'structural');
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    await inspect.click();
+    await expect(workflow).toContainText('Last inspection: review gates incomplete:');
+    store.updateJob(job.id, 'passed');
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('an older decision lookup cannot hide a newly recorded review', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Decision race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
@@ -1723,6 +1748,7 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByLabel('Follow new changes and suggestions').check();
     await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('first-suggestion', 'Device');
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Device');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
@@ -1737,6 +1763,7 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByRole('button', { name: 'Resume following' }).click();
     await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('resumed-suggestion', 'Record');
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Record');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
@@ -1749,6 +1776,7 @@ test('following suggestions pauses for manual work and resumes for new events', 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Follow new changes and suggestions').check();
     store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'add-planned-window', expectedRevision: 0, commands: [{ type: 'class.add', name: 'PlannedWindow', module: 'foundation', parent: 'Record', definition: 'A planned window.' }] });
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: PlannedWindow');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
