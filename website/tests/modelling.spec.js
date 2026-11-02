@@ -393,6 +393,10 @@ test('concept creation offers existing modules and validates its definition', as
     expect(store.search(workspace.id, 'ServiceWindow').results[0]).toMatchObject({ module: 'assets', parent: 'ZDevice' });
     await expect(page.getByRole('heading', { name: 'ServiceWindow', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Relationships for ServiceWindow' })).toBeVisible();
+    await expect(page.locator('#studio-field-type-suggestions option[value="Asset059"]')).toHaveCount(0);
+    await page.getByText('Add a field or relationship', { exact: true }).click();
+    await page.getByLabel('Datatype or target class', { exact: true }).fill('Asset059');
+    await expect(page.locator('#studio-field-type-suggestions option[value="Asset059"]')).toHaveAttribute('label', 'Concept');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -971,7 +975,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await expect(page.getByLabel('New datatype or target class')).toBeFocused();
     await expect(page.locator('#studio-field-type-suggestions option[value="dateTime"]')).toHaveAttribute('label', 'Datatype');
-    await expect(page.locator('#studio-field-type-suggestions option[value="Record"]')).toHaveAttribute('label', 'Loaded concept');
+    await expect(page.locator('#studio-field-type-suggestions option[value="Record"]')).toHaveAttribute('label', 'Concept');
     await page.getByRole('button', { name: 'Cancel field edit' }).click();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeFocused();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
