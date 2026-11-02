@@ -1,4 +1,5 @@
 .modelling-studio { padding-block: 2rem 4rem; }
+.modelling-studio.container { width: min(1800px, calc(100% - 64px)); }
 .studio-workspace { border: 0; margin: 0; padding: 0; min-width: 0; }
 .studio-connect { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; }
 .studio-connect label, .studio-panels label { display: grid; gap: .3rem; }
@@ -27,4 +28,4 @@
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
 .studio-activity { margin-top: 1rem; padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; }
-@media (max-width: 900px) { .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .modelling-studio.container { width: calc(100% - 40px); } .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }
