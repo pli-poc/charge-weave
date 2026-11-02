@@ -130,6 +130,12 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const named = { ...viewArgs, viewId: 'review', operationId: 'review-view', definition: { ...viewArgs.definition, mappingVersion: 'chargeweave-authoring-v1', viewpoint: 'information', groups: [{ name: 'Core', members: ['NetworkExample'] }], annotations: [{ target: 'NetworkExample', text: 'Review this concept.' }] } };
     assert.equal((await first.callTool({ name: 'ontology_view_save', arguments: named })).structuredContent.viewRevision, 1);
     assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_get', arguments: { workspaceId: workspace.id, viewId: 'review' } })).structuredContent.definition, named.definition);
+    const manifest = (await second.callTool({ name: 'ontology_view_manifest_get', arguments: { workspaceId: workspace.id, viewId: 'review' } })).structuredContent;
+    assert.equal(manifest.contractVersion, 'chargeweave-view-v1'); assert.equal(manifest.workspaceId, workspace.id);
+    assert.equal(manifest.viewRevision, 1); assert.equal(manifest.observedSourceDigest, store.get(workspace.id).sourceDigest);
+    assert.deepEqual(manifest.definition, named.definition);
+    assert.equal((await second.callTool({ name: 'ontology_view_manifest_get', arguments: { workspaceId: other.id, viewId: 'review' } })).structuredContent.error.code, 'SCOPE_DENIED');
+    assert.equal((await second.callTool({ name: 'ontology_view_manifest_get', arguments: { workspaceId: workspace.id, viewId: 'missing' } })).structuredContent.error.code, 'VIEW_NOT_FOUND');
     assert.deepEqual((await second.callTool({ name: 'ontology_view_saved_list', arguments: { workspaceId: workspace.id } })).structuredContent.views.map(item => item.viewId), ['default', 'review']);
     assert.equal(store.get(workspace.id).revision, 1);
     const controller = new AbortController();

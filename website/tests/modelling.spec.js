@@ -350,6 +350,11 @@ test('interactive graph preserves view positions and supports keyboard selection
     await page.getByRole('button', { name: 'Add view note' }).click();
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await expect(page.getByText('Shared view saved.')).toBeVisible();
+    const exportPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export saved view' }).click();
+    const exported = JSON.parse(readFileSync(await (await exportPromise).path(), 'utf8'));
+    expect(exported.contractVersion).toBe('chargeweave-view-v1'); expect(exported.viewId).toBe('maintenance');
+    expect(exported.definition.root).toBe('Device'); expect(exported.definition.annotations[0].text).toBe('Review the device.');
     expect(store.savedView(workspace.id, 'maintenance').definition.root).toBe('Device');
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A remotely updated device.' }] });
     await expect(page.getByRole('status')).toContainText('revision 1');
