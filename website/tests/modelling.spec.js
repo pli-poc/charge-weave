@@ -1254,6 +1254,27 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('recent activity describes a suggestion and opens the current concept', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Recent activity', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    store.suggestView(workspace.id, { actor: 'codex', operationId: 'activity-suggestion', expectedRevision: 0, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device neighbourhood.' });
+    await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
+    const activity = page.getByRole('region', { name: 'Recent activity' });
+    await expect(activity.getByText('Suggested Device · information view')).toBeVisible();
+    await expect(activity.getByText('Inspect the device neighbourhood.')).toBeVisible();
+    await activity.getByRole('button', { name: 'Inspect current Device' }).click();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('following suggestions pauses for manual work and resumes for new events', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Following', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
@@ -1277,6 +1298,7 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await expect(page.getByText('paused-suggestion', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Resume following' }).click();
+    await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('resumed-suggestion', 'Record');
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     await page.getByLabel('Follow new changes and suggestions').uncheck();

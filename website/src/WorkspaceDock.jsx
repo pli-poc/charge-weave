@@ -1,7 +1,23 @@
 import React, { useRef } from 'react';
 import ValidationIssues from './ValidationIssues.jsx';
 
-export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, onRetry, onFocusConcept, onDownloadEvidence, onShowChecks }) {
+function describeActivity(event) {
+  const payload = event.payload;
+  if (payload.type === 'view_suggestion') return `Suggested ${payload.root} · ${payload.viewpoint} view`;
+  if (payload.type === 'view_saved') return `Saved view ${payload.viewId}`;
+  if (payload.type === 'undo') return `Undid revision ${payload.targetRevision}`;
+  if (payload.type === 'review') return `Review: ${payload.decision.replaceAll('_', ' ')}`;
+  if (payload.type === 'publication') return `Publication: ${payload.state.replaceAll('_', ' ')}`;
+  if (payload.type === 'changeset_opened') return 'Opened a change set';
+  if (payload.type === 'changeset_reopened') return 'Reopened a change set';
+  if (payload.commands?.length) {
+    const labels = { 'class.add': 'Added a concept', 'class.describe': 'Updated a definition', 'property.add': 'Added a property', 'property.update': 'Updated a property', 'relationship.add': 'Added a relationship' };
+    return payload.commands.map(command => labels[command.type] || 'Updated the model').join('; ');
+  }
+  return 'Workspace activity';
+}
+
+export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, onRetry, onFocusConcept, onDownloadEvidence, onShowChecks, activityConcept }) {
   const terminal = job && ['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status);
   const validationJob = job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) ? job : null;
   const failedSteps = (validationJob?.steps || []).filter(step => step.status === 'failed');
@@ -47,11 +63,11 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         <ValidationIssues job={job} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} />
         {terminal && <button type="button" onClick={onDownloadEvidence}>Download evidence report</button>}
       </div>
-      <section hidden={panel !== 'activity'} aria-label="Recent activity">
+      {panel === 'activity' && <section aria-label="Recent activity">
         <h2>Recent activity</h2>
-        {history.length ? <ol>{history.slice(-10).reverse().map(event => <li key={event.sequence}>Revision {event.revision} · {event.actor} · {event.payload.type}</li>)}</ol> : <p>No activity is available for this workspace.</p>}
+        {history.length ? <ol>{history.slice(-10).reverse().map(event => { const concept = activityConcept(event); return <li key={event.sequence}><strong>{describeActivity(event)}</strong> · {event.actor} · revision {event.revision}{event.payload.type === 'view_suggestion' && event.payload.explanation && <p>{event.payload.explanation}</p>}{concept && <button type="button" onClick={() => onFocusConcept(concept)}>Inspect current {concept}</button>}</li>; })}</ol> : <p>No activity is available for this workspace.</p>}
         <a href="#studio-activity-heading">Open full activity history</a>
-      </section>
+      </section>}
       <section hidden={panel !== 'output'} aria-label="Job output">
         <h2>Job output</h2>
         {job ? <><p>{job.profile}: {job.status} at revision {job.revision}.</p><pre>{job.output || 'No output has been recorded yet.'}</pre></> : <p>No job output is available.</p>}
