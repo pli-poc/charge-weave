@@ -166,8 +166,8 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       void task.then(() => activeJobs.delete(job.id), () => activeJobs.delete(job.id));
     };
     const createWorkspace = role === 'reviewer' && allowWorkspaceCreate && repository ? args => {
-      const prior = store.db.prepare('SELECT workspace FROM workspace_creation_receipts WHERE actor = ? AND operation = ?').get('local-reviewer', args.operationId);
-      if (grantedWorkspaces.size >= 20 && !grantedWorkspaces.has(prior?.workspace)) throw new Error('Workspace grant limit reached');
+      const priorWorkspaceId = store.createdWorkspaceId('local-reviewer', args.operationId);
+      if (grantedWorkspaces.size >= 20 && !grantedWorkspaces.has(priorWorkspaceId)) throw new Error('Workspace grant limit reached');
       const created = createWorkspaceFromRepository(store, repository, { ...args, actor: 'local-reviewer' });
       grantedWorkspaces.add(created.id);
       return created;

@@ -365,6 +365,9 @@ export class WorkspaceStore {
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
   updateJob(id, status, output = '') { this.db.prepare('UPDATE jobs SET status = ?, output = ? WHERE id = ?').run(status, output.slice(-16000), id); }
+  createdWorkspaceId(actor, operationId) {
+    return this.db.prepare('SELECT workspace FROM workspace_creation_receipts WHERE actor = ? AND operation = ?').get(actor, operationId)?.workspace ?? null;
+  }
   create({ title, baselineCommit, schema, sourceManifest, sourceBlobs }, provision = null) {
     if (typeof title !== 'string' || !title.trim() || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof schema !== 'string' || Buffer.byteLength(schema) > 2_000_000) throw new Error('Invalid workspace baseline');
     parse(schema);
