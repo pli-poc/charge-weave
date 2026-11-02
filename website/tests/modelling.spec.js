@@ -82,6 +82,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     service.listen(0, '127.0.0.1'); await once(service, 'listening');
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByText('Create a workspace', { exact: true }).click();
     await page.getByLabel('New workspace title').fill('New proposal'); await page.getByLabel('Baseline commit SHA').fill(commit);
     await page.getByRole('button', { name: 'Create workspace' }).click();
     await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);

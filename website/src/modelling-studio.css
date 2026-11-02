@@ -88,6 +88,12 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-app-bar h1 { margin: 0; font-size: 1rem; letter-spacing: 0; }
 .studio-home-link { color: #a4e6d0; font-weight: 700; text-decoration: none; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
+.modelling-studio > .studio-workspaces { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; padding: .65rem 1rem; }
+.studio-workspaces h2 { margin: 0; }
+.studio-workspaces > label { display: flex; align-items: center; gap: .5rem; }
+.studio-workspaces > label select { width: auto; max-width: 22rem; }
+.studio-workspaces > details { margin: 0; flex: 1 1 auto; }
+.modelling-studio > .studio-connection-settings { margin-top: 1.5rem; }
 @media (max-width: 900px) { .modelling-studio.container { width: 100%; } }
 
 /* Keep the explorer, canvas and inspector independently navigable on desktop. */
