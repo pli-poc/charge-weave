@@ -117,6 +117,8 @@ After building the website and installing its Playwright Chromium browser, `npm 
 
 Add `-- --graph` to measure synthetic relationship additions until each edge label is visible in a second browser client's graph. On the same machine and browser, a 30-sample warm run against commit `bc85968f83a30a24929167cc925ff4e75f87579c` measured 238.5 ms p95, ending with 7 nodes and 40 edges. It excludes inference and does not represent a 150-node layout or other hardware.
 
+After building the website, `npm run benchmark:layout --prefix ../website` measures the built ELK worker and its browser message round trip on a synthetic directed graph of 150 nodes and 199 edges. On 2026-11-02, the same Windows machine, Node 22.18.0 and headless Chromium 153.0.8010.12 measured 136.3 ms p95 over 12 samples after three warmups. With this small sample the p95 is the slowest observation. This measures one synthetic graph shape, not UI rendering, responsiveness or all real model layouts.
+
 The scripted rehearsal also reads the information, temporal and responsibility perspectives through MCP and checks that they all refer to the same revision and source digest. It verifies the explicit maintenance interval and accountable-party mapping; this does not claim the partial responsibility mapping is exhaustive.
 
 `npm run demo:repair-check` runs a separate, slower synthetic failure-and-repair check in memory. It makes the station relationship optional, checks that the missing-station fixture fails for that reason, restores the required cardinality and checks the fixtures again. It runs real generators twice and does not modify the repository checkout.
