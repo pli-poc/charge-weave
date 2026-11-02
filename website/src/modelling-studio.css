@@ -109,6 +109,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
 .studio-view-history { display: flex; gap: .4rem; margin: .5rem 0; }
+.studio-diagram-legend { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .8rem; margin: .5rem 0; font-size: .85rem; }
+.studio-diagram-legend dt { font-weight: 700; }
+.studio-diagram-legend dd { margin: 0; }
 .studio-view-controls > label { flex: 1 1 12rem; }
 .studio-graph .studio-incoming-toggle { display: flex; align-items: center; gap: .45rem; margin: .5rem 0; }
 .studio-graph .studio-incoming-toggle input { width: auto; }

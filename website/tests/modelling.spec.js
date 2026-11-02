@@ -501,6 +501,8 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Station', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
+    await page.getByText('Diagram legend').click();
+    await expect(page.locator('.studio-diagram-legend dd', { hasText: 'Optional, at most one' })).toBeVisible();
     await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Station', exact: true })).toHaveAttribute('aria-current', 'true');
     await page.getByRole('button', { name: 'Previous view' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Thing054' })).toBeVisible();
