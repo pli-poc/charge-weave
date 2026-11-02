@@ -14,6 +14,7 @@ const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { 
 const store = new WorkspaceStore(':memory:');
 const workspace = store.create({ title: 'Synthetic latency measurement', baselineCommit: commit, schema });
 const token = 'synthetic-measurement-token-'.repeat(2), pairingCode = 'synthetic-pairing-code-'.repeat(2);
+const graphMode = process.argv.includes('--graph');
 const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: resolve(repo, 'website/dist') });
 service.listen(0, '127.0.0.1'); await once(service, 'listening');
 const origin = `http://127.0.0.1:${service.address().port}`;
@@ -27,14 +28,22 @@ try {
   await page.getByRole('button', { name: 'Search', exact: true }).waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Search', exact: true }).waitFor({ state: 'attached' });
   await page.waitForFunction(() => { const workspace = document.querySelector('fieldset.studio-workspace'); return workspace && !workspace.disabled; });
+  if (graphMode) {
+    await page.getByLabel('Search model').fill('Record'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('region', { name: 'Relationships for Record' }).waitFor({ state: 'visible' });
+  }
   const times = [];
   for (let i = 0; i < 35; i++) {
     const expected = i + 1, start = performance.now();
-    const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: `latency-${i}`, expectedRevision: i, commands: [{ type: 'class.describe', name: 'Record', definition: `Synthetic latency measurement ${i}.` }] } });
+    const name = `latencyRelationship${i}`;
+    const command = graphMode ? { type: 'relationship.add', owner: 'Record', name, range: 'ChargingStation', cardinality: '?' } : { type: 'class.describe', name: 'Record', definition: `Synthetic latency measurement ${i}.` };
+    const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: `latency-${i}`, expectedRevision: i, commands: [command] } });
     if (result.isError) throw new Error('Measurement mutation failed');
     await page.waitForFunction(value => new RegExp(`revision ${value}(?:\\s|$)`).test(document.querySelector('[role=status]')?.textContent ?? ''), expected);
+    if (graphMode) await page.locator('.react-flow__edge-text').filter({ hasText: name }).waitFor({ state: 'visible' });
     if (i >= 5) times.push(performance.now() - start);
   }
   times.sort((a, b) => a - b);
-  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference' }));
+  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship edit start to visible graph edge in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}) }));
 } finally { await page.close(); await browser.close(); await client.close(); await service.shutdown(); store.close(); }
