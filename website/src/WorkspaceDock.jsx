@@ -57,7 +57,7 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
       {['problems', 'checks', 'activity', 'output'].map(name => <button key={name} type="button" data-panel={name} aria-pressed={panel === name} aria-label={name === 'problems' && failureCount ? `Problems, ${failureCount} failed ${failureCount === 1 ? 'check' : 'checks'}` : undefined} onClick={() => onPanelChange(panel === name ? null : name)}>{name[0].toUpperCase() + name.slice(1)}{name === 'problems' && failureCount > 0 && <span aria-hidden="true"> {failureCount}</span>}</button>)}
       {panel && <button type="button" onClick={closePanel} aria-label="Close results panel">Close</button>}
     </nav>
-    <div id="studio-bottom-content" className="studio-bottom-content" hidden={!panel}>
+    <div id="studio-bottom-content" className="studio-bottom-content" role="region" aria-label="Results content" tabIndex={panel ? 0 : -1} hidden={!panel}>
       <section hidden={panel !== 'problems'} aria-label="Problems">
         <h2>Problems</h2>
         {!validationJob ? <p>No validation result is displayed. Run a check to inspect failures.</p> : <>

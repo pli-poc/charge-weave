@@ -218,6 +218,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom: 2px solid var(--studio-focus); border-radius: 0; color: var(--studio-text); }
 .studio-bottom-dock > nav button[aria-label="Close results panel"] { margin-left: auto; }
 .studio-bottom-content { max-height: 35vh; overflow: auto; padding: .75rem; border-top: 1px solid var(--studio-border); overscroll-behavior: contain; }
+.studio-bottom-content:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
 .studio-bottom-content > div > .studio-validation-dock { margin: 0; padding: 0; border: 0; }
 .studio-bottom-content a { color: var(--studio-accent-text); }
 .modelling-studio.container { padding-bottom: 5rem; }

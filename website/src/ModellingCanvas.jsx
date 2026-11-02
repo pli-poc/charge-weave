@@ -7,6 +7,7 @@ import { readCanvasHidden, writeCanvasHidden } from './model/canvas-hidden.js';
 import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
 import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
 import { canvasGroupFrames } from './model/canvas-groups.js';
+import { distributePositions } from './model/canvas-distribute.js';
 import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
@@ -222,6 +223,20 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     onManualInteraction(); onLayoutChange();
     setLayoutNotice(`Aligned ${names.length} concepts locally. Save the shared view to share this layout.`);
   }
+  function distributeLayoutSelection(axis) {
+    if (layoutState !== 'ready' || layoutSelection.size < 3 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
+    const names = [...layoutSelection].filter(name => visibleNames.has(name) && positions.current[name]);
+    if (names.length < 3) return;
+    const next = distributePositions(positions.current, names, axis);
+    if (!names.some(name => next[name][axis] !== positions.current[name][axis])) { setLayoutNotice('Selected concepts are already evenly spaced.'); return; }
+    try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next); }
+    catch { setLayoutNotice('Could not store the distribution. No positions were changed.'); return; }
+    recordLayoutChange(positions.current, next, names, 'distribution');
+    positions.current = next;
+    setNodes(current => current.map(node => names.includes(node.id) ? { ...node, position: next[node.id] } : node));
+    onManualInteraction(); onLayoutChange();
+    setLayoutNotice(`Distributed ${names.length} concepts locally. Save the shared view to share this layout.`);
+  }
   function createSelectedGroup(event) {
     event.preventDefault();
     const name = newGroupName.trim(), members = [...layoutSelection].filter(item => visibleNames.has(item)).sort();
@@ -418,7 +433,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout...'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}
       <details>
         <summary>Align selected concepts</summary>
-        <p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment changes only this view and may overlap cards. Unpin selected concepts before alignment.</p>
+        <p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment and distribution change only this view and may overlap cards. Distribution spaces card positions evenly between the outermost selected cards. Unpin selected concepts before alignment. Distribution also requires unpinned concepts.</p>
         <fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{activeNodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}{layoutPins.has(node.name) ? ' (pinned)' : ''}</label>)}</fieldset>
         <p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>
         {layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning or pinning concepts.</p>}
@@ -426,6 +441,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         <div className="studio-canvas-edge-actions">
           <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('x')}>Align left</button>
           <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('y')}>Align top</button>
+          <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 3 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => distributeLayoutSelection('x')}>Distribute horizontally</button>
+          <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 3 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => distributeLayoutSelection('y')}>Distribute vertically</button>
           <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => layoutPins.has(name))} onClick={() => setSelectedPins(true)}>Pin selected</button>
           <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => !layoutPins.has(name))} onClick={() => setSelectedPins(false)}>Unpin selected</button>
           <button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button>
