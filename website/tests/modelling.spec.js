@@ -738,6 +738,8 @@ test('interactive graph preserves view positions and supports keyboard selection
     await expect(node.getByText('serial:string?')).toBeVisible();
     await expect(canvas.locator('.react-flow__edge-text').filter({ hasText: 'peer 0..1' })).toBeVisible();
     await expect(canvas.locator('.react-flow__edge-path').first()).toHaveAttribute('marker-end', /url/);
+    const relationshipPaths = await canvas.locator('.react-flow__edge-path').evaluateAll(paths => paths.map(path => path.getAttribute('d')));
+    expect(new Set(relationshipPaths).size).toBe(2);
     await node.scrollIntoViewIfNeeded();
     const initial = await node.getAttribute('style');
     const box = await node.boundingBox();

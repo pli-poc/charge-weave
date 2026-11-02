@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Background, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import { Background, BaseEdge, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import '@xyflow/react/dist/style.css';
 
 const keyFor = workspaceId => `chargeweave.canvas.v1.${workspaceId}`;
@@ -18,6 +19,13 @@ const ConceptNode = memo(function ConceptNode({ data }) {
   </>;
 });
 const nodeTypes = { concept: ConceptNode };
+const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, label, data }) {
+  const offset = data?.offset ?? 0;
+  const bend = Math.max(70, Math.abs(targetX - sourceX) * .45) * (targetX >= sourceX ? 1 : -1);
+  const path = `M ${sourceX},${sourceY} C ${sourceX + bend},${sourceY + offset} ${targetX - bend},${targetY + offset} ${targetX},${targetY}`;
+  return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={label} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 + offset * .75} labelShowBg />;
+});
+const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 function loadPositions(workspaceId) {
   try {
@@ -102,6 +110,7 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
     try { sessionStorage.setItem(keyFor(graph.workspaceId), JSON.stringify(positions.current)); } catch { /* layout remains available for this session */ }
   }, [graph.workspaceId]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
+  const offsets = parallelEdgeOffsets(graph.edges);
   return <div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
     onKeyDownCapture={event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -110,7 +119,7 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
       event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
     }}>
     {layoutNotice && <p role="status">{layoutNotice}</p>}
-    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
