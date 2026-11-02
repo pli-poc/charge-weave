@@ -12,7 +12,7 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
-test('inherited fields link to their declaring concept', async ({ page }) => {
+test('inherited fields link to their declaring concept', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Inherited fields', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -24,14 +24,16 @@ test('inherited fields link to their declaring concept', async ({ page }) => {
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Inspect parent Record' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    if (!isMobile) await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Inspect owner Record' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    if (!isMobile) await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
@@ -143,7 +145,7 @@ test('a shared-view load preserves changes made while it is pending', async ({ p
   } finally { release(); await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('navigator search refreshes when another client changes the draft', async ({ page }) => {
+test('navigator search refreshes when another client changes the draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Refresh search', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|Original device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -157,6 +159,7 @@ test('navigator search refreshes when another client changes the draft', async (
     await expect(workspaceStatus).toContainText('Connected');
     await expect(workspaceStatus).toContainText('Revision 0');
     await expect(workspaceStatus.getByRole('link', { name: 'Checks: no result displayed' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     const results = page.getByRole('region', { name: 'Workspace results' });
     const resultNav = results.getByRole('navigation', { name: 'Results panels' });
     await resultNav.getByRole('button', { name: 'Problems', exact: true }).click();
@@ -171,6 +174,7 @@ test('navigator search refreshes when another client changes the draft', async (
     const validation = page.getByRole('region', { name: 'Validation issues' });
     await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Find a concept' }).click();
     await expect(page.getByLabel('Search model')).toBeFocused();
     const destinations = page.getByRole('navigation', { name: 'Workspace destinations' });
@@ -179,11 +183,12 @@ test('navigator search refreshes when another client changes the draft', async (
     if (test.info().project.name === 'desktop') await expect(destinations).toBeInViewport();
     await destinations.getByRole('link', { name: 'Model' }).click();
     await expect(page.getByRole('heading', { name: 'Discover concepts' })).toBeFocused();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await validation.getByRole('button', { name: 'Collapse validation' }).click();
     await expect(validation.getByRole('button', { name: 'Run structural check', includeHidden: true })).toBeHidden();
     await workspaceStatus.getByRole('link', { name: 'Checks: no result displayed' }).click();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeVisible();
-    await page.getByRole('button', { name: 'Hide navigator' }).click();
+    if (!isMobile) await page.getByRole('button', { name: 'Hide navigator' }).click();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Search model')).toBeFocused();
     const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
@@ -318,7 +323,7 @@ test('viewpoint and filter changes are marked as unsaved presentation edits', as
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('open views can be restored and closed without discarding changed views', async ({ page }) => {
+test('open views can be restored and closed without discarding changed views', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'View tabs', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -334,6 +339,7 @@ test('open views can be restored and closed without discarding changed views', a
     const views = page.getByRole('navigation', { name: 'Open diagram views' });
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.reload();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toBeVisible();
     await views.getByRole('button', { name: 'inspection', exact: true }).click();
     await views.getByRole('button', { name: 'Close inspection view' }).click();
@@ -341,6 +347,7 @@ test('open views can be restored and closed without discarding changed views', a
     await expect(views.getByRole('button', { name: 'default', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(views.getByRole('button', { name: 'default', exact: true })).toBeFocused();
     await page.reload();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveCount(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
@@ -386,7 +393,7 @@ test('incoming diagram references can be expanded without changing the model', a
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('unapplied concept input requests a browser warning before leaving', async ({ page }) => {
+test('unapplied concept input requests a browser warning before leaving', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Leave warning', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -399,6 +406,7 @@ test('unapplied concept input requests a browser warning before leaving', async 
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
     expect(await warningRequested()).toBe(false);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Create a concept' }).click();
     await expect(page.getByLabel('Class name')).toBeFocused();
     await page.getByLabel('Class name').fill('UnfinishedConcept');
@@ -408,7 +416,7 @@ test('unapplied concept input requests a browser warning before leaving', async 
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('disconnecting warns about an unfinished concept', async ({ page }) => {
+test('disconnecting warns about an unfinished concept', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unfinished concept', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -418,6 +426,7 @@ test('disconnecting warns about an unfinished concept', async ({ page }) => {
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByText('Add a concept', { exact: true }).click();
     await page.getByLabel('Class name').fill('UnfinishedConcept');
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
@@ -431,7 +440,7 @@ test('disconnecting warns about an unfinished concept', async ({ page }) => {
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('unfinished field creation is retained or discarded explicitly on navigation', async ({ page }) => {
+test('unfinished field creation is retained or discarded explicitly on navigation', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unfinished field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -442,12 +451,16 @@ test('unfinished field creation is retained or discarded explicitly on navigatio
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByText('Add a field or relationship', { exact: true }).click();
     await page.getByLabel('Field name').fill('draftField');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByLabel('Field name')).toHaveValue('draftField');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Discard and open Device' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
@@ -455,7 +468,7 @@ test('unfinished field creation is retained or discarded explicitly on navigatio
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('inspector finds direct incoming references and navigates to their source', async ({ page }) => {
+test('inspector finds direct incoming references and navigates to their source', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Incoming references', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nStation|Device|A station.|device:Device!\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -470,17 +483,22 @@ test('inspector finds direct incoming references and navigates to their source',
     const diagram = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(diagram.locator('.react-flow__node[data-id="Station"]')).toBeVisible();
     await expect(page.locator('.studio-graph li').filter({ hasText: 'device from' })).toContainText('Station');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByText('Referenced by', { exact: true }).click();
     await page.getByRole('button', { name: 'Find references' }).click();
     await expect(page.getByText('Showing 2 of 2 references.')).toBeVisible();
     await expect(page.locator('#studio-inspector-pane').getByText(/Station.*device/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect Station' }).first().click();
+    if (isMobile) {
+      await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
+      await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    }
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('concept creation offers existing modules and validates its definition', async ({ page }) => {
+test('concept creation offers existing modules and validates its definition', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const extra = Array.from({ length: 60 }, (_, i) => `Asset${String(i).padStart(3, '0')}|Record|An asset.|`).join('\n');
   const workspace = store.create({ title: 'Create concept', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|A record.|\n${extra}\nMODULE|assets\nZDevice|Record|A device.|\n` });
@@ -492,6 +510,7 @@ test('concept creation offers existing modules and validates its definition', as
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByText('Showing 50 of 62 concepts.')).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Create a concept' }).click();
     await expect(page.getByLabel('Class name')).toBeFocused();
     await page.getByLabel('Class name').fill('ServiceWindow');
@@ -522,16 +541,19 @@ test('concept creation offers existing modules and validates its definition', as
       await expect(page.getByText('Saving model change…')).toBeVisible();
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
       await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Asset000', exact: true }).click();
       await expect(page.getByRole('alert')).toContainText('Wait for the model change to finish before selecting another concept.');
       expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
       releaseCommand();
       await expect(page.getByRole('status')).toContainText('revision 1');
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     } finally { releaseCommand(); await page.unroute('**/mcp', delayCommand); }
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.search(workspace.id, 'ServiceWindow').results[0]).toMatchObject({ module: 'assets', parent: 'ZDevice' });
-    await expect(page.getByRole('heading', { name: 'ServiceWindow', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Relationships for ServiceWindow' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await expect(page.getByRole('heading', { name: 'ServiceWindow', exact: true })).toBeVisible();
     await expect(page.locator('#studio-field-type-suggestions option[value="Asset059"]')).toHaveCount(0);
     await page.getByText('Add a field or relationship', { exact: true }).click();
     await page.getByLabel('Datatype or target class', { exact: true }).fill('Asset059');
@@ -566,7 +588,7 @@ test('a narrower desktop keeps a wide model editor and opens the inspector as an
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a remote field change blocks a stale inspector edit while preserving input', async ({ page }) => {
+test('a remote field change blocks a stale inspector edit while preserving input', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Field conflict', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -577,6 +599,7 @@ test('a remote field change blocks a stale inspector edit while preserving input
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     const recordNameRow = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
     await expect(recordNameRow).toContainText('Optional (0..1)');
     await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.copiedIdentifier = value; } } }));
@@ -601,7 +624,7 @@ test('a remote field change blocks a stale inspector edit while preserving input
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a partially edited field is retained until navigation is confirmed', async ({ page }) => {
+test('a partially edited field is retained until navigation is confirmed', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unsaved field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -612,12 +635,16 @@ test('a partially edited field is retained until navigation is confirmed', async
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await page.getByLabel('New cardinality').selectOption('!');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByLabel('New cardinality')).toHaveValue('!');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Discard and open Device' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
@@ -625,7 +652,7 @@ test('a partially edited field is retained until navigation is confirmed', async
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('switching concepts preserves an unapplied definition until the modeller decides', async ({ page }) => {
+test('switching concepts preserves an unapplied definition until the modeller decides', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unsaved navigation', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -636,16 +663,20 @@ test('switching concepts preserves an unapplied definition until the modeller de
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('An unsaved definition.');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Discard and disconnect' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Discard and open Device' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
@@ -827,7 +858,7 @@ test('advanced connection identifies an invalid workspace ID without treating th
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a remote definition edit preserves local input and requires conflict review', async ({ page }) => {
+test('a remote definition edit preserves local input and requires conflict review', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Definition conflict', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original definition.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -840,6 +871,7 @@ test('a remote definition edit preserves local input and requires conflict revie
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     const input = page.getByRole('textbox', { name: 'Definition', exact: true });
     await input.fill('My unsaved definition.');
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-definition', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A different remote definition.' }] });
@@ -886,7 +918,7 @@ test('an older search cannot replace newer navigator results', async ({ page }) 
   } finally { release(); await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('navigator browses beyond the first page without searching', async ({ page }) => {
+test('navigator browses beyond the first page without searching', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const classes = Array.from({ length: 55 }, (_, i) => `Thing${String(i).padStart(3, '0')}|Record|A concept.|`).join('\n');
   const workspace = store.create({ title: 'Browse', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|A record.|\n${classes}\nMODULE|operations\nStation|Record|A station.|\n` });
@@ -923,7 +955,9 @@ test('navigator browses beyond the first page without searching', async ({ page 
     } finally { releasePage(); await page.unroute('**/mcp', delayPage); }
     await expect(page.getByText('Showing 57 of 57 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Thing054', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Thing054', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Filter by module').selectOption('operations');
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-filtered-module', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Station', definition: 'Updated station.' }] });
@@ -932,31 +966,41 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Station', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Thing054' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
     await page.getByText('Diagram legend').click();
     await expect(page.locator('.studio-diagram-legend dd', { hasText: 'Optional, at most one' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Station', exact: true })).toHaveAttribute('aria-current', 'true');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Previous view' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Thing054' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
+    if (!isMobile) await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Next view' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
     await page.getByRole('button', { name: 'Previous view' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Thing054' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Station', exact: true }).focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     const result = page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true });
     await result.click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await expect(result).toHaveAttribute('aria-current', 'true');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await result.focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Thing');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText('25 matching concepts shown.')).toBeVisible();
@@ -964,7 +1008,7 @@ test('navigator browses beyond the first page without searching', async ({ page 
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('two studio tabs share edits while keeping independent selections', async ({ page, context }) => {
+test('two studio tabs share edits while keeping independent selections', async ({ page, context, isMobile }) => {
   test.setTimeout(60000);
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Two tabs', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
@@ -980,6 +1024,7 @@ test('two studio tabs share edits while keeping independent selections', async (
     for (const [tab, name] of [[page, 'Record'], [second, 'Device']]) {
       await tab.getByLabel('Search model').fill(name); await tab.getByRole('button', { name: 'Search', exact: true }).click();
       await tab.getByRole('button', { name, exact: true }).click();
+      if (isMobile) await tab.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
       await expect(tab.getByRole('heading', { name, exact: true })).toBeVisible();
     }
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A record edited in the first tab.');
@@ -991,7 +1036,7 @@ test('two studio tabs share edits while keeping independent selections', async (
   } finally { if (second) await second.close(); await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('reviewer creates and switches between workspaces', async ({ page }) => {
+test('reviewer creates and switches between workspaces', async ({ page, isMobile }) => {
   test.setTimeout(60000);
   const repo = mkdtempSync(join(tmpdir(), 'chargeweave-browser-create-'));
   const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -1016,8 +1061,10 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByRole('button', { name: 'Create workspace' }).click();
     await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
+    await expect(page.getByLabel('New workspace title')).toBeHidden();
     await expect(page.locator('.studio-app-bar').getByLabel('Current workspace')).toBeVisible();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('Unapplied workspace edit.');
     await page.getByLabel('Current workspace').selectOption(original.id);
@@ -1032,7 +1079,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
   } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
 
-test('browser authors an interval rule with draft cases and source patches', async ({ page }) => {
+test('browser authors an interval rule with draft cases and source patches', async ({ page, isMobile }) => {
   test.setTimeout(60000);
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
@@ -1060,6 +1107,7 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Search model').fill('PlannedServiceWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'PlannedServiceWindow', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Search requirements').fill('BR-012');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.getByText('Add interval rule for BR-012').click();
@@ -1067,11 +1115,13 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
     await page.getByLabel('New rule ID').fill('B900');
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByLabel('New rule ID')).toHaveValue('B900');
     let releaseRule, interceptedRule;
     const ruleGate = new Promise(resolve => { releaseRule = resolve; });
@@ -1090,11 +1140,13 @@ test('browser authors an interval rule with draft cases and source patches', asy
       await expect(page.getByRole('status')).toContainText('revision 2');
     } finally { releaseRule(); await page.unroute('**/mcp', delayRule); }
     await expect(page.getByRole('status')).toContainText('revision 2');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: model/audit-rules.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/negative-cases.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/business-acceptance.json')).toBeVisible();
     expect(JSON.parse(store.get(workspace.id).sourceOverlays['tests/business-acceptance.json']).filter(item => item.rule === 'B900').every(item => item.provenance === 'template-derived')).toBe(true);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Requirement ID', { exact: true }).fill('BR-012');
     await page.getByLabel('Rule ID', { exact: true }).fill('B900');
     await page.getByLabel('Unique case ID').fill('BR-012-B900-REVIEW-PASS');
@@ -1107,7 +1159,7 @@ test('browser authors an interval rule with draft cases and source patches', asy
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('reviewer can inspect a publication target without publishing', async ({ page }) => {
+test('reviewer can inspect a publication target without publishing', async ({ page, isMobile }) => {
   test.setTimeout(45000);
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-browser-publish-'));
   const repository = join(directory, 'checkout'), remote = join(directory, 'remote.git');
@@ -1135,6 +1187,7 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
     await expect(page.getByText(/Preflight alone does not authorize publication/)).toBeVisible();
@@ -1150,7 +1203,7 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('reviewer opens a simulated draft pull request for a recorded branch', async ({ page }) => {
+test('reviewer opens a simulated draft pull request for a recorded branch', async ({ page, isMobile }) => {
   test.setTimeout(60000);
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-browser-pr-'));
   const repository = join(directory, 'repo'), root = fileURLToPath(new URL('../..', import.meta.url));
@@ -1194,6 +1247,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Inspect publication history' }).click();
     await expect(page.getByText(/Publisher permission: enabled/)).toBeVisible();
     await page.getByRole('button', { name: 'Create draft pull request' }).click();
@@ -1203,7 +1257,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 
-test('browser updates a field with a visible compatibility warning', async ({ page }) => {
+test('browser updates a field with a visible compatibility warning', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Field editing', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string? peer:Record?\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -1216,6 +1270,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByLabel('Filter fields').fill('peer');
     await expect(page.getByText('Showing 1 of 2 fields.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toHaveCount(0);
@@ -1244,17 +1299,23 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await expect(page.getByRole('heading', { name: 'Changes at revision 1' })).toBeFocused();
     await expect(page.getByText(/recordName: potentially-breaking/)).toBeVisible();
     await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Require peer' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
     expect(store.get(workspace.id).schema).toContain('peer:Record!');
     store.suggestView(workspace.id, { actor: 'codex', operationId: 'suggest-device', expectedRevision: 2, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device.' });
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByText('Inspect the device.')).toBeVisible();
     await page.getByRole('button', { name: 'Focus Device' }).click();
+    if (isMobile) {
+      await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+      await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    }
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('recent activity describes a suggestion and opens the current concept', async ({ page }) => {
+test('recent activity describes a suggestion and opens the current concept', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Recent activity', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -1265,13 +1326,22 @@ test('recent activity describes a suggestion and opens the current concept', asy
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     store.suggestView(workspace.id, { actor: 'codex', operationId: 'activity-suggestion', expectedRevision: 0, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device neighbourhood.' });
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
     const activity = page.getByRole('region', { name: 'Recent activity' });
     await expect(activity.getByText('Suggested Device · information view')).toBeVisible();
     await expect(activity.getByText('Inspect the device neighbourhood.')).toBeVisible();
     await activity.getByRole('button', { name: 'Inspect current Device' }).click();
+    if (isMobile) {
+      await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+      await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    }
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+    if (isMobile) {
+      await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+      await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
+    }
     await expect(activity.getByText('Updated a definition')).toBeVisible();
     await activity.getByRole('button', { name: 'Inspect revision 1' }).click();
     const detail = activity.getByRole('region', { name: 'Activity revision detail' });
@@ -1284,7 +1354,7 @@ test('recent activity describes a suggestion and opens the current concept', asy
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('following suggestions pauses for manual work and resumes for new events', async ({ page }) => {
+test('following suggestions pauses for manual work and resumes for new events', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Following', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -1298,31 +1368,50 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Follow new changes and suggestions').check();
+    await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('first-suggestion', 'Device');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').focus();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByText('Following paused after interaction.')).toBeVisible();
     suggest('paused-suggestion', 'Record');
     await expect(page.getByText('paused-suggestion', { exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Resume following' }).click();
     await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('resumed-suggestion', 'Record');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Follow new changes and suggestions').uncheck();
     suggest('disabled-suggestion', 'Device');
     await expect(page.getByText('disabled-suggestion', { exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByLabel('Follow new changes and suggestions').check();
     store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'add-planned-window', expectedRevision: 0, commands: [{ type: 'class.add', name: 'PlannedWindow', module: 'foundation', parent: 'Record', definition: 'A planned window.' }] });
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByText(/Latest change: codex updated PlannedWindow/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).first().click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Show latest change' }).click();
+    if (isMobile) {
+      await expect(page.getByRole('region', { name: 'Relationships for PlannedWindow' })).toBeVisible();
+      await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    }
     await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
@@ -1491,12 +1580,18 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const navigation = page.getByRole('navigation', { name: 'Workspace sections' });
+    await expect(navigation.getByRole('button', { name: 'Model', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#studio-editor-pane')).toBeHidden();
+    await expect(page.locator('#studio-inspector-pane')).toBeHidden();
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
-    const navigation = page.getByRole('navigation', { name: 'Workspace sections' });
+    await expect(navigation.getByRole('button', { name: 'Diagram', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#studio-navigator-pane')).toBeHidden();
     await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Inspector' })).toBeFocused();
+    await expect(page.locator('#studio-editor-pane')).toBeHidden();
     await navigation.getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
     const list = page.getByRole('region', { name: 'Relationship list for Device' });
@@ -1508,8 +1603,23 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     const relationship = page.locator('.studio-graph li').filter({ hasText: 'subClassOf' });
     await relationship.getByRole('button', { name: 'Record' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied compact edit.');
     await navigation.getByRole('button', { name: 'Results', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
+    await expect(page.locator('.studio-panels')).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Publication preflight' })).toBeVisible();
+    await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
+    await expect(page.getByRole('textbox', { name: 'Definition', exact: true })).toHaveValue('Unapplied compact edit.');
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+    await expect(page.getByRole('heading', { name: 'Review readiness' })).toBeFocused();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Activity' }).click();
+    await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeFocused();
+    await navigation.getByRole('button', { name: 'Model', exact: true }).click();
+    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Device', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: 'Discard and open Device' }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.setViewportSize({ width: 320, height: 844 });
     const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
@@ -1535,14 +1645,21 @@ test('relationship list moves before the canvas at phone width', async ({ page, 
     await expect(canvas).toBeVisible();
     await expect(list).toBeVisible();
     expect(await canvas.evaluate((element, other) => Boolean(element.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING), await list.elementHandle())).toBe(true);
+    await page.getByRole('button', { name: 'Hide navigator' }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect.poll(() => page.evaluate(() => Boolean(document.querySelector('.studio-relationship-list').compareDocumentPosition(document.querySelector('.studio-flow')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(canvas).toBeVisible();
+    await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model', exact: true }).click();
+    await expect(page.getByLabel('Search model')).toBeVisible();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.getByRole('button', { name: 'Show navigator' })).toBeVisible();
+    await expect(page.getByLabel('Search model')).toBeHidden();
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('browser maps an existing responsibility relationship without inventing one', async ({ page }) => {
+test('browser maps an existing responsibility relationship without inventing one', async ({ page, isMobile }) => {
   const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record?\n';
   const mapping = JSON.stringify({ version: 'chargeweave-responsibility-v1', bindings: [] }, null, 2) + '\n';
   const entries = { 'model/domain.schema': source, 'model/responsibility-bindings.json': mapping, 'tools/authoring_adapter.py': readFileSync(fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url)), 'utf8'), 'tools/domain_schema.py': readFileSync(fileURLToPath(new URL('../../tools/domain_schema.py', import.meta.url)), 'utf8') };
@@ -1559,16 +1676,19 @@ test('browser maps an existing responsibility relationship without inventing one
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await page.getByText('Map an existing responsibility relationship').click();
     await page.getByLabel('Declared object relationship').selectOption('owner');
     await page.getByLabel('Responsibility label').fill('Accountable party');
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByLabel('Responsibility label')).toHaveValue('Accountable party');
     let releaseMapping, interceptedMapping;
     const mappingGate = new Promise(resolve => { releaseMapping = resolve; });
@@ -1611,8 +1731,9 @@ test('browser maps an existing responsibility relationship without inventing one
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('browser inspects the pinned temporal policy and explicit time fields', async ({ page }) => {
+test('browser inspects the pinned temporal policy and explicit time fields', async ({ page, isMobile }) => {
   test.setTimeout(90000);
+  const surface = async name => { if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); };
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
@@ -1629,16 +1750,20 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByLabel('Search model').fill('TimeWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'TimeWindow', exact: true }).first().click();
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByText('Class policy: snapshot-versioned')).toBeVisible();
     await expect(page.getByText(/Policy source: model\/temporal-policy\.json/)).toBeVisible();
     await expect(page.getByText(/Model revision 0; policy from baseline/)).toContainText(commit);
     await expect(page.getByRole('heading', { name: 'Explicit time fields and window references' })).toBeVisible();
+    await surface('Model');
     await page.getByLabel('Search model').fill('RecurringWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'RecurringWindow', exact: true }).first().click();
     await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('temporal');
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
     await page.getByLabel('Filter graph relationships').fill('exceptionWindow');
@@ -1651,14 +1776,20 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Load shared view' }).click();
     await expect(page.getByLabel('Graph viewpoint')).toHaveValue('temporal');
     await expect(page.getByLabel('Filter graph relationships')).toHaveValue('exceptionWindow');
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect TimeWindow' }).click();
+    if (isMobile) await expect(page.getByRole('region', { name: 'Relationships for TimeWindow' })).toBeVisible();
+    await surface('Inspector');
     await expect(page.getByRole('heading', { name: 'TimeWindow', exact: true })).toBeVisible();
+    await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('information');
     await page.getByLabel('Filter graph relationships').fill('');
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText('No responsibility binding defined in this mapping.')).toBeVisible();
     await page.getByRole('button', { name: 'Add a field or relationship', exact: true }).click();
     await expect(page.getByLabel('Field name')).toBeVisible();
+    await surface('Model');
     await page.getByLabel('Search model').fill('ChargingStation');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'ChargingStation', exact: true }).first().click();
@@ -1670,6 +1801,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.locator('.studio-graph li').filter({ hasText: 'maintenanceProvider' })).toHaveCount(0);
     await page.getByLabel('Graph viewpoint').selectOption('information');
     await page.getByLabel('Filter graph relationships').fill('');
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText('Asset owner', { exact: true })).toBeVisible();
     await expect(page.getByText(/Asset owner: assetOwner → LegalEntity/)).toBeVisible();
@@ -1679,13 +1811,17 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByText('Why this binding appears').first().click();
     await expect(page.getByText(/Predicate IRI:/).first()).toBeVisible();
     await page.getByRole('button', { name: 'Inspect LegalEntity' }).first().click();
+    if (isMobile) await expect(page.getByRole('region', { name: 'Relationships for LegalEntity' })).toBeVisible();
+    await surface('Inspector');
     await expect(page.getByRole('heading', { name: 'LegalEntity', exact: true })).toBeVisible();
+    await surface('Model');
     await page.getByLabel('Search model').fill('ChargingStation');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'ChargingStation', exact: true }).first().click();
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A reviewed station definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect explicit impact references' }).click();
     await expect(page.getByText(/Changed classes: ChargingStation/)).toBeVisible();
     await expect(page.locator('section').filter({ has: page.getByRole('heading', { name: 'Change impact' }) }).getByText(/requirement BR-/).first()).toBeVisible();
@@ -1693,16 +1829,20 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Record reviewer decision' }).click();
     await expect(page.getByText('Add a deliberate negative fixture.')).toBeVisible();
     await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · current/)).toBeVisible();
+    await surface('Inspector');
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A revised station definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
+    await surface('Results');
     await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · stale/)).toBeVisible();
     await page.getByLabel('Search requirements').fill('BR-001');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.locator('li').filter({ hasText: 'BR-001' }).getByRole('button', { name: 'Link selected concept' }).click();
     await expect(page.getByRole('status')).toContainText('revision 3');
+    await surface('Diagram');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByLabel('Set explicit temporal policy')).toBeVisible();
     let releaseTemporal, interceptedTemporal;
@@ -1722,11 +1862,13 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
       await expect(page.getByLabel('Set explicit temporal policy')).toHaveValue('immutable-aggregate');
     } finally { releaseTemporal(); await page.unroute('**/mcp', delayTemporal); }
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await surface('Model');
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByRole('alert')).toContainText('Apply or discard the temporal policy edit');
     await expect(page.getByLabel('Set explicit temporal policy')).toHaveValue('immutable-aggregate');
@@ -1737,12 +1879,13 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByText('Class policy: immutable-aggregate')).toBeVisible();
     await expect(page.getByText(/draft policy from baseline/)).toBeVisible();
+    await surface('Diagram');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: model/temporal-policy.json')).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('failed validation can be inspected, corrected and retried on the current draft', async ({ page }) => {
+test('failed validation can be inspected, corrected and retried on the current draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -1765,7 +1908,8 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    if (!isMobile) await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true }).click();
     await page.getByRole('button', { name: 'Collapse validation' }).click();
     await page.getByRole('button', { name: 'Close results panel' }).click();
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
@@ -1785,15 +1929,19 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(issues.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
     await issues.getByText('Recorded check output').click();
     await expect(issues.getByText('Synthetic fixture: definition needs correction.')).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Corrected definition.');
     await page.getByRole('button', { name: 'Save definition' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(issues.getByText(/stale for the current draft/)).toBeVisible();
     await issues.getByRole('button', { name: 'Retry structural check on current draft' }).click();
     await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
     await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     await expect(issues.getByText('missing-station: expected rejection, observed conformance.')).toBeVisible();
@@ -1824,7 +1972,8 @@ for (const denied of ['events', 'mcp']) test(`browser stops reconnecting when ${
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('browser discovers and edits the shared MCP workspace', async ({ page }) => {
+test('browser discovers and edits the shared MCP workspace', async ({ page, isMobile }) => {
+  const surface = async name => { if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); };
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
   const token = 'test-token-'.repeat(4);
@@ -1846,15 +1995,18 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(cookies.find(cookie => cookie.name === 'cw_studio')?.httpOnly).toBe(true);
     await page.reload();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    await surface('Results');
     await page.getByLabel('Change-set intent').fill('Clarify and extend the record.');
     await page.getByRole('button', { name: 'Open change set' }).click();
     await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
-    await page.getByRole('button', { name: 'Hide navigator' }).click();
-    await expect(page.getByRole('heading', { name: 'Discover concepts' })).not.toBeVisible();
-    await page.getByRole('button', { name: 'Show navigator' }).click();
-    await page.getByRole('button', { name: 'Hide inspector' }).click();
-    await expect(page.getByRole('heading', { name: 'Inspector', exact: true })).not.toBeVisible();
-    await page.getByRole('button', { name: 'Show inspector' }).click();
+    if (!isMobile) {
+      await page.getByRole('button', { name: 'Hide navigator' }).click();
+      await expect(page.getByRole('heading', { name: 'Discover concepts' })).not.toBeVisible();
+      await page.getByRole('button', { name: 'Show navigator' }).click();
+      await page.getByRole('button', { name: 'Hide inspector' }).click();
+      await expect(page.getByRole('heading', { name: 'Inspector', exact: true })).not.toBeVisible();
+      await page.getByRole('button', { name: 'Show inspector' }).click();
+    }
     await page.getByText('Connection diagnostics').click();
     await expect(page.getByText(/negotiated MCP protocol:/)).toContainText('2025-06-18');
     await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedDiagnostics = text; return Promise.resolve(); } } }); });
@@ -1869,6 +2021,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(connectionDetails).toContain(workspace.id);
     expect(connectionDetails).toContain('<your draft token>');
     expect(connectionDetails).not.toContain(token);
+    await surface('Diagram');
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
     await page.getByRole('button', { name: 'View check details' }).click();
@@ -1878,26 +2031,38 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     const report = JSON.parse(readFileSync(await download.path(), 'utf8'));
     expect(report.workspaceId).toBe(workspace.id); expect(report.status).toBe('passed');
     expect(report.steps).toEqual([{ checkName: 'tools/build.py', status: 'passed' }]);
+    await surface('Diagram');
     await page.getByRole('button', { name: 'Run reference checks' }).click();
+    await surface('Results');
     await expect(page.getByRole('heading', { name: 'Generated artifact comparison' })).toBeVisible();
     await expect(page.getByText('changed: ontology/example.ttl')).toBeVisible();
+    await surface('Model');
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await surface('Inspector');
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('An edited record.');
+    await surface('Diagram');
     await page.getByLabel('Reason for next edit (optional)').fill('Clarify the definition.');
+    await surface('Inspector');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await surface('Results');
     await expect(page.getByText('Reason: Clarify the definition.')).toBeVisible();
+    await surface('Diagram');
     await expect(page.getByLabel('Reason for next edit (optional)')).toHaveValue('');
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('An edited record.');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('changed: Record')).toBeVisible();
     await expect(page.getByText('After: An edited record.')).toBeVisible();
     await page.getByRole('button', { name: 'Focus changed Record' }).click();
+    if (isMobile) await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    await surface('Inspector');
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await surface('Results');
     await page.getByRole('button', { name: 'Inspect review gates' }).click();
     await expect(page.getByText('structural: not run for this draft')).toBeVisible();
+    await surface('Diagram');
     await expect(page.getByText('Source patch', { exact: true })).toBeVisible();
     await expect(page.locator('pre').filter({ hasText: '+Record|root|An edited record.' })).toBeVisible();
     await page.getByText('Add a concept').click();
@@ -1905,21 +2070,26 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await page.getByLabel('Class definition').fill('A planned maintenance window.');
     await page.getByRole('button', { name: 'Add concept' }).click();
     await expect(page.getByRole('status')).toContainText('revision 2');
+    await surface('Model');
     await page.getByLabel('Search model').fill('MaintenanceWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'MaintenanceWindow', exact: true }).click();
+    await surface('Inspector');
     const inheritedField = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
     await expect(inheritedField).toContainText('string');
     await expect(inheritedField).toContainText('Inherited from Record');
+    await surface('Diagram');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');
     await expect(page.getByText('subClassOf →')).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
+    await surface('Inspector');
     await page.getByText('Add a field or relationship').click();
     await page.getByLabel('Field name').fill('windowNote');
     await page.getByRole('button', { name: 'Add field' }).click();
     await expect(page.getByRole('status')).toContainText('revision 3');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('windowNote:string?');
+    await surface('Results');
     await page.getByRole('button', { name: 'Undo latest command group' }).click();
     await expect(page.getByRole('status')).toContainText('revision 4');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
@@ -1960,6 +2130,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(page.getByText(/Clarify and extend the record. · rejected/)).toBeVisible();
     await page.getByRole('button', { name: 'Reopen change set' }).click();
     await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
+    await surface('Model');
     await page.route('**/events?**', route => route.abort());
     await page.route('**/mcp', route => route.abort());
     service.closeAllConnections();
