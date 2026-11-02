@@ -29,6 +29,10 @@ test('switching concepts preserves an unapplied definition until the modeller de
     await expect(page.getByRole('dialog', { name: 'Unsaved definition' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
+    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Discard and disconnect' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(definition).toHaveValue('An unsaved definition.');
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await page.getByRole('button', { name: 'Discard and open Device' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
@@ -213,7 +217,16 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     await page.getByRole('button', { name: 'Create workspace' }).click();
     await expect(page.getByLabel('Current workspace')).toHaveValue(/.+/);
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
+    await definition.fill('Unapplied workspace edit.');
     await page.getByLabel('Current workspace').selectOption(original.id);
+    await expect(page.getByRole('dialog', { name: 'Unsaved definition' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(definition).toHaveValue('Unapplied workspace edit.');
+    await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
+    await page.getByLabel('Current workspace').selectOption(original.id);
+    await page.getByRole('button', { name: 'Discard and open Original' }).click();
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
   } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
