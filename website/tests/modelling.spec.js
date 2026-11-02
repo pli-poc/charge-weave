@@ -696,11 +696,23 @@ test('desktop workbench keeps the main panels within the initial viewport', asyn
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.locator('.studio-app-bar').getByLabel('Current workspace')).toBeVisible();
+    await expect(page.locator('#studio-editor-pane')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toBeVisible();
     const bounds = await page.evaluate(() => ({ scrollY: window.scrollY, header: document.querySelector('.studio-app-bar').getBoundingClientRect().toJSON(), panel: document.querySelector('#studio-editor-pane').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
     expect(bounds.scrollY).toBe(0);
     expect(bounds.header.top).toBeGreaterThanOrEqual(0);
     expect(bounds.panel.height).toBeGreaterThan(400);
     expect(bounds.panel.bottom).toBeLessThanOrEqual(bounds.status.top + 2);
+    const results = page.getByRole('region', { name: 'Workspace results' });
+    await results.getByRole('button', { name: 'Checks', exact: true }).click();
+    await expect(results.getByRole('region', { name: 'Validation issues' })).toBeVisible();
+    const expanded = await page.evaluate(() => ({ panel: document.querySelector('#studio-editor-pane').getBoundingClientRect().toJSON(), dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
+    expect(expanded.panel.height).toBeLessThan(bounds.panel.height);
+    expect(expanded.dock.bottom).toBeLessThanOrEqual(expanded.status.top + 2);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const compact = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
+    expect(compact.dock.bottom).toBeLessThanOrEqual(compact.status.top + 2);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
