@@ -50,6 +50,11 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
 .studio-activity { margin-top: 1rem; padding: 1rem; min-width: 0; overflow-wrap: anywhere; border: 1px solid #b8c5cc; border-radius: .5rem; }
+.studio-review-workflow ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .75rem; padding: 0; list-style: none; counter-reset: review-step; }
+.studio-review-workflow li { display: grid; align-content: start; gap: .45rem; padding: .75rem; border: 1px solid #49666a; border-radius: .4rem; counter-increment: review-step; }
+.studio-review-workflow li strong::before { content: counter(review-step) '. '; color: #a4e6d0; }
+.studio-review-workflow li span { color: #b8cbcc; font-size: .8rem; }
+.studio-review-workflow li button { justify-self: start; }
 .studio-validation-dock { border-top: 3px solid #55a991; }
 .studio-validation-dock > h2 { font-size: 1rem; }
 @media (max-width: 900px) { .modelling-studio.container { width: calc(100% - 40px); } .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }
@@ -96,7 +101,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-destinations a:focus-visible { outline: 2px solid #7cddc2; outline-offset: -2px; }
 @media (min-width: 901px) {
   .studio-destinations { position: sticky; top: 0; z-index: 10; padding: .15rem .25rem; background: #102127; }
-  #studio-navigator-pane, #studio-validation-heading, #studio-activity-heading, #studio-review-heading { scroll-margin-top: 3.5rem; }
+  #studio-navigator-pane, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 3.5rem; }
 }
 .modelling-studio details { margin: .75rem 0; }
 .modelling-studio summary { color: #a4e6d0; font-weight: 650; cursor: pointer; }
@@ -257,4 +262,5 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-workspace[data-compact-surface="results"] .studio-panels,
   .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none; }
   .studio-panels > section { scroll-margin-top: 4rem; }
+  #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 4.5rem; }
 }

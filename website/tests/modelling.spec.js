@@ -898,6 +898,10 @@ test('advanced connection identifies an invalid workspace ID without treating th
     await page.getByRole('button', { name: 'Connect', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    const workflow = page.getByRole('region', { name: 'Review workflow' });
+    await expect(workflow).toContainText('Reviewer access is required to record a decision.');
+    await workflow.getByRole('button', { name: 'Go to reviewer decision' }).click();
+    await expect(page.getByRole('heading', { name: 'Reviewer decision' })).toBeFocused();
     await expect(page.getByText('Reviewer decisions are unavailable for this connection. Connect with reviewer access.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Record reviewer decision' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Save reviewer case' })).toBeDisabled();
@@ -1383,6 +1387,36 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('review workflow links to separate review and publication steps', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Review workflow', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const reviewLink = page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' });
+    await reviewLink.click();
+    const workflow = page.getByRole('region', { name: 'Review workflow' });
+    await expect(workflow.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
+    await expect(workflow).toContainText(workspace.sourceDigest);
+    await expect(workflow).toContainText('Checks and review decisions do not publish the draft.');
+    for (const [button, heading] of [['Go to reviewer decision', 'Reviewer decision'], ['Go to publication preflight', 'Publication preflight'], ['Go to commit checks', 'GitHub commit checks']]) {
+      await workflow.getByRole('button', { name: button }).click();
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeFocused();
+      await reviewLink.click();
+    }
+    await workflow.getByRole('button', { name: 'Open validation checks' }).click();
+    await expect(page.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
+    await reviewLink.click();
+    await workflow.getByRole('button', { name: 'Open draft changes' }).click();
+    await expect(page.getByRole('heading', { name: 'Changes at revision 0' })).toBeFocused();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('undo identifies the author and refuses a newer draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Undo review', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original.|\n' });
@@ -1710,7 +1744,7 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
     await expect(page.getByRole('textbox', { name: 'Definition', exact: true })).toHaveValue('Unapplied compact edit.');
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
-    await expect(page.getByRole('heading', { name: 'Review readiness' })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Activity' }).click();
     await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeFocused();
     await navigation.getByRole('button', { name: 'Model', exact: true }).click();
