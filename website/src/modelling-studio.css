@@ -239,6 +239,6 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 @media (max-width: 900px) { .studio-panel-sizing, .studio-splitter, .studio-results-splitter { display: none; } }
 @media (max-width: 900px) {
   .studio-mobile-navigation { position: sticky; top: 0; z-index: 8; display: flex; gap: .4rem; padding: .5rem; background: #102127; border: 1px solid #30494e; border-radius: .4rem; }
-  .studio-mobile-navigation button { flex: 1 1 0; min-width: 0; }
+  .studio-mobile-navigation button { flex: 1 1 0; min-width: 0; padding-inline: .3rem; font-size: .78rem; }
   .studio-panels > section { scroll-margin-top: 4rem; }
 }

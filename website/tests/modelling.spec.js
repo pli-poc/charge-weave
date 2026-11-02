@@ -1483,7 +1483,7 @@ test('interactive graph preserves view positions and supports keyboard selection
 test('mobile relationship list remains usable without horizontal page scrolling', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'This checks the compact layout.');
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Compact graph', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const workspace = store.create({ title: 'Compact graph', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -1499,11 +1499,46 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await expect(page.getByRole('heading', { name: 'Inspector' })).toBeFocused();
     await navigation.getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
+    const list = page.getByRole('region', { name: 'Relationship list for Device' });
+    const graph = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(list).toBeVisible();
+    await expect(list.locator('li').filter({ hasText: 'peer' })).toContainText('(0..1)');
+    const order = await page.evaluate(() => ({ list: document.querySelector('.studio-relationship-list').getBoundingClientRect().top, graph: document.querySelector('.studio-flow').getBoundingClientRect().top }));
+    expect(order.list).toBeLessThan(order.graph);
     const relationship = page.locator('.studio-graph li').filter({ hasText: 'subClassOf' });
     await relationship.getByRole('button', { name: 'Record' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    await navigation.getByRole('button', { name: 'Results', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+    await page.setViewportSize({ width: 320, height: 844 });
     const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(overflows).toBe(false);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('relationship list moves before the canvas at phone width', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'This checks a desktop-to-phone viewport transition.');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Responsive model', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const list = page.getByRole('region', { name: 'Relationship list for Device' });
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toBeVisible();
+    await expect(list).toBeVisible();
+    expect(await canvas.evaluate((element, other) => Boolean(element.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING), await list.elementHandle())).toBe(true);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => page.evaluate(() => Boolean(document.querySelector('.studio-relationship-list').compareDocumentPosition(document.querySelector('.studio-flow')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await expect(canvas).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
