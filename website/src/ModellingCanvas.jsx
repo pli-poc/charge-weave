@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Background, Controls, Handle, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
+import { Background, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 const keyFor = workspaceId => `chargeweave.canvas.v1.${workspaceId}`;
@@ -18,6 +18,7 @@ const ConceptNode = memo(function ConceptNode({ data }) {
   </>;
 });
 const nodeTypes = { concept: ConceptNode };
+const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 function loadPositions(workspaceId) {
   try {
     const data = JSON.parse(sessionStorage.getItem(keyFor(workspaceId)) || '{}');
@@ -109,7 +110,7 @@ export default function ModellingCanvas({ graph, selectedName, onSelect, onManua
       event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
     }}>
     {layoutNotice && <p role="status">{layoutNotice}</p>}
-    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.predicate, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edges={graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">

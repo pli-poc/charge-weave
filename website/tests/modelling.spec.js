@@ -720,7 +720,7 @@ test('interactive graph preserves view positions and supports keyboard selection
   test.skip(isMobile, 'Desktop pointer and keyboard interaction is covered separately from the mobile list.');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|serial:string?\n' });
+  const workspace = store.create({ title: 'Graph interaction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|serial:string? peer:Record?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -736,6 +736,8 @@ test('interactive graph preserves view positions and supports keyboard selection
     const node = canvas.locator('.react-flow__node[data-id="Device"]');
     await expect(node).toBeVisible();
     await expect(node.getByText('serial:string?')).toBeVisible();
+    await expect(canvas.locator('.react-flow__edge-text').filter({ hasText: 'peer 0..1' })).toBeVisible();
+    await expect(canvas.locator('.react-flow__edge-path').first()).toHaveAttribute('marker-end', /url/);
     await node.scrollIntoViewIfNeeded();
     const initial = await node.getAttribute('style');
     const box = await node.boundingBox();
