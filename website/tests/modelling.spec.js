@@ -239,14 +239,28 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await move(95, 65);
     const secondPosition = await node.getAttribute('style');
     expect(secondPosition).not.toBe(firstPosition);
+    await page.getByText('View groups and annotations').click();
+    await page.getByLabel('Group name').fill('Equipment');
+    await page.getByLabel('Group concepts (comma separated)').fill('Device');
+    await page.getByRole('button', { name: 'Add view group' }).click();
+    await page.getByLabel('Note for selected concept').fill('Local note');
+    await page.getByRole('button', { name: 'Add view note' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await page.getByLabel('View ID').fill('default');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(node).toHaveAttribute('style', firstPosition);
     await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
+    store.saveView({ workspaceId: workspace.id, viewId: 'other', actor: 'other modeller', operationId: 'other-view-change', expectedViewRevision: 0, definition: { root: 'Device', positions: {} } });
     await page.getByLabel('View ID').fill('other');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
+    await expect(page.getByText('Equipment: Device')).toBeVisible();
+    await expect(page.getByText('Device: Local note')).toBeVisible();
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText(/Could not save view/)).toBeVisible();
+    await expect(page.getByText('Device: Local note')).toBeVisible();
+    expect(store.savedView(workspace.id, 'other').viewRevision).toBe(1);
+    expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
