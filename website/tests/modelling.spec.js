@@ -193,15 +193,23 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await expect(page.getByText('Shared view saved.')).toBeVisible();
     expect(store.savedView(workspace.id, 'default').definition.positions.Device).toBeDefined();
     await move(40, 30);
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     const firstPosition = await node.getAttribute('style');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
     await page.getByLabel('View ID').fill('other');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await move(95, 65);
     const secondPosition = await node.getAttribute('style');
     expect(secondPosition).not.toBe(firstPosition);
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await page.getByLabel('View ID').fill('default');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(node).toHaveAttribute('style', firstPosition);
+    await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
+    await page.getByLabel('View ID').fill('other');
+    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });

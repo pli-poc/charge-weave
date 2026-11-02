@@ -28,7 +28,7 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
-export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect }) {
+export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange }) {
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
@@ -104,13 +104,15 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const onNodesChange = useCallback(changes => {
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }
+    if (moved) onLayoutChange();
     if (moved && storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
     setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'remove'), current));
-  }, [graph.workspaceId, viewId]);
+  }, [graph.workspaceId, viewId, onLayoutChange]);
   const onNodeDragStop = useCallback((_event, node) => {
     positions.current[node.id] = { x: node.position.x, y: node.position.y };
+    onLayoutChange();
     if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
-  }, [graph.workspaceId, viewId]);
+  }, [graph.workspaceId, viewId, onLayoutChange]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
   const focusSelected = useCallback(() => {
     const point = positions.current[selectedName];
