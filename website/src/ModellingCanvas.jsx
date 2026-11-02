@@ -32,13 +32,17 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
-  const [initialPositions] = useState(() => {
-    try { return readCanvasPositions(sessionStorage, graph.workspaceId, viewId); }
-    catch { return Object.create(null); }
+  const [initialLayout] = useState(() => {
+    try { return { positions: readCanvasPositions(sessionStorage, graph.workspaceId, viewId, { strict: true }), writable: true }; }
+    catch { return { positions: Object.create(null), writable: false }; }
   });
-  const positions = useRef(initialPositions);
+  const positions = useRef(initialLayout.positions);
+  const storageWritable = useRef(initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
   const byName = useRef(new Map());
+  useEffect(() => {
+    if (!storageWritable.current) setLayoutNotice('Local layout could not be read. Diagram changes remain in memory; load a saved shared view to restore its layout before saving.');
+  }, []);
   useEffect(() => {
     try {
       worker.current = new Worker(new URL('./model/layout.worker.js', import.meta.url), { type: 'module' });
@@ -81,7 +85,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         occupied.push(position); positions.current[node.name] = position; placed.set(node.name, position);
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
-      try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* Layout remains available for this session. */ }
+      if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* Layout remains available for this session. */ }
       setLayoutState('ready');
       // Start at a readable scale around the selected concept. Fitting every
       // neighbour on a dense graph can shrink all labels beyond recognition;
@@ -99,12 +103,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const onNodesChange = useCallback(changes => {
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }
-    if (moved) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
+    if (moved && storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
     setNodes(current => applyNodeChanges(changes.filter(change => change.type !== 'remove'), current));
   }, [graph.workspaceId, viewId]);
   const onNodeDragStop = useCallback((_event, node) => {
     positions.current[node.id] = { x: node.position.x, y: node.position.y };
-    try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
+    if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
   }, [graph.workspaceId, viewId]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
   const focusSelected = useCallback(() => {

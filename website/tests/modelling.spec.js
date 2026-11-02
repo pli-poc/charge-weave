@@ -12,6 +12,28 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('unreadable local layout is not silently overwritten by automatic placement', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Unreadable layout', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const key = `chargeweave.canvas.v2.${workspace.id}.default`;
+    await page.evaluate(key => sessionStorage.setItem(key, '{broken'), key);
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toHaveAttribute('data-layout', 'ready');
+    await expect(page.getByText(/Local layout could not be read/)).toBeVisible();
+    expect(await page.evaluate(key => sessionStorage.getItem(key), key)).toBe('{broken');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText(/Could not save view: Canvas positions could not be read/)).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').viewRevision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('a delayed shared-view load cannot overwrite a newly selected view', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'View race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
