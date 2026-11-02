@@ -40,7 +40,7 @@ export function layoutWorkflow(definition) {
   const positions = new Map();
   let next = 0;
   for (const step of definition.steps) {
-    if (GRAPH.positions[step.id]) { const p = GRAPH.positions[step.id]; positions.set(step.id, p); occupied.add(`${p.x}:${p.y}`); }
+    if (GRAPH.positions[step.id]) { const base = GRAPH.positions[step.id]; const p = ['eventWait', 'decision', 'end'].includes(step.kind) && base.x === 600 ? { ...base, x: base.x + 68 } : base; positions.set(step.id, p); occupied.add(`${p.x}:${p.y}`); }
   }
   for (const step of definition.steps) {
     if (positions.has(step.id)) continue;
@@ -73,7 +73,7 @@ export function edgeGeometry(source, target, index, canvas = GRAPH, sourceKind =
   const down = target.y > source.y;
   const a = nodePort(source, sourceKind, down ? 'bottom' : 'top');
   const b = nodePort(target, targetKind, down ? 'top' : 'bottom');
-  if (source.x === target.x && Math.abs(target.y - source.y) <= 150) {
+  if (a.x === b.x && Math.abs(target.y - source.y) <= 150) {
     const lane = (a.y + b.y) / 2;
     return { d: `M ${a.x} ${a.y} V ${lane} H ${b.x} V ${b.y}`, labelX: (a.x + b.x) / 2, labelY: lane - 5 };
   }
