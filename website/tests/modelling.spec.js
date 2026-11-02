@@ -1271,7 +1271,16 @@ test('recent activity describes a suggestion and opens the current concept', asy
     await expect(activity.getByText('Inspect the device neighbourhood.')).toBeVisible();
     await activity.getByRole('button', { name: 'Inspect current Device' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
-    expect(store.get(workspace.id).revision).toBe(0);
+    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+    await expect(activity.getByText('Updated a definition')).toBeVisible();
+    await activity.getByRole('button', { name: 'Inspect revision 1' }).click();
+    const detail = activity.getByRole('region', { name: 'Activity revision detail' });
+    await expect(detail.getByRole('heading', { name: 'Historical revision 1' })).toBeFocused();
+    await expect(detail.locator('pre').first()).toContainText('A revised device.');
+    await detail.getByRole('button', { name: 'Back to recent activity' }).click();
+    await expect(activity.getByRole('heading', { name: 'Recent activity' })).toBeFocused();
+    await expect(activity.getByText('Updated a definition')).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import ValidationIssues from './ValidationIssues.jsx';
 
 function describeActivity(event) {
@@ -17,14 +17,19 @@ function describeActivity(event) {
   return 'Workspace activity';
 }
 
-export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, onRetry, onFocusConcept, onDownloadEvidence, onShowChecks, activityConcept }) {
+export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, historyDetail, historyPending, onInspectRevision, onCloseHistory, onRetry, onFocusConcept, onDownloadEvidence, onShowChecks, activityConcept }) {
   const terminal = job && ['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status);
   const validationJob = job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) ? job : null;
   const failedSteps = (validationJob?.steps || []).filter(step => step.status === 'failed');
   const failureCount = failedSteps.length || (validationJob?.status === 'failed' ? 1 : 0);
   const stale = validationJob && (validationJob.revision !== snapshot.revision || validationJob.digest !== snapshot.sourceDigest);
   const navigation = useRef(null);
+  const activityHeading = useRef(null);
+  const detailHeading = useRef(null);
   const drag = useRef(null);
+  useEffect(() => {
+    if (panel === 'activity' && historyDetail) detailHeading.current?.focus();
+  }, [panel, historyDetail]);
   function resize(value) { onHeightChange(Math.round(Math.min(heightLimit, Math.max(160, value)))); }
   function onResizeKey(event) {
     if (disabled) return;
@@ -64,8 +69,14 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         {terminal && <button type="button" onClick={onDownloadEvidence}>Download evidence report</button>}
       </div>
       {panel === 'activity' && <section aria-label="Recent activity">
-        <h2>Recent activity</h2>
-        {history.length ? <ol>{history.slice(-10).reverse().map(event => { const concept = activityConcept(event); return <li key={event.sequence}><strong>{describeActivity(event)}</strong> · {event.actor} · revision {event.revision}{event.payload.type === 'view_suggestion' && event.payload.explanation && <p>{event.payload.explanation}</p>}{concept && <button type="button" onClick={() => onFocusConcept(concept)}>Inspect current {concept}</button>}</li>; })}</ol> : <p>No activity is available for this workspace.</p>}
+        <h2 ref={activityHeading} tabIndex={-1}>Recent activity</h2>
+        {historyPending && <p role="status">Loading revision…</p>}
+        {historyDetail ? <section aria-label="Activity revision detail">
+          <h3 ref={detailHeading} tabIndex={-1}>Historical revision {historyDetail.revision}</h3>
+          <p>Read-only comparison; the current draft is unchanged.</p>
+          {historyDetail.available ? <><p>Actor: {historyDetail.actor}; source digest: <code>{historyDetail.sourceDigest}</code>.</p>{historyDetail.rationale && <p>Reason: {historyDetail.rationale}</p>}<details open><summary>Command group patch</summary><pre>{historyDetail.patch}</pre></details><details><summary>Compare with baseline</summary><pre>{historyDetail.baselinePatch}</pre></details>{historyDetail.additionalSources.map(source => <details key={source.path}><summary>Historical source patch: {source.path}</summary><pre>{source.patch}</pre></details>)}</> : <p>{historyDetail.reason}</p>}
+          <button type="button" onClick={() => { onCloseHistory(); requestAnimationFrame(() => activityHeading.current?.focus()); }}>Back to recent activity</button>
+        </section> : history.length ? <ol>{history.slice(-10).reverse().map(event => { const concept = activityConcept(event); return <li key={event.sequence}><strong>{describeActivity(event)}</strong> · {event.actor} · revision {event.revision}{event.payload.type === 'view_suggestion' && event.payload.explanation && <p>{event.payload.explanation}</p>}{concept && <button type="button" onClick={() => onFocusConcept(concept)}>Inspect current {concept}</button>}{event.payload.commands?.length > 0 && <button type="button" disabled={historyPending} onClick={() => onInspectRevision(event.revision)}>Inspect revision {event.revision}</button>}</li>; })}</ol> : <p>No activity is available for this workspace.</p>}
         <a href="#studio-activity-heading">Open full activity history</a>
       </section>}
       <section hidden={panel !== 'output'} aria-label="Job output">
