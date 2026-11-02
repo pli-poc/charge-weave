@@ -29,7 +29,7 @@ test('navigator search refreshes when another client changes the draft', async (
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Search model')).toBeFocused();
     const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
-    await expect(tree.getByText('foundation', { exact: false })).toBeVisible();
+    await expect(tree.locator('summary', { hasText: 'foundation' })).toBeVisible();
     await expect(tree.getByRole('button', { name: 'Device', exact: true })).toBeVisible();
     await tree.locator('summary').click();
     await expect(tree.getByRole('button', { name: 'Device', exact: true })).toBeHidden();
@@ -473,6 +473,12 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByText('Showing 50 of 57 concepts.')).toBeVisible();
+    const operations = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('details').filter({ has: page.locator('summary', { hasText: 'operations' }) });
+    if (!await operations.evaluate(element => element.open)) await operations.locator('summary').click();
+    await operations.getByRole('button', { name: 'Browse operations' }).click();
+    await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
+    await page.getByLabel('Filter by module').selectOption('');
     await expect(page.getByText('Showing 50 of 57 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Load more concepts' }).click();
     await expect(page.getByText('Showing 57 of 57 concepts.')).toBeVisible();
