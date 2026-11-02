@@ -246,13 +246,13 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await page.getByLabel('Note for selected concept').fill('Local note');
     await page.getByRole('button', { name: 'Add view note' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
-    await page.getByLabel('View ID').fill('default');
-    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    const views = page.getByRole('navigation', { name: 'Open diagram views' });
+    await expect(views.getByRole('button', { name: 'other, local changes' })).toHaveAttribute('aria-current', 'page');
+    await views.getByRole('button', { name: 'default', exact: true }).click();
     await expect(node).toHaveAttribute('style', firstPosition);
     await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
     store.saveView({ workspaceId: workspace.id, viewId: 'other', actor: 'other modeller', operationId: 'other-view-change', expectedViewRevision: 0, definition: { root: 'Device', positions: {} } });
-    await page.getByLabel('View ID').fill('other');
-    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await views.getByRole('button', { name: 'other, local changes' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await expect(page.getByText('Equipment: Device')).toBeVisible();
     await expect(page.getByText('Device: Local note')).toBeVisible();

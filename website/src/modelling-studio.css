@@ -132,6 +132,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-command-palette [role="option"] { cursor: pointer; padding: .7rem; border-radius: .3rem; }
 .studio-command-palette [role="option"][aria-selected="true"], .studio-command-palette [role="option"]:hover { background: #28524f; }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+.studio-view-tabs { display: flex; overflow-x: auto; gap: .15rem; margin: 0 0 .75rem; border-bottom: 1px solid #49666a; }
+.modelling-studio .studio-view-tabs button { flex: 0 0 auto; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; border-radius: .3rem .3rem 0 0; background: transparent; color: #b8cbcc; }
+.modelling-studio .studio-view-tabs button[aria-current="page"] { color: #e4eeef; background: #17343a; border-bottom-color: #7cddc2; }
 .studio-view-history { display: flex; gap: .4rem; margin: .5rem 0; }
 .studio-diagram-legend { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .8rem; margin: .5rem 0; font-size: .85rem; }
 .studio-diagram-legend dt { font-weight: 700; }
