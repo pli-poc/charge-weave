@@ -703,6 +703,13 @@ test('desktop workbench keeps the main panels within the initial viewport', asyn
     expect(bounds.header.top).toBeGreaterThanOrEqual(0);
     expect(bounds.panel.height).toBeGreaterThan(400);
     expect(bounds.panel.bottom).toBeLessThanOrEqual(bounds.status.top + 2);
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await expect(page.getByLabel('Graph viewpoint')).toBeInViewport();
+    await expect(page.getByLabel('Filter graph relationships')).toBeInViewport();
+    const canvasBounds = await canvas.boundingBox();
+    expect(canvasBounds.y + canvasBounds.height).toBeLessThanOrEqual(bounds.panel.bottom + 2);
     const results = page.getByRole('region', { name: 'Workspace results' });
     await results.getByRole('button', { name: 'Checks', exact: true }).click();
     await expect(results.getByRole('region', { name: 'Validation issues' })).toBeVisible();
