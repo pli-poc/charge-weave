@@ -12,6 +12,30 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('switching concepts preserves an unapplied definition until the modeller decides', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Unsaved navigation', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
+    await definition.fill('An unsaved definition.');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unsaved definition' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(definition).toHaveValue('An unsaved definition.');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard and open Device' }).click();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('desktop panel sizes can be adjusted with the keyboard and restored', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Compact layout uses stacked panels.');
   const store = new WorkspaceStore(':memory:');
