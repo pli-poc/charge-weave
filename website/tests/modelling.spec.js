@@ -126,6 +126,7 @@ test('navigator search refreshes when another client changes the draft', async (
     const destinations = page.getByRole('navigation', { name: 'Workspace destinations' });
     await destinations.getByRole('link', { name: 'Activity' }).click();
     await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeInViewport();
+    if (test.info().project.name === 'desktop') await expect(destinations).toBeInViewport();
     await destinations.getByRole('link', { name: 'Model' }).click();
     await expect(page.getByRole('heading', { name: 'Discover concepts' })).toBeFocused();
     await validation.getByRole('button', { name: 'Collapse validation' }).click();
