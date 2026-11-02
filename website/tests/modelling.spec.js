@@ -47,8 +47,7 @@ test('explorer expands declared and inherited fields at the current revision', a
       store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'add-member', expectedRevision: 0, commands: [{ type: 'property.add', owner: 'Device', name: 'modelNumber', range: 'string', cardinality: '?' }] });
       await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
     } finally { release(); await page.unroute('**/mcp', delay); }
-    const expand = page.getByRole('button', { name: 'Show fields for Device' });
-    await expand.click();
+    await expect(page.getByRole('button', { name: 'Hide fields for Device' })).toHaveAttribute('aria-expanded', 'true');
     const refreshed = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Hide fields for Device' }) }).last();
     await expect(refreshed.getByText('modelNumber', { exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(1);
@@ -1106,6 +1105,8 @@ test('reviewer creates and switches between workspaces', async ({ page, isMobile
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
     await expect(page.getByLabel('New workspace title')).toBeHidden();
     await expect(page.locator('.studio-app-bar').getByLabel('Current workspace')).toBeVisible();
+    await page.getByRole('button', { name: 'Show fields for Record' }).click();
+    await expect(page.getByRole('button', { name: 'Hide fields for Record' })).toHaveAttribute('aria-expanded', 'true');
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
@@ -1119,6 +1120,10 @@ test('reviewer creates and switches between workspaces', async ({ page, isMobile
     await page.getByRole('button', { name: 'Discard and open Original' }).click();
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
     await expect(page.locator('.studio-app-bar').getByLabel('Current workspace').locator('option:checked')).toHaveText('Original');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await expect(page.getByRole('button', { name: 'Show fields for Record' })).toBeVisible();
+    await page.getByLabel('Current workspace').selectOption({ label: 'New proposal' });
+    await expect(page.getByRole('button', { name: 'Hide fields for Record' })).toBeVisible();
   } finally { await page.close(); if (service) await service.shutdown(); if (store) store.close(); rmSync(repo, { recursive: true, force: true }); }
 });
 
