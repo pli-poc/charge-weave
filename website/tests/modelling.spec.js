@@ -12,6 +12,53 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('disconnecting warns about an unfinished concept', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Unfinished concept', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByText('Add a concept', { exact: true }).click();
+    await page.getByLabel('Class name').fill('UnfinishedConcept');
+    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(page.getByLabel('Class name')).toHaveValue('UnfinishedConcept');
+    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard and disconnect' }).click();
+    await expect(page.getByRole('status')).toContainText('Disconnected');
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('unfinished field creation is retained or discarded explicitly on navigation', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Unfinished field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByText('Add a field or relationship', { exact: true }).click();
+    await page.getByLabel('Field name').fill('draftField');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(page.getByLabel('Field name')).toHaveValue('draftField');
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard and open Device' }).click();
+    await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('inspector finds direct incoming references and navigates to their source', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Incoming references', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nStation|Device|A station.|device:Device!\n' });
@@ -129,7 +176,7 @@ test('a partially edited field is retained until navigation is confirmed', async
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Device', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(page.getByLabel('New cardinality')).toHaveValue('!');
     await page.getByRole('button', { name: 'Device', exact: true }).click();
@@ -153,7 +200,7 @@ test('switching concepts preserves an unapplied definition until the modeller de
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('An unsaved definition.');
     await page.getByRole('button', { name: 'Device', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
@@ -360,7 +407,7 @@ test('reviewer creates and switches between workspaces', async ({ page }) => {
     const definition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await definition.fill('Unapplied workspace edit.');
     await page.getByLabel('Current workspace').selectOption(original.id);
-    await expect(page.getByRole('dialog', { name: 'Unsaved inspector edits' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(definition).toHaveValue('Unapplied workspace edit.');
     await expect(page.getByLabel('Current workspace').locator('option:checked')).toHaveText('New proposal');
