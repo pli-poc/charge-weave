@@ -39,6 +39,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
 .studio-activity { margin-top: 1rem; padding: 1rem; min-width: 0; overflow-wrap: anywhere; border: 1px solid #b8c5cc; border-radius: .5rem; }
+.studio-validation-dock { border-top: 3px solid #55a991; }
+.studio-validation-dock > h2 { font-size: 1rem; }
 @media (max-width: 900px) { .modelling-studio.container { width: calc(100% - 40px); } .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }
 
 /* Studio controls are scoped so the existing website keeps its own styles. */

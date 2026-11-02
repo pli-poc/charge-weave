@@ -22,6 +22,9 @@ test('navigator search refreshes when another client changes the draft', async (
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const validation = page.getByRole('region', { name: 'Validation issues' });
+    await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
+    await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText('Original device.')).toBeVisible();

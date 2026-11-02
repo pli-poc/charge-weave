@@ -16,7 +16,11 @@ const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maint
 // A failing check is evidence of a failed check, not automatically a model defect.
 export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept }) {
   const [copyMessage, setCopyMessage] = useState('');
-  if (!job || ['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile)) return null;
+  if (!job || ['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile)) return <section className="studio-activity studio-validation-dock" aria-label="Validation issues">
+    <h2 id="studio-validation-heading" tabIndex={-1}>Validation issues</h2>
+    <p>No validation result is displayed for this draft. Run a structural check to inspect it.</p>
+    <button type="button" onClick={() => onRetry('structural')}>Run structural check</button>
+  </section>;
   const stale = job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest;
   const failed = (job.steps || []).filter(step => step.status === 'failed');
   const issues = failed.length ? failed : job.status === 'failed' ? [{ ordinal: -1, checkName: 'Validation job', output: job.output }] : [];
@@ -25,7 +29,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
     try { await navigator.clipboard.writeText(text); setCopyMessage('Repair instruction copied.'); }
     catch { setCopyMessage('Clipboard unavailable; select and copy the recorded output below.'); }
   }
-  return <section className="studio-activity" aria-label="Validation issues">
+  return <section className="studio-activity studio-validation-dock" aria-label="Validation issues">
     <h2 id="studio-validation-heading" tabIndex={-1}>Validation issues</h2>
     <p>{job.profile} check at revision {job.revision}: {job.status}{stale ? ' — stale for the current draft' : ''}.</p>
     {!issues.length && <p>{job.status === 'passed' ? 'No failed steps in this job. Other required checks may still be missing.' : 'No failed step has been reported.'}</p>}
