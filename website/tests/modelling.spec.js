@@ -785,7 +785,22 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Interval start').selectOption('maintenanceStartsAt');
     await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
     await page.getByLabel('New rule ID').fill('B900');
-    await page.getByRole('button', { name: 'Add interval constraint' }).click();
+    let releaseRule, interceptedRule;
+    const ruleGate = new Promise(resolve => { releaseRule = resolve; });
+    const ruleIntercepted = new Promise(resolve => { interceptedRule = resolve; });
+    const delayRule = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_apply') { interceptedRule(); await ruleGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayRule);
+    try {
+      await page.getByRole('button', { name: 'Add interval constraint' }).click();
+      await ruleIntercepted;
+      await expect(page.getByLabel('New rule ID')).toBeDisabled();
+      await expect(page.getByLabel('Interval start')).toBeDisabled();
+      releaseRule();
+      await expect(page.getByRole('status')).toContainText('revision 2');
+    } finally { releaseRule(); await page.unroute('**/mcp', delayRule); }
     await expect(page.getByRole('status')).toContainText('revision 2');
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: model/audit-rules.json')).toBeVisible();
