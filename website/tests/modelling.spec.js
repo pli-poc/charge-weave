@@ -12,6 +12,30 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('a remote field change blocks a stale inspector edit while preserving input', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Field conflict', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit recordName' }).click();
+    await page.getByLabel('New cardinality').selectOption('+');
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-field', expectedRevision: 0, commands: [{ type: 'property.update', owner: 'Record', name: 'recordName', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' }] });
+    await expect(page.getByRole('alert').filter({ hasText: 'This field changed in another client' })).toBeVisible();
+    await expect(page.getByLabel('New cardinality')).toHaveValue('+');
+    await expect(page.getByRole('button', { name: 'Update field contract' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Cancel field edit' }).click();
+    await page.getByRole('button', { name: 'Edit recordName' }).click();
+    await expect(page.getByLabel('New cardinality')).toHaveValue('!');
+    expect(store.get(workspace.id).revision).toBe(1);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('a partially edited field is retained until navigation is confirmed', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unsaved field', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|\n' });
