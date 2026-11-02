@@ -445,6 +445,16 @@ export default function ModellingStudio() {
   function hasUnsavedWorkspaceEdits() {
     return Boolean(hasUnsavedInspectorEdits() || newClass.name.trim() || newClass.definition.trim());
   }
+  useEffect(() => {
+    if (!connection) return undefined;
+    function warnBeforeLeaving(event) {
+      if (!hasUnsavedWorkspaceEdits()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', warnBeforeLeaving);
+    return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
+  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, newClass.name, newClass.definition]);
   function selectConcept(item, { focusView = true } = {}) {
     if (!item) return false;
     if (item.name === selected?.name) { if (focusView) setViewRoot(item.name); return true; }

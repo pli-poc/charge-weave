@@ -12,6 +12,27 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('unapplied concept input requests a browser warning before leaving', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Leave warning', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const warningRequested = () => page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; });
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 0');
+    expect(await warningRequested()).toBe(false);
+    await page.getByText('Add a concept', { exact: true }).click();
+    await page.getByLabel('Class name').fill('UnfinishedConcept');
+    expect(await warningRequested()).toBe(true);
+    await page.getByLabel('Class name').fill('');
+    expect(await warningRequested()).toBe(false);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('disconnecting warns about an unfinished concept', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unfinished concept', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
