@@ -105,6 +105,7 @@ export class WorkspaceStore {
     if (!this.db.prepare('PRAGMA table_info(workspaces)').all().some(column => column.name === 'source_manifest')) this.db.exec('ALTER TABLE workspaces ADD COLUMN source_manifest TEXT');
     if (!this.db.prepare('PRAGMA table_info(jobs)').all().some(column => column.name === 'profile')) this.db.exec("ALTER TABLE jobs ADD COLUMN profile TEXT NOT NULL DEFAULT 'structural'");
     this.db.exec('CREATE INDEX IF NOT EXISTS jobs_review_evidence ON jobs(workspace, revision, digest, profile)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS jobs_workspace_recent ON jobs(workspace)');
     this.db.exec('CREATE TABLE IF NOT EXISTS command_groups (workspace TEXT NOT NULL, revision INTEGER NOT NULL, before_schema TEXT NOT NULL, after_digest TEXT NOT NULL, PRIMARY KEY(workspace, revision), FOREIGN KEY(workspace) REFERENCES workspaces(id))');
     if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'before_overlays')) this.db.exec('ALTER TABLE command_groups ADD COLUMN before_overlays TEXT');
     if (!this.db.prepare('PRAGMA table_info(command_groups)').all().some(column => column.name === 'after_schema')) this.db.exec('ALTER TABLE command_groups ADD COLUMN after_schema TEXT');
@@ -169,6 +170,11 @@ export class WorkspaceStore {
     const steps = this.db.prepare('SELECT ordinal, check_name AS checkName, status, started_at AS startedAt, finished_at AS finishedAt, output FROM job_steps WHERE job = ? ORDER BY ordinal').all(jobId);
     const artifact = this.db.prepare('SELECT summary FROM job_artifacts WHERE job = ?').get(jobId);
     return { ...row, baselineCommit: workspace.baselineCommit, digestVersion: workspace.digestVersion, steps, artifactSummary: artifact ? JSON.parse(artifact.summary) : null, stale: workspace.sourceDigest !== row.digest || workspace.revision !== row.revision };
+  }
+  latestValidationJob(workspaceId) {
+    this.get(workspaceId);
+    const row = this.db.prepare("SELECT id FROM jobs WHERE workspace = ? AND profile IN ('structural', 'reference', 'audit', 'acceptance', 'maintenance-demo') ORDER BY rowid DESC LIMIT 1").get(workspaceId);
+    return { workspaceId, job: row ? this.job(workspaceId, row.id) : null };
   }
   saveJobArtifacts(jobId, summary) { this.db.prepare('INSERT OR REPLACE INTO job_artifacts (job, summary) VALUES (?, ?)').run(jobId, JSON.stringify(summary)); }
   saveJobGeneratedFiles(jobId, files) {

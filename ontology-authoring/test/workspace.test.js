@@ -13,6 +13,23 @@ import { importSourceManifest } from '../src/source-manifest.js';
 import { changeImpact } from '../src/impact.js';
 
 const schema = '# source\nMODULE|foundation\nRecord|root|A record.|\n';
+test('latest validation is workspace-scoped and ignores publication jobs', () => {
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const first = store.create({ title: 'First', baselineCommit: 'a'.repeat(40), schema });
+    const second = store.create({ title: 'Second', baselineCommit: 'b'.repeat(40), schema });
+    assert.equal(store.latestValidationJob(first.id).job, null);
+    const validation = store.createJob(first.id, 0, first.sourceDigest, 'actor', 'check', 'reference').job;
+    store.updateJob(validation.id, 'failed', 'Synthetic failure');
+    const publication = store.createJob(first.id, 0, first.sourceDigest, 'actor', 'preview', 'publication-preview', randomUUID()).job;
+    store.updateJob(publication.id, 'passed');
+    assert.equal(store.latestValidationJob(first.id).job.id, validation.id);
+    assert.equal(store.latestValidationJob(first.id).job.status, 'failed');
+    assert.equal(store.latestValidationJob(second.id).job, null);
+    store.apply({ workspaceId: first.id, actor: 'actor', operationId: 'edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A revised record.' }] });
+    assert.equal(store.latestValidationJob(first.id).job.stale, true);
+  } finally { store.close(); }
+});
 test('explicit change set locks accepted and rejected drafts until reviewer reopening', () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();

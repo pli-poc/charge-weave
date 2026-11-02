@@ -2,6 +2,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
+import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
 import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
@@ -15,6 +16,7 @@ const ConceptNode = memo(function ConceptNode({ data }) {
       <div className="studio-concept-module">{data.module || 'Ontology concept'}</div>
       {['added', 'changed'].includes(data.changeStatus) && <div className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</div>}
       {data.layoutSelected && <span className="studio-concept-layout-selected">Selected for layout</span>}
+      {data.layoutPinned && <span className="studio-concept-layout-pinned">Pinned</span>}
       {fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
       {fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
     </div>
@@ -34,6 +36,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
+  const [initialPins] = useState(() => {
+    try { return { pins: readCanvasPins(sessionStorage, graph.workspaceId, viewId), writable: true }; }
+    catch { return { pins: new Set(), writable: false }; }
+  });
+  const [layoutPins, setLayoutPins] = useState(initialPins.pins);
+  const [pinRecoveryNeeded, setPinRecoveryNeeded] = useState(!initialPins.writable);
+  const [pinNotice, setPinNotice] = useState('');
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
   const [layoutAttempt, setLayoutAttempt] = useState(0);
@@ -41,6 +50,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     try { return { positions: readCanvasPositions(sessionStorage, graph.workspaceId, viewId, { strict: true }), writable: true }; }
     catch { return { positions: Object.create(null), writable: false }; }
   });
+  const [missingPinnedPositions] = useState(() => [...initialPins.pins].some(name => !initialLayout.positions[name]));
   const positions = useRef(initialLayout.positions);
   const storageWritable = useRef(initialLayout.writable);
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
@@ -134,7 +144,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       return retained.length === previous.size ? previous : new Set(retained);
     });
   }, [graph.nodes]);
-  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id) } })), [nodes, layoutSelection]);
+  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id) } })), [nodes, layoutSelection, layoutPins]);
   function toggleLayoutSelection(name) {
     if (!graph.nodes.some(node => node.name === name)) return;
     onManualInteraction();
@@ -145,7 +155,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     });
   }
   function alignLayoutSelection(axis) {
-    if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current) return;
+    if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
     const names = [...layoutSelection].filter(name => graph.nodes.some(node => node.name === name) && positions.current[name]);
     if (names.length < 2) return;
     const coordinate = Math.min(...names.map(name => positions.current[name][axis]));
@@ -162,6 +172,26 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     setNodes(current => current.map(node => names.includes(node.id) ? { ...node, position: next[node.id] } : node));
     onManualInteraction(); onLayoutChange();
     setLayoutNotice(`Aligned ${names.length} concepts locally. Save the shared view to share this layout.`);
+  }
+  function setSelectedPins(pinned) {
+    if (layoutState !== 'ready' || pinRecoveryNeeded || !storageWritable.current || !layoutSelection.size) return;
+    const names = [...layoutSelection].filter(name => graph.nodes.some(node => node.name === name) && positions.current[name]);
+    if (!names.length) return;
+    const next = new Set(layoutPins);
+    for (const name of names) {
+      if (pinned) next.add(name); else next.delete(name);
+    }
+    try { writeCanvasPins(sessionStorage, graph.workspaceId, viewId, next); }
+    catch { setPinNotice('Could not save pin settings. They were not changed.'); return; }
+    setLayoutPins(next);
+    setPinNotice(pinned ? 'Selected concepts pinned in this browser tab.' : 'Selected concepts unpinned in this browser tab.');
+    onManualInteraction();
+  }
+  function replaceUnreadablePins() {
+    try {
+      writeCanvasPins(sessionStorage, graph.workspaceId, viewId, new Set());
+      setLayoutPins(new Set()); setPinRecoveryNeeded(false); setPinNotice('Local pin settings replaced.');
+    } catch { setPinNotice('Could not replace local pin settings.'); }
   }
   const selectedEdge = graph.edges.find(edge => edge.id === selectedEdgeId) ?? null;
   function inspectEdge(id) {
@@ -182,6 +212,9 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const offsets = parallelEdgeOffsets(graph.edges);
   function arrangeVisible() {
     if (!worker.current || layoutState !== 'ready') return;
+    if (!storageWritable.current) { setLayoutNotice('Resolve unreadable local layout before arranging concepts.'); return; }
+    if (pinRecoveryNeeded) { setLayoutNotice('Resolve unreadable pin settings before arranging concepts.'); return; }
+    if (graph.nodes.every(node => layoutPins.has(node.name))) { setLayoutNotice('All visible concepts are pinned. Unpin one to arrange it.'); return; }
     const requestId = ++sequence.current;
     arranging.current = true;
     setLayoutState('pending');
@@ -195,16 +228,26 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (event.data.error || !Array.isArray(points) || points.length !== names.size || points.some(point => !names.has(point.id) || !Number.isFinite(point.x) || !Number.isFinite(point.y)) || new Set(points.map(point => point.id)).size !== names.size) {
         setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); return;
       }
-      const layout = new Map(points.map(point => [point.id, { x: point.x, y: point.y }]));
+      const layout = new Map(), occupied = [...layoutPins].map(name => positions.current[name]).filter(Boolean);
+      for (const point of points) {
+        if (layoutPins.has(point.id) && positions.current[point.id]) continue;
+        const position = { x: point.x, y: point.y };
+        while (occupied.some(other => Math.abs(other.x - position.x) < 240 && Math.abs(other.y - position.y) < 148)) position.y += 150;
+        if (Math.abs(position.x) >= 100000 || Math.abs(position.y) >= 100000) { setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram without exceeding position limits. Existing positions were kept.'); return; }
+        occupied.push(position); layout.set(point.id, position);
+      }
       let changed = false;
       for (const [name, point] of layout) {
         const before = positions.current[name];
         if (!before || before.x !== point.x || before.y !== point.y) changed = true;
       }
       if (changed) {
-        for (const [name, point] of layout) positions.current[name] = point;
+        const next = { ...positions.current };
+        for (const [name, point] of layout) next[name] = point;
+        try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next); }
+        catch { setLayoutState('ready'); setLayoutNotice('Could not store the arrangement. No positions were changed.'); return; }
+        positions.current = next;
         setNodes(current => current.map(node => layout.has(node.id) ? { ...node, position: layout.get(node.id) } : node));
-        if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
         onLayoutChange();
       }
       setLayoutState('ready');
@@ -248,7 +291,31 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
-    <details ref={layoutMenu} className="studio-canvas-layout-menu"><summary>Layout</summary><p>Arrange the visible concepts automatically. Existing positions in this view will move; hidden concepts are unchanged.</p><button type="button" disabled={layoutState !== 'ready'} onClick={arrangeVisible}>Arrange visible concepts</button>{layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout…'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}<details><summary>Align selected concepts</summary><p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment changes only this view and may overlap cards.</p><fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{graph.nodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}</label>)}</fieldset><p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>{layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning concepts.</p>}<div className="studio-canvas-edge-actions"><button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded} onClick={() => alignLayoutSelection('x')}>Align left</button><button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded} onClick={() => alignLayoutSelection('y')}>Align top</button><button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button></div></details></details>
+    <details ref={layoutMenu} className="studio-canvas-layout-menu">
+      <summary>Layout</summary>
+      <p>Arrange visible concepts automatically. Pinned concepts and hidden concepts are unchanged.</p>
+      <p>Pins are local to this browser tab and view; they are not included in shared views.</p>
+      <p>Dragging a pinned concept moves it explicitly and keeps it pinned.</p>
+      {missingPinnedPositions && <p>Some previously pinned positions were unavailable. Check their positions before continuing.</p>}
+      {pinRecoveryNeeded && <><p>Local pin settings could not be read. Replacing them removes the stored pins for this view.</p><button type="button" onClick={replaceUnreadablePins}>Replace unreadable pin settings</button></>}
+      <button type="button" disabled={layoutState !== 'ready' || layoutRecoveryNeeded || pinRecoveryNeeded} onClick={arrangeVisible}>Arrange visible concepts</button>
+      {layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout...'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}
+      <details>
+        <summary>Align selected concepts</summary>
+        <p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment changes only this view and may overlap cards. Unpin selected concepts before alignment.</p>
+        <fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{graph.nodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}{layoutPins.has(node.name) ? ' (pinned)' : ''}</label>)}</fieldset>
+        <p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>
+        {layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning or pinning concepts.</p>}
+        {pinNotice && <p aria-live="polite">{pinNotice}</p>}
+        <div className="studio-canvas-edge-actions">
+          <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('x')}>Align left</button>
+          <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('y')}>Align top</button>
+          <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => layoutPins.has(name))} onClick={() => setSelectedPins(true)}>Pin selected</button>
+          <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => !layoutPins.has(name))} onClick={() => setSelectedPins(false)}>Unpin selected</button>
+          <button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button>
+        </div>
+      </details>
+    </details>
     <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => {
         instance.current = value;

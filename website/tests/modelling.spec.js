@@ -1591,6 +1591,58 @@ test('inspector pages through explicit linked requirements', async ({ page, isMo
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('a running validation is restored and monitored after reload', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Restored checks', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const job = store.createJob(workspace.id, 0, workspace.sourceDigest, 'other-client', 'check', 'structural').job;
+  store.updateJob(job.id, 'running');
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByText(/Latest structural operation: running/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Check draft', exact: true })).toBeDisabled();
+    store.updateJob(job.id, 'passed');
+    await expect(page.getByText(/Latest structural operation: passed/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByText(/Latest structural operation: passed/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Check draft', exact: true })).toBeEnabled();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('an older validation restore cannot replace a newly started check', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Validation restore race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const validationRunner = async (target, input, job) => { target.updateJob(job.id, 'passed'); };
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', validationRunner, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed, finished;
+  const gate = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  const completed = new Promise(resolve => { finished = resolve; });
+  const delay = async route => {
+    if (route.request().postDataJSON()?.params?.name === 'ontology_validation_latest') {
+      const response = await route.fetch(); observed(); await gate;
+      await route.fulfill({ response }).catch(() => {}); finished();
+    } else await route.continue();
+  };
+  await page.route('**/mcp', delay);
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await intercepted;
+    await page.getByRole('button', { name: 'Check draft', exact: true }).click();
+    await expect(page.getByText(/Latest structural operation: passed/)).toBeVisible();
+    release(); await completed;
+    await expect(page.getByText(/Latest structural operation: passed/)).toBeVisible();
+  } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('check profile selects the scope sent to the shared service', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Check scope', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });

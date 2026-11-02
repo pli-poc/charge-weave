@@ -172,6 +172,7 @@ export function createServer(store, actor, options = {}) {
       return result(job);
     });
     registerTool('ontology_job_get', { description: 'Read generator job status and freshness.', inputSchema: { workspaceId, jobId: z.string().uuid() }, annotations: { readOnlyHint: true } }, async args => result(store.job(args.workspaceId, args.jobId)));
+    registerTool('ontology_validation_latest', { description: 'Read the latest validation job for this workspace, including its revision and freshness. Publication jobs are excluded.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.latestValidationJob(args.workspaceId)));
     registerTool('ontology_evidence_get', { description: 'Read completed validation evidence and its exact baseline, revision and digest.', inputSchema: { workspaceId, evidenceId: z.string().uuid() }, annotations: { readOnlyHint: true } }, async args => result(store.evidence(args.workspaceId, args.evidenceId)));
     if (options.cancelValidation) registerTool('ontology_job_cancel', { description: 'Request cooperative cancellation after the current fixed check finishes.', inputSchema: { workspaceId, jobId: z.string().uuid(), operationId }, annotations: { idempotentHint: true } }, async args => {
       const outcome = store.requestJobCancel(args.workspaceId, args.jobId, actor, args.operationId);

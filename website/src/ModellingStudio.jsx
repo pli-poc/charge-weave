@@ -405,6 +405,8 @@ export default function ModellingStudio() {
   const [job, setJob] = useState(null);
   const [checkStarting, setCheckStarting] = useState(false);
   const [checkProfile, setCheckProfile] = useState('structural');
+  const [jobRestoreNotice, setJobRestoreNotice] = useState('');
+  const jobEpoch = useRef(0);
   const [commandPending, setCommandPending] = useState(false);
   const commandInFlight = useRef(false);
   const checkInFlight = useRef(false);
@@ -637,6 +639,7 @@ export default function ModellingStudio() {
   useEffect(() => {
     if (!connection) return undefined;
     setOnline(false);
+    jobEpoch.current += 1; checkInFlight.current = false; setCheckStarting(false); setJob(null); setJobRestoreNotice('');
     setAvailableTools([]);
     setCanPush(null);
     setPublicationHistory([]);
@@ -737,6 +740,31 @@ export default function ModellingStudio() {
     run();
     return () => { document.removeEventListener('visibilitychange', refreshOnVisible); streamAbort?.abort(); abort.abort(); if (connectionAbort.current === abort) connectionAbort.current = null; };
   }, [connection]);
+
+  useEffect(() => {
+    if (!connection || !availableTools.includes('ontology_validation_latest')) return undefined;
+    const abort = new AbortController(), epoch = jobEpoch.current;
+    const valid = () => !abort.signal.aborted && epoch === jobEpoch.current;
+    async function restore() {
+      try {
+        const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_latest', arguments: { workspaceId: connection.workspaceId } }, abort.signal);
+        if (!valid()) return;
+        if (response.structuredContent.workspaceId !== connection.workspaceId || (response.structuredContent.job && response.structuredContent.job.workspace !== connection.workspaceId)) throw new Error('Invalid validation job identity');
+        let current = response.structuredContent.job;
+        setJob(current); setJobRestoreNotice('');
+        while (current && ['queued', 'running', 'cancelling'].includes(current.status)) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          if (!valid()) return;
+          const result = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } }, abort.signal);
+          if (!valid()) return;
+          if (result.structuredContent.workspace !== connection.workspaceId || result.structuredContent.id !== current.id) throw new Error('Invalid validation job identity');
+          current = result.structuredContent; setJob(current);
+        }
+      } catch { if (valid()) setJobRestoreNotice('Could not restore the last validation result. Run or inspect checks again.'); }
+    }
+    void restore();
+    return () => abort.abort();
+  }, [connection, availableTools]);
 
   useEffect(() => {
     const key = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
@@ -1468,21 +1496,26 @@ export default function ModellingStudio() {
   }
   async function runChecks(profile) {
     if (checkInFlight.current) return;
+    const epoch = ++jobEpoch.current, signal = connectionAbort.current?.signal;
+    const valid = () => !signal?.aborted && epoch === jobEpoch.current;
     checkInFlight.current = true;
     invalidateReadiness();
     setCheckStarting(true);
     setError('');
     try {
-      let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_start', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, profile } });
+      let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_validation_start', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, profile } }, signal);
+      if (!valid()) return;
       let current = response.structuredContent;
       setJob(current);
       while (['queued', 'running', 'cancelling'].includes(current.status)) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } });
+        if (!valid()) return;
+        response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } }, signal);
+        if (!valid()) return;
         current = response.structuredContent; setJob(current);
       }
-    } catch (problem) { setError(problem.message); }
-    finally { invalidateReadiness(); checkInFlight.current = false; setCheckStarting(false); }
+    } catch (problem) { if (valid()) setError(problem.message); }
+    finally { if (valid()) { invalidateReadiness(); checkInFlight.current = false; setCheckStarting(false); } }
   }
   async function inspectPublicationHistory() {
     const signal = connectionAbort.current?.signal;
@@ -1506,7 +1539,7 @@ export default function ModellingStudio() {
     setError('');
     try {
       let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_publication_prepare', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, reviewId } });
-      let current = response.structuredContent; setJob(current);
+      let current = response.structuredContent; jobEpoch.current += 1; checkInFlight.current = false; setCheckStarting(false); setJob(current);
       while (['queued', 'running', 'cancelling'].includes(current.status)) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } });
@@ -1518,7 +1551,7 @@ export default function ModellingStudio() {
     setError('');
     try {
       let response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_publication_create_commit', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, publicationId } });
-      let current = response.structuredContent; setJob(current);
+      let current = response.structuredContent; jobEpoch.current += 1; checkInFlight.current = false; setCheckStarting(false); setJob(current);
       while (['queued', 'running'].includes(current.status)) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } });
@@ -1531,7 +1564,7 @@ export default function ModellingStudio() {
     setError('');
     try {
       let response = await call(connection.endpoint, connection.token, 'tools/call', { name, arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, sourceDigest: snapshot.sourceDigest, publicationId } });
-      let current = response.structuredContent; setJob(current);
+      let current = response.structuredContent; jobEpoch.current += 1; checkInFlight.current = false; setCheckStarting(false); setJob(current);
       while (['queued', 'running'].includes(current.status)) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_get', arguments: { workspaceId: connection.workspaceId, jobId: current.id } });
@@ -1664,7 +1697,7 @@ export default function ModellingStudio() {
       { label: 'Add a concept', run: openConceptCreator },
       { label: 'Focus diagram', run: () => openCompactPane('studio-editor-pane') },
       { label: 'Open inspector', run: () => openCompactPane('studio-inspector-pane') },
-      ...(!checkStarting ? [{ label: 'Check draft', run: () => runChecks(checkProfile) }] : []),
+      ...(!checkStarting && !['queued', 'running', 'cancelling'].includes(job?.status) ? [{ label: 'Check draft', run: () => runChecks(checkProfile) }] : []),
       { label: 'Show check details', run: showValidation },
       { label: 'Review draft changes', run: () => openWorkspaceTask(null, 'studio-review-workflow-heading') },
     ]} />}
@@ -1682,9 +1715,9 @@ export default function ModellingStudio() {
     </form></details>
     <p role="status" aria-label="Studio connection status" className={snapshot ? "studio-sr-status" : undefined}>{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
 
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{error}</p>}{jobRestoreNotice && <p role="status">{jobRestoreNotice}</p>}
     {pendingSelection && <dialog ref={unsavedDialog} aria-labelledby="studio-unsaved-heading" className="studio-unsaved-dialog" onCancel={event => { event.preventDefault(); setPendingSelection(null); }}><h2 id="studio-unsaved-heading">Unapplied edits</h2><p>You have unapplied edits. Stay to apply them, or discard them and {pendingSelection.kind === 'disconnect' ? 'disconnect' : `open ${pendingSelection.name}`}.</p><button type="button" onClick={() => setPendingSelection(null)}>Stay and keep editing</button><button type="button" onClick={discardDefinitionAndSelect}>{pendingSelection.kind === 'disconnect' ? 'Discard and disconnect' : `Discard and open ${pendingSelection.name}`}</button></dialog>}
-    {snapshot && <fieldset className="studio-workspace" data-compact-surface={compactSurface} disabled={!online} onFocusCapture={event => { if (event.target.matches('input:not([type=checkbox]), textarea, select, [contenteditable=true]')) pauseFollowing(); }}><legend className="sr-only">Modelling workspace</legend><div className="studio-primary-actions">{commandPending && <span aria-live="polite">Saving model change…</span>}<div className="studio-check-action"><button type="button" onClick={() => runChecks(checkProfile)} disabled={checkStarting}>Check draft</button><label className="sr-only" htmlFor="studio-check-profile">Check profile</label><select id="studio-check-profile" value={checkProfile} onChange={event => setCheckProfile(event.target.value)} disabled={checkStarting} title="Choose the scope of checks"><option value="structural">Structural generation</option><option value="reference">Reference and negative fixtures</option><option value="audit">Business traceability audit</option><option value="acceptance">Release gates</option><option value="maintenance-demo">Synthetic maintenance fixture</option></select></div><button type="button" onClick={event => openWorkspaceTask(event, 'studio-review-workflow-heading')}>Review draft changes</button>{job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) && <button type="button" onClick={showValidation}>View check details</button>}{job && <span>Latest {job.profile} operation: {job.status}{job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest ? ' · out of date' : ''}</span>}</div><nav className="studio-destinations" aria-label="Workspace destinations"><a href="#studio-navigator-pane" onClick={event => { event.preventDefault(); openCompactPane('studio-navigator-pane'); }}>Model</a><a href="#studio-validation-heading" onClick={showValidation}>Checks</a><a href="#studio-activity-heading" onClick={event => openWorkspaceTask(event, 'studio-activity-heading')}>Activity</a><a href="#studio-review-workflow-heading" onClick={event => openWorkspaceTask(event, 'studio-review-workflow-heading')}>Review</a></nav><nav className="studio-mobile-navigation" aria-label="Workspace sections"><button type="button" aria-pressed={compactSurface === 'model'} onClick={() => openCompactPane('studio-navigator-pane')}>Model</button><button type="button" aria-pressed={compactSurface === 'diagram'} onClick={() => openCompactPane('studio-editor-pane')}>Diagram</button><button type="button" aria-pressed={compactSurface === 'inspector'} onClick={() => openCompactPane('studio-inspector-pane')}>Inspector</button><button type="button" aria-pressed={compactSurface === 'results'} onClick={showValidation} aria-controls="studio-bottom-content">Results</button></nav><div className="studio-panel-controls"><button type="button" aria-pressed={!hideNavigator} onClick={() => setHideNavigator(!hideNavigator)}>{hideNavigator ? 'Show navigator' : 'Hide navigator'}</button><button type="button" aria-pressed={!hideInspector} onClick={() => setHideInspector(!hideInspector)}>{hideInspector ? 'Show inspector' : 'Hide inspector'}</button><details className="studio-panel-sizing"><summary>Panel sizes</summary><label>Navigator width <input type="range" min="200" max="360" step="10" value={navigatorWidth} onChange={event => setNavigatorWidth(Number(event.target.value))} /><output>{navigatorWidth} px</output></label><label>Inspector width <input type="range" min="280" max="440" step="10" value={inspectorWidth} onChange={event => setInspectorWidth(Number(event.target.value))} /><output>{inspectorWidth} px</output></label><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); }}>Reset panel sizes</button><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); setDockHeight(Math.min(184, dockLimit)); setHideNavigator(false); setHideInspector(window.matchMedia('(min-width: 901px) and (max-width: 1399px)').matches); }}>Reset layout</button></details></div><div className="studio-panels" data-results-open={Boolean(dockPanel)} data-hide-navigator={hideNavigator} data-hide-inspector={hideInspector} style={{ '--navigator-width': navigatorWidth + 'px', '--inspector-width': inspectorWidth + 'px', '--results-height': dockHeight + 'px' }}><div className="studio-splitter studio-splitter-navigator" role="separator" aria-label="Resize navigator" aria-orientation="vertical" aria-controls="studio-navigator-pane" aria-valuemin={200} aria-valuemax={360} aria-valuenow={navigatorWidth} tabIndex={online ? 0 : -1} hidden={hideNavigator} onPointerDown={event => panePointerDown(event, 'navigator')} onPointerMove={panePointerMove} onPointerUp={() => { paneDrag.current = null; }} onPointerCancel={() => { paneDrag.current = null; }} onKeyDown={event => paneKeyDown(event, 'navigator')} /><div className="studio-splitter studio-splitter-inspector" role="separator" aria-label="Resize inspector" aria-orientation="vertical" aria-controls="studio-inspector-pane" aria-valuemin={280} aria-valuemax={440} aria-valuenow={inspectorWidth} tabIndex={online ? 0 : -1} hidden={hideInspector} onPointerDown={event => panePointerDown(event, 'inspector')} onPointerMove={panePointerMove} onPointerUp={() => { paneDrag.current = null; }} onPointerCancel={() => { paneDrag.current = null; }} onKeyDown={event => paneKeyDown(event, 'inspector')} />
+    {snapshot && <fieldset className="studio-workspace" data-compact-surface={compactSurface} disabled={!online} onFocusCapture={event => { if (event.target.matches('input:not([type=checkbox]), textarea, select, [contenteditable=true]')) pauseFollowing(); }}><legend className="sr-only">Modelling workspace</legend><div className="studio-primary-actions">{commandPending && <span aria-live="polite">Saving model change…</span>}<div className="studio-check-action"><button type="button" onClick={() => runChecks(checkProfile)} disabled={checkStarting || ['queued', 'running', 'cancelling'].includes(job?.status)}>Check draft</button><label className="sr-only" htmlFor="studio-check-profile">Check profile</label><select id="studio-check-profile" value={checkProfile} onChange={event => setCheckProfile(event.target.value)} disabled={checkStarting || ['queued', 'running', 'cancelling'].includes(job?.status)} title="Choose the scope of checks"><option value="structural">Structural generation</option><option value="reference">Reference and negative fixtures</option><option value="audit">Business traceability audit</option><option value="acceptance">Release gates</option><option value="maintenance-demo">Synthetic maintenance fixture</option></select></div><button type="button" onClick={event => openWorkspaceTask(event, 'studio-review-workflow-heading')}>Review draft changes</button>{job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) && <button type="button" onClick={showValidation}>View check details</button>}{job && <span>Latest {job.profile} operation: {job.status}{job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest ? ' · out of date' : ''}</span>}</div><nav className="studio-destinations" aria-label="Workspace destinations"><a href="#studio-navigator-pane" onClick={event => { event.preventDefault(); openCompactPane('studio-navigator-pane'); }}>Model</a><a href="#studio-validation-heading" onClick={showValidation}>Checks</a><a href="#studio-activity-heading" onClick={event => openWorkspaceTask(event, 'studio-activity-heading')}>Activity</a><a href="#studio-review-workflow-heading" onClick={event => openWorkspaceTask(event, 'studio-review-workflow-heading')}>Review</a></nav><nav className="studio-mobile-navigation" aria-label="Workspace sections"><button type="button" aria-pressed={compactSurface === 'model'} onClick={() => openCompactPane('studio-navigator-pane')}>Model</button><button type="button" aria-pressed={compactSurface === 'diagram'} onClick={() => openCompactPane('studio-editor-pane')}>Diagram</button><button type="button" aria-pressed={compactSurface === 'inspector'} onClick={() => openCompactPane('studio-inspector-pane')}>Inspector</button><button type="button" aria-pressed={compactSurface === 'results'} onClick={showValidation} aria-controls="studio-bottom-content">Results</button></nav><div className="studio-panel-controls"><button type="button" aria-pressed={!hideNavigator} onClick={() => setHideNavigator(!hideNavigator)}>{hideNavigator ? 'Show navigator' : 'Hide navigator'}</button><button type="button" aria-pressed={!hideInspector} onClick={() => setHideInspector(!hideInspector)}>{hideInspector ? 'Show inspector' : 'Hide inspector'}</button><details className="studio-panel-sizing"><summary>Panel sizes</summary><label>Navigator width <input type="range" min="200" max="360" step="10" value={navigatorWidth} onChange={event => setNavigatorWidth(Number(event.target.value))} /><output>{navigatorWidth} px</output></label><label>Inspector width <input type="range" min="280" max="440" step="10" value={inspectorWidth} onChange={event => setInspectorWidth(Number(event.target.value))} /><output>{inspectorWidth} px</output></label><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); }}>Reset panel sizes</button><button type="button" onClick={() => { setNavigatorWidth(240); setInspectorWidth(320); setDockHeight(Math.min(184, dockLimit)); setHideNavigator(false); setHideInspector(window.matchMedia('(min-width: 901px) and (max-width: 1399px)').matches); }}>Reset layout</button></details></div><div className="studio-panels" data-results-open={Boolean(dockPanel)} data-hide-navigator={hideNavigator} data-hide-inspector={hideInspector} style={{ '--navigator-width': navigatorWidth + 'px', '--inspector-width': inspectorWidth + 'px', '--results-height': dockHeight + 'px' }}><div className="studio-splitter studio-splitter-navigator" role="separator" aria-label="Resize navigator" aria-orientation="vertical" aria-controls="studio-navigator-pane" aria-valuemin={200} aria-valuemax={360} aria-valuenow={navigatorWidth} tabIndex={online ? 0 : -1} hidden={hideNavigator} onPointerDown={event => panePointerDown(event, 'navigator')} onPointerMove={panePointerMove} onPointerUp={() => { paneDrag.current = null; }} onPointerCancel={() => { paneDrag.current = null; }} onKeyDown={event => paneKeyDown(event, 'navigator')} /><div className="studio-splitter studio-splitter-inspector" role="separator" aria-label="Resize inspector" aria-orientation="vertical" aria-controls="studio-inspector-pane" aria-valuemin={280} aria-valuemax={440} aria-valuenow={inspectorWidth} tabIndex={online ? 0 : -1} hidden={hideInspector} onPointerDown={event => panePointerDown(event, 'inspector')} onPointerMove={panePointerMove} onPointerUp={() => { paneDrag.current = null; }} onPointerCancel={() => { paneDrag.current = null; }} onKeyDown={event => paneKeyDown(event, 'inspector')} />
       <section id="studio-navigator-pane" hidden={!isCompact && hideNavigator}><h2 tabIndex={-1}>Discover concepts</h2><form onSubmit={search}><label>Search model <input ref={searchInput} value={query} onChange={event => { searchSequence.current += 1; lastSearch.current = null; setQuery(event.target.value); setResults([]); setSearchDone(false); setSearchPending(false); }} /></label><button>Search</button></form>
         {!searchDone && !query && <div className="studio-browse"><h3>Browse concepts</h3>{!browse ? <p>Loading concepts…</p> : browse.error ? <p role="status">Browse unavailable: {browse.error}. Search remains available.</p> : <><label>Filter by module <select value={browse.module ?? ""} disabled={browsePending} onChange={event => browseModule(event.target.value)}><option value="">All modules</option>{browse.modules.map(item => <option key={item.name} value={item.name}>{item.name} ({item.count})</option>)}</select></label><p>Showing {browse.results.length} of {browse.total} concepts.</p><BrowseConceptTree browse={browse} connection={connection} revision={snapshot.revision} expandedNames={explorerExpansion[explorerScope] || []} onToggle={toggleExplorerConcept} pending={browsePending} selectedName={selected?.name} onBrowseModule={browseModule} onSelect={inspectFromNavigator} onOpen={openConceptView} />{browsePending && <p aria-live="polite">Loading concepts…</p>}{browse.nextCursor && <button type="button" disabled={browsePending} onClick={loadMoreConcepts}>Load more concepts</button>}</>}</div>}
         {query && <button type="button" onClick={() => { searchSequence.current += 1; lastSearch.current = null; setQuery(''); setResults([]); setSearchDone(false); setSearchPending(false); searchInput.current?.focus(); }}>Clear search</button>}{searchPending && <p aria-live="polite">Searching the current draft…</p>}{searchDone && <><p aria-live="polite">{results.length} matching concept{results.length === 1 ? '' : 's'} shown.</p><p>Search shows up to 25 matches. Refine the query or browse modules to explore more.</p></>}{searchDone && !results.length && <div className="studio-search-empty"><p>No matching concepts. Try a shorter or related term before creating a concept.</p><button type="button" onClick={openConceptCreator}>Create a new concept</button></div>}<ul>{results.map(item => <li key={item.name}><button type="button" title="Select to inspect; double-click or press Enter to focus its neighbourhood" aria-current={item.name === selected?.name ? 'true' : undefined} onClick={() => inspectFromNavigator(item)} onDoubleClick={() => openConceptView(item)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); openConceptView(item); } }}>{item.name}</button> <small>Class · {item.module}</small><p>{item.definition}</p></li>)}</ul><RequirementExplorer connection={connection} snapshot={snapshot} selected={selected} available={availableTools.includes('ontology_requirement_search')} canLink={availableTools.includes('ontology_changeset_apply') && snapshot.editableSources?.includes('requirements/business-requirements.json') && (!snapshot.changeSet || snapshot.changeSet.status === 'draft')} commandPending={commandPending} onInspect={name => selectPerspectiveConcept(name, { focusView: false })} onLink={linkRequirement} /><details className="studio-saved-views"><summary>Saved views</summary><p>Open a shared view without changing the ontology.</p>{savedViewsState.workspaceId !== connection.workspaceId || savedViewsState.status === 'loading' ? <p role="status">Loading saved views?</p> : savedViewsState.status === 'error' ? <><p role="status">Saved views are unavailable.</p><button type="button" onClick={() => setSavedViewsReload(value => value + 1)}>Retry saved views</button></> : savedViews.length ? <><ul>{savedViews.map(view => <li key={view.viewId}><button type="button" aria-current={view.viewId === viewId ? 'true' : undefined} onClick={() => openSavedView(view.viewId)}>Open shared view {view.viewId}</button> <small>revision {view.viewRevision}</small></li>)}</ul>{savedViewsState.truncated && <p>Only the first 100 saved views are shown.</p>}</> : <p>No shared views have been saved.</p>}</details></section>
