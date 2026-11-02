@@ -108,7 +108,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-activity, .studio-panels section { border-radius: .65rem; }
 .studio-panel-controls { margin: 1rem 0; }
 .studio-primary-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
-.studio-primary-actions button:first-child { background: #17665c; border-color: #55a991; }
+.studio-check-action { display: inline-flex; min-width: 0; max-width: 100%; }
+.modelling-studio .studio-check-action button { border-radius: .4rem 0 0 .4rem; background: #17665c; border-color: #55a991; }
+.modelling-studio .studio-check-action select { width: auto; max-width: min(12rem, 52vw); border-radius: 0 .4rem .4rem 0; }
 .studio-primary-actions span { color: #b8cbcc; font-size: .82rem; }
 .studio-destinations { display: flex; flex-wrap: wrap; gap: .25rem; margin: .5rem 0; border-bottom: 1px solid #30494e; }
 .studio-destinations a { display: inline-block; padding: .45rem .7rem; color: #b8cbcc; text-decoration: none; border-bottom: 2px solid transparent; }

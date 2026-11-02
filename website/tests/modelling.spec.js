@@ -1437,6 +1437,32 @@ test('draft comparison groups added and changed concepts with before and after',
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('check profile selects the scope sent to the shared service', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Check scope', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  let release, started;
+  const gate = new Promise(resolve => { release = resolve; });
+  const observed = new Promise(resolve => { started = resolve; });
+  const validationRunner = async (target, input, job) => { started(job.profile); await gate; target.updateJob(job.id, 'passed'); };
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', validationRunner, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const profile = page.getByLabel('Check profile');
+    await expect(profile).toHaveValue('structural');
+    await profile.selectOption('reference');
+    await page.getByRole('button', { name: 'Check draft', exact: true }).click();
+    expect(await observed).toBe('reference');
+    await expect(profile).toBeDisabled();
+    release();
+    await expect(profile).toBeEnabled();
+    await expect(page.getByText(/Latest reference operation: passed/)).toBeVisible();
+  } finally { release(); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('review gate evidence is cleared when checks start and finish', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Check evidence', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
