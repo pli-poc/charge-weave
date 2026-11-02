@@ -101,9 +101,11 @@ test('a delayed shared-view load cannot overwrite a newly selected view', async 
     await page.getByLabel('View ID').fill('other');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(page.getByText('other', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Close default view' })).toBeDisabled();
     const oldResponse = page.waitForResponse(response => response.url().endsWith('/mcp') && response.request().postDataJSON()?.params?.name === 'ontology_view_saved_get' && response.request().postDataJSON()?.params?.arguments?.viewId === 'default');
     release();
     await oldResponse;
+    await expect(page.getByRole('button', { name: 'Close default view' })).toBeEnabled();
     await expect(page.getByText('Shared view loaded.')).toHaveCount(0);
   } finally { release(); await page.close(); await service.shutdown(); store.close(); }
 });
@@ -248,7 +250,9 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     const views = page.getByRole('navigation', { name: 'Open diagram views' });
     await expect(views.getByRole('button', { name: 'other, local changes' })).toHaveAttribute('aria-current', 'page');
-    await expect(views.getByRole('button', { name: 'Close other view' })).toBeDisabled();
+    page.once('dialog', dialog => dialog.dismiss());
+    await views.getByRole('button', { name: 'Close other view' }).click();
+    await expect(page.getByText('Device: Local note')).toBeVisible();
     await views.getByRole('button', { name: 'default', exact: true }).click();
     await expect(node).toHaveAttribute('style', firstPosition);
     await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
@@ -262,6 +266,14 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await expect(page.getByText('Device: Local note')).toBeVisible();
     expect(store.savedView(workspace.id, 'other').viewRevision).toBe(1);
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    page.once('dialog', dialog => dialog.accept());
+    await views.getByRole('button', { name: 'Close other view' }).click();
+    await expect(views.getByRole('button', { name: 'Close other view' })).toHaveCount(0);
+    await expect(views.getByRole('button', { name: 'default', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(views.getByRole('button', { name: 'default', exact: true })).toBeFocused();
+    expect(store.savedView(workspace.id, 'other').viewRevision).toBe(1);
+    expect(await page.evaluate(id => sessionStorage.getItem(`chargeweave.canvas.v2.${id}.other`), workspace.id)).toBeNull();
+    expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(false);
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
