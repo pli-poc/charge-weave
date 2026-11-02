@@ -24,6 +24,6 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 
 ## Local integration check
 
-On implementation commit `a59243c42cae971a87eae77c683e5b769950a451`, the full desktop `website/tests/modelling.spec.js` suite completed with **33 passed and one mobile-only test skipped**. The mobile relationship/navigation scenario also passed separately during implementation. These tests used isolated synthetic workspaces; the publication scenario was simulated.
+On implementation commit `e35a13bdf493458219cbdecb38aec74f1e71b690`, the full desktop and mobile `website/tests/modelling.spec.js` suite completed with **68 passed and six project-specific skips**. These tests used isolated synthetic workspaces; the publication scenario was simulated.
 
-The three pull-request workflows for that exact commit were queued or pending when inspected. Local results do not establish GitHub verification, real publication or independent usability acceptance. Subsequent changes require their own verification.
+The three pull-request workflows for that exact commit were running or queued when inspected. Local results do not establish GitHub verification, real publication or independent usability acceptance. Subsequent changes require their own verification.
