@@ -6,7 +6,7 @@ self.onmessage = async event => {
   try {
     const result = await elk.layout({
       id: 'workspace',
-      layoutOptions: { 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT', 'elk.spacing.nodeNode': '40', 'elk.layered.spacing.nodeNodeBetweenLayers': '100' },
+      layoutOptions: { 'elk.algorithm': 'layered', 'elk.direction': 'RIGHT', 'elk.spacing.nodeNode': '40', 'elk.layered.spacing.nodeNodeBetweenLayers': '280' },
       children: nodes.map(id => ({ id, width: 190, height: 64 })),
       edges: edges.map(edge => ({ id: edge.id, sources: [edge.source], targets: [edge.target] })),
     });
