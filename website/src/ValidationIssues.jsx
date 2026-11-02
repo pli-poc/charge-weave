@@ -17,11 +17,16 @@ const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maint
 export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept }) {
   const [copyMessage, setCopyMessage] = useState('');
   const [filter, setFilter] = useState('');
+  const [expanded, setExpanded] = useState(true);
   useEffect(() => { setFilter(''); setCopyMessage(''); }, [job?.id]);
+  useEffect(() => { if (job?.status === 'failed') setExpanded(true); }, [job?.id, job?.status]);
   if (!job || ['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile)) return <section className="studio-activity studio-validation-dock" aria-label="Validation issues">
     <h2 id="studio-validation-heading" tabIndex={-1}>Validation issues</h2>
+    <button type="button" aria-expanded={expanded} aria-controls="studio-validation-content" onClick={() => setExpanded(!expanded)}>{expanded ? 'Collapse validation' : 'Expand validation'}</button>
+    <div id="studio-validation-content" hidden={!expanded}>
     <p>No validation result is displayed for this draft. Run a structural check to inspect it.</p>
     <button type="button" onClick={() => onRetry('structural')}>Run structural check</button>
+    </div>
   </section>;
   const stale = job.revision !== snapshot.revision || job.digest !== snapshot.sourceDigest;
   const failed = (job.steps || []).filter(step => step.status === 'failed');
@@ -35,6 +40,8 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
   }
   return <section className="studio-activity studio-validation-dock" aria-label="Validation issues">
     <h2 id="studio-validation-heading" tabIndex={-1}>Validation issues</h2>
+    <button type="button" aria-expanded={expanded} aria-controls="studio-validation-content" onClick={() => setExpanded(!expanded)}>{expanded ? 'Collapse validation' : 'Expand validation'}</button>
+    <div id="studio-validation-content" hidden={!expanded}>
     <p>{job.profile} check at revision {job.revision}: {job.status}{stale ? ' — stale for the current draft' : ''}.</p>
     {!issues.length && <p>{job.status === 'passed' ? 'No failed steps in this job. Other required checks may still be missing.' : 'No failed step has been reported.'}</p>}
     {issues.length > 0 && <><label>Filter failed checks <input value={filter} onChange={event => setFilter(event.target.value)} placeholder="Check name or recorded output" /></label><p aria-live="polite">Showing {visibleIssues.length} of {issues.length} failed checks{term ? ' matching the filter' : ''}.</p></>}
@@ -47,5 +54,6 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
     </article>)}
     {copyMessage && <p aria-live="polite">{copyMessage}</p>}
     {['failed', 'cancelled', 'interrupted'].includes(job.status) && <button type="button" onClick={() => onRetry(job.profile)}>Retry {job.profile} check on current draft</button>}
+    </div>
   </section>;
 }

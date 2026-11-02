@@ -29,6 +29,10 @@ test('navigator search refreshes when another client changes the draft', async (
     const validation = page.getByRole('region', { name: 'Validation issues' });
     await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
+    await validation.getByRole('button', { name: 'Collapse validation' }).click();
+    await expect(validation.getByRole('button', { name: 'Run structural check', includeHidden: true })).toBeHidden();
+    await workspaceStatus.getByRole('link', { name: 'Checks: no result displayed' }).click();
+    await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeVisible();
     await page.getByRole('button', { name: 'Hide navigator' }).click();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Search model')).toBeFocused();
@@ -1110,6 +1114,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Collapse validation' }).click();
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
