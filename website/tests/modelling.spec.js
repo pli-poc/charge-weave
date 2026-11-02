@@ -640,6 +640,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     expect(connectionDetails).not.toContain(token);
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download evidence report' }).click();
+    const download = await downloadPromise;
+    const report = JSON.parse(readFileSync(await download.path(), 'utf8'));
+    expect(report.workspaceId).toBe(workspace.id); expect(report.status).toBe('passed');
+    expect(report.steps).toEqual([{ checkName: 'tools/build.py', status: 'passed' }]);
     await page.getByRole('button', { name: 'Run reference checks' }).click();
     await expect(page.getByRole('heading', { name: 'Generated artifact comparison' })).toBeVisible();
     await expect(page.getByText('changed: ontology/example.ttl')).toBeVisible();

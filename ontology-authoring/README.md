@@ -6,6 +6,8 @@ Set `CHARGEWEAVE_ALLOW_WORKSPACE_CREATE=1` to let reviewer sessions create a wor
 
 The loopback-only `GET /health` endpoint returns a minimal service name, version and liveness status without workspace data or credentials. It does not establish that validation or GitHub access is working. Host and browser-origin restrictions still apply.
 
+The studio can download a bounded JSON evidence report for a completed job. The authenticated report identifies its workspace, baseline, revision, source digest, outcome, freshness and step statuses; it excludes raw check output. Freshness is evaluated when the report is downloaded, so a saved report cannot establish that a later draft is unchanged. It is not independent acceptance evidence or publication authorization.
+
 `property.update` edits a declared field only when its expected range and cardinality match the current source. Shared property kinds and datatype ranges must remain consistent. The change review marks range changes and tightened cardinalities as potentially breaking; relaxed constraints also require review. These classifications are warnings, not evidence that existing data or consumers remain compatible. Add or update fixtures and run the appropriate checks before acceptance.
 
 `ontology_changeset_apply` accepts an optional caller-supplied `rationale` for the whole command group. Successful new groups return a stable `commandGroupId` and record the reason and operation ID in activity history. Retrying the same request returns the same receipt; changing the reason requires a new operation ID. Historical entries created before this metadata was recorded may not have it.

@@ -141,6 +141,23 @@ test('loopback MCP transport authenticates and shares state', async () => {
     assert.match(chunk, /"previousSequence":0/);
     assert.match(chunk, /NetworkExample/);
     controller.abort();
+    const current = store.get(workspace.id);
+    const reportJob = store.createJob(workspace.id, current.revision, current.sourceDigest, 'test', 'evidence-report').job;
+    const reportUrl = new URL(`/api/jobs/${reportJob.id}/artifacts/evidence.json?workspaceId=${workspace.id}`, url);
+    assert.equal((await fetch(reportUrl)).status, 401);
+    assert.equal((await fetch(reportUrl, { headers: { authorization: `Bearer ${token}` } })).status, 404);
+    store.updateJob(reportJob.id, 'passed', 'private diagnostic output');
+    const reportResponse = await fetch(reportUrl, { headers: { authorization: `Bearer ${token}` } });
+    assert.equal(reportResponse.status, 200);
+    const reportText = await reportResponse.text();
+    const evidence = JSON.parse(reportText);
+    assert.equal(evidence.workspaceId, workspace.id); assert.equal(evidence.evidenceId, reportJob.id);
+    assert.equal(evidence.sourceDigest, current.sourceDigest); assert.equal(evidence.status, 'passed');
+    assert.equal(reportText.includes('private diagnostic output'), false);
+    store.apply({ workspaceId: workspace.id, actor: 'test', operationId: 'evidence-stale', expectedRevision: current.revision, commands: [{ type: 'class.describe', name: 'Record', definition: 'An updated record.' }] });
+    assert.equal((await (await fetch(reportUrl, { headers: { authorization: `Bearer ${token}` } })).json()).stale, true);
+    reportUrl.searchParams.set('workspaceId', other.id);
+    assert.equal((await fetch(reportUrl, { headers: { authorization: `Bearer ${token}` } })).status, 403);
     await reviewer.close();
     for (const client of clients) await client.close();
   } finally { await service.shutdown(); store.close(); }

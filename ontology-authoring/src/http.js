@@ -91,6 +91,18 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
     if (url.pathname === '/session' && req.method === 'DELETE' && cookieAuthorized) {
       pairing.revoke(sessionId); res.writeHead(204, { 'Set-Cookie': 'cw_studio=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0', 'Cache-Control': 'no-store' }).end(); return;
     }
+    const report = /^\/api\/jobs\/([0-9a-f-]{36})\/artifacts\/evidence\.json$/i.exec(url.pathname);
+    if (report && req.method === 'GET') {
+      const requestedWorkspace = url.searchParams.get('workspaceId');
+      if (!grantedWorkspaces.has(requestedWorkspace)) { res.writeHead(403).end('Workspace not authorized'); return; }
+      try {
+        const evidence = store.evidence(requestedWorkspace, report[1]);
+        const body = JSON.stringify({ contractVersion: 'chargeweave-evidence-v1', workspaceId: requestedWorkspace, evidenceId: evidence.id, baselineCommit: evidence.baselineCommit, revision: evidence.revision, sourceDigest: evidence.digest, profile: evidence.profile, status: evidence.status, stale: evidence.stale, scope: evidence.scope, completeAcceptanceEvidence: evidence.completeAcceptanceEvidence, steps: evidence.steps.map(({ checkName, status }) => ({ checkName, status })) });
+        if (Buffer.byteLength(body) > 1024 * 1024) throw new Error('Evidence report too large');
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="chargeweave-evidence.json"', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(body);
+      } catch { res.writeHead(404).end('Evidence unavailable'); }
+      return;
+    }
     if (url.pathname === '/events' && req.method === 'GET') {
       const requestedWorkspace = url.searchParams.get('workspaceId');
       const cursor = req.headers['last-event-id'] ?? url.searchParams.get('after') ?? '0';
