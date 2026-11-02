@@ -1349,7 +1349,23 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
-    await page.getByLabel('Set explicit temporal policy').selectOption('immutable-aggregate');
+    await expect(page.getByLabel('Set explicit temporal policy')).toBeVisible();
+    let releaseTemporal, interceptedTemporal;
+    const temporalGate = new Promise(resolve => { releaseTemporal = resolve; });
+    const temporalIntercepted = new Promise(resolve => { interceptedTemporal = resolve; });
+    const delayTemporal = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_temporal_view_get') { interceptedTemporal(); await temporalGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayTemporal);
+    try {
+      await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+      await temporalIntercepted;
+      await page.getByLabel('Set explicit temporal policy').selectOption('immutable-aggregate');
+      const oldResponse = page.waitForResponse(response => response.request().postDataJSON()?.params?.name === 'ontology_temporal_view_get');
+      releaseTemporal(); await oldResponse;
+      await expect(page.getByLabel('Set explicit temporal policy')).toHaveValue('immutable-aggregate');
+    } finally { releaseTemporal(); await page.unroute('**/mcp', delayTemporal); }
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
