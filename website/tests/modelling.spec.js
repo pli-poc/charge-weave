@@ -785,6 +785,13 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Interval start').selectOption('maintenanceStartsAt');
     await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
     await page.getByLabel('New rule ID').fill('B900');
+    expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await expect(page.getByLabel('New rule ID')).toHaveValue('B900');
     let releaseRule, interceptedRule;
     const ruleGate = new Promise(resolve => { releaseRule = resolve; });
     const ruleIntercepted = new Promise(resolve => { interceptedRule = resolve; });

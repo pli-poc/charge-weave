@@ -527,7 +527,8 @@ export default function ModellingStudio() {
     const editedField = fieldEditRef.current;
     return Boolean((selected && definitionRef.current !== selected.definition)
       || (editedField && (editedField.range !== editedField.expectedRange || editedField.cardinality !== editedField.expectedCardinality))
-      || field.name.trim() || field.range !== 'string' || field.cardinality !== '?' || relationshipDraft);
+      || field.name.trim() || field.range !== 'string' || field.cardinality !== '?' || relationshipDraft
+      || intervalRule.startProperty || intervalRule.endProperty || intervalRule.ruleId.trim());
   }
   function hasUnsavedWorkspaceEdits() {
     return Boolean(hasUnsavedInspectorEdits() || newClass.name.trim() || newClass.definition.trim());
@@ -541,7 +542,7 @@ export default function ModellingStudio() {
     }
     window.addEventListener('beforeunload', warnBeforeLeaving);
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
-  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, newClass.name, newClass.definition]);
+  }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, intervalRule, newClass.name, newClass.definition]);
   const activeViewKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
   if (viewContextKey.current !== activeViewKey) { viewContextKey.current = activeViewKey; viewContext.current += 1; }
   function focusViewRoot(name) {
@@ -574,7 +575,7 @@ export default function ModellingStudio() {
   }
   function discardDefinitionAndSelect() {
     if (!pendingSelection) return;
-    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null);
+    setFieldEdit(null); setField({ name: '', range: 'string', cardinality: '?' }); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' });
     if (['workspace-switch', 'disconnect'].includes(pendingSelection.kind)) setNewClass({ name: '', module: 'foundation', parent: 'Record', definition: '' });
     if (pendingSelection.kind === 'disconnect') {
       setPendingSelection(null);
