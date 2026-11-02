@@ -27,3 +27,23 @@ Desktop and mobile currently both use Chromium. Firefox, WebKit, additional
 viewport sizes and scheduled stress or performance checks are not configured by
 this workflow; they need browser-specific validation before becoming gates.
 The existing full suites cover more cases than this smoke matrix.
+
+## Parallel authoring checks
+
+The existing **Ontology authoring** workflow runs its two long reference
+scenarios as independent jobs, in parallel with the remaining authoring suite.
+The check named `test` succeeds only when both the remaining suite and the
+complete reference matrix succeed; failures, cancellations and skipped jobs
+do not satisfy it. Each reference job verifies that exactly one named test
+passed, so a changed test name cannot silently produce a green job with no
+coverage. All authoring jobs check out the pull-request head commit explicitly.
+
+This is a candidate speedup, not a measured end-to-end improvement. A previous
+successful run spent approximately 326 and 325 seconds on these two scenarios
+sequentially, but the separate interval-template scenario took longer than
+the authoring suite. Compare wall time, runner queueing and Actions consumption
+after the new workflow has run. The focused modelling matrix still duplicates
+some checks while its coverage is assessed; it does not replace the full
+authoring or protected website gates. Branch-protection requirements need
+administrator verification before changing required check names or retiring a
+workflow.
