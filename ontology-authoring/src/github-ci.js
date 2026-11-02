@@ -1,14 +1,16 @@
 const repo = 'pli-poc/charge-weave';
 
-// Public, fixed-repository lookup only. Workflow success is not proof that
+// Fixed-repository lookup only. Workflow success is not proof that
 // branch-protection-required checks are known or that a deployment occurred.
-export async function githubCommitWorkflows(sha, fetcher = fetch) {
+export async function githubCommitWorkflows(sha, fetcher = fetch, token = null) {
   if (!/^[a-f0-9]{40}$/.test(sha ?? '')) throw new Error('A full lowercase commit SHA is required');
   const workflows = [];
   try {
     for (let page = 1; page <= 5; page++) {
       const url = `https://api.github.com/repos/${repo}/actions/runs?head_sha=${sha}&per_page=100&page=${page}`;
-      const response = await fetcher(url, { headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'ChargeWeave-ontology-studio', 'X-GitHub-Api-Version': '2022-11-28' }, signal: AbortSignal.timeout(15000), redirect: 'error' });
+      const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'ChargeWeave-ontology-studio', 'X-GitHub-Api-Version': '2022-11-28' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetcher(url, { headers, signal: AbortSignal.timeout(15000), redirect: 'error' });
       if (!response.ok) return { sha, status: 'unavailable', workflows: [], reason: response.status === 403 || response.status === 429 ? 'GitHub denied or rate-limited the lookup.' : 'GitHub workflow lookup failed.' };
       const data = await response.json();
       if (!data || !Array.isArray(data.workflow_runs) || data.workflow_runs.length > 100) throw new Error('Invalid GitHub response');

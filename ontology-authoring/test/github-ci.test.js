@@ -57,3 +57,15 @@ test('workflow lookup paginates and refuses to call a truncated list complete', 
   assert.equal(truncated.status, 'incomplete');
   assert.equal(truncated.workflows.length, 500);
 });
+
+test('workflow lookup uses an optional configured credential only in the request', async () => {
+  const token = 'synthetic-github-token';
+  const result = await githubCommitWorkflows(sha, async (url, options) => {
+    assert.match(url, /^https:\/\/api\.github\.com\/repos\/pli-poc\/charge-weave\/actions\/runs\?/);
+    assert.equal(options.headers.Authorization, `Bearer ${token}`);
+    assert.equal(options.redirect, 'error');
+    return { ok: true, json: async () => ({ workflow_runs: [run(9, 'completed', 'success')] }) };
+  }, token);
+  assert.equal(result.status, 'passed');
+  assert.equal(JSON.stringify(result).includes(token), false);
+});
