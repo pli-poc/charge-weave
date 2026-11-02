@@ -103,6 +103,8 @@ export default function ModellingStudio() {
   const [graph, setGraph] = useState(null);
   const [savedViewRevision, setSavedViewRevision] = useState(null);
   const [viewId, setViewId] = useState('default');
+  const viewContext = useRef(0);
+  const viewContextKey = useRef(null);
   const [viewIdInput, setViewIdInput] = useState('default');
   const [savedViews, setSavedViews] = useState([]);
   const [viewLoaded, setViewLoaded] = useState(false);
@@ -508,6 +510,8 @@ export default function ModellingStudio() {
     window.addEventListener('beforeunload', warnBeforeLeaving);
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
   }, [connection, selected?.name, selected?.definition, definition, fieldEdit, field, relationshipDraft, newClass.name, newClass.definition]);
+  const activeViewKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
+  if (viewContextKey.current !== activeViewKey) { viewContextKey.current = activeViewKey; viewContext.current += 1; }
   function focusViewRoot(name) {
     setViewRoot(name);
     setRootHistory(previous => {
@@ -670,22 +674,30 @@ export default function ModellingStudio() {
   }
   async function saveLayout() {
     setViewNotice('');
+    const context = viewContext.current;
     try {
       const positions = readCanvasPositions(sessionStorage, connection.workspaceId, viewId, { strict: true });
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_save', arguments: { workspaceId: connection.workspaceId, viewId, operationId: crypto.randomUUID(), expectedViewRevision: savedViewRevision, definition: { root: viewRoot, positions, ...viewMetadata, groups: viewGroups, annotations: viewAnnotations } } });
+      if (context !== viewContext.current) return;
       setSavedViewRevision(response.structuredContent.viewRevision); setViewNotice('Shared view saved.');
-      const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } }); setSavedViews(listing.structuredContent.views);
-    } catch (problem) { setViewNotice(`Could not save view: ${problem.message}. Load the shared view to refresh its revision.`); }
+      const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } });
+      if (context === viewContext.current) setSavedViews(listing.structuredContent.views);
+    } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not save view: ${problem.message}. Load the shared view to refresh its revision.`); }
   }
   async function loadLayout() {
     setViewNotice('');
+    const context = viewContext.current;
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_get', arguments: { workspaceId: connection.workspaceId, viewId } });
+      if (context !== viewContext.current) return;
       const saved = response.structuredContent; setSavedViewRevision(saved.viewRevision);
       if (!saved.definition) { setViewNotice('No shared view has been saved.'); return; }
-      if (await selectPerspectiveConcept(saved.definition.root)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setViewLoaded(true); setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
+      const entity = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name: saved.definition.root, expectedRevision: snapshot.revision } });
+      if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) return;
+      pauseFollowing();
+      if (selectConcept(entity.structuredContent.entity)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setViewLoaded(true); setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
       else setViewNotice('The saved view was not loaded. Resolve any unapplied inspector edits and try again.');
-    } catch (problem) { setViewNotice(`Could not load view: ${problem.message}`); }
+    } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not load view: ${problem.message}`); }
   }
   async function exportView() {
     setViewNotice('');
