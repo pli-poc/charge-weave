@@ -397,6 +397,15 @@ test('desktop panel sizes can be adjusted with the keyboard and restored', async
     await page.mouse.move(inspectorHandle.x + inspectorHandle.width / 2, inspectorHandle.y + 30);
     await page.mouse.down(); await page.mouse.move(inspectorHandle.x + inspectorHandle.width / 2 - 30, inspectorHandle.y + 30, { steps: 4 }); await page.mouse.up();
     await expect(inspector).toHaveAttribute('aria-valuenow', '350');
+    await page.getByRole('button', { name: 'Hide inspector' }).click();
+    await expect(splitter).toBeVisible();
+    await splitter.focus(); await page.keyboard.press('ArrowRight');
+    await expect(splitter).toHaveAttribute('aria-valuenow', '280');
+    await page.getByRole('button', { name: 'Show inspector' }).click();
+    await page.getByRole('button', { name: 'Hide navigator' }).click();
+    await expect(inspector).toBeVisible();
+    await inspector.focus(); await page.keyboard.press('ArrowLeft');
+    await expect(inspector).toHaveAttribute('aria-valuenow', '360');
     await page.getByRole('button', { name: 'Reset panel sizes' }).click();
     await expect(page.getByLabel('Navigator width')).toHaveValue('240');
   } finally { await page.close(); await service.shutdown(); store.close(); }
