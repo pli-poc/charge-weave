@@ -205,8 +205,13 @@ export default function ModellingStudio() {
   useEffect(() => {
     function shortcut(event) {
       const editing = event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable=true]');
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !editing && searchInput.current && !searchInput.current.disabled) {
-        event.preventDefault(); searchInput.current.focus();
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !editing && searchInput.current && !searchInput.current.matches(':disabled')) {
+        event.preventDefault();
+        setHideNavigator(false);
+        requestAnimationFrame(() => {
+          searchInput.current?.scrollIntoView({ block: 'nearest' });
+          searchInput.current?.focus();
+        });
       }
     }
     window.addEventListener('keydown', shortcut);

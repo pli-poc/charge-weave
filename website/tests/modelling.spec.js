@@ -25,6 +25,9 @@ test('navigator search refreshes when another client changes the draft', async (
     const validation = page.getByRole('region', { name: 'Validation issues' });
     await expect(validation.getByText('No validation result is displayed for this draft.', { exact: false })).toBeVisible();
     await expect(validation.getByRole('button', { name: 'Run structural check' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Hide navigator' }).click();
+    await page.keyboard.press('Control+k');
+    await expect(page.getByLabel('Search model')).toBeFocused();
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText('Original device.')).toBeVisible();
