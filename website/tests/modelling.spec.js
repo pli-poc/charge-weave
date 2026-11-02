@@ -355,7 +355,22 @@ test('concept creation offers existing modules and validates its definition', as
     await expect(page.getByRole('alert')).toContainText('single line');
     expect(store.get(workspace.id).revision).toBe(0);
     await page.getByLabel('Class definition').fill('A service window.');
-    await page.getByRole('button', { name: 'Add concept', exact: true }).click();
+    let releaseCommand, interceptedCommand;
+    const commandGate = new Promise(resolve => { releaseCommand = resolve; });
+    const commandIntercepted = new Promise(resolve => { interceptedCommand = resolve; });
+    const delayCommand = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_apply') { interceptedCommand(); await commandGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayCommand);
+    try {
+      await page.getByRole('button', { name: 'Add concept', exact: true }).click();
+      await commandIntercepted;
+      await expect(page.getByRole('button', { name: 'Add concept', exact: true })).toBeDisabled();
+      await expect(page.getByText('Saving model change…')).toBeVisible();
+      releaseCommand();
+      await expect(page.getByRole('status')).toContainText('revision 1');
+    } finally { releaseCommand(); await page.unroute('**/mcp', delayCommand); }
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.search(workspace.id, 'ServiceWindow').results[0]).toMatchObject({ module: 'assets', parent: 'ZDevice' });
     await expect(page.getByRole('heading', { name: 'ServiceWindow', exact: true })).toBeVisible();
