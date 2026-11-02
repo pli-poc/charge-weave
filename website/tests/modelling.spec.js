@@ -108,6 +108,62 @@ test('unreadable local layout is not silently overwritten by automatic placement
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('explorer finds and links a requirement to the selected concept', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n';
+  const requirements = JSON.stringify([{ id: 'BR-001', statement: 'Track the record.', classes: ['Record'], rules: [] }], null, 2) + '\n';
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const manifest = [
+    { path: 'model/domain.schema', sha256: hash(schema) },
+    { path: 'requirements/business-requirements.json', sha256: hash(requirements) },
+    { path: 'tools/authoring_adapter.py', sha256: hash(readFileSync(new URL('../../tools/authoring_adapter.py', import.meta.url))) },
+    { path: 'tools/domain_schema.py', sha256: hash(readFileSync(new URL('../../tools/domain_schema.py', import.meta.url))) },
+  ];
+  const workspace = store.create({ title: 'Requirement explorer', baselineCommit: 'a'.repeat(40), schema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    const explorer = page.locator('details.studio-requirement-explorer');
+    await explorer.getByText('Requirements', { exact: true }).click();
+    await explorer.getByLabel('Find requirements').fill('BR-001');
+    await explorer.getByRole('button', { name: 'Find requirements' }).click();
+    await expect(explorer).toContainText('Track the record.');
+    await expect(explorer).toContainText('search returns up to 20');
+    await explorer.getByRole('button', { name: 'Link Device' }).click();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    await explorer.getByRole('button', { name: 'Find requirements' }).click();
+    await expect(explorer.getByRole('button', { name: 'Linked to Device' })).toBeDisabled();
+    expect(store.requirementsSearch(workspace.id, 'BR-001', 20, 1).results[0].classes).toContain('Device');
+    let release, intercepted;
+    const gate = new Promise(resolve => { release = resolve; });
+    const observed = new Promise(resolve => { intercepted = resolve; });
+    const delay = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_requirement_search') {
+        const response = await route.fetch(); intercepted(); await gate;
+        await route.fulfill({ response }).catch(() => {});
+      } else await route.continue();
+    };
+    await page.route('**/mcp', delay);
+    try {
+      await explorer.getByRole('button', { name: 'Find requirements' }).click();
+      await observed;
+      store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-requirement-context', expectedRevision: 1, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+      await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 2');
+    } finally { release(); await page.unroute('**/mcp', delay); }
+    await expect(explorer.getByText('Track the record.')).toHaveCount(0);
+    await explorer.getByRole('button', { name: 'Find requirements' }).click();
+    await expect(explorer.getByRole('button', { name: 'Linked to Device' })).toBeDisabled();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('saved views open from the explorer and preserve local view changes', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Saved views', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });

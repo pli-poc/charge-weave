@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, applyNodeChanges } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
@@ -14,6 +14,7 @@ const ConceptNode = memo(function ConceptNode({ data }) {
       <div className="studio-concept-heading"><span className="studio-concept-kind">CLASS</span><strong title={data.label}>{data.label}</strong></div>
       <div className="studio-concept-module">{data.module || 'Ontology concept'}</div>
       {['added', 'changed'].includes(data.changeStatus) && <div className="studio-concept-change">{data.changeStatus === 'added' ? 'Added in draft' : 'Changed in draft'}</div>}
+      {data.layoutSelected && <span className="studio-concept-layout-selected">Selected for layout</span>}
       {fields.length > 0 && <ul>{fields.slice(0, 3).map((field, index) => <li key={`${field}-${index}`} title={field}>{field}</li>)}</ul>}
       {fields.length > 3 && <span className="studio-concept-more">+{fields.length - 3} fields</span>}
     </div>
@@ -32,6 +33,7 @@ const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
+  const [layoutSelection, setLayoutSelection] = useState(() => new Set());
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
   const [layoutAttempt, setLayoutAttempt] = useState(0);
@@ -125,6 +127,42 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   useEffect(() => {
     setSelectedEdgeId(id => id && !graph.edges.some(edge => edge.id === id) ? '' : id);
   }, [graph.edges]);
+  useEffect(() => {
+    const visible = new Set(graph.nodes.map(node => node.name));
+    setLayoutSelection(previous => {
+      const retained = [...previous].filter(name => visible.has(name));
+      return retained.length === previous.size ? previous : new Set(retained);
+    });
+  }, [graph.nodes]);
+  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id) } })), [nodes, layoutSelection]);
+  function toggleLayoutSelection(name) {
+    if (!graph.nodes.some(node => node.name === name)) return;
+    onManualInteraction();
+    setLayoutSelection(previous => {
+      const next = new Set(previous);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+  function alignLayoutSelection(axis) {
+    if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current) return;
+    const names = [...layoutSelection].filter(name => graph.nodes.some(node => node.name === name) && positions.current[name]);
+    if (names.length < 2) return;
+    const coordinate = Math.min(...names.map(name => positions.current[name][axis]));
+    const next = { ...positions.current };
+    let changed = false;
+    for (const name of names) {
+      const point = positions.current[name];
+      if (point[axis] !== coordinate) { next[name] = { ...point, [axis]: coordinate }; changed = true; }
+    }
+    if (!changed) { setLayoutNotice(`Selected concepts are already aligned ${axis === 'x' ? 'left' : 'at the top'}.`); return; }
+    try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next); }
+    catch { setLayoutNotice('Could not store the alignment. No positions were changed.'); return; }
+    positions.current = next;
+    setNodes(current => current.map(node => names.includes(node.id) ? { ...node, position: next[node.id] } : node));
+    onManualInteraction(); onLayoutChange();
+    setLayoutNotice(`Aligned ${names.length} concepts locally. Save the shared view to share this layout.`);
+  }
   const selectedEdge = graph.edges.find(edge => edge.id === selectedEdgeId) ?? null;
   function inspectEdge(id) {
     if (id && !graph.edges.some(edge => edge.id === id)) return;
@@ -194,16 +232,24 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
   return <><div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
+    onMouseDownCapture={event => {
+      if (!event.shiftKey || event.button !== 0) return;
+      const node = event.target.closest?.('.react-flow__node[data-id]');
+      if (node) { event.preventDefault(); event.stopPropagation(); toggleLayoutSelection(node.dataset.id); }
+    }}
+    onClickCapture={event => {
+      if (event.shiftKey && event.target.closest?.('.react-flow__node[data-id]')) { event.preventDefault(); event.stopPropagation(); }
+    }}
     onKeyDownCapture={event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
-      if (node) { event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id }); return; }
+      if (node) { event.preventDefault(); event.stopPropagation(); if (event.shiftKey) toggleLayoutSelection(node.dataset.id); else { onManualInteraction(); selectNode({ id: node.dataset.id }); } return; }
       const edge = event.target.closest?.('.react-flow__edge[data-id]');
       if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
-    <details ref={layoutMenu} className="studio-canvas-layout-menu"><summary>Layout</summary><p>Arrange the visible concepts automatically. Existing positions in this view will move; hidden concepts are unchanged.</p><button type="button" disabled={layoutState !== 'ready'} onClick={arrangeVisible}>Arrange visible concepts</button>{layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout…'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}</details>
-    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <details ref={layoutMenu} className="studio-canvas-layout-menu"><summary>Layout</summary><p>Arrange the visible concepts automatically. Existing positions in this view will move; hidden concepts are unchanged.</p><button type="button" disabled={layoutState !== 'ready'} onClick={arrangeVisible}>Arrange visible concepts</button>{layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout…'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}<details><summary>Align selected concepts</summary><p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment changes only this view and may overlap cards.</p><fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{graph.nodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}</label>)}</fieldset><p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>{layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning concepts.</p>}<div className="studio-canvas-edge-actions"><button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded} onClick={() => alignLayoutSelection('x')}>Align left</button><button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded} onClick={() => alignLayoutSelection('y')}>Align top</button><button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button></div></details></details>
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => {
         instance.current = value;
         const root = positions.current[graph.root];

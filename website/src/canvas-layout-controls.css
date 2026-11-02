@@ -14,6 +14,13 @@
 .studio-canvas-layout-menu summary { cursor: pointer; font-weight: 700; }
 .studio-canvas-layout-menu p { margin: .5rem 0; font-size: .8rem; line-height: 1.4; }
 .studio-canvas-layout-menu button { margin: .25rem .25rem .25rem 0; }
+.studio-canvas-layout-menu[open] { max-height: min(26rem, calc(100% - 1rem)); overflow: auto; }
+.studio-canvas-layout-menu .studio-layout-choices { max-height: 8rem; overflow: auto; margin: .4rem 0; padding: .3rem .5rem; border: 1px solid #93aaa7; }
+.studio-canvas-layout-menu .studio-layout-choices legend { font-size: .78rem; font-weight: 700; }
+.modelling-studio .studio-canvas-layout-menu .studio-layout-choice { display: flex; align-items: center; gap: .4rem; margin: .25rem 0; color: #183a39; font-size: .8rem; }
+.modelling-studio .studio-canvas-layout-menu .studio-layout-choice input { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; }
+.studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
+.studio-concept-layout-selected { display: block; color: #4d2686; font-size: 10px; font-weight: 700; }
 .studio-flow:has(.studio-canvas-layout-menu) .studio-layout-notice { max-width: min(32rem, calc(100% - 6.5rem)); }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
 .studio-canvas-edge-picker { margin: .75rem 0; }
