@@ -1170,7 +1170,22 @@ test('browser maps an existing responsibility relationship without inventing one
     expect(store.get(workspace.id).schema).toBe(source);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText(/Accountable party: owner → Record/)).toBeVisible();
-    await page.getByRole('button', { name: 'Undo latest command group' }).click();
+    let releaseUndo, interceptedUndo;
+    const undoGate = new Promise(resolve => { releaseUndo = resolve; });
+    const undoIntercepted = new Promise(resolve => { interceptedUndo = resolve; });
+    const delayUndo = async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_changeset_undo') { interceptedUndo(); await undoGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayUndo);
+    try {
+      await page.getByRole('button', { name: 'Undo latest command group' }).click();
+      await undoIntercepted;
+      await expect(page.getByRole('button', { name: 'Undo latest command group' })).toBeDisabled();
+      await expect(page.getByLabel('Current workspace')).toBeDisabled();
+      releaseUndo();
+      await expect(page.getByRole('status')).toContainText('revision 4');
+    } finally { releaseUndo(); await page.unroute('**/mcp', delayUndo); }
     await expect(page.getByRole('status')).toContainText('revision 2');
     expect(store.responsibilityView(workspace.id, 'Device', 2).bindings).toEqual([]);
   } finally { await page.close(); await service.shutdown(); store.close(); }
