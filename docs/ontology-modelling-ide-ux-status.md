@@ -16,7 +16,7 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 |---|---|---|
 | U0 Baseline | Started | Source and browser tests inspected; capture before screenshots and complete feature inventory. |
 | U1 Shell | Started | Dedicated header, status bar, resizable panes, narrow-desktop inspector overlay and compact one-surface navigation exist. Themes, complete responsive behavior and human visual review remain. |
-| U2 Explorer | Started | Revision-pinned pagination, module groups and filtering, selection highlighting, view tabs, a command palette and stale-search protection exist. Complete hierarchical navigation and controller extraction remain. |
+| U2 Explorer | Started | Revision-pinned pagination, module groups, on-demand declared and inherited members, filtering, view tabs, a command palette and stale-search protection exist. Requirements/saved-view sections, richer filtering and controller extraction remain. |
 | U3 Canvas | Started | Initial framing targets the selected concept; cards show a module and field preview. Bounded incoming and outgoing expansion, view-local positions, neighbourhood history and a legend exist; additional modelling controls remain. |
 | U4 Editing | Started | Field editing and a field table are in the inspector; definition and field conflicts and some unsaved navigation are guarded. Other forms, richer controls and perspectives need further work. |
 | U5 Checks and AI | Started | A results dock offers Problems, Checks, Activity and Output; validation details, recent activity and historical comparisons are available. A dedicated Changes workspace and fuller AI collaboration remain. |

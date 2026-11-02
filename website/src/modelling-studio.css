@@ -15,6 +15,12 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-panels[data-hide-navigator="true"][data-hide-inspector="true"] { grid-template-columns: minmax(0, 1fr); }
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
+.studio-explorer-concept { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+.modelling-studio .studio-explorer-expand { flex: 0 0 2rem; min-height: 2rem; padding: .2rem; }
+.studio-explorer-fields { margin-left: 1.2rem; padding-left: .5rem; border-left: 1px solid #49666a; }
+.studio-explorer-fields p, .studio-explorer-fields small { font-size: .78rem; color: #b8cbcc; }
+.studio-explorer-fields ul { padding-left: 1rem; }
+.studio-explorer-fields li { overflow-wrap: anywhere; }
 .modelling-studio pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
 .studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; color: #183a39; border-left: .25rem solid #147d70; }
 .studio-graph h3 { color: #183a39; }

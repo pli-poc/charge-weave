@@ -12,6 +12,49 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('explorer expands declared and inherited fields at the current revision', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Explorer members', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|serial:string!\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const row = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Device', exact: true }) }).last();
+    await row.getByRole('button', { name: 'Show fields for Device' }).click();
+    await expect(row.getByText('Declared fields', { exact: true })).toBeVisible();
+    await expect(row.getByText('serial', { exact: true })).toBeVisible();
+    await expect(row.getByText('recordName', { exact: true })).toBeHidden();
+    await row.getByText('Inherited fields (1)', { exact: true }).click();
+    await expect(row.getByText('recordName', { exact: true })).toBeVisible();
+    await expect(row.getByText(/from Record/)).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+    await row.getByRole('button', { name: 'Hide fields for Device' }).click();
+    let release, observed;
+    const gate = new Promise(resolve => { release = resolve; });
+    const intercepted = new Promise(resolve => { observed = resolve; });
+    const delay = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_entity_get' && params.arguments?.name === 'Device' && params.arguments?.expectedRevision === 0) { observed(); await gate; }
+      await route.continue().catch(() => {});
+    };
+    await page.route('**/mcp', delay);
+    try {
+      await row.getByRole('button', { name: 'Show fields for Device' }).click();
+      await intercepted;
+      store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'add-member', expectedRevision: 0, commands: [{ type: 'property.add', owner: 'Device', name: 'modelNumber', range: 'string', cardinality: '?' }] });
+      await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
+    } finally { release(); await page.unroute('**/mcp', delay); }
+    const expand = page.getByRole('button', { name: 'Show fields for Device' });
+    await expand.click();
+    const refreshed = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Hide fields for Device' }) }).last();
+    await expect(refreshed.getByText('modelNumber', { exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(1);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('inherited fields link to their declaring concept', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Inherited fields', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|\n' });
