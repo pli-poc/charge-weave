@@ -247,6 +247,8 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await page.getByRole('button', { name: 'Add view group' }).click();
     await page.getByLabel('Note for selected concept').fill('Local note');
     await page.getByRole('button', { name: 'Add view note' }).click();
+    await page.getByLabel('Graph viewpoint').selectOption('temporal');
+    await page.getByLabel('Filter graph relationships').fill('window');
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     const views = page.getByRole('navigation', { name: 'Open diagram views' });
     await expect(views.getByRole('button', { name: 'other, local changes' })).toHaveAttribute('aria-current', 'page');
@@ -263,6 +265,8 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await expect(page.getByText('Equipment: Device')).toBeVisible();
     await expect(page.getByText('Device: Local note')).toBeVisible();
+    await expect(page.getByLabel('Graph viewpoint')).toHaveValue('temporal');
+    await expect(page.getByLabel('Filter graph relationships')).toHaveValue('window');
     await expect(page.getByRole('button', { name: 'Save shared view' })).toBeEnabled();
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await expect(page.getByText(/Could not save view/)).toBeVisible();
@@ -277,6 +281,28 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     expect(store.savedView(workspace.id, 'other').viewRevision).toBe(1);
     expect(await page.evaluate(id => sessionStorage.getItem(`chargeweave.canvas.v2.${id}.other`), workspace.id)).toBeNull();
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(false);
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('viewpoint and filter changes are marked as unsaved presentation edits', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'View settings', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const status = page.getByRole('region', { name: 'Workspace status' });
+    await page.getByLabel('Filter graph relationships').fill('window');
+    await expect(status).toContainText('View changed locally');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(status).not.toContainText('View changed locally');
+    await page.getByLabel('Graph viewpoint').selectOption('temporal');
+    await expect(status).toContainText('View changed locally');
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
@@ -1474,6 +1500,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByText('Shared view saved.')).toBeVisible();
     await page.getByLabel('Graph viewpoint').selectOption('information');
     await page.getByLabel('Filter graph relationships').fill('');
+    page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Load shared view' }).click();
     await expect(page.getByLabel('Graph viewpoint')).toHaveValue('temporal');
     await expect(page.getByLabel('Filter graph relationships')).toHaveValue('exceptionWindow');
