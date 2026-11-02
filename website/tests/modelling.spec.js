@@ -154,6 +154,11 @@ test('navigator search refreshes when another client changes the draft', async (
     await page.getByRole('button', { name: 'Clear search' }).click();
     await expect(page.getByLabel('Search model')).toHaveValue('');
     await expect(page.getByRole('heading', { name: 'Browse concepts' })).toBeVisible();
+    await page.getByLabel('Search model').fill('NoSuchConcept');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page.getByText('0 matching concepts shown.')).toBeVisible();
+    await page.getByRole('button', { name: 'Create a new concept' }).click();
+    await expect(page.getByLabel('Class name')).toBeFocused();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
