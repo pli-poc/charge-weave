@@ -15,3 +15,10 @@
 .studio-canvas-layout-menu p { margin: .5rem 0; font-size: .8rem; line-height: 1.4; }
 .studio-canvas-layout-menu button { margin: .25rem .25rem .25rem 0; }
 .studio-flow:has(.studio-canvas-layout-menu) .studio-layout-notice { max-width: min(32rem, calc(100% - 6.5rem)); }
+.studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+.studio-canvas-edge-picker { margin: .75rem 0; }
+.studio-canvas-edge-picker select { max-width: 100%; }
+.modelling-studio .studio-canvas-edge-details { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
+.studio-canvas-edge-details h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
+.studio-canvas-edge-details p { overflow-wrap: anywhere; }
+.studio-canvas-edge-actions { display: flex; flex-wrap: wrap; gap: .4rem; }

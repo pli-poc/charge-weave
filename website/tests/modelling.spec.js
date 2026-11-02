@@ -108,7 +108,36 @@ test('unreadable local layout is not silently overwritten by automatic placement
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a delayed shared-view load cannot overwrite a newly selected view', async ({ page }) => {
+test('saved views open from the explorer and preserve local view changes', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Saved views', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  for (const [viewId, root] of [['alpha', 'Device'], ['beta', 'Record']]) store.saveView({ workspaceId: workspace.id, viewId, actor: 'other-client', operationId: `save-${viewId}`, expectedViewRevision: 0, definition: { root, positions: {} } });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.locator('#studio-navigator-pane').getByText('Saved views', { exact: true }).click();
+    const open = async id => {
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+      await page.getByRole('button', { name: `Open shared view ${id}` }).click();
+    };
+    await open('alpha');
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    await page.getByLabel('Filter graph relationships').fill('local filter');
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
+    await open('beta');
+    await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
+    await open('alpha');
+    await expect(page.getByLabel('Filter graph relationships')).toHaveValue('local filter');
+    await expect(page.getByText('Local view changes were retained. Use Load shared view to replace them after review.')).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('a delayed shared-view load cannot overwrite a newly selected view', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'View race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -132,6 +161,11 @@ test('a delayed shared-view load cannot overwrite a newly selected view', async 
     await expect(page.getByText(/Shared view saved, but the view list could not be refreshed/)).toBeVisible();
     expect(store.savedView(workspace.id, 'default').viewRevision).toBe(1);
     await page.unroute('**/mcp', failList);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.locator('#studio-navigator-pane').getByText('Saved views', { exact: true }).click();
+    await page.getByRole('button', { name: 'Retry saved views' }).click();
+    await expect(page.getByRole('button', { name: 'Open shared view default' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.route('**/mcp', async route => {
       const params = route.request().postDataJSON()?.params;
       if (params?.name === 'ontology_view_saved_get' && params.arguments?.viewId === 'default') { interceptedResolve(); await gate; }
@@ -2588,7 +2622,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await surface('Diagram');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');
-    await expect(page.getByText('subClassOf →')).toBeVisible();
+    await expect(page.getByText('subClassOf →', { exact: true })).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await surface('Inspector');
     await page.getByText('Add a field or relationship').click();

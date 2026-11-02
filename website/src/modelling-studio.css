@@ -19,6 +19,8 @@ html[data-studio-theme="light"]:has(.modelling-studio) body { background: #f4f7f
 html[data-studio-theme="light"] .modelling-studio .studio-check-action button { color: #fff; }
 html[data-studio-theme="light"] .modelling-studio .studio-check-action button:hover:not(:disabled) { color: var(--studio-button-text); }
 html[data-studio-theme="light"] .modelling-studio .studio-conflict label { color: #ffefc4; }
+html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(code, summary, a) { color: #a4e6d0; }
+html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: #a4e6d0; }
 .modelling-studio .studio-theme-control { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
 .modelling-studio .studio-theme-control select { width: auto; min-width: 6rem; }
 /* Long modelling and history panels need immediate focus/scroll positioning. */
@@ -72,6 +74,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-flow .react-flow__controls button { background: #fff; color: #183a39; border-color: #93aaa7; }
 .studio-flow .react-flow__controls button svg { fill: #183a39; }
 .studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
+.modelling-studio .studio-flow .react-flow__controls button:hover:not(:disabled) { background: #d7ebe5; color: #183a39; }
+.modelling-studio .studio-graph :is(button, input, select, textarea, summary, a):focus-visible { outline-color: #173f74; }
+.modelling-studio .studio-graph .studio-conflict p { color: #ffefc4; }
 .studio-activity { margin-top: 1rem; padding: 1rem; min-width: 0; overflow-wrap: anywhere; border: 1px solid #b8c5cc; border-radius: .5rem; }
 .studio-review-workflow ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .75rem; padding: 0; list-style: none; counter-reset: review-step; }
 .studio-review-workflow li { display: grid; align-content: start; gap: .45rem; padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; counter-increment: review-step; }
@@ -307,4 +312,19 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none; }
   .studio-panels > section { scroll-margin-top: 4rem; }
   #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 4.5rem; }
+}
+@media (max-width: 360px) {
+  .studio-mobile-navigation { flex-wrap: wrap; }
+  .studio-mobile-navigation button { flex: 1 1 calc(50% - .4rem); min-height: 2.75rem; }
+  .studio-panels > section, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 7.5rem; }
+}
+@media (forced-colors: active) {
+  .modelling-studio :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  html[data-studio-theme] .modelling-studio .studio-graph :is(button, input, select, textarea, summary, a):focus-visible,
+  html[data-studio-theme] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: Highlight; }
+  .studio-flow .react-flow__node.selected { outline: 3px solid Highlight; }
+  .studio-flow .studio-flow-node { border-color: CanvasText; }
+  .modelling-studio .studio-view-tabs button[aria-current="page"],
+  .modelling-studio .studio-document-tabs button[aria-pressed="true"],
+  .modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom-color: Highlight; }
 }

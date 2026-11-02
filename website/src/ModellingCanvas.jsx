@@ -31,6 +31,7 @@ const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange }) {
   const [nodes, setNodes] = useState([]);
+  const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
   const [layoutAttempt, setLayoutAttempt] = useState(0);
@@ -120,7 +121,20 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     onLayoutChange();
     if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
   }, [graph.workspaceId, viewId, onLayoutChange]);
-  const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item) onSelect(item); }, [onSelect]);
+  const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item && onSelect(item) !== false) setSelectedEdgeId(''); }, [onSelect]);
+  useEffect(() => {
+    setSelectedEdgeId(id => id && !graph.edges.some(edge => edge.id === id) ? '' : id);
+  }, [graph.edges]);
+  const selectedEdge = graph.edges.find(edge => edge.id === selectedEdgeId) ?? null;
+  function inspectEdge(id) {
+    if (id && !graph.edges.some(edge => edge.id === id)) return;
+    onManualInteraction();
+    setSelectedEdgeId(id);
+  }
+  function inspectEndpoint(name) {
+    const item = byName.current.get(name);
+    if (item) { onManualInteraction(); onSelect(item); }
+  }
   const focusSelected = useCallback(() => {
     const point = positions.current[selectedName];
     if (!point || !byName.current.has(selectedName) || !instance.current) return;
@@ -179,16 +193,17 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
+  return <><div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
     onKeyDownCapture={event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
-      if (!node) return;
-      event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
+      if (node) { event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id }); return; }
+      const edge = event.target.closest?.('.react-flow__edge[data-id]');
+      if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
     <details ref={layoutMenu} className="studio-canvas-layout-menu"><summary>Layout</summary><p>Arrange the visible concepts automatically. Existing positions in this view will move; hidden concepts are unchanged.</p><button type="button" disabled={layoutState !== 'ready'} onClick={arrangeVisible}>Arrange visible concepts</button>{layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout…'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}</details>
-    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => {
         instance.current = value;
         const root = positions.current[graph.root];
@@ -196,10 +211,22 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
           fitted.current = true;
           requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
         }
-      }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
+      }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls>
     </ReactFlow>
-  </div>;
+  </div>
+    {graph.edges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{graph.edges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
+    {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
+      <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>
+      <p><strong>Direction:</strong> {selectedEdge.source} → {selectedEdge.target}</p>
+      <p><strong>Multiplicity:</strong> {selectedEdge.cardinality ? multiplicity[selectedEdge.cardinality] ?? selectedEdge.cardinality : selectedEdge.predicate === 'subClassOf' ? 'Not applicable' : 'Not recorded'}</p>
+      {selectedEdge.label && <p><strong>Mapping:</strong> {selectedEdge.label}</p>}
+      {selectedEdge.sourceRef?.path && <p><strong>Source:</strong> {selectedEdge.sourceRef.path}{selectedEdge.sourceRef.line != null ? `:${selectedEdge.sourceRef.line}` : ''}</p>}
+      {selectedEdge.mappingVersion && <p><strong>Mapping version:</strong> {selectedEdge.mappingVersion}</p>}
+      <p>Inspect a concept to review its supported field controls. Selecting this relationship does not change the model.</p>
+      <div className="studio-canvas-edge-actions"><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.source)} onClick={() => inspectEndpoint(selectedEdge.source)}>Inspect source {selectedEdge.source}</button><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.target)} onClick={() => inspectEndpoint(selectedEdge.target)}>Inspect target {selectedEdge.target}</button><button type="button" onClick={() => inspectEdge('')}>Close relationship details</button></div>
+    </section>}
+  </>;
 }
