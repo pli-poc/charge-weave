@@ -122,6 +122,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   width: 100%; min-width: 0; max-width: 100%; padding: .6rem .7rem;
   border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-input); color: var(--studio-input-text); font: inherit;
 }
+.modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) { display: flex; align-items: center; gap: .5rem; }
+.modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) > input { flex: 0 0 auto; width: 1.125rem; min-width: 1.125rem; height: 1.125rem; margin: 0; padding: 0; }
 .modelling-studio textarea { min-height: 5rem; resize: vertical; }
 .modelling-studio input:focus-visible, .modelling-studio select:focus-visible, .modelling-studio textarea:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
 .modelling-studio button {
@@ -394,4 +396,6 @@ html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li
   .modelling-studio .studio-flow .react-flow__controls button { width: 44px; height: 44px; min-height: 44px; padding: 11px; }
   .modelling-studio :is(input[type="checkbox"], input[type="radio"]),
   .modelling-studio .studio-canvas-layout-menu .studio-layout-choice input[type="checkbox"] { width: 1.5rem; min-width: 1.5rem; height: 1.5rem; padding: 0; }
+  .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 2.75rem; }
+  .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) > input { width: 1.5rem; min-width: 1.5rem; height: 1.5rem; }
 }

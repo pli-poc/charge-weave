@@ -3,6 +3,7 @@ import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Posi
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
+import { readCanvasHidden, writeCanvasHidden } from './model/canvas-hidden.js';
 import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
 import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
 import '@xyflow/react/dist/style.css';
@@ -60,6 +61,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     catch { return { pins: new Set(), writable: false }; }
   });
   const [layoutPins, setLayoutPins] = useState(initialPins.pins);
+  const [initialHidden] = useState(() => {
+    try { return { names: readCanvasHidden(sessionStorage, graph.workspaceId, viewId), writable: true }; }
+    catch { return { names: new Set(), writable: false }; }
+  });
+  const [hiddenNodes, setHiddenNodes] = useState(initialHidden.names);
+  const [hiddenRecoveryNeeded, setHiddenRecoveryNeeded] = useState(!initialHidden.writable);
+  const [hiddenNotice, setHiddenNotice] = useState('');
   const [pinRecoveryNeeded, setPinRecoveryNeeded] = useState(!initialPins.writable);
   const [pinNotice, setPinNotice] = useState('');
   const [layoutNotice, setLayoutNotice] = useState('');
@@ -80,6 +88,9 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const arranging = useRef(false), layoutMenu = useRef(null);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
+  const activeNodes = useMemo(() => graph.nodes.filter(node => !hiddenNodes.has(node.name) || node.name === graph.root || node.name === selectedName), [graph.nodes, graph.root, selectedName, hiddenNodes]);
+  const visibleNames = useMemo(() => new Set(activeNodes.map(node => node.name)), [activeNodes]);
+  const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
   const frameRoot = useCallback(root => {
     if (!instance.current || lastRoot.current !== root) return false;
     const saved = readCanvasViewport(sessionStorage, graph.workspaceId, viewId, root);
@@ -169,18 +180,17 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   }, [graph.workspaceId, viewId, onLayoutChange, recordLayoutChange]);
   const selectNode = useCallback(node => { const item = byName.current.get(node.id); if (item && onSelect(item) !== false) setSelectedEdgeId(''); }, [onSelect]);
   useEffect(() => {
-    setSelectedEdgeId(id => id && !graph.edges.some(edge => edge.id === id) ? '' : id);
-  }, [graph.edges]);
+    setSelectedEdgeId(id => id && !activeEdges.some(edge => edge.id === id) ? '' : id);
+  }, [activeEdges]);
   useEffect(() => {
-    const visible = new Set(graph.nodes.map(node => node.name));
     setLayoutSelection(previous => {
-      const retained = [...previous].filter(name => visible.has(name));
+      const retained = [...previous].filter(name => visibleNames.has(name));
       return retained.length === previous.size ? previous : new Set(retained);
     });
-  }, [graph.nodes]);
-  const displayNodes = useMemo(() => nodes.map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview]);
+  }, [visibleNames]);
+  const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames]);
   function toggleLayoutSelection(name) {
-    if (!graph.nodes.some(node => node.name === name)) return;
+    if (!visibleNames.has(name)) return;
     onManualInteraction();
     setLayoutSelection(previous => {
       const next = new Set(previous);
@@ -190,7 +200,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   }
   function alignLayoutSelection(axis) {
     if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
-    const names = [...layoutSelection].filter(name => graph.nodes.some(node => node.name === name) && positions.current[name]);
+    const names = [...layoutSelection].filter(name => visibleNames.has(name) && positions.current[name]);
     if (names.length < 2) return;
     const coordinate = Math.min(...names.map(name => positions.current[name][axis]));
     const next = { ...positions.current };
@@ -210,7 +220,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   }
   function setSelectedPins(pinned) {
     if (layoutState !== 'ready' || pinRecoveryNeeded || !storageWritable.current || !layoutSelection.size) return;
-    const names = [...layoutSelection].filter(name => graph.nodes.some(node => node.name === name) && positions.current[name]);
+    const names = [...layoutSelection].filter(name => visibleNames.has(name) && positions.current[name]);
     if (!names.length) return;
     const next = new Set(layoutPins);
     for (const name of names) {
@@ -228,9 +238,35 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutPins(new Set()); setPinRecoveryNeeded(false); setPinNotice('Local pin settings replaced.');
     } catch { setPinNotice('Could not replace local pin settings.'); }
   }
-  const selectedEdge = graph.edges.find(edge => edge.id === selectedEdgeId) ?? null;
+  function updateHidden(next, message) {
+    if (hiddenRecoveryNeeded || layoutState === 'pending') return;
+    try { writeCanvasHidden(sessionStorage, graph.workspaceId, viewId, next); }
+    catch { setHiddenNotice('Could not save diagram visibility. Nothing was changed.'); return; }
+    setHiddenNodes(next); setHiddenNotice(message);
+    setLayoutSelection(previous => new Set([...previous].filter(name => !next.has(name) || name === graph.root || name === selectedName)));
+    onManualInteraction();
+  }
+  function hideSelected() {
+    const names = [...layoutSelection].filter(name => visibleNames.has(name) && name !== graph.root && name !== selectedName);
+    if (!names.length) return;
+    const next = new Set(hiddenNodes);
+    for (const name of names) next.add(name);
+    updateHidden(next, `Hidden ${names.length} ${names.length === 1 ? 'concept' : 'concepts'} in this diagram.`);
+  }
+  function restoreHidden(name) {
+    const next = new Set(hiddenNodes);
+    if (name) next.delete(name); else next.clear();
+    updateHidden(next, name ? `Restored ${name} to this diagram.` : 'Restored hidden concepts to this diagram.');
+  }
+  function replaceUnreadableHidden() {
+    try {
+      writeCanvasHidden(sessionStorage, graph.workspaceId, viewId, new Set());
+      setHiddenNodes(new Set()); setHiddenRecoveryNeeded(false); setHiddenNotice('Local visibility settings replaced.');
+    } catch { setHiddenNotice('Could not replace local visibility settings.'); }
+  }
+  const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
   function inspectEdge(id) {
-    if (id && !graph.edges.some(edge => edge.id === id)) return;
+    if (id && !activeEdges.some(edge => edge.id === id)) return;
     onManualInteraction();
     setSelectedEdgeId(id);
   }
@@ -244,12 +280,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     onManualInteraction();
     void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
-  const offsets = parallelEdgeOffsets(graph.edges);
+  const offsets = parallelEdgeOffsets(activeEdges);
   function arrangeVisible() {
     if (!worker.current || layoutState !== 'ready') return;
     if (!storageWritable.current) { setLayoutNotice('Resolve unreadable local layout before arranging concepts.'); return; }
     if (pinRecoveryNeeded) { setLayoutNotice('Resolve unreadable pin settings before arranging concepts.'); return; }
-    if (graph.nodes.every(node => layoutPins.has(node.name))) { setLayoutNotice('All visible concepts are pinned. Unpin one to arrange it.'); return; }
+    if (activeNodes.every(node => layoutPins.has(node.name))) { setLayoutNotice('All visible concepts are pinned. Unpin one to arrange it.'); return; }
     const requestId = ++sequence.current;
     arranging.current = true;
     setLayoutState('pending');
@@ -259,7 +295,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (event.data.requestId !== sequence.current) return;
       arranging.current = false;
       const points = event.data.positions;
-      const names = new Set(graph.nodes.map(node => node.name));
+      const names = new Set(activeNodes.map(node => node.name));
       if (event.data.error || !Array.isArray(points) || points.length !== names.size || points.some(point => !names.has(point.id) || !Number.isFinite(point.x) || !Number.isFinite(point.y)) || new Set(points.map(point => point.id)).size !== names.size) {
         setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); return;
       }
@@ -290,7 +326,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice(changed ? 'Visible concepts arranged locally. Save the shared view to share this layout.' : 'Visible concepts are already arranged.');
       if (layoutMenu.current) layoutMenu.current.open = false;
     };
-    try { worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
+    try { worker.current.postMessage({ requestId, nodes: activeNodes.map(node => node.name), edges: activeEdges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
     catch { arranging.current = false; setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); }
   }
   function startNodeDrag(_event, node, draggedNodes) {
@@ -361,7 +397,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       <details>
         <summary>Align selected concepts</summary>
         <p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment changes only this view and may overlap cards. Unpin selected concepts before alignment.</p>
-        <fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{graph.nodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}{layoutPins.has(node.name) ? ' (pinned)' : ''}</label>)}</fieldset>
+        <fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{activeNodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}{layoutPins.has(node.name) ? ' (pinned)' : ''}</label>)}</fieldset>
         <p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>
         {layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning or pinning concepts.</p>}
         {pinNotice && <p aria-live="polite">{pinNotice}</p>}
@@ -371,10 +407,17 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
           <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => layoutPins.has(name))} onClick={() => setSelectedPins(true)}>Pin selected</button>
           <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].every(name => !layoutPins.has(name))} onClick={() => setSelectedPins(false)}>Unpin selected</button>
           <button type="button" disabled={!layoutSelection.size} onClick={() => setLayoutSelection(new Set())}>Clear layout selection</button>
+          <button type="button" disabled={layoutState === 'pending' || hiddenRecoveryNeeded || ![...layoutSelection].some(name => visibleNames.has(name) && name !== graph.root && name !== selectedName)} onClick={hideSelected}>Hide selected from diagram</button>
         </div>
       </details>
+      <details>
+        <summary>Hidden concepts ({hiddenNodes.size})</summary>
+        <p>Hiding applies only to this browser tab and view. It does not delete model data or change the shared view. The root and current selection are always shown.</p>
+        {hiddenRecoveryNeeded ? <><p>Local visibility settings could not be read. Replacing them removes stored hidden concepts for this view.</p><button type="button" onClick={replaceUnreadableHidden}>Replace unreadable visibility settings</button></> : hiddenNodes.size ? <><button type="button" disabled={layoutState === 'pending'} onClick={() => restoreHidden(null)}>Restore all hidden concepts</button><ul>{[...hiddenNodes].sort().map(name => <li key={name}>{name}{visibleNames.has(name) ? ' (shown while root or selected)' : ''} <button type="button" disabled={layoutState === 'pending'} onClick={() => restoreHidden(name)}>Restore {name}</button></li>)}</ul></> : <p>No concepts are hidden in this view.</p>}
+        {hiddenNotice && <p aria-live="polite">{hiddenNotice}</p>}
+      </details>
     </details>
-    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
         if (!lastRoot.current) return;
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
@@ -386,7 +429,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     </ReactFlow>
   </div>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
-    {graph.edges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{graph.edges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
+    {activeEdges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{activeEdges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
     {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
       <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>
       <p><strong>Direction:</strong> {selectedEdge.source} → {selectedEdge.target}</p>

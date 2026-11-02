@@ -1986,12 +1986,14 @@ test('recent activity describes a suggestion and opens the current concept', asy
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     }
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
-    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, rationale: 'Clarify device terminology.', commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
     if (isMobile) {
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
       await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
     }
     await expect(activity.getByText('Updated a definition')).toBeVisible();
+    await expect(activity.getByText('Reason: Clarify device terminology.')).toBeVisible();
+    await expect(activity.locator('time').first()).toHaveAttribute('datetime', /Z$/);
     await activity.getByRole('button', { name: 'Inspect revision 1' }).click();
     const detail = activity.getByRole('region', { name: 'Activity revision detail' });
     await expect(detail.getByRole('heading', { name: 'Historical revision 1' })).toBeFocused();
