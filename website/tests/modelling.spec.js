@@ -976,6 +976,11 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await expect(page.getByLabel('New datatype or target class')).toBeFocused();
     await expect(page.locator('#studio-field-type-suggestions option[value="dateTime"]')).toHaveAttribute('label', 'Datatype');
     await expect(page.locator('#studio-field-type-suggestions option[value="Record"]')).toHaveAttribute('label', 'Concept');
+    await page.getByText('Add a field or relationship', { exact: true }).click();
+    const typeRequest = page.waitForRequest(request => request.postDataJSON()?.params?.name === 'ontology_context_search' && request.postDataJSON()?.params?.arguments?.query === 'Device');
+    await page.getByLabel('Datatype or target class', { exact: true }).fill('Device');
+    await typeRequest;
+    await page.getByLabel('Datatype or target class', { exact: true }).fill('string');
     await page.getByRole('button', { name: 'Cancel field edit' }).click();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeFocused();
     await page.getByRole('button', { name: 'Edit recordName' }).click();
