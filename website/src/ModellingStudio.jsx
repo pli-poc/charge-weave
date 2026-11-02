@@ -80,7 +80,7 @@ export default function ModellingStudio() {
   const [canvasVersion, setCanvasVersion] = useState(0);
   const [viewNotice, setViewNotice] = useState('');
   const [hideNavigator, setHideNavigator] = useState(false);
-  const [hideInspector, setHideInspector] = useState(false);
+  const [hideInspector, setHideInspector] = useState(() => window.matchMedia('(min-width: 901px) and (max-width: 1399px)').matches);
   const [navigatorWidth, setNavigatorWidth] = useState(() => panelWidth('navigator-width', 240, 200, 360));
   const [inspectorWidth, setInspectorWidth] = useState(() => panelWidth('inspector-width', 320, 280, 440));
   const [entityInfo, setEntityInfo] = useState(null);
