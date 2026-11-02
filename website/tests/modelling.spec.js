@@ -1356,6 +1356,26 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
     await expect(historical.locator('pre').first()).toContainText('+Record|root|An edited record.');
     await expect(historical.getByText('Reason: Clarify the definition.')).toBeVisible();
     await expect(historical.getByText(/Command group:/)).toBeVisible();
+    let releaseHistory;
+    const historyGate = new Promise(resolve => { releaseHistory = resolve; });
+    let interceptedHistory;
+    const historyIntercepted = new Promise(resolve => { interceptedHistory = resolve; });
+    const delayHistory = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_history_detail' && params.arguments?.revision === 2) { interceptedHistory(); await historyGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayHistory);
+    try {
+      await page.getByRole('button', { name: 'Inspect revision 2', exact: true }).click();
+      await historyIntercepted;
+      const recentResponse = page.waitForResponse(response => response.request().postDataJSON()?.params?.name === 'ontology_history_detail' && response.request().postDataJSON()?.params?.arguments?.revision === 1);
+      await page.getByRole('button', { name: 'Inspect revision 1', exact: true }).click();
+      await recentResponse;
+      const oldResponse = page.waitForResponse(response => response.request().postDataJSON()?.params?.name === 'ontology_history_detail' && response.request().postDataJSON()?.params?.arguments?.revision === 2);
+      releaseHistory(); await oldResponse;
+      await expect(historical.getByText('Historical revision 1')).toBeVisible();
+    } finally { releaseHistory(); await page.unroute('**/mcp', delayHistory); }
     await expect(page.getByRole('status')).toContainText('revision 4');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
