@@ -502,6 +502,11 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await page.getByRole('button', { name: 'Station', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
     await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Station', exact: true })).toHaveAttribute('aria-current', 'true');
+    await page.getByRole('button', { name: 'Previous view' }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Thing054' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Station', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Next view' }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
