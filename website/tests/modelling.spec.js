@@ -212,6 +212,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await expect(page.getByText(/Publisher permission: enabled/)).toBeVisible();
     await page.getByRole('button', { name: 'Create draft pull request' }).click();
     await expect(page.getByRole('link', { name: 'Pull request #77' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Pull request #77' })).toHaveAttribute('href', 'https://github.com/pli-poc/charge-weave/pull/77');
     expect(store.publication(workspace.id, intent.id).state).toBe('pr_created');
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });

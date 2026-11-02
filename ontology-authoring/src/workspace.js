@@ -219,7 +219,8 @@ export class WorkspaceStore {
     const row = this.db.prepare('SELECT id, actor, baseline_commit AS baselineCommit, revision, digest AS sourceDigest, review_id AS reviewId, preview_job AS previewJobId, branch, subject, body, state, commit_sha AS commitSha, pr_number AS prNumber, pr_status AS prStatus, created_at AS createdAt, updated_at AS updatedAt FROM publications WHERE workspace = ? AND id = ?').get(workspaceId, publicationId);
     if (!row) throw new Error('Publication not found');
     const workspace = this.get(workspaceId);
-    return { ...row, workspaceId, stale: workspace.revision !== row.revision || workspace.sourceDigest !== row.sourceDigest || workspace.baselineCommit !== row.baselineCommit };
+    const prUrl = Number.isSafeInteger(row.prNumber) && row.prNumber > 0 ? `https://github.com/pli-poc/charge-weave/pull/${row.prNumber}` : null;
+    return { ...row, workspaceId, prUrl, stale: workspace.revision !== row.revision || workspace.sourceDigest !== row.sourceDigest || workspace.baselineCommit !== row.baselineCommit };
   }
   publicationHistory(workspaceId) {
     this.get(workspaceId);
