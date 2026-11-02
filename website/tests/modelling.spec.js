@@ -12,6 +12,33 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('a remote definition edit preserves local input and requires conflict review', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Definition conflict', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original definition.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    const input = page.getByRole('textbox', { name: 'Definition', exact: true });
+    await input.fill('My unsaved definition.');
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-definition', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A different remote definition.' }] });
+    await expect(page.getByRole('alert').filter({ hasText: 'changed in another client' })).toBeVisible();
+    await expect(input).toHaveValue('My unsaved definition.');
+    await expect(page.getByRole('button', { name: 'Save definition' })).toBeDisabled();
+    await expect(page.getByText('Latest: A different remote definition.')).toBeVisible();
+    await page.getByRole('button', { name: 'Keep my text' }).click();
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    await expect(page.getByRole('status')).toContainText('revision 2');
+    expect(store.search(workspace.id, 'Record').results[0].definition).toBe('My unsaved definition.');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('an older search cannot replace newer navigator results', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Search race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
