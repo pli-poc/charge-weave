@@ -20,5 +20,9 @@ test('explorer pages every class in stable order and rejects stale revisions', (
     assert.throws(() => store.explore(workspace.id, { expectedRevision: 1 }), /Revision conflict/);
     assert.throws(() => store.explore(workspace.id, { expectedRevision: 0, limit: 101 }), /Invalid explorer/);
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, module: 'missing' }).total, 0);
+    const foundation = store.explore(workspace.id, { expectedRevision: 0, module: 'foundation', limit: 10 });
+    assert.equal(foundation.total, 136);
+    assert.deepEqual(foundation.modules, [{ name: 'foundation', count: 136 }]);
+    assert.equal(foundation.module, 'foundation');
   } finally { store.close(); }
 });
