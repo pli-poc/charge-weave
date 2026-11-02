@@ -47,3 +47,7 @@ some checks while its coverage is assessed; it does not replace the full
 authoring or protected website gates. Branch-protection requirements need
 administrator verification before changing required check names or retiring a
 workflow.
+
+The protected website report records the explicitly checked-out commit. Its
+writer checks that this SHA matches `git rev-parse HEAD`; a pull-request merge
+SHA supplied by GitHub is not substituted for the head commit that was built.
