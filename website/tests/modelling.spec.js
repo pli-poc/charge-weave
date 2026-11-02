@@ -367,9 +367,14 @@ test('concept creation offers existing modules and validates its definition', as
       await page.getByRole('button', { name: 'Add concept', exact: true }).click();
       await commandIntercepted;
       await expect(page.getByRole('button', { name: 'Add concept', exact: true })).toBeDisabled();
+      await expect(page.getByLabel('Class name')).toBeDisabled();
+      await expect(page.getByLabel('Class definition')).toBeDisabled();
+      await expect(page.getByLabel('Reason for next edit (optional)')).toBeDisabled();
       await expect(page.getByText('Saving model change…')).toBeVisible();
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
+      await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Asset000', exact: true }).click();
+      await expect(page.getByRole('alert')).toContainText('Wait for the model change to finish before selecting another concept.');
       expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
       releaseCommand();
       await expect(page.getByRole('status')).toContainText('revision 1');
