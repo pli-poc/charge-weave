@@ -517,6 +517,15 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Station', exact: true }).focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    const result = page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true });
+    await result.click();
+    await expect(result).toHaveAttribute('aria-current', 'true');
+    await expect(page.getByRole('region', { name: 'Relationships for Station' })).toBeVisible();
+    await result.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
@@ -1032,6 +1041,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByLabel('Search model').fill('RecurringWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'RecurringWindow', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await page.getByLabel('Graph viewpoint').selectOption('temporal');
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
@@ -1055,6 +1065,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByLabel('Search model').fill('ChargingStation');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'ChargingStation', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
     await page.getByLabel('Graph viewpoint').selectOption('responsibility');
     await expect(page.locator('.studio-graph li').filter({ hasText: 'assetOwner' })).toBeVisible();
     await page.getByLabel('Filter graph relationships').fill('assetOwner');
