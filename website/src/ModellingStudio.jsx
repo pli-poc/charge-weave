@@ -54,17 +54,26 @@ function RelationshipList({ graph, onSelect }) {
   </div>;
 }
 
-function ReviewWorkflow({ snapshot, canReview, onInspect, onChecks, onGo }) {
+function ReviewWorkflow({ snapshot, canReview, publisherAvailable, diff, readiness, reviews, decisionsLoaded, publication, canPush, commitWorkflows, onInspect, onChecks, onGo }) {
+  const comparison = !diff ? 'Comparison not opened' : diff.revision === snapshot.revision && diff.sourceDigest === snapshot.sourceDigest ? `Comparison current at revision ${diff.revision}` : `Comparison out of date (revision ${diff.revision})`;
+  const gates = !readiness || readiness.revision !== snapshot.revision || readiness.sourceDigest !== snapshot.sourceDigest ? 'Review gates not inspected for this draft' : readiness.canAccept ? 'Last inspection: review gates complete for this draft' : `Last inspection: review gates incomplete: ${readiness.missing.length} missing`;
+  const latestReview = decisionsLoaded ? reviews[0] : null;
+  const reviewCurrent = latestReview && latestReview.revision === snapshot.revision && latestReview.sourceDigest === snapshot.sourceDigest && latestReview.baselineCommit === snapshot.baselineCommit && !(latestReview.decision === 'accept' && snapshot.changeSet && (snapshot.changeSet.reviewId !== latestReview.id || !['accepted', 'published'].includes(snapshot.changeSet.status)));
+  const decision = latestReview ? `Latest decision: ${latestReview.decision} · revision ${latestReview.revision} · ${reviewCurrent ? 'current' : 'out of date'}` : decisionsLoaded ? 'No decision returned' : 'Decision not inspected';
+  const target = publication && !publication.stale && publication.revision === snapshot.revision && publication.sourceDigest === snapshot.sourceDigest ? `Target ${publication.target.branch}: ${publication.target.status}` : 'Target not checked for this draft';
+  const permission = canPush === null ? (publisherAvailable ? 'Publisher permission not checked' : 'Publisher permission unavailable') : canPush ? 'Publisher permission enabled' : 'Publisher permission not enabled';
+  const verification = commitWorkflows ? `Commit ${commitWorkflows.sha}: ${commitWorkflows.status}` : 'Commit checks not inspected';
   return <section className="studio-activity studio-review-workflow" aria-labelledby="studio-review-workflow-heading">
     <h2 id="studio-review-workflow-heading" tabIndex={-1}>Review workflow</h2>
     <p>Draft revision {snapshot.revision}</p><details><summary>Draft identity</summary><p>Source digest <code>{snapshot.sourceDigest}</code></p></details>
     <p>Each step is separate. Checks and review decisions do not publish the draft.</p>
+    <p>Review gates reflect the last inspection. Inspect them again after checks or changes by other clients.</p>
     <ol>
-      <li><strong>Inspect</strong><span>Review the draft changes and source patch.</span><button type="button" onClick={onInspect}>Open draft changes</button></li>
-      <li><strong>Validate</strong><span>Inspect checks and their revision.</span><button type="button" onClick={onChecks}>Open validation checks</button></li>
-      <li><strong>Decide</strong><span>{canReview ? 'Record a decision for the reviewed draft.' : 'Reviewer access is required to record a decision.'}</span><button type="button" onClick={event => onGo(event, 'studio-review-decision-heading')}>Go to reviewer decision</button></li>
-      <li><strong>Publish</strong><span>Check the target before preparing a reviewed candidate.</span><button type="button" onClick={event => onGo(event, 'studio-publication-heading')}>Go to publication preflight</button></li>
-      <li><strong>Verify</strong><span>Inspect checks for an exact commit.</span><button type="button" onClick={event => onGo(event, 'studio-commit-checks-heading')}>Go to commit checks</button></li>
+      <li><strong>Inspect</strong><span>Review the draft changes and source patch.</span><small>{comparison}</small><button type="button" onClick={onInspect}>Open draft changes</button></li>
+      <li><strong>Validate</strong><span>Inspect checks and their revision.</span><small>{gates}</small><button type="button" onClick={onChecks}>Open validation checks</button></li>
+      <li><strong>Decide</strong><span>{canReview ? 'Record a decision for the reviewed draft.' : 'Reviewer access is required to record a decision.'}</span><small>{decision}</small><button type="button" onClick={event => onGo(event, 'studio-review-decision-heading')}>Go to reviewer decision</button></li>
+      <li><strong>Publish</strong><span>Check the target before preparing a reviewed candidate.</span><small>{target}. {permission}.</small><button type="button" onClick={event => onGo(event, 'studio-publication-heading')}>Go to publication preflight</button></li>
+      <li><strong>Verify</strong><span>Inspect checks for an exact commit; branch protection is checked separately.</span><small>{verification}</small><button type="button" onClick={event => onGo(event, 'studio-commit-checks-heading')}>Go to commit checks</button></li>
     </ol>
   </section>;
 }
@@ -300,6 +309,11 @@ export default function ModellingStudio() {
   const [historyPending, setHistoryPending] = useState(false);
   const historyRequest = useRef(0);
   const diffRequest = useRef(0);
+  const readinessRequest = useRef(0);
+  const readinessEpoch = useRef(0);
+  const reviewDecisionsRequest = useRef(0);
+  const publicationRequest = useRef(0);
+  const commitChecksRequest = useRef(0);
   const [followSuggestions, setFollowSuggestions] = useState(false);
   const [followPaused, setFollowPaused] = useState(false);
   const followCursor = useRef(0);
@@ -314,6 +328,7 @@ export default function ModellingStudio() {
   const [commitWorkflows, setCommitWorkflows] = useState(null);
   const [requiredChecks, setRequiredChecks] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [decisionsLoaded, setDecisionsLoaded] = useState(false);
   const [reviewReason, setReviewReason] = useState('');
   const [reviewDecision, setReviewDecision] = useState('request_changes');
   const [reviewCase, setReviewCase] = useState({ requirementId: '', ruleId: '', caseId: '', start: '', end: '', expectedConformance: 'true', scenario: '' });
@@ -451,6 +466,10 @@ export default function ModellingStudio() {
       pane?.querySelector('h2')?.focus({ preventScroll: true });
     });
   }
+  function invalidateReadiness() {
+    readinessEpoch.current += 1;
+    setReadiness(null);
+  }
   function openWorkspaceTask(event, id) {
     event.preventDefault();
     setCompactSurface('results');
@@ -515,6 +534,11 @@ export default function ModellingStudio() {
     setAvailableTools([]);
     setCanPush(null);
     setPublicationHistory([]);
+    setPublication(null);
+    setReadiness(null);
+    setReviews([]);
+    setDecisionsLoaded(false);
+    setCommitWorkflows(null);
     setDiff(null);
     setEditorDocument('diagram');
     const abort = new AbortController();
@@ -525,6 +549,7 @@ export default function ModellingStudio() {
     const { endpoint: url, token: credential, workspaceId: id } = connection;
     const tool = async (name, args) => (await call(url, credential, 'tools/call', { name, arguments: args }, abort.signal)).structuredContent;
     async function refresh() {
+      invalidateReadiness();
       const response = await call(url, credential, 'resources/read', { uri: `ontology://workspace/${id}/v1/summary` }, abort.signal);
       const value = JSON.parse(response.contents?.[0]?.text ?? 'null');
       if (value?.contractVersion !== 'chargeweave-resource-v1' || value.workspaceId !== id || !Number.isSafeInteger(value.revision) || !Number.isSafeInteger(value.eventSequence)) throw new Error('Invalid workspace summary');
@@ -533,7 +558,6 @@ export default function ModellingStudio() {
       currentRevision.current = value.revision;
       setSnapshot(value);
       setWorkspaceBaseline(previous => previous || value.baselineCommit);
-      setReadiness(null);
       const activity = await tool('ontology_history_get', { workspaceId: id });
       setHistory(activity.events);
       return value;
@@ -943,10 +967,13 @@ export default function ModellingStudio() {
   }
   async function inspectPublication() {
     setError('');
+    const request = ++publicationRequest.current;
+    const signal = connectionAbort.current?.signal;
+    const workspaceId = connection.workspaceId;
     try {
-      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_publication_preflight', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision } });
-      if (response.structuredContent.revision === currentRevision.current) setPublication(response.structuredContent);
-    } catch (problem) { setError(problem.message); }
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_publication_preflight', arguments: { workspaceId, expectedRevision: snapshot.revision } }, signal);
+      if (!signal?.aborted && request === publicationRequest.current && response.structuredContent.workspaceId === workspaceId && response.structuredContent.revision === currentRevision.current) setPublication(response.structuredContent);
+    } catch (problem) { if (!signal?.aborted && request === publicationRequest.current) setError(problem.message); }
   }
   async function searchRequirements(event) {
     event.preventDefault(); setError('');
@@ -1242,21 +1269,46 @@ export default function ModellingStudio() {
   }
   async function inspectReadiness() {
     setError('');
+    const request = ++readinessRequest.current;
+    const signal = connectionAbort.current?.signal;
+    const workspaceId = connection.workspaceId;
+    const epoch = readinessEpoch.current;
     try {
-      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_readiness', arguments: { workspaceId: connection.workspaceId } });
-      setReadiness(response.structuredContent);
-      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId: connection.workspaceId } });
-      setReviews(history.structuredContent.decisions);
-    } catch { setError('Review readiness requires a reviewer credential.'); }
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_readiness', arguments: { workspaceId } }, signal);
+      const readiness = response.structuredContent;
+      if (signal?.aborted || request !== readinessRequest.current) return;
+      if (readiness.workspaceId !== workspaceId || readiness.revision !== currentRevision.current) {
+        setError('The draft changed while review gates were loading. Inspect the current revision again.');
+        return;
+      }
+      if (epoch !== readinessEpoch.current) { setError('Review evidence changed while gates were loading. Inspect them again.'); return; }
+      const decisionsRequest = ++reviewDecisionsRequest.current;
+      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId } }, signal);
+      if (signal?.aborted || request !== readinessRequest.current) return;
+      if (readiness.revision !== currentRevision.current) {
+        setError('The draft changed while review gates were loading. Inspect the current revision again.');
+        return;
+      }
+      if (epoch !== readinessEpoch.current) { setError('Review evidence changed while gates were loading. Inspect them again.'); return; }
+      setReadiness(readiness);
+      if (decisionsRequest === reviewDecisionsRequest.current) { setReviews(history.structuredContent.decisions); setDecisionsLoaded(true); }
+    } catch (problem) { if (!signal?.aborted && request === readinessRequest.current) setError(`Unable to inspect review gates: ${problem.message}`); }
   }
   async function submitReview(event) {
     event.preventDefault(); setError('');
+    const signal = connectionAbort.current?.signal;
+    const workspaceId = connection.workspaceId;
+    reviewDecisionsRequest.current += 1;
+    setDecisionsLoaded(false);
     try {
-      await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_changeset_review', arguments: { workspaceId: connection.workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, ...(snapshot.changeSet ? { changeSetId: snapshot.changeSet.id } : {}), sourceDigest: snapshot.sourceDigest, decision: reviewDecision, reason: reviewReason } });
+      await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_changeset_review', arguments: { workspaceId, operationId: crypto.randomUUID(), expectedRevision: snapshot.revision, ...(snapshot.changeSet ? { changeSetId: snapshot.changeSet.id } : {}), sourceDigest: snapshot.sourceDigest, decision: reviewDecision, reason: reviewReason } }, signal);
+      if (signal?.aborted) return;
       setReviewReason('');
-      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId: connection.workspaceId } });
-      setReviews(history.structuredContent.decisions);
-    } catch (problem) { setError(problem.message); }
+      const request = ++reviewDecisionsRequest.current;
+      setDecisionsLoaded(false);
+      const history = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_review_decisions', arguments: { workspaceId } }, signal);
+      if (!signal?.aborted && request === reviewDecisionsRequest.current) { setReviews(history.structuredContent.decisions); setDecisionsLoaded(true); }
+    } catch (problem) { if (!signal?.aborted) setError(problem.message); }
   }
   async function submitReviewCase(event) {
     event.preventDefault(); setError('');
@@ -1267,10 +1319,13 @@ export default function ModellingStudio() {
   }
   async function inspectCommitWorkflows(event) {
     event.preventDefault(); setError('');
+    const request = ++commitChecksRequest.current;
+    const signal = connectionAbort.current?.signal;
+    const sha = commitSha;
     try {
-      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_github_commit_workflows', arguments: { workspaceId: connection.workspaceId, commitSha } });
-      setCommitWorkflows(response.structuredContent);
-    } catch (problem) { setError(problem.message); }
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_github_commit_workflows', arguments: { workspaceId: connection.workspaceId, commitSha: sha } }, signal);
+      if (!signal?.aborted && request === commitChecksRequest.current && response.structuredContent.sha === sha) setCommitWorkflows(response.structuredContent);
+    } catch (problem) { if (!signal?.aborted && request === commitChecksRequest.current) setError(problem.message); }
   }
   async function inspectRequiredChecks() {
     setError('');
@@ -1282,6 +1337,7 @@ export default function ModellingStudio() {
   async function runChecks(profile) {
     if (checkInFlight.current) return;
     checkInFlight.current = true;
+    invalidateReadiness();
     setCheckStarting(true);
     setError('');
     try {
@@ -1294,7 +1350,7 @@ export default function ModellingStudio() {
         current = response.structuredContent; setJob(current);
       }
     } catch (problem) { setError(problem.message); }
-    finally { checkInFlight.current = false; setCheckStarting(false); }
+    finally { invalidateReadiness(); checkInFlight.current = false; setCheckStarting(false); }
   }
   async function inspectPublicationHistory() {
     const signal = connectionAbort.current?.signal;
@@ -1354,6 +1410,7 @@ export default function ModellingStudio() {
   }
   async function cancelCheck() {
     setError('');
+    invalidateReadiness();
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_job_cancel', arguments: { workspaceId: connection.workspaceId, jobId: job.id, operationId: crypto.randomUUID() } });
       setJob(response.structuredContent);
@@ -1503,7 +1560,7 @@ export default function ModellingStudio() {
       <section id="studio-inspector-pane" hidden={!isCompact && hideInspector}><h2 tabIndex={-1}>Inspector</h2><datalist id="studio-field-type-suggestions">{scalarTypes.map(type => <option key={type} value={type} label="Datatype" />)}{[...new Set([...(browse?.results || []).map(item => item.name), ...results.map(item => item.name), ...(graph?.nodes || []).map(item => item.name), ...rangeSuggestions.map(item => item.name)])].filter(name => !scalarTypes.includes(name)).map(name => <option key={name} value={name} label="Concept" />)}</datalist>{selected ? <><h3>{selected.name}</h3>{viewRoot !== selected.name && <button type="button" onClick={() => { focusViewRoot(selected.name); setEditorDocument('diagram'); if (window.matchMedia('(max-width: 900px)').matches) openCompactPane('studio-editor-pane'); }}>Focus neighbourhood</button>}<form onSubmit={saveDefinition}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Model change</legend><label>Definition <textarea value={definition} onChange={event => setDefinition(event.target.value)} maxLength={4000} required /></label>{definitionConflict && <div role="alert" className="studio-conflict"><p>This definition changed in another client while you were editing.</p><p>Previous: {definitionConflict.before}</p><p>Latest: {definitionConflict.latest}</p><p>Your text is retained above. Review the latest definition before choosing what to do.</p><button type="button" onClick={() => { setDefinition(definitionConflict.latest); setDefinitionConflict(null); }}>Use latest definition</button><button type="button" onClick={() => setDefinitionConflict(null)}>Keep my text</button></div>}<button disabled={commandPending || Boolean(definitionConflict) || entityRevision !== snapshot.revision || entityInfo?.name !== selected.name || definition === selected.definition}>Save definition</button><button type="button" onClick={() => { setDefinition(selected.definition); setDefinitionConflict(null); }}>Cancel</button></fieldset></form><p>Parent: {selected.parent} {selected.parent && !['root', '-'].includes(selected.parent) && <button type="button" onClick={() => selectPerspectiveConcept(selected.parent, { focusView: false })}>Inspect parent {selected.parent}</button>}</p><details><summary>Referenced by</summary><p>Direct declared relationships and direct subclasses only; this is not a complete impact analysis.</p><button type="button" onClick={() => inspectIncoming()}>Find references</button>{incoming && <><p>Showing {incoming.results.length} of {incoming.total} references.</p><ul>{incoming.results.map((item, index) => <li key={item.source + '-' + item.predicate + '-' + index}><strong>{item.source}</strong> · {item.predicate}{item.cardinality ? ' (' + item.cardinality + ')' : ''} <button type="button" onClick={() => selectPerspectiveConcept(item.source)}>Inspect {item.source}</button></li>)}</ul>{incoming.nextOffset !== null && <button type="button" onClick={() => inspectIncoming(incoming.nextOffset)}>Load more references</button>}</>}</details>{entityInfo && <><InspectorIdentifier key={selected.name} iri={entityInfo.iri} /><p>Source: {entityInfo.source.path}:{entityInfo.source.line}</p><h4>Fields</h4><InspectorFields key={selected.name} fields={entityInfo.fields} commandPending={commandPending} onInspectOwner={name => selectPerspectiveConcept(name, { focusView: false })} onEdit={startFieldEdit} onRequire={item => applyCommand({ type: 'constraint.add', template: 'required-relationship', owner: selected.name, name: item.property, expectedRange: item.range, expectedCardinality: item.cardinality })} /></>}{fieldEdit && selected && <section className="studio-activity"><h2>Edit field contract</h2><p>Changing a range or tightening cardinality can break existing data and consumers. Review affected requirements and rerun checks.</p><p>Current contract: {fieldEdit.name}: {fieldEdit.expectedRange} ({fieldEdit.expectedCardinality}).</p><form onSubmit={updateField}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Model change</legend><label>New datatype or target class <input list="studio-field-type-suggestions" ref={fieldEditInput} onFocus={() => setRangeSource('edit')} value={fieldEdit.range} onChange={event => setFieldEdit({ ...fieldEdit, range: event.target.value })} required /></label>{rangeSearchError && <p role="status">{rangeSearchError}</p>}<label>New cardinality <select value={fieldEdit.cardinality} onChange={event => setFieldEdit({ ...fieldEdit, cardinality: event.target.value })}><option value="?">Optional, at most one</option><option value="!">Exactly one</option><option value="*">Zero or more</option><option value="+">One or more</option></select></label>{fieldEditConflict && <div role="alert" className="studio-conflict"><p>This field changed in another client. Your input is retained; cancel and reopen the field to review its current contract.</p><p>Previous: {fieldEdit.expectedRange} ({fieldEdit.expectedCardinality}). Current: {currentField ? currentFieldRange + ' (' + currentField.cardinality + ')' : 'field unavailable'}.</p></div>}<button disabled={commandPending || !entityInfo || fieldEditConflict || entityRevision !== snapshot.revision || entityInfo?.name !== selected?.name}>Update field contract</button><button type="button" onClick={cancelFieldEdit}>Cancel field edit</button></fieldset></form></section>}<details id="studio-add-field" onToggle={event => setFieldFormOpen(event.currentTarget.open)}><summary>Add a field or relationship</summary><form onSubmit={addField}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Model change</legend><label>Field name <input value={field.name} onChange={e => setField({ ...field, name: e.target.value })} required /></label><p>Use a datatype, class name, or controlled values such as &#123;Draft,Confirmed,Cancelled&#125;. Suggestions include known datatypes, loaded concepts and up to 25 live search matches; other class names can be entered.</p>{rangeSearchError && <p role="status">{rangeSearchError}</p>}<label>Datatype or target class <input list="studio-field-type-suggestions" onFocus={() => setRangeSource('add')} value={field.range} onChange={e => setField({ ...field, range: e.target.value })} required /></label><label>Cardinality <select value={field.cardinality} onChange={e => setField({ ...field, cardinality: e.target.value })}><option value="?">Optional, at most one</option><option value="!">Exactly one</option><option value="*">Zero or more</option><option value="+">One or more</option></select></label><button disabled={commandPending}>Add field</button></fieldset></form></details></> : <div className="studio-inspector-empty"><p>Select a concept to inspect its definition, fields and references.</p><button type="button" onClick={focusModelSearch}>Find a concept</button></div>}</section>
     </div>
     <div className="studio-compact-results"><WorkspaceDock panel={dockPanel} onPanelChange={setDockPanel} height={dockHeight} heightLimit={dockLimit} onHeightChange={setDockHeight} disabled={!online} job={job} snapshot={snapshot} history={history} historyDetail={historyDetail} historyPending={historyPending} onInspectRevision={inspectHistory} onCloseHistory={closeHistory} onRetry={runChecks} onFocusConcept={selectPerspectiveConcept} onDownloadEvidence={downloadEvidence} onShowChecks={showValidation} activityConcept={eventConcept} />
-    <ReviewWorkflow snapshot={snapshot} canReview={availableTools.includes('ontology_changeset_review')} onInspect={reviewDraftChanges} onChecks={showValidation} onGo={openWorkspaceTask} />
+    <ReviewWorkflow snapshot={snapshot} diff={diff} readiness={readiness} reviews={reviews} decisionsLoaded={decisionsLoaded} publication={publication} canPush={canPush} commitWorkflows={commitWorkflows} publisherAvailable={availableTools.includes('ontology_publication_capabilities')} canReview={availableTools.includes('ontology_changeset_review')} onInspect={reviewDraftChanges} onChecks={showValidation} onGo={openWorkspaceTask} />
     <section className="studio-activity"><h2>Change set</h2>{snapshot.changeSet ? <><p>{snapshot.changeSet.intent} · {snapshot.changeSet.status} · <code>{snapshot.changeSet.id}</code></p><p>Requirement references: {snapshot.changeSet.requirements.join(', ') || 'none'}.</p>{['accepted', 'rejected'].includes(snapshot.changeSet.status) && <><p>Editing is locked until a reviewer reopens this change set. Reopening invalidates its acceptance.</p><button type="button" disabled={!availableTools.includes('ontology_changeset_reopen')} onClick={reopenChangeSet}>Reopen change set</button>{!availableTools.includes('ontology_changeset_reopen') && <p>Reopening a reviewed change set requires reviewer access.</p>}</>}{snapshot.changeSet.status === 'published' && <p>This change set was pushed. Start a new workspace from the reviewed target before another proposal.</p>}</> : <><p>Opening a change set records intent for the whole current draft, including any edits already made.</p><form onSubmit={openChangeSet}><label>Change-set intent <input value={changeSetIntent} onChange={event => setChangeSetIntent(event.target.value)} maxLength={1000} required /></label><label>Requirement IDs (comma separated, optional) <input value={changeSetRequirements} onChange={event => setChangeSetRequirements(event.target.value)} /></label><button>Open change set</button></form></>}</section>
     <PerspectivePanels temporalDirty={Boolean(temporalBaseline && temporalBaseline.root === selected?.name && temporalPolicy !== (temporalBaseline.policy ?? 'snapshot-versioned'))} discardTemporal={() => { setTemporalPolicy(temporalBaseline?.policy ?? 'snapshot-versioned'); setError(''); }} binding={binding} setBinding={setBinding} commandPending={commandPending} selected={selected} snapshot={snapshot} entityInfo={entityInfo} responsibility={responsibility} temporal={temporal} temporalPolicy={temporalPolicy} setTemporalPolicy={value => { temporalRequest.current += 1; setTemporalPolicy(value); }} inspectResponsibility={inspectResponsibility} inspectTemporal={inspectTemporal} saveTemporalPolicy={saveTemporalPolicy} selectConcept={selectPerspectiveConcept} addRelationship={openRelationshipAuthoring} addBinding={applyCommand} />
     <section className="studio-activity"><h2>Requirement links</h2>{snapshot.digestVersion === 4 ? <><p>Linking a concept records a relationship in the requirement register; it does not prove coverage or acceptance.</p><form onSubmit={searchRequirements}><label>Search requirements <input value={requirementQuery} onChange={event => setRequirementQuery(event.target.value)} /></label><button>Search requirements</button></form><ul>{requirements.map(item => <li key={item.id}><strong>{item.id}</strong>: {item.statement} <button type="button" disabled={!selected || item.classes.includes(selected.name)} onClick={() => linkRequirement(item)}>Link selected concept</button>{selected && item.classes.includes(selected.name) && ['model/audit-rules.json', 'model/authoring-example-overrides.json', 'tests/business-acceptance.json', 'tests/negative-cases.json'].every(path => snapshot.editableSources?.includes(path)) && <details><summary>Add interval rule for {item.id}</summary><p>Only a new class with two new, declared date-time fields is supported. The generated cases are draft examples and require independent review.</p><form onSubmit={event => addIntervalRule(event, item)}><fieldset className="studio-command-fields" disabled={commandPending}><legend className="sr-only">Interval rule change</legend><label>Interval start <select value={intervalRule.startProperty} onChange={event => setIntervalRule({ ...intervalRule, startProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>Interval end <select value={intervalRule.endProperty} onChange={event => setIntervalRule({ ...intervalRule, endProperty: event.target.value })} required><option value="">Choose a field</option>{entityInfo?.fields.filter(field => !field.inherited && field.range === 'dateTime' && ['!', '?'].includes(field.cardinality)).map(field => <option key={field.property} value={field.property}>{field.property}</option>)}</select></label><label>New rule ID <input value={intervalRule.ruleId} onChange={event => setIntervalRule({ ...intervalRule, ruleId: event.target.value })} pattern="B[0-9]{3,6}" required /></label><button>Add interval constraint</button></fieldset></form></details>}</li>)}</ul></> : <p>Create a version-four workspace to edit requirement links.</p>}</section>

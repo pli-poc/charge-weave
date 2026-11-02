@@ -1251,12 +1251,14 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Check publication target' }).click();
     await expect(page.getByText(/local-test-remote · main · matches-baseline/)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Target main: matches-baseline');
     await expect(page.getByText(/Preflight alone does not authorize publication/)).toBeVisible();
     await page.getByRole('button', { name: 'Inspect publication history' }).click();
     await expect(page.getByText(/Publisher permission: not enabled/)).toBeVisible();
     await page.getByLabel('Commit SHA').fill(commit);
     await page.getByRole('button', { name: 'Check commit workflows' }).click();
     await expect(page.getByRole('link', { name: 'Synthetic check' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText(`Commit ${commit}: passed`);
     await expect(page.getByText(/branch-protection requirements and deployment are not checked/)).toBeVisible();
     await page.getByRole('button', { name: 'Check required status checks' }).click();
     await expect(page.getByText('Synthetic required: passed')).toBeVisible();
@@ -1433,6 +1435,127 @@ test('draft comparison groups added and changed concepts with before and after',
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('review gate evidence is cleared when checks start and finish', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Check evidence', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  let release, started;
+  const gate = new Promise(resolve => { release = resolve; });
+  const running = new Promise(resolve => { started = resolve; });
+  let releaseReadiness, observedReadiness;
+  const readinessGate = new Promise(resolve => { releaseReadiness = resolve; });
+  const readinessIntercepted = new Promise(resolve => { observedReadiness = resolve; });
+  const delayReadiness = async route => {
+    if (route.request().postDataJSON()?.params?.name === 'ontology_review_readiness') {
+      const response = await route.fetch();
+      observedReadiness(); await readinessGate;
+      await route.fulfill({ response }).catch(() => {});
+    } else await route.continue();
+  };
+  const validationRunner = async (target, input, job) => {
+    target.startJobStep(job.id, 0, 'tools/example-check.py');
+    started(); await gate;
+    target.finishJobStep(job.id, 0, 'passed');
+    target.updateJob(job.id, 'passed');
+  };
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', validationRunner, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+    const workflow = page.getByRole('region', { name: 'Review workflow' });
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await expect(workflow).toContainText('Last inspection: review gates incomplete:');
+    await page.getByRole('button', { name: 'Check draft', exact: true }).click();
+    await running;
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    await page.route('**/mcp', delayReadiness);
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await readinessIntercepted;
+    release();
+    await expect(page.getByRole('button', { name: 'Check draft', exact: true })).toBeEnabled();
+    releaseReadiness();
+    await expect(page.getByRole('alert')).toContainText('Review evidence changed while gates were loading.');
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { release(); releaseReadiness(); await page.unroute('**/mcp', delayReadiness); await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('an older decision lookup cannot hide a newly recorded review', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Decision race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed, delayed = false;
+  const gate = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  const delay = async route => {
+    if (!delayed && route.request().postDataJSON()?.params?.name === 'ontology_review_decisions') {
+      delayed = true;
+      const response = await route.fetch();
+      observed(); await gate;
+      await route.fulfill({ response }).catch(() => {});
+    } else await route.continue();
+  };
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+    await page.route('**/mcp', delay);
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await intercepted;
+    const decisionSection = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Reviewer decision', exact: true }) });
+    await decisionSection.getByLabel('Decision').selectOption('reject');
+    await decisionSection.getByLabel('Reason', { exact: true }).fill('The draft needs further review.');
+    await page.getByRole('button', { name: 'Record reviewer decision' }).click();
+    await expect(page.getByText(/Rejected · revision 0 · local-reviewer · current/)).toBeVisible();
+    const oldResponse = page.waitForResponse(response => response.request().postDataJSON()?.params?.name === 'ontology_review_decisions');
+    release(); await oldResponse;
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Latest decision: reject · revision 0 · current');
+    expect(store.reviewDecisions(workspace.id)[0].decision).toBe('reject');
+  } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('delayed review readiness cannot describe a newer draft', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Readiness race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed;
+  const gate = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  const delay = async route => {
+    if (route.request().postDataJSON()?.params?.name === 'ontology_review_readiness') {
+      const response = await route.fetch();
+      observed(); await gate;
+      await route.fulfill({ response });
+    } else await route.continue();
+  };
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+    await page.route('**/mcp', delay);
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await intercepted;
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-draft', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated during review.' }] });
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
+    release();
+    await expect(page.getByRole('alert')).toContainText('The draft changed while review gates were loading.');
+    await expect(page.getByText('Revision 0, digest', { exact: false })).toHaveCount(0);
+    await page.unroute('**/mcp', delay);
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await expect(page.getByText('Revision 1, digest', { exact: false })).toBeVisible();
+  } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('a delayed draft comparison cannot replace the current revision', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Comparison race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original.|\n' });
@@ -1484,6 +1607,11 @@ test('review workflow links to separate review and publication steps', async ({ 
     await expect(workflow.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
     await expect(workflow).toContainText(workspace.sourceDigest);
     await expect(workflow).toContainText('Checks and review decisions do not publish the draft.');
+    await expect(workflow).toContainText('Comparison not opened');
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    await expect(workflow).toContainText('Decision not inspected');
+    await expect(workflow).toContainText('Target not checked for this draft');
+    await expect(workflow).toContainText('Commit checks not inspected');
     for (const [button, heading] of [['Go to reviewer decision', 'Reviewer decision'], ['Go to publication preflight', 'Publication preflight'], ['Go to commit checks', 'GitHub commit checks']]) {
       await workflow.getByRole('button', { name: button }).click();
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeFocused();
@@ -1495,6 +1623,16 @@ test('review workflow links to separate review and publication steps', async ({ 
     await workflow.getByRole('button', { name: 'Open draft changes' }).click();
     await expect(page.getByRole('heading', { name: 'Changes at revision 0' })).toBeFocused();
     expect(store.get(workspace.id).revision).toBe(0);
+    await reviewLink.click();
+    await expect(workflow).toContainText('Comparison current at revision 0');
+    await page.getByRole('button', { name: 'Inspect review gates' }).click();
+    await expect(workflow).toContainText('Last inspection: review gates incomplete:');
+    await expect(workflow).toContainText('No decision returned');
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'newer-review', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'A newer record.' }] });
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Revision 1');
+    await expect(workflow).toContainText('Comparison out of date (revision 0)');
+    await expect(workflow).toContainText('Review gates not inspected for this draft');
+    expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
