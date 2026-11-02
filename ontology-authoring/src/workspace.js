@@ -565,7 +565,8 @@ export class WorkspaceStore {
     const nodes = [...new Set(results.map(item => item.source))].map(name => ({ ...classes.get(name), sourceRef: { path: 'model/domain.schema', line: lines.get(name) } }));
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, results, nodes, total: references.length, nextOffset: offset + results.length < references.length ? offset + results.length : null };
   }
-  view(id, root, expectedRevision) {
+  view(id, root, expectedRevision, limit = 50) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Invalid view limit');
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     const classes = parse(workspace.schema).classes;
@@ -593,7 +594,7 @@ export class WorkspaceStore {
       sourcePath: 'model/domain.schema', sourceRef: { path: 'model/domain.schema', line: lines.get(root) },
       mappingVersion: 'chargeweave-authoring-v1', changeStatus: previousRelations.has(JSON.stringify([predicate, target, cardinality])) ? 'unchanged' : 'added',
     }));
-    const visible = edges.slice(0, 50);
+    const visible = edges.slice(0, limit);
     const names = [...new Set([root, ...visible.map(edge => edge.target)])];
     const nodes = names.map(name => {
       const item = classes.get(name), before = baseline.get(name);
