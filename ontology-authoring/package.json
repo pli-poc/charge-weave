@@ -10,6 +10,7 @@
     "start": "node src/index.js",
     "doctor": "node src/doctor.js",
     "demo": "node src/demo-cli.js",
+    "benchmark:search": "node scripts/measure-search.mjs",
     "test": "node --test"
   },
   "dependencies": {
