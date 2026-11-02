@@ -31,6 +31,12 @@ test('unreadable local layout is not silently overwritten by automatic placement
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await expect(page.getByText(/Could not save view: Canvas positions could not be read/)).toBeVisible();
     expect(store.savedView(workspace.id, 'default').viewRevision).toBe(0);
+    await page.getByRole('button', { name: 'Replace unreadable local layout' }).click();
+    await expect(page.getByText(/Local layout replaced with the current diagram positions/)).toBeVisible();
+    expect(JSON.parse(await page.evaluate(key => sessionStorage.getItem(key), key)).Device).toBeDefined();
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText('Shared view saved.')).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').viewRevision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

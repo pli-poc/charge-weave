@@ -38,6 +38,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   });
   const positions = useRef(initialLayout.positions);
   const storageWritable = useRef(initialLayout.writable);
+  const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
   const byName = useRef(new Map());
   useEffect(() => {
@@ -118,6 +119,14 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
   const offsets = parallelEdgeOffsets(graph.edges);
+  function replaceUnreadableLayout() {
+    try {
+      writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current);
+      storageWritable.current = true;
+      setLayoutRecoveryNeeded(false);
+      setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
+    } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
+  }
   return <div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState}
     onKeyDownCapture={event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -125,7 +134,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (!node) return;
       event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
     }}>
-    {layoutNotice && <p role="status">{layoutNotice}</p>}
+    {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
     <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
       onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
