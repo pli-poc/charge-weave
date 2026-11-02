@@ -342,6 +342,8 @@ test('a remote field change blocks a stale inspector edit while preserving input
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    const recordNameRow = page.getByRole('row').filter({ has: page.getByRole('rowheader', { name: /recordName/ }) });
+    await expect(recordNameRow).toContainText('Optional (0..1)');
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await page.getByLabel('New cardinality').selectOption('+');
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'remote-field', expectedRevision: 0, commands: [{ type: 'property.update', owner: 'Record', name: 'recordName', expectedRange: 'string', expectedCardinality: '?', range: 'string', cardinality: '!' }] });
@@ -556,6 +558,7 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-filtered-module', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Station', definition: 'Updated station.' }] });
     await expect(page.getByRole('status')).toContainText('revision 1');
+    await expect(recordNameRow).toContainText('Exactly one (1)');
     await expect(page.getByLabel('Filter by module')).toHaveValue('operations');
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Station', exact: true }).click();

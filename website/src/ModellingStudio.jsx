@@ -22,13 +22,14 @@ function BrowseConceptTree({ browse, selectedName, onSelect, onOpen, onBrowseMod
   </li>)}</ul>;
 }
 
+const cardinalityLabels = { '!': 'Exactly one (1)', '?': 'Optional (0..1)', '+': 'One or more (1..*)', '*': 'Zero or more (0..*)' };
 function InspectorFields({ fields, onEdit, onRequire }) {
   if (!fields.length) return <p>No fields.</p>;
   return <div className="studio-field-table-wrap"><table className="studio-field-table">
     <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Cardinality</th><th scope="col">Actions</th></tr></thead>
     <tbody>{fields.map((item, index) => <tr key={index}>
       <th scope="row">{item.property}<small>{item.inherited ? `Inherited from ${item.owner}` : 'Declared'} · {item.source.path}:{item.source.line}</small>{item.description && <small>{item.description}</small>}</th>
-      <td>{item.range}</td><td>{item.cardinality}</td><td>
+      <td>{item.range}</td><td>{cardinalityLabels[item.cardinality] ?? item.cardinality}</td><td>
         {!item.inherited && <button type="button" onClick={() => onEdit(item)}>Edit {item.property}</button>}
         {!item.inherited && item.type === 'object' && ['?', '*'].includes(item.cardinality) && <button type="button" title="Requiring a relationship may break existing data." onClick={() => onRequire(item)}>Require {item.property}</button>}
       </td>
