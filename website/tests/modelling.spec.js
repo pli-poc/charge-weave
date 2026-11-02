@@ -609,10 +609,13 @@ test('browser discovers and edits the shared MCP workspace', async ({ page }) =>
   const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)), repository: '.', validationRunner: async (target, input, job) => { target.startJobStep(job.id, 0, 'tools/build.py'); target.finishJobStep(job.id, 0, 'passed'); if (job.profile === 'reference') target.saveJobArtifacts(job.id, { changedCount: 1, baselineManifestSha256: 'a'.repeat(64), candidateManifestSha256: 'b'.repeat(64), changes: [{ path: 'ontology/example.ttl', kind: 'changed' }], omitted: 0, note: 'Synthetic comparison for browser testing.' }); target.updateJob(job.id, 'passed'); } });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
+    const workspaceReads = [];
+    page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/mcp')) { try { const body = request.postDataJSON(); if (body.method === 'resources/read' && body.params?.uri?.includes('/v1/summary')) workspaceReads.push(body.params.uri); } catch { /* unrelated request */ } } });
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/developer/modeler/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status')).toContainText('revision 0');
+    expect(workspaceReads).toContain(`ontology://workspace/${workspace.id}/v1/summary`);
     await page.getByLabel('Search model').fill('NoMatchingConcept');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText(/No matching concepts/)).toBeVisible();

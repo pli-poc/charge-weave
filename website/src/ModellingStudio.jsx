@@ -154,7 +154,9 @@ export default function ModellingStudio() {
     const { endpoint: url, token: credential, workspaceId: id } = connection;
     const tool = async (name, args) => (await call(url, credential, 'tools/call', { name, arguments: args }, abort.signal)).structuredContent;
     async function refresh() {
-      const value = await tool('ontology_workspace_get', { workspaceId: id });
+      const response = await call(url, credential, 'resources/read', { uri: `ontology://workspace/${id}/v1/summary` }, abort.signal);
+      const value = JSON.parse(response.contents?.[0]?.text ?? 'null');
+      if (value?.contractVersion !== 'chargeweave-resource-v1' || value.workspaceId !== id || !Number.isSafeInteger(value.revision) || !Number.isSafeInteger(value.eventSequence)) throw new Error('Invalid workspace summary');
       cursor.current = value.eventSequence;
       if (currentRevision.current !== value.revision) { setResults([]); setSearchDone(false); }
       currentRevision.current = value.revision;
