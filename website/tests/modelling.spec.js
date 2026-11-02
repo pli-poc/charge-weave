@@ -674,6 +674,11 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const navigation = page.getByRole('navigation', { name: 'Workspace sections' });
+    await navigation.getByRole('button', { name: 'Inspector', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Inspector' })).toBeFocused();
+    await navigation.getByRole('button', { name: 'Diagram', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
     const relationship = page.locator('.studio-graph li').filter({ hasText: 'subClassOf' });
     await relationship.getByRole('button', { name: 'Record' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
