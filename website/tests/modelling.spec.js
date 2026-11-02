@@ -1108,6 +1108,12 @@ test('failed validation can be inspected, corrected and retried on the current d
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
+    await issues.getByLabel('Filter failed checks').fill('unmatched check');
+    await expect(issues.getByText('Showing 0 of 1 failed checks matching the filter.')).toBeVisible();
+    await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toHaveCount(0);
+    await issues.getByLabel('Filter failed checks').fill('definition needs correction');
+    await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
+    await issues.getByLabel('Filter failed checks').clear();
     await page.getByRole('button', { name: 'View check details' }).click();
     await expect(issues.getByRole('heading', { name: 'Validation issues' })).toBeFocused();
     await issues.getByText('Recorded check output').click();
