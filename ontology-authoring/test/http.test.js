@@ -123,6 +123,9 @@ test('loopback MCP transport authenticates and shares state', async () => {
     const listed = (await first.callTool({ name: 'ontology_workspace_list', arguments: {} })).structuredContent.workspaces;
     assert.deepEqual(listed.map(item => item.workspaceId), [workspace.id]);
     assert.equal(listed[0].baselineCommit, workspace.baselineCommit);
+    const identity = (await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: workspace.id } })).structuredContent;
+    assert.equal(identity.workspaceId, workspace.id); assert.equal(identity.revision, 0);
+    assert.equal(Object.hasOwn(identity, 'schema'), false); assert.equal(Object.hasOwn(identity, 'sourceManifest'), false); assert.equal(Object.hasOwn(identity, 'sourceOverlays'), false);
     const denied = await first.callTool({ name: 'ontology_workspace_get', arguments: { workspaceId: other.id } });
     assert.equal(denied.isError, true);
     assert.equal(denied.structuredContent.error.code, 'SCOPE_DENIED');

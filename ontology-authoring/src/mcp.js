@@ -70,7 +70,10 @@ export function createServer(store, actor, options = {}) {
     const created = options.createWorkspace(args);
     return result({ workspaceId: created.id, title: created.title, baselineCommit: created.baselineCommit, revision: created.revision, sourceDigest: created.sourceDigest });
   });
-  registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, source and event cursor.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.snapshot(args.workspaceId)));
+  registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, editable source names and event cursor. Use concept and diff tools for model details.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => {
+    const { schema, sourceManifest, sourceOverlays, ...identity } = store.snapshot(args.workspaceId);
+    return result({ ...identity, workspaceId: args.workspaceId });
+  });
   registerTool('ontology_constraint_templates', { description: 'List the bounded schema constraint templates supported by the pinned adapter.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => result(store.constraintTemplates(args.workspaceId)));
   registerTool('ontology_context_search', { description: 'Search existing model classes before proposing additions.', inputSchema: { workspaceId, query: z.string().max(200), limit: z.number().int().min(1).max(100).optional(), expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(store.search(args.workspaceId, args.query, args.limit, args.expectedRevision)));
   registerTool('ontology_requirement_search', { description: 'Search the editable requirement register with exact class-list preconditions; linking a term does not prove acceptance.', inputSchema: { workspaceId, query: z.string().max(200), limit: z.number().int().min(1).max(50).optional(), expectedRevision: revision.optional() }, annotations: { readOnlyHint: true } }, async args => result(store.requirementsSearch(args.workspaceId, args.query, args.limit, args.expectedRevision)));
