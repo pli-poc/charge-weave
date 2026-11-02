@@ -23,9 +23,11 @@ test('inherited fields link to their declaring concept', async ({ page }) => {
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     await page.getByRole('button', { name: 'Inspect owner Record' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Edit recordName' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
