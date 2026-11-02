@@ -161,5 +161,7 @@ jobs:
         working-directory: website
       - run: npx playwright test tests/modelling.spec.js --project=desktop
         working-directory: website
+      - run: npx playwright test tests/canvas-layout.spec.js tests/studio-theme.spec.js --project=desktop
+        working-directory: website
       - run: npx playwright test tests/modelling.spec.js --project=mobile -g "mobile relationship list"
         working-directory: website

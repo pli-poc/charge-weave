@@ -3,6 +3,7 @@ import { classifyEvent } from './model/event-cursor.js';
 import ModellingCanvas from './ModellingCanvas.jsx';
 import WorkspaceDock from './WorkspaceDock.jsx';
 import PerspectivePanels from './PerspectivePanels.jsx';
+import StudioThemeControl from './StudioThemeControl.jsx';
 import { projectView } from './model/project-view.js';
 import { mergeIncoming } from './model/incoming-view.js';
 import { canvasPositionKey, readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
@@ -104,22 +105,39 @@ const scalarTypes = ['string', 'langString', 'integer', 'nonNegativeInteger', 'p
 function ContextHandoff({ snapshot, entity, entityRevision, job, connection, availableTools }) {
   const [message, setMessage] = useState('');
   const [open, setOpen] = useState(false);
+  const [showLinks, setShowLinks] = useState(false);
   const [links, setLinks] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreError, setMoreError] = useState('');
+  const linkPageAbort = useRef(null);
   const current = entity && entityRevision === snapshot.revision;
   const canReadLinks = snapshot.digestVersion === 4 && availableTools.includes('ontology_requirement_links');
+  const linksVisible = open || showLinks;
   useEffect(() => {
-    setLinks(null);
-    if (!open || !current || !canReadLinks) return undefined;
+    setLinks(null); setLoadingMore(false); setMoreError('');
+    if (!linksVisible || !current || !canReadLinks) return undefined;
     const abort = new AbortController();
     call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_requirement_links', arguments: { workspaceId: snapshot.workspaceId, name: entity.name, expectedRevision: snapshot.revision, limit: 50 } }, abort.signal)
       .then(response => {
         const value = response.structuredContent;
         if (!abort.signal.aborted && value.workspaceId === snapshot.workspaceId && value.revision === snapshot.revision && value.sourceDigest === snapshot.sourceDigest && value.name === entity.name) setLinks(value);
       }).catch(() => { if (!abort.signal.aborted) setLinks({ error: true, workspaceId: snapshot.workspaceId, revision: snapshot.revision, sourceDigest: snapshot.sourceDigest, name: entity.name }); });
-    return () => abort.abort();
-  }, [open, current, canReadLinks, connection, snapshot.workspaceId, snapshot.revision, snapshot.sourceDigest, entity?.name]);
+    return () => { abort.abort(); linkPageAbort.current?.abort(); };
+  }, [linksVisible, current, canReadLinks, connection, snapshot.workspaceId, snapshot.revision, snapshot.sourceDigest, entity?.name]);
   const validation = job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) ? job : null;
   const boundLinks = links && links.workspaceId === snapshot.workspaceId && links.revision === snapshot.revision && links.sourceDigest === snapshot.sourceDigest && links.name === entity?.name ? links : null;
+  async function loadMoreLinks() {
+    if (!boundLinks || boundLinks.nextOffset === null || loadingMore) return;
+    const offset = boundLinks.nextOffset, abort = new AbortController();
+    linkPageAbort.current = abort;
+    setLoadingMore(true); setMoreError('');
+    try {
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_requirement_links', arguments: { workspaceId: snapshot.workspaceId, name: entity.name, expectedRevision: snapshot.revision, offset, limit: 50 } }, abort.signal);
+      const page = response.structuredContent;
+      if (!abort.signal.aborted && page.workspaceId === snapshot.workspaceId && page.revision === snapshot.revision && page.sourceDigest === snapshot.sourceDigest && page.name === entity.name) setLinks(previous => previous?.workspaceId === page.workspaceId && previous.revision === page.revision && previous.sourceDigest === page.sourceDigest && previous.name === page.name && previous.nextOffset === offset ? { ...page, results: [...previous.results, ...page.results] } : previous);
+    } catch { if (!abort.signal.aborted) setMoreError('Could not load more linked requirements. Try again.'); }
+    finally { if (!abort.signal.aborted) setLoadingMore(false); }
+  }
   const failed = validation?.steps?.filter(step => step.status === 'failed').map(step => step.checkName) || [];
   const preview = current ? [
     'Use the connected ontology authoring tools to inspect this context before proposing changes.',
@@ -136,11 +154,14 @@ function ContextHandoff({ snapshot, entity, entityRevision, job, connection, ava
     catch { setMessage('Clipboard unavailable. Select and copy the preview.'); }
   }
   useEffect(() => { setMessage(''); }, [preview]);
-  return <details className="studio-context-handoff" onToggle={event => setOpen(event.currentTarget.open)}><summary>Prepare context for Codex</summary>
+  return <><details className="studio-requirement-links" onToggle={event => setShowLinks(event.currentTarget.open)}><summary>Linked requirements</summary>
+    <p>These are explicit links from the requirement register; they do not establish coverage or acceptance.</p>
+    {!current ? <p role="status">Loading the selected concept for the current draft.</p> : !canReadLinks ? <p>Requirement links are unavailable for this workspace or connection.</p> : !boundLinks ? <p role="status">Loading linked requirements…</p> : boundLinks.error ? <p role="status">Linked requirements could not be loaded.</p> : <><p>Showing {boundLinks.results.length} of {boundLinks.total} linked requirements.</p>{boundLinks.results.length ? <ul>{boundLinks.results.map(item => <li key={item.id}><strong>{item.id}</strong>: {item.statement} <small>{item.source}</small></li>)}</ul> : <p>No explicit links are recorded for this concept.</p>}{boundLinks.nextOffset !== null && <button type="button" disabled={loadingMore} onClick={loadMoreLinks}>{loadingMore ? 'Loading requirements…' : 'Load more requirements'}</button>}{moreError && <p role="status">{moreError}</p>}</>}
+  </details><details className="studio-context-handoff" onToggle={event => setOpen(event.currentTarget.open)}><summary>Prepare context for Codex</summary>
     <p>Preview and copy this context to your existing client. Nothing is sent automatically. Check output is not included.</p>
     {current ? <><label>Context preview <textarea readOnly value={preview} rows={9} /></label><button type="button" onClick={copy}>Copy context</button></> : <p role="status">Loading the selected concept for the current draft.</p>}
     {message && <p role="status">{message}</p>}
-  </details>;
+  </details></>;
 }
 function CommandPalette({ commands, onClose }) {
   const dialog = useRef(null);
@@ -1575,7 +1596,7 @@ export default function ModellingStudio() {
     setWorkspaceFocus({ kind: 'validation' });
   }
   return <main id="main" className="container modelling-studio">
-    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1>{connection && <div className="studio-workspaces"><label>Current workspace <select value={connection.workspaceId} disabled={commandPending} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace || commandPending}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</div>}{snapshot && <button ref={commandTrigger} type="button" disabled={!online} onClick={() => setCommandsOpen(true)} title="Ctrl+Shift+P">Commands</button>}</header>
+    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1><StudioThemeControl />{connection && <div className="studio-workspaces"><label>Current workspace <select value={connection.workspaceId} disabled={commandPending} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace || commandPending}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</div>}{snapshot && <button ref={commandTrigger} type="button" disabled={!online} onClick={() => setCommandsOpen(true)} title="Ctrl+Shift+P">Commands</button>}</header>
     {commandsOpen && snapshot && online && <CommandPalette onClose={() => setCommandsOpen(false)} commands={[
       { label: 'Search model', run: focusModelSearch },
       { label: 'Add a concept', run: openConceptCreator },
@@ -1597,7 +1618,7 @@ export default function ModellingStudio() {
       <label>Draft token <input type="password" value={token} onChange={event => setToken(event.target.value)} required autoComplete="off" /></label>
       <button type="submit">Connect</button>
     </form></details>
-    <p role="status" className={snapshot ? "studio-sr-status" : undefined}>{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
+    <p role="status" aria-label="Studio connection status" className={snapshot ? "studio-sr-status" : undefined}>{status}{snapshot && ` · revision ${snapshot.revision} · baseline ${snapshot.baselineCommit}`}</p>
 
     {error && <p role="alert">{error}</p>}
     {pendingSelection && <dialog ref={unsavedDialog} aria-labelledby="studio-unsaved-heading" className="studio-unsaved-dialog" onCancel={event => { event.preventDefault(); setPendingSelection(null); }}><h2 id="studio-unsaved-heading">Unapplied edits</h2><p>You have unapplied edits. Stay to apply them, or discard them and {pendingSelection.kind === 'disconnect' ? 'disconnect' : `open ${pendingSelection.name}`}.</p><button type="button" onClick={() => setPendingSelection(null)}>Stay and keep editing</button><button type="button" onClick={discardDefinitionAndSelect}>{pendingSelection.kind === 'disconnect' ? 'Discard and disconnect' : `Discard and open ${pendingSelection.name}`}</button></dialog>}

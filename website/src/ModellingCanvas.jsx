@@ -3,6 +3,7 @@ import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Posi
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import '@xyflow/react/dist/style.css';
+import './canvas-layout-controls.css';
 
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
 const ConceptNode = memo(function ConceptNode({ data }) {
@@ -32,6 +33,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [nodes, setNodes] = useState([]);
   const [layoutNotice, setLayoutNotice] = useState('');
   const [layoutState, setLayoutState] = useState('pending');
+  const [layoutAttempt, setLayoutAttempt] = useState(0);
   const [initialLayout] = useState(() => {
     try { return { positions: readCanvasPositions(sessionStorage, graph.workspaceId, viewId, { strict: true }), writable: true }; }
     catch { return { positions: Object.create(null), writable: false }; }
@@ -40,6 +42,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const storageWritable = useRef(initialLayout.writable);
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
+  const arranging = useRef(false), layoutMenu = useRef(null);
   const byName = useRef(new Map());
   useEffect(() => {
     if (!storageWritable.current) setLayoutNotice('Local layout could not be read. Diagram changes remain in memory; load a saved shared view to restore its layout before saving.');
@@ -47,11 +50,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   useEffect(() => {
     try {
       worker.current = new Worker(new URL('./model/layout.worker.js', import.meta.url), { type: 'module' });
-      worker.current.onerror = () => { setLayoutState('unavailable'); setLayoutNotice('Automatic layout is unavailable; the list remains usable.'); };
+      worker.current.onerror = () => { arranging.current = false; setLayoutState('unavailable'); setLayoutNotice('Automatic layout is unavailable; the list remains usable.'); };
     } catch { setLayoutState('unavailable'); setLayoutNotice('Automatic layout is unavailable; the list remains usable.'); }
-    return () => worker.current?.terminate();
-  }, []);
+    return () => { sequence.current += 1; worker.current?.terminate(); worker.current = null; };
+  }, [layoutAttempt]);
   useEffect(() => {
+    if (arranging.current) setLayoutNotice('Layout cancelled because the diagram changed.');
+    arranging.current = false;
     byName.current = new Map(graph.nodes.map(node => [node.name, node]));
     const newNames = new Set(graph.nodes.filter(node => !positions.current[node.name]).map(node => node.name));
     const next = graph.nodes.map((node, index) => ({ id: node.name, type: 'concept', position: positions.current[node.name] ?? { x: index ? 340 : 0, y: index ? (index - 1) * 150 : 0 }, data: { label: node.label, module: node.module, fields: node.fields, changeStatus: node.changeStatus }, className: `studio-flow-node studio-flow-${node.changeStatus}`, selected: node.name === selectedName }));
@@ -66,6 +71,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     if (!worker.current) return;
     if (!newNames.size) {
       setLayoutState('ready');
+      if (layoutAttempt > 0 && storageWritable.current) setLayoutNotice('Automatic layout is ready.');
       const root = positions.current[graph.root];
       if (!fitted.current && instance.current && root) {
         fitted.current = true;
@@ -88,6 +94,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
       if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* Layout remains available for this session. */ }
       setLayoutState('ready');
+      if (layoutAttempt > 0 && storageWritable.current) setLayoutNotice('Automatic layout is ready.');
       // Start at a readable scale around the selected concept. Fitting every
       // neighbour on a dense graph can shrink all labels beyond recognition;
       // the built-in Fit View control remains available for an overview.
@@ -100,7 +107,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       }
     };
     worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
-  }, [graph, selectedName, viewId]);
+  }, [graph, selectedName, viewId, layoutAttempt]);
   const onNodesChange = useCallback(changes => {
     let moved = false;
     for (const change of changes) if (change.type === 'position' && change.position) { positions.current[change.id] = change.position; if (!change.dragging) moved = true; }
@@ -121,6 +128,49 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
   const offsets = parallelEdgeOffsets(graph.edges);
+  function arrangeVisible() {
+    if (!worker.current || layoutState !== 'ready') return;
+    const requestId = ++sequence.current;
+    arranging.current = true;
+    setLayoutState('pending');
+    setLayoutNotice('Arranging visible concepts…');
+    onManualInteraction();
+    worker.current.onmessage = event => {
+      if (event.data.requestId !== sequence.current) return;
+      arranging.current = false;
+      const points = event.data.positions;
+      const names = new Set(graph.nodes.map(node => node.name));
+      if (event.data.error || !Array.isArray(points) || points.length !== names.size || points.some(point => !names.has(point.id) || !Number.isFinite(point.x) || !Number.isFinite(point.y)) || new Set(points.map(point => point.id)).size !== names.size) {
+        setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); return;
+      }
+      const layout = new Map(points.map(point => [point.id, { x: point.x, y: point.y }]));
+      let changed = false;
+      for (const [name, point] of layout) {
+        const before = positions.current[name];
+        if (!before || before.x !== point.x || before.y !== point.y) changed = true;
+      }
+      if (changed) {
+        for (const [name, point] of layout) positions.current[name] = point;
+        setNodes(current => current.map(node => layout.has(node.id) ? { ...node, position: layout.get(node.id) } : node));
+        if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* layout remains available for this session */ }
+        onLayoutChange();
+      }
+      setLayoutState('ready');
+      setLayoutNotice(changed ? 'Visible concepts arranged locally. Save the shared view to share this layout.' : 'Visible concepts are already arranged.');
+      if (layoutMenu.current) layoutMenu.current.open = false;
+    };
+    try { worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
+    catch { arranging.current = false; setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); }
+  }
+  function startNodeDrag() {
+    if (arranging.current) {
+      arranging.current = false;
+      sequence.current += 1;
+      setLayoutState('ready');
+      setLayoutNotice('Layout cancelled because you moved a concept.');
+    }
+    onManualInteraction();
+  }
   function replaceUnreadableLayout() {
     try {
       writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current);
@@ -137,8 +187,16 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       event.preventDefault(); event.stopPropagation(); onManualInteraction(); selectNode({ id: node.dataset.id });
     }}>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
+    <details ref={layoutMenu} className="studio-canvas-layout-menu"><summary>Layout</summary><p>Arrange the visible concepts automatically. Existing positions in this view will move; hidden concepts are unchanged.</p><button type="button" disabled={layoutState !== 'ready'} onClick={arrangeVisible}>Arrange visible concepts</button>{layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout…'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}</details>
     <ReactFlow nodes={nodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={graph.edges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}` }))}
-      onInit={value => { instance.current = value; }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={onManualInteraction} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
+      onInit={value => {
+        instance.current = value;
+        const root = positions.current[graph.root];
+        if (!fitted.current && root) {
+          fitted.current = true;
+          requestAnimationFrame(() => instance.current?.setCenter(root.x + 110, root.y + 64, { zoom: 1, duration: motionDuration(200) }));
+        }
+      }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls>

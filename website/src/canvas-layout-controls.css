@@ -1,0 +1,17 @@
+.studio-canvas-layout-menu {
+  position: absolute;
+  z-index: 5;
+  top: .5rem;
+  right: .5rem;
+  max-width: min(19rem, calc(100% - 1rem));
+  padding: .35rem .55rem;
+  border: 1px solid #93aaa7;
+  border-radius: .35rem;
+  background: #fff;
+  color: #183a39;
+  box-shadow: 0 2px 8px #0002;
+}
+.studio-canvas-layout-menu summary { cursor: pointer; font-weight: 700; }
+.studio-canvas-layout-menu p { margin: .5rem 0; font-size: .8rem; line-height: 1.4; }
+.studio-canvas-layout-menu button { margin: .25rem .25rem .25rem 0; }
+.studio-flow:has(.studio-canvas-layout-menu) .studio-layout-notice { max-width: min(32rem, calc(100% - 6.5rem)); }
