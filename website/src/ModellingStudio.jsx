@@ -123,6 +123,8 @@ export default function ModellingStudio() {
   const [changeSetIntent, setChangeSetIntent] = useState('');
   const [changeSetRequirements, setChangeSetRequirements] = useState('');
   const [newClass, setNewClass] = useState({ name: '', module: 'foundation', parent: 'Record', definition: '' });
+  const [pendingCreatedConcept, setPendingCreatedConcept] = useState(null);
+  const selectionGeneration = useRef(0);
   const [conceptFormOpen, setConceptFormOpen] = useState(false);
   const [parentSuggestions, setParentSuggestions] = useState([]);
   const [parentSearchError, setParentSearchError] = useState('');
@@ -397,6 +399,20 @@ export default function ModellingStudio() {
   useEffect(() => { setDefinitionConflict(null); }, [connection, selected?.name]);
   useEffect(() => { setPendingSelection(null); }, [connection]);
   useEffect(() => {
+    if (!pendingCreatedConcept || !connection || !snapshot) return undefined;
+    if (pendingCreatedConcept.workspaceId !== connection.workspaceId || pendingCreatedConcept.selectionGeneration !== selectionGeneration.current) { setPendingCreatedConcept(null); return undefined; }
+    if (snapshot.revision < pendingCreatedConcept.minimumRevision) return undefined;
+    const abort = new AbortController();
+    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name: pendingCreatedConcept.name, expectedRevision: snapshot.revision } }, abort.signal)
+      .then(response => {
+        if (abort.signal.aborted || response.structuredContent.revision !== currentRevision.current) return;
+        if (pendingCreatedConcept.selectionGeneration === selectionGeneration.current) selectConcept(response.structuredContent.entity);
+        setPendingCreatedConcept(null);
+      })
+      .catch(problem => { if (!abort.signal.aborted) { setError(`Concept created, but could not be opened: ${problem.message}`); setPendingCreatedConcept(null); } });
+    return () => abort.abort();
+  }, [pendingCreatedConcept, connection, snapshot?.revision, selected?.name]);
+  useEffect(() => {
     const dialog = unsavedDialog.current;
     if (!pendingSelection || !dialog) return undefined;
     dialog.showModal();
@@ -415,6 +431,7 @@ export default function ModellingStudio() {
   }
   function selectConcept(item) {
     if (!item || item.name === selected?.name) return;
+    selectionGeneration.current += 1;
     if (hasUnsavedInspectorEdits()) { setPendingSelection(item); return; }
     setSelected(item); setDefinition(item.definition);
   }
@@ -617,7 +634,11 @@ export default function ModellingStudio() {
   async function addClass(event) {
     event.preventDefault();
     if (/[|\r\n]/.test(newClass.definition)) { setError('Class definitions must be a single line and cannot contain |.'); return; }
-    if (await applyCommand({ type: 'class.add', ...newClass })) setNewClass({ name: '', module: newClass.module, parent: 'Record', definition: '' });
+    const pending = { name: newClass.name, workspaceId: connection.workspaceId, minimumRevision: snapshot.revision + 1, selectionGeneration: selectionGeneration.current };
+    if (await applyCommand({ type: 'class.add', ...newClass })) {
+      setNewClass({ name: '', module: newClass.module, parent: 'Record', definition: '' });
+      setPendingCreatedConcept(pending);
+    }
   }
   async function addField(event) {
     event.preventDefault();

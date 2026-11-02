@@ -38,6 +38,8 @@ test('concept creation offers existing modules and validates its definition', as
     await page.getByRole('button', { name: 'Add concept', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('revision 1');
     expect(store.search(workspace.id, 'ServiceWindow').results[0]).toMatchObject({ module: 'assets', parent: 'ZDevice' });
+    await expect(page.getByRole('heading', { name: 'ServiceWindow', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Relationships for ServiceWindow' })).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
