@@ -24,6 +24,36 @@ function BrowseConceptTree({ browse, selectedName, onSelect, onOpen, onBrowseMod
 
 const cardinalityLabels = { '!': 'Exactly one (1)', '?': 'Optional (0..1)', '+': 'One or more (1..*)', '*': 'Zero or more (0..*)' };
 const scalarTypes = ['string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI'];
+function CommandPalette({ commands, onClose }) {
+  const dialog = useRef(null);
+  const input = useRef(null);
+  const [query, setQuery] = useState('');
+  const [active, setActive] = useState(0);
+  const matching = commands.filter(command => command.label.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const selected = Math.min(active, matching.length - 1);
+  useEffect(() => {
+    const previous = document.activeElement;
+    dialog.current?.showModal();
+    input.current?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, []);
+  function execute(command) {
+    if (!command) return;
+    onClose();
+    requestAnimationFrame(command.run);
+  }
+  return <dialog ref={dialog} className="studio-command-palette" aria-labelledby="studio-command-title" onCancel={event => { event.preventDefault(); onClose(); }}>
+    <div className="studio-command-header"><h2 id="studio-command-title">Commands</h2><button type="button" onClick={onClose} aria-label="Close commands">Close</button></div>
+    <label>Find a command <input ref={input} value={query} role="combobox" aria-expanded="true" aria-controls="studio-command-results" aria-autocomplete="list" aria-activedescendant={selected >= 0 ? `studio-command-${selected}` : undefined} onChange={event => { setQuery(event.target.value); setActive(0); }} onKeyDown={event => {
+      if (event.key === 'ArrowDown' && matching.length) { event.preventDefault(); setActive((selected + 1) % matching.length); }
+      else if (event.key === 'ArrowUp' && matching.length) { event.preventDefault(); setActive((selected + matching.length - 1) % matching.length); }
+      else if (event.key === 'Enter' && matching.length) { event.preventDefault(); execute(matching[selected]); }
+    }} /></label>
+    <p className="studio-command-hint">Use arrow keys to choose, Enter to run, or Escape to close.</p>
+    <ul id="studio-command-results" role="listbox" aria-label="Available commands">{matching.map((command, index) => <li id={`studio-command-${index}`} key={command.label} role="option" aria-selected={index === selected} onMouseDown={event => event.preventDefault()} onClick={() => execute(command)}>{command.label}</li>)}</ul>
+    {!matching.length && <p role="status">No matching commands.</p>}
+  </dialog>;
+}
 function InspectorIdentifier({ iri }) {
   const [notice, setNotice] = useState('');
   async function copy() {
@@ -99,6 +129,8 @@ function eventConcept(event) {
 }
 
 export default function ModellingStudio() {
+  const [commandsOpen, setCommandsOpen] = useState(false);
+  const commandTrigger = useRef(null);
   const [endpoint, setEndpoint] = useState(() => window.location.hostname === '127.0.0.1' && !['4173', '5173'].includes(window.location.port) ? window.location.origin : 'http://127.0.0.1:4317');
   const [token, setToken] = useState('');
   const [pairingCode, setPairingCode] = useState('');
@@ -231,6 +263,8 @@ export default function ModellingStudio() {
   const relationshipOrigin = useRef(null);
   const paneDrag = useRef(null);
 
+  useEffect(() => { if (!online) setCommandsOpen(false); }, [online]);
+
   useEffect(() => {
     try {
       localStorage.setItem('chargeweave.studio.navigator-width.v1', String(navigatorWidth));
@@ -293,7 +327,10 @@ export default function ModellingStudio() {
   useEffect(() => {
     function shortcut(event) {
       const editing = event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable=true]');
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !editing && searchInput.current && !searchInput.current.matches(':disabled')) {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'p' && commandTrigger.current && !commandTrigger.current.disabled && !document.querySelector('dialog[open]')) {
+        event.preventDefault();
+        setCommandsOpen(true);
+      } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !editing && searchInput.current && !searchInput.current.matches(':disabled')) {
         event.preventDefault();
         focusModelSearch();
       }
@@ -1162,7 +1199,16 @@ export default function ModellingStudio() {
     heading?.focus({ preventScroll: true });
   }
   return <main id="main" className="container modelling-studio">
-    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1>{snapshot && <span className="studio-current-workspace" title={snapshot.title}>Workspace: {snapshot.title}</span>}</header>
+    <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1>{snapshot && <span className="studio-current-workspace" title={snapshot.title}>Workspace: {snapshot.title}</span>}{snapshot && <button ref={commandTrigger} type="button" disabled={!online} onClick={() => setCommandsOpen(true)} title="Ctrl+Shift+P">Commands</button>}</header>
+    {commandsOpen && snapshot && online && <CommandPalette onClose={() => setCommandsOpen(false)} commands={[
+      { label: 'Search model', run: focusModelSearch },
+      { label: 'Add a concept', run: openConceptCreator },
+      { label: 'Focus diagram', run: () => openCompactPane('studio-editor-pane') },
+      { label: 'Open inspector', run: () => openCompactPane('studio-inspector-pane') },
+      ...(!checkStarting ? [{ label: 'Check draft', run: () => runChecks('structural') }] : []),
+      { label: 'Show check details', run: showValidation },
+      { label: 'Review draft changes', run: reviewDraftChanges },
+    ]} />}
     <p>Use Codex to propose changes; inspect and refine them here.</p>
     <form className="studio-connect" onSubmit={pair} hidden={Boolean(connection)}>
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>

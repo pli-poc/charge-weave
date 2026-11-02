@@ -121,6 +121,16 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio.container { padding-bottom: 5rem; }
 .studio-home-link { color: #a4e6d0; font-weight: 700; text-decoration: none; }
 .studio-home-link:focus-visible { outline: 2px solid #7cddc2; outline-offset: 3px; }
+.studio-app-bar > button { margin-left: auto; }
+.studio-command-palette { width: min(36rem, calc(100% - 2rem)); margin: 12vh auto auto; padding: 1rem; color: #e4eeef; background: #102127; border: 1px solid #597477; border-radius: .5rem; box-shadow: 0 1rem 3rem #0009; }
+.studio-command-palette::backdrop { background: rgb(0 0 0 / .65); }
+.studio-command-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.studio-command-header h2 { margin: 0; }
+.studio-command-palette input { width: 100%; }
+.studio-command-hint { color: #a9bcbd; font-size: .8rem; }
+.studio-command-palette [role="listbox"] { max-height: 50vh; overflow: auto; list-style: none; padding: 0; margin: .75rem 0 0; }
+.studio-command-palette [role="option"] { cursor: pointer; padding: .7rem; border-radius: .3rem; }
+.studio-command-palette [role="option"][aria-selected="true"], .studio-command-palette [role="option"]:hover { background: #28524f; }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
 .studio-view-history { display: flex; gap: .4rem; margin: .5rem 0; }
 .studio-diagram-legend { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .8rem; margin: .5rem 0; font-size: .85rem; }

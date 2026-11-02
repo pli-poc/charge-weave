@@ -559,6 +559,38 @@ test('switching concepts preserves an unapplied definition until the modeller de
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('command palette supports keyboard search, execution and dismissal', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Commands', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const trigger = page.getByRole('button', { name: 'Commands', exact: true });
+    await trigger.focus();
+    await page.keyboard.press('Control+Shift+P');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    const input = palette.getByRole('combobox', { name: 'Find a command' });
+    await expect(input).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(palette.getByRole('option', { name: 'Add a concept' })).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('ArrowUp');
+    await input.fill('search');
+    await expect(palette.getByRole('option', { name: 'Search model' })).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    await expect(palette).toHaveCount(0);
+    await expect(page.getByLabel('Search model')).toBeFocused();
+    await trigger.click();
+    await palette.getByRole('combobox').fill('no such command');
+    await expect(palette.getByText('No matching commands.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(trigger).toBeFocused();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('desktop panel sizes can be adjusted with the keyboard and restored', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Compact layout uses stacked panels.');
   const store = new WorkspaceStore(':memory:');
