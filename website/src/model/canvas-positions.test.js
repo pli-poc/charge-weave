@@ -12,3 +12,12 @@ test('positions are isolated by workspace and view with a default-only legacy fa
   assert.notEqual(canvasPositionKey('w', 'other'), canvasPositionKey('other', 'w'));
   assert.deepEqual({ ...readCanvasPositions(storage, 'other', 'other') }, {});
 });
+
+test('saving fails closed when stored positions are unreadable or invalid', () => {
+  for (const raw of ['{', '[]', '{"Device":{"x":"bad","y":2}}']) {
+    const storage = { getItem: () => raw };
+    assert.throws(() => readCanvasPositions(storage, 'w', 'default', { strict: true }), /could not be read/);
+  }
+  assert.throws(() => readCanvasPositions({ getItem() { throw new Error('storage denied'); } }, 'w', 'default', { strict: true }), /could not be read/);
+  assert.deepEqual({ ...readCanvasPositions({ getItem: () => null }, 'w', 'default', { strict: true }) }, {});
+});

@@ -612,7 +612,7 @@ export default function ModellingStudio() {
   async function saveLayout() {
     setViewNotice('');
     try {
-      const positions = readCanvasPositions(sessionStorage, connection.workspaceId, viewId);
+      const positions = readCanvasPositions(sessionStorage, connection.workspaceId, viewId, { strict: true });
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_save', arguments: { workspaceId: connection.workspaceId, viewId, operationId: crypto.randomUUID(), expectedViewRevision: savedViewRevision, definition: { root: viewRoot, positions, ...viewMetadata, groups: viewGroups, annotations: viewAnnotations } } });
       setSavedViewRevision(response.structuredContent.viewRevision); setViewNotice('Shared view saved.');
       const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } }); setSavedViews(listing.structuredContent.views);
