@@ -641,7 +641,23 @@ test('navigator browses beyond the first page without searching', async ({ page 
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
     await page.getByLabel('Filter by module').selectOption('');
     await expect(page.getByText('Showing 50 of 57 concepts.')).toBeVisible();
-    await page.getByRole('button', { name: 'Load more concepts' }).click();
+    let releasePage, interceptedPage;
+    const pageGate = new Promise(resolve => { releasePage = resolve; });
+    const pageIntercepted = new Promise(resolve => { interceptedPage = resolve; });
+    const delayPage = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.cursor) { interceptedPage(); await pageGate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delayPage);
+    try {
+      await page.getByRole('button', { name: 'Load more concepts' }).click();
+      await pageIntercepted;
+      await expect(page.getByRole('button', { name: 'Load more concepts' })).toBeDisabled();
+      await expect(page.getByText('Loading concepts…')).toBeVisible();
+      releasePage();
+      await expect(page.getByText('Showing 57 of 57 concepts.')).toBeVisible();
+    } finally { releasePage(); await page.unroute('**/mcp', delayPage); }
     await expect(page.getByText('Showing 57 of 57 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Thing054', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Thing054', exact: true })).toBeVisible();
