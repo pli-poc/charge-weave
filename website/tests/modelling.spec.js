@@ -819,6 +819,12 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByLabel('Filter fields').fill('peer');
+    await expect(page.getByText('Showing 1 of 2 fields.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Edit recordName' })).toHaveCount(0);
+    await page.getByLabel('Filter fields').clear();
+    await page.getByLabel('Sort fields').selectOption('name');
+    await expect(page.locator('.studio-field-table tbody tr').first()).toContainText('peer');
     await page.getByRole('button', { name: 'Edit recordName' }).click();
     await expect(page.locator('.studio-panels').getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await expect(page.getByLabel('New datatype or target class')).toBeFocused();
