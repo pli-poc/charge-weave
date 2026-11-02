@@ -12,6 +12,32 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('concept creation offers existing modules and validates its definition', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Create concept', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nMODULE|assets\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByText('Showing 2 of 2 concepts.')).toBeVisible();
+    await page.getByText('Add a concept', { exact: true }).click();
+    await page.getByLabel('Class name').fill('ServiceWindow');
+    await page.getByLabel('Concept module').selectOption('assets');
+    await page.getByLabel('Parent class').fill('Device');
+    await page.getByLabel('Class definition').fill('Invalid | separator');
+    await page.getByRole('button', { name: 'Add concept', exact: true }).click();
+    await expect(page.getByRole('alert')).toContainText('single line');
+    expect(store.get(workspace.id).revision).toBe(0);
+    await page.getByLabel('Class definition').fill('A service window.');
+    await page.getByRole('button', { name: 'Add concept', exact: true }).click();
+    await expect(page.getByRole('status')).toContainText('revision 1');
+    expect(store.search(workspace.id, 'ServiceWindow').results[0]).toMatchObject({ module: 'assets', parent: 'Device' });
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('a narrower desktop keeps a wide model editor and opens the inspector as an overlay', async ({ page, isMobile }) => {
   test.skip(isMobile, 'This scenario covers a narrow desktop viewport.');
   await page.setViewportSize({ width: 1280, height: 800 });

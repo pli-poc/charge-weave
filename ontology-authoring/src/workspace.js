@@ -503,8 +503,9 @@ export class WorkspaceStore {
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128))) throw new Error('Invalid explorer request');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    const allClasses = [...parse(workspace.schema).classes.values()];
-    const moduleCounts = new Map();
+    const model = parse(workspace.schema);
+    const allClasses = [...model.classes.values()];
+    const moduleCounts = new Map([...model.modules].map(name => [name, 0]));
     for (const item of allClasses) moduleCounts.set(item.module, (moduleCounts.get(item.module) ?? 0) + 1);
     const modules = [...moduleCounts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, count]) => ({ name, count }));
     const classes = allClasses.filter(item => module === undefined || item.module === module)
