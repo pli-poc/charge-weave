@@ -108,6 +108,39 @@ test('a delayed shared-view load cannot overwrite a newly selected view', async 
   } finally { release(); await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('a shared-view load preserves changes made while it is pending', async ({ page }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'View edit race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  let signal;
+  const intercepted = new Promise(resolve => { signal = resolve; });
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText('Shared view saved.')).toBeVisible();
+    await page.route('**/mcp', async route => {
+      if (route.request().postDataJSON()?.params?.name === 'ontology_view_saved_get') { signal(); await gate; }
+      await route.continue();
+    });
+    await page.getByRole('button', { name: 'Load shared view' }).click();
+    await intercepted;
+    await page.getByText('View groups and annotations').click();
+    await page.getByLabel('Note for selected concept').fill('Keep this note');
+    await page.getByRole('button', { name: 'Add view note' }).click();
+    release();
+    await expect(page.getByText('The shared view was not loaded because this view changed while it was loading.')).toBeVisible();
+    await expect(page.getByText('Device: Keep this note')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
+  } finally { release(); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('navigator search refreshes when another client changes the draft', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Refresh search', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|Original device.|\n' });
@@ -195,6 +228,10 @@ test('named diagram views keep independent local positions', async ({ page, isMo
     await move(40, 30);
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     const firstPosition = await node.getAttribute('style');
+    page.once('dialog', dialog => dialog.dismiss());
+    await page.getByRole('button', { name: 'Load shared view' }).click();
+    await expect(node).toHaveAttribute('style', firstPosition);
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
     await page.getByLabel('View ID').fill('other');

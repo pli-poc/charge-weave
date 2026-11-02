@@ -772,19 +772,22 @@ export default function ModellingStudio() {
     finally { if (viewOperation.current === operation) { viewOperation.current = null; setViewBusy(null); } }
   }
   async function loadLayout() {
+    if (viewDirty && !window.confirm('Loading the shared view will replace local changes to this view. Continue?')) return;
     const context = viewContext.current;
+    const version = viewChangeVersion.current;
     if (viewOperation.current?.context === context) return;
     const operation = { context, kind: 'load' };
     viewOperation.current = operation; setViewBusy(operation); setViewNotice('');
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_get', arguments: { workspaceId: connection.workspaceId, viewId } });
       if (context !== viewContext.current) return;
-      const saved = response.structuredContent; setSavedViewRevision(saved.viewRevision);
+      const saved = response.structuredContent;
       if (!saved.definition) { setViewNotice('No shared view has been saved.'); return; }
       const entity = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name: saved.definition.root, expectedRevision: snapshot.revision } });
       if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) return;
+      if (version !== viewChangeVersion.current) { setViewNotice('The shared view was not loaded because this view changed while it was loading.'); return; }
       pauseFollowing();
-      if (selectConcept(entity.structuredContent.entity)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setViewLoaded(true); changedViews.current.delete(activeViewKey); setViewDirty(false); viewChangeVersion.current += 1; setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
+      if (selectConcept(entity.structuredContent.entity)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setSavedViewRevision(saved.viewRevision); setViewLoaded(true); changedViews.current.delete(activeViewKey); setViewDirty(false); viewChangeVersion.current += 1; setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
       else setViewNotice('The saved view was not loaded. Resolve any unapplied inspector edits and try again.');
     } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not load view: ${problem.message}`); }
     finally { if (viewOperation.current === operation) { viewOperation.current = null; setViewBusy(null); } }
