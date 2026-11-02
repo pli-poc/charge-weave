@@ -724,10 +724,20 @@ test('desktop workbench keeps the main panels within the initial viewport', asyn
     const compact = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
     expect(compact.dock.bottom).toBeLessThanOrEqual(compact.status.top + 2);
     await expect.poll(() => page.evaluate(() => localStorage.getItem('chargeweave.studio.results-height.v1'))).toBe('176');
+    await page.setViewportSize({ width: 920, height: 768 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(splitter).toHaveAttribute('aria-valuenow', '160');
+    const narrower = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
+    expect(narrower.dock.bottom).toBeLessThanOrEqual(narrower.status.top + 2);
+    await page.setViewportSize({ width: 901, height: 768 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const breakpoint = await page.evaluate(() => ({ dock: document.querySelector('.studio-bottom-dock').getBoundingClientRect().toJSON(), status: document.querySelector('.studio-status-bar').getBoundingClientRect().toJSON() }));
+    expect(breakpoint.dock.bottom).toBeLessThanOrEqual(breakpoint.status.top + 2);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('chargeweave.studio.results-height.v1'))).toBe('160');
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.reload();
     await results.getByRole('button', { name: 'Checks', exact: true }).click();
-    await expect(results.getByRole('separator', { name: 'Resize results panel' })).toHaveAttribute('aria-valuenow', '176');
+    await expect(results.getByRole('separator', { name: 'Resize results panel' })).toHaveAttribute('aria-valuenow', '160');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

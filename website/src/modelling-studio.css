@@ -202,6 +202,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 
 /* Keep the explorer, canvas and inspector independently navigable on desktop. */
 @media (min-width: 901px) {
+  .studio-primary-actions, .studio-destinations, .studio-panel-controls { display: inline-flex; vertical-align: middle; margin: .25rem .75rem .75rem 0; }
   .studio-panels { position: relative; grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr) var(--inspector-width, 320px); align-items: start; }
   .studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(0, 1fr) var(--inspector-width, 320px); }
   .studio-panels[data-hide-inspector="true"] { grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr); }
@@ -223,7 +224,6 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-splitter-inspector { display: none; }
 }
 @media (min-width: 1000px) {
-  .studio-primary-actions, .studio-destinations, .studio-panel-controls { display: inline-flex; vertical-align: middle; margin: .25rem .75rem .75rem 0; }
   .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
   .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
 }
