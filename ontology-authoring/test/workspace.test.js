@@ -12,6 +12,12 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     browsed.modules[0].count = -1;
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).results[0].name, 'Device');
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).modules[0].count, 3);
+    const children = store.explore(workspace.id, { expectedRevision: 0, parent: 'Record', limit: 1 });
+    assert.equal(children.total, 2);
+    assert.equal(children.results[0].name, 'Device');
+    assert.equal(store.explore(workspace.id, { expectedRevision: 0, parent: 'Record', cursor: children.nextCursor, limit: 1 }).results[0].name, 'Other');
+    assert.deepEqual(store.explore(workspace.id, { expectedRevision: 0, parent: 'root' }).results.map(item => item.name), ['Record']);
+    assert.throws(() => store.explore(workspace.id, { expectedRevision: 0, parent: '../Record' }), /Invalid explorer request/);
     store.search(workspace.id, 'Device', 25, 0).results[0].definition = 'ChangedByCaller';
     assert.equal(store.search(workspace.id, 'Device', 25, 0).results[0].definition, 'A device.');
     const first = store.searchFields(workspace.id, 'code', 0, 0, 2);
@@ -37,6 +43,7 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     assert.equal(changedPage.results[0].name, 'Device');
     assert.deepEqual(store.explore(workspace.id, { expectedRevision: 3, changedOnly: true, module: 'foundation', cursor: changedPage.nextCursor, limit: 1 }).results.map(item => item.name), ['Record']);
     assert.throws(() => store.explore(workspace.id, { expectedRevision: 2, changedOnly: true, cursor: changedPage.nextCursor }), /Revision conflict/);
+    assert.deepEqual(store.explore(workspace.id, { expectedRevision: 3, changedOnly: true, parent: 'Record' }).results.map(item => item.name), ['Device']);
   } finally { store.close(); }
 });
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';

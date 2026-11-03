@@ -526,8 +526,8 @@ export class WorkspaceStore {
     }
     return index;
   }
-  explore(id, { expectedRevision, cursor, limit = 50, module, changedOnly = false } = {}) {
-    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || typeof changedOnly !== 'boolean' || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128))) throw new Error('Invalid explorer request');
+  explore(id, { expectedRevision, cursor, limit = 50, module, parent, changedOnly = false } = {}) {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || typeof changedOnly !== 'boolean' || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128)) || (parent !== undefined && (typeof parent !== 'string' || (parent !== '-' && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(parent))))) throw new Error('Invalid explorer request');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     const index = this.modelIndex(id, workspace);
@@ -536,10 +536,10 @@ export class WorkspaceStore {
       const baseline = parse(this.db.prepare('SELECT baseline_schema FROM workspaces WHERE id = ?').get(id).baseline_schema).classes;
       index.changedNames = new Set(index.sortedClasses.filter(item => JSON.stringify(baseline.get(item.name)) !== JSON.stringify(item)).map(item => item.name));
     }
-    const classes = index.sortedClasses.filter(item => (module === undefined || item.module === module) && (!changedOnly || index.changedNames.has(item.name)));
+    const classes = index.sortedClasses.filter(item => (module === undefined || item.module === module) && (parent === undefined || item.parent === parent) && (!changedOnly || index.changedNames.has(item.name)));
     const remaining = classes.filter(item => cursor === undefined || item.name > cursor);
     const results = remaining.slice(0, limit);
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, changedOnly, modules: modules.map(item => ({ ...item })), results: results.map(item => ({ ...item })), total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, parent: parent ?? null, changedOnly, modules: modules.map(item => ({ ...item })), results: results.map(item => ({ ...item })), total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
   }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
