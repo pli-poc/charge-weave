@@ -2614,6 +2614,9 @@ test('failed validation can be inspected, corrected and retried on the current d
     const problems = page.getByRole('region', { name: 'Problems' });
     await expect(problems.getByText('tools/example-check.py', { exact: true })).toBeVisible();
     await expect(problems.getByText(/does not automatically identify a model defect/)).toBeVisible();
+    await expect(problems.getByText(/Affected concept and cause are unknown/)).toBeVisible();
+    await problems.getByText('Recorded output for tools/example-check.py').click();
+    await expect(problems.getByRole('region', { name: 'Problem output: tools/example-check.py' })).toContainText('Synthetic fixture: definition needs correction.');
     await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();

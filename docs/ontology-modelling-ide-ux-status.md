@@ -77,3 +77,5 @@ Unfinished view-note input now participates in the unsaved-input guard when chan
 Unfinished view-group input is similarly protected when changing workspaces or switching or closing its view, with an explicit clear action. The website build and four focused desktop/mobile note and group scenarios passed locally. This guards the existing form; it does not establish a human usability review.
 
 The canvas selection-based group form now keeps its unfinished name in the studio controller and shares the navigation and page-exit guard. An explicit clear action is available. The website build and four focused desktop/mobile note and canvas group scenarios passed locally; human usability and assistive-technology review remain open.
+
+Problems now exposes recorded output directly for each failed check (or for a failed job without a reported step), while identifying the affected concept and cause as unknown when the summary does not establish them. The website build and desktop/mobile synthetic failure, correction and retry scenarios passed locally. This does not turn infrastructure failures into model defects or establish complete issue mapping.
