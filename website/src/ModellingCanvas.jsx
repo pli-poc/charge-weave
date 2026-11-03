@@ -75,6 +75,7 @@ function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, o
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onEditRelationship, pendingEdgeEdit, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
+  const [hoveredEdgeId, setHoveredEdgeId] = useState('');
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [relationshipQuery, setRelationshipQuery] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
@@ -224,12 +225,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     });
   }, [visibleNames]);
   const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
+  const highlightedEdge = activeEdges.find(edge => edge.id === hoveredEdgeId) ?? selectedEdge;
   const matchingRelationships = useMemo(() => {
     const term = relationshipQuery.trim().toLowerCase();
     return term ? activeEdges.filter(edge => `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)) : activeEdges;
   }, [activeEdges, relationshipQuery]);
   const retainedRelationship = selectedEdge && !matchingRelationships.some(edge => edge.id === selectedEdge.id) ? selectedEdge : null;
-  const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${selectedEdge && (node.id === selectedEdge.source || node.id === selectedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, selectedEdge]);
+  const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${highlightedEdge && (node.id === highlightedEdge.source || node.id === highlightedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, highlightedEdge]);
   const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
     if (!visibleNames.has(name)) return;
@@ -601,6 +603,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
         catch { setViewportNotice('This browser tab could not remember the diagram position.'); }
       }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
+      onEdgeMouseEnter={(_event, edge) => setHoveredEdgeId(edge.id)} onEdgeMouseLeave={(_event, edge) => setHoveredEdgeId(previous => previous === edge.id ? '' : previous)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={MIN_CANVAS_ZOOM} maxZoom={2} aria-label="Interactive concept graph">
       <ViewportPortal>{groupFrames.map(frame => <div key={frame.index} className="studio-canvas-group-frame" aria-hidden="true" style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}><span>{frame.name}</span></div>)}</ViewportPortal>

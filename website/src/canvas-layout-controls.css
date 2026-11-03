@@ -34,6 +34,7 @@
 .studio-canvas-groups li { overflow-wrap: anywhere; }
 .studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
 .studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline: 3px dashed #0056a8; outline-offset: -5px; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline-color: #b9e0ff; }
 .studio-flow .studio-concept-card .studio-concept-module { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-flow .studio-concept-card .studio-concept-badges { display: flex; flex-wrap: wrap; column-gap: 4px; row-gap: 0; max-height: 28px; line-height: 14px; }
 .studio-flow .studio-concept-card .studio-concept-badges > * { display: block; flex: 0 0 auto; margin: 0; white-space: nowrap; }
@@ -62,10 +63,15 @@ html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canva
 .studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
 .studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .18; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted:hover { opacity: 1; }
 .studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+.studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: #b9e0ff; stroke-width: 3; }
 @media (forced-colors: active) {
   .studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .55; }
   .studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+  html[data-studio-theme] .modelling-studio .studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline-color: Highlight; }
+  html[data-studio-theme] .modelling-studio .studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: Highlight; }
 }
 .studio-flow .studio-flow-inheritance .react-flow__edge-path { stroke-dasharray: 7 4; }
 .studio-canvas-line-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .5rem 0; color: #183a39; font-size: .8rem; }
