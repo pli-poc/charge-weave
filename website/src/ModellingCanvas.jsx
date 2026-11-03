@@ -254,6 +254,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     if (!instance.current || !names.length || layoutState !== 'ready') return;
     onManualInteraction();
     void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: MIN_CANVAS_ZOOM, maxZoom: 1, duration: motionDuration(200) });
+    if (layoutMenu.current) {
+      layoutMenu.current.open = false;
+      canvasRegion.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      layoutMenu.current.querySelector(':scope > summary')?.focus({ preventScroll: true });
+    }
   }
   function alignLayoutSelection(axis) {
     if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
