@@ -53,7 +53,7 @@ function ZoomReadout({ onManualInteraction, onOverviewChange }) {
     <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
 }
-export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onEditRelationship, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {
+export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onEditRelationship, pendingEdgeEdit, onCancelEdgeEdit, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
@@ -545,7 +545,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {selectedEdge.sourceRef?.path && <p><strong>Source:</strong> {selectedEdge.sourceRef.path}{selectedEdge.sourceRef.line != null ? `:${selectedEdge.sourceRef.line}` : ''}</p>}
       {selectedEdge.mappingVersion && <p><strong>Mapping version:</strong> {selectedEdge.mappingVersion}</p>}
       <p>Inspect a concept to review its supported field controls. Selecting this relationship does not change the model.</p>
-      {selectedEdge.predicate !== 'subClassOf' && <button type="button" onClick={() => onEditRelationship(selectedEdge)}>Edit relationship {selectedEdge.predicate}</button>}
+      {selectedEdge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={() => onEditRelationship(selectedEdge)}>Edit relationship {selectedEdge.predicate}</button>}
+      {pendingEdgeEdit && <div role="status">Loading {pendingEdgeEdit.owner}.{pendingEdgeEdit.name} for editing… <button type="button" onClick={onCancelEdgeEdit}>Cancel opening relationship editor</button></div>}
       <div className="studio-canvas-edge-actions"><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.source)} onClick={() => inspectEndpoint(selectedEdge.source)}>Inspect source {selectedEdge.source}</button><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.target)} onClick={() => inspectEndpoint(selectedEdge.target)}>Inspect target {selectedEdge.target}</button><button type="button" onClick={() => inspectEdge('')}>Close relationship details</button></div>
     </section>}
   </>;

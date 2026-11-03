@@ -31,7 +31,7 @@ test('a diagram relationship opens the same checked field editor', async ({ page
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a delayed relationship editor does not open after another client changes the draft', async ({ page, isMobile }) => {
+for (const cancel of [false, true]) test(cancel ? 'opening a delayed relationship editor can be cancelled' : 'a delayed relationship editor does not open after another client changes the draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Relationship race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nAsset|Record|An asset.|\nDevice|Record|A device.|asset:Asset?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -57,11 +57,15 @@ test('a delayed relationship editor does not open after another client changes t
     });
     await page.getByRole('button', { name: 'Edit relationship asset' }).click();
     await intercepted;
-    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'race-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
-    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    await expect(page.getByText('Loading Device.asset for editing…').locator('visible=true')).toBeVisible();
+    if (cancel) await page.getByRole('button', { name: 'Cancel opening relationship editor' }).click();
+    else {
+      store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'race-edit', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+      await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    }
     release(); await page.unrouteAll({ behavior: 'wait' });
     await expect(page.getByRole('heading', { name: 'Edit field contract' })).toHaveCount(0);
-    await expect(page.getByText('The workspace changed while opening the relationship. Inspect it again before editing.')).toBeVisible();
+    if (!cancel) await expect(page.getByText('The workspace changed while opening the relationship. Inspect it again before editing.')).toBeVisible();
     expect(store.get(workspace.id).schema).toContain('asset:Asset?');
   } finally { release(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await service.shutdown(); store.close(); }
 });
