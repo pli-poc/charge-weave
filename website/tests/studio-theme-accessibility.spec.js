@@ -72,9 +72,12 @@ test('the narrow inspector keeps field columns readable and keyboard scrollable'
     expect(await region.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
     const cell = region.getByRole('cell', { name: 'Optional (0..1)' });
     expect(await cell.evaluate(element => element.getBoundingClientRect().width)).toBeGreaterThan(70);
+    const fieldName = region.locator('tbody th[scope="row"]').first();
+    const initialLeft = await fieldName.evaluate(element => element.getBoundingClientRect().left);
     await region.focus();
     for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
     await expect.poll(() => region.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+    expect(Math.abs((await fieldName.evaluate(element => element.getBoundingClientRect().left)) - initialLeft)).toBeLessThan(2);
   });
 });
 

@@ -322,6 +322,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-field-table th, .studio-field-table td { padding: .55rem .4rem; border-bottom: 1px solid var(--studio-border); vertical-align: top; }
 .studio-field-table thead th { color: var(--studio-muted); font-size: .72rem; }
 .studio-field-table tbody th { min-width: 7rem; }
+.studio-field-table :is(thead th:first-child, tbody th[scope="row"]) { position: sticky; left: 0; z-index: 1; background: var(--studio-panel); }
+.studio-field-table thead th:first-child { z-index: 2; }
 .studio-field-table small { display: block; margin-top: .25rem; color: var(--studio-muted); font-weight: 400; overflow-wrap: anywhere; }
 .studio-field-table td button { display: block; margin-bottom: .3rem; white-space: nowrap; }
 .studio-module-tree, .studio-module-tree ul { list-style: none; margin: 0; padding: 0; }

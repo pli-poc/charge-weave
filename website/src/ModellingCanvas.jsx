@@ -54,6 +54,9 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
+const relationshipAccessibleName = edge => edge.predicate === 'subClassOf'
+  ? `Inheritance: ${edge.source} is a subtype of ${edge.target}`
+  : `Relationship ${edge.predicate}: ${edge.source} to ${edge.target}; multiplicity ${edge.cardinality ? multiplicity[edge.cardinality] ?? edge.cardinality : 'not recorded'}`;
 function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, onFocusRoot, canFocusSelected, canFocusRoot }) {
   const { zoom } = useViewport();
   const { zoomTo } = useReactFlow();
@@ -578,7 +581,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         {hiddenNotice && <p aria-live="polite">{hiddenNotice}</p>}
       </details>
     </details>
-    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, ariaLabel: relationshipAccessibleName(edge), data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
       onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
         if (!lastRoot.current) return;
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
