@@ -20,6 +20,7 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.getByRole('button', { name: 'Load more concepts' }).click();
     await page.getByRole('button', { name: 'Show fields for Record' }).click();
     const expandRecord = page.getByRole('button', { name: 'Show inline subtypes of Record' });
+    if (isMobile) expect((await expandRecord.boundingBox()).height).toBeGreaterThanOrEqual(44);
     await expandRecord.focus();
     await page.keyboard.press('Space');
     await expect(page.getByRole('button', { name: 'Hide inline subtypes of Record' })).toBeFocused();
@@ -50,6 +51,7 @@ test('explorer pages direct children and combines parent and changed filters', a
     const nested = page.getByRole('list', { name: 'Direct subtypes of Asset00' });
     const nestedConcept = nested.getByRole('button', { name: 'Nested · other', exact: true });
     await expect(nestedConcept).toBeVisible();
+    if (isMobile) expect((await nestedConcept.boundingBox()).height).toBeGreaterThanOrEqual(44);
     await nestedConcept.click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await expect(nestedConcept).toHaveAttribute('aria-current', 'true');

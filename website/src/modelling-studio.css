@@ -413,6 +413,7 @@ html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li
 /* Enlarge interactive targets for touch without changing fine-pointer density. */
 @media (pointer: coarse) {
   .modelling-studio :is(button, select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { min-height: 2.75rem; }
+  .modelling-studio .studio-module-tree li li button, .modelling-studio .studio-module-tree .studio-subtypes-toggle { min-height: 2.75rem; }
   .modelling-studio summary { min-height: 2.75rem; padding-block: .6rem; }
   .modelling-studio .studio-explorer-expand { flex-basis: 2.75rem; min-height: 2.75rem; }
   .modelling-studio .studio-flow .react-flow__controls button { width: 44px; height: 44px; min-height: 44px; padding: 11px; }
