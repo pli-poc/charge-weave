@@ -9,6 +9,7 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 - The canvas displays a bounded neighbourhood using React Flow and an ELK worker. Search remains bounded; the explorer supports revision-pinned pages and module filtering. Incoming references can be expanded within a bound, while hierarchical explorer navigation remains to be implemented.
 - Existing local workspace and unrelated modified files must be preserved; do not restart the user's service or reuse its live SQLite database in tests.
 - UX acceptance and a real studio-initiated GitHub publication are not yet established.
+- A [task-based walkthrough guide](ontology-modelling-usability-session.md) is prepared for an independent modeller; no human walkthrough has been recorded.
 
 ## Progress
 
