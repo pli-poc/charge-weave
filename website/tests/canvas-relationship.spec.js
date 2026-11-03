@@ -46,7 +46,6 @@ test('visible relationships can be inspected from the keyboard without editing t
 });
 
 test('dense incoming filter reports hidden and unloaded references', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'This checks desktop graph controls.');
   const store = new WorkspaceStore(':memory:');
   const schema = `MODULE|foundation\nRecord|root|A record.|\n${Array.from({ length: 25 }, (_, index) => `Source${String(index).padStart(2, '0')}|root|A source.|owner:Record?`).join('\n')}\n`;
   const workspace = store.create({ title: 'Dense filter', baselineCommit: 'a'.repeat(40), schema });
@@ -60,10 +59,15 @@ test('dense incoming filter reports hidden and unloaded references', async ({ pa
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByLabel('Show incoming references').check();
     await expect(page.getByText('5 additional incoming references are not shown.', { exact: false })).toBeVisible();
     await page.getByLabel('Filter graph relationships').fill('Source24');
     await expect(page.getByText('20 loaded incoming references hidden by the current filter.')).toBeVisible();
+    if (isMobile) {
+      await expect(page.getByText('No relationships match the current view.')).toBeVisible();
+      await expect(page.getByText('No explicit class relationships in this view.')).toHaveCount(0);
+    }
     await expect(page.getByText('The filter applies to loaded relationships only. Show more relationships to search further.')).toBeVisible();
     await page.getByRole('button', { name: 'Show more incoming' }).click();
     await expect(page.getByText('The filter applies to loaded relationships only. Show more relationships to search further.')).toHaveCount(0);
