@@ -78,6 +78,21 @@ test('the narrow inspector keeps field columns readable and keyboard scrollable'
   });
 });
 
+test('desktop activity rail keeps labelled destinations keyboard accessible', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The desktop rail is replaced by compact navigation on mobile.');
+  await withStudio(page, async () => {
+    const rail = page.getByRole('navigation', { name: 'Workspace destinations' });
+    for (const name of ['Model', 'Checks', 'Activity', 'Review']) {
+      const destination = rail.getByRole('link', { name, exact: true });
+      await expect(destination).toBeVisible();
+      await destination.focus();
+      await expect(destination).toBeFocused();
+    }
+    await rail.getByRole('link', { name: 'Checks' }).press('Enter');
+    await expect(page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
 test('320px compact navigation keeps controls usable without page overflow', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Compact navigation is exercised in the mobile browser.');
   await page.setViewportSize({ width: 320, height: 800 });

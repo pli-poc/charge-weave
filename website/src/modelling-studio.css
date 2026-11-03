@@ -200,6 +200,14 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-destinations a { display: inline-block; padding: .45rem .7rem; color: var(--studio-muted); text-decoration: none; border-bottom: 2px solid transparent; }
 .studio-destinations a:hover { color: var(--studio-button-text); border-color: var(--studio-accent-border); }
 .studio-destinations a:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-destinations svg { width: 1.2rem; height: 1.2rem; flex: none; }
+@media (min-width: 901px) {
+  .studio-workspace { position: relative; padding-left: 3.75rem; }
+  .studio-workspace .studio-destinations { position: absolute; inset: 0 auto 0 0; z-index: 2; display: flex; flex-direction: column; align-items: stretch; width: 3.25rem; margin: 0; padding: .25rem 0; border: 1px solid var(--studio-border); border-radius: .4rem; background: var(--studio-panel); }
+  .studio-workspace .studio-destinations a { display: flex; flex-direction: column; align-items: center; gap: .15rem; min-height: 3.25rem; padding: .35rem .1rem; border: 0; border-left: 2px solid transparent; font-size: .65rem; line-height: 1.1; }
+  .studio-workspace .studio-destinations a:hover, .studio-workspace .studio-destinations a:focus-visible { color: var(--studio-text); border-left-color: var(--studio-accent-border); background: var(--studio-hover); }
+}
+@media (max-width: 900px) { .studio-destinations svg { display: none; } }
 @media (min-width: 901px) {
   .studio-destinations { position: sticky; top: 0; z-index: 10; padding: .15rem .25rem; background: var(--studio-panel); }
   #studio-navigator-pane, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 3.5rem; }
