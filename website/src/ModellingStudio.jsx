@@ -29,7 +29,7 @@ function BrowseSubtypeBranch({ parent, connection, revision, onSelect, onOpen })
     call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: revision, parent, limit: 50, ...(cursor ? { cursor } : {}) } }, controller.signal)
       .then(response => {
         const result = response.structuredContent;
-        if (!controller.signal.aborted && result.revision === revision) setPage(previous => cursor && previous?.revision === revision ? { ...result, results: [...previous.results, ...result.results] } : result);
+        if (!controller.signal.aborted && result.revision === revision) setPage(previous => cursor ? previous?.revision === revision && previous.nextCursor === cursor ? { ...result, results: [...previous.results, ...result.results] } : previous : result);
       })
       .catch(error => { if (!controller.signal.aborted) setFailure(error.message); });
     return () => controller.abort();

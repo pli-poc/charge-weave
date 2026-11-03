@@ -21,8 +21,18 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
     const childrenList = page.getByRole('list', { name: 'Direct subtypes of Record' });
     await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toBeVisible();
+    const rejectNextPage = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Record' && params.arguments?.cursor) await route.fulfill({ status: 500, body: 'Synthetic page failure' });
+      else await route.continue();
+    };
+    await page.route('**/mcp', rejectNextPage);
     await page.getByRole('button', { name: 'Load more subtypes of Record' }).click();
+    await expect(page.getByText(/Subtypes unavailable/)).toBeVisible();
+    await page.unroute('**/mcp', rejectNextPage);
+    await page.getByRole('button', { name: 'Retry subtypes of Record' }).click();
     await expect(childrenList.getByRole('button', { name: 'Asset51 · foundation', exact: true })).toBeVisible();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
     await page.getByRole('button', { name: 'Hide inline subtypes of Record' }).click();
     await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
     await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
