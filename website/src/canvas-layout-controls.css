@@ -17,6 +17,8 @@
 .modelling-studio .studio-canvas-minimap-toggle { display: flex; align-items: center; gap: .4rem; margin: .5rem 0; color: #183a39; font-size: .8rem; }
 .modelling-studio .studio-canvas-minimap-toggle input { width: auto; min-width: 0; margin: 0; }
 .studio-flow .studio-canvas-minimap { border: 1px solid #506d69; border-radius: .25rem; }
+.modelling-studio .studio-flow:focus-visible { outline: 3px solid var(--studio-focus); outline-offset: 2px; }
+@media (forced-colors: active) { .modelling-studio .studio-flow:focus-visible { outline-color: Highlight; } }
 .studio-canvas-layout-menu[open] { max-height: min(26rem, calc(100% - 1rem)); overflow: auto; }
 .studio-canvas-layout-menu .studio-layout-choices { max-height: 8rem; overflow: auto; margin: .4rem 0; padding: .3rem .5rem; border: 1px solid #93aaa7; }
 .studio-canvas-layout-menu .studio-layout-choices legend { font-size: .78rem; font-weight: 700; }

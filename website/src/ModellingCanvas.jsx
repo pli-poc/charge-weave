@@ -107,7 +107,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const storageWritable = useRef(initialLayout.writable);
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
-  const arranging = useRef(false), layoutMenu = useRef(null);
+  const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
   const activeNodes = useMemo(() => graph.nodes.filter(node => !hiddenNodes.has(node.name) || node.name === graph.root || node.name === selectedName), [graph.nodes, graph.root, selectedName, hiddenNodes]);
@@ -349,6 +349,15 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const item = byName.current.get(name);
     if (item) { onManualInteraction(); onSelect(item); }
   }
+  function focusRelationship() {
+    if (!selectedEdge || !instance.current || layoutState !== 'ready') return;
+    const names = [...new Set([selectedEdge.source, selectedEdge.target])];
+    if (names.some(name => !visibleNames.has(name))) return;
+    onManualInteraction();
+    void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: MIN_CANVAS_ZOOM, maxZoom: 1, duration: motionDuration(200) });
+    canvasRegion.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    canvasRegion.current?.focus({ preventScroll: true });
+  }
   const focusSelected = useCallback(() => {
     const point = positions.current[selectedName];
     if (!point || !byName.current.has(selectedName) || !instance.current) return;
@@ -477,7 +486,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <><div className="studio-flow" role="region" aria-label={`Relationships for ${graph.root}`} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
+  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={-1} aria-label={`Relationships for ${graph.root}`} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
     onMouseDownCapture={event => {
       if (!event.shiftKey || event.button !== 0) return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
@@ -583,6 +592,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {selectedEdge.sourceRef?.path && <p><strong>Source:</strong> {selectedEdge.sourceRef.path}{selectedEdge.sourceRef.line != null ? `:${selectedEdge.sourceRef.line}` : ''}</p>}
       {selectedEdge.mappingVersion && <p><strong>Mapping version:</strong> {selectedEdge.mappingVersion}</p>}
       <p>Inspect a concept to review its supported field controls. Selecting this relationship does not change the model.</p>
+      <button type="button" disabled={layoutState !== 'ready'} onClick={focusRelationship}>Focus relationship on diagram</button>
       <button type="button" aria-pressed={dimOtherRelationships} onClick={() => { onManualInteraction(); setDimOtherRelationships(value => !value); }}>Dim other relationships</button>
       {dimOtherRelationships && <p>Other relationship lines are dimmed. Choose another relationship or turn this off to restore the full view. The layout and model are unchanged.</p>}
       {selectedEdge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={event => onEditRelationship(selectedEdge, event.currentTarget)}>Edit relationship {selectedEdge.predicate}</button>}

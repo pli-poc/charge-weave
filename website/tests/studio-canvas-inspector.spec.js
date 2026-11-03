@@ -45,8 +45,9 @@ test('diagram selection opens the inspector without changing the view or discard
     await page.unroute('**/mcp', delayRecord);
     const fieldsBeforeSource = await inspector.evaluate(element => {
       const fields = [...element.querySelectorAll('h4')].find(heading => heading.textContent === 'Fields');
+      const addField = [...element.querySelectorAll('summary')].find(summary => summary.textContent === 'Add a field or relationship');
       const source = [...element.querySelectorAll('summary')].find(summary => summary.textContent === 'Source preview');
-      return Boolean(fields && source && (fields.compareDocumentPosition(source) & Node.DOCUMENT_POSITION_FOLLOWING));
+      return Boolean(fields && addField && source && (fields.compareDocumentPosition(addField) & Node.DOCUMENT_POSITION_FOLLOWING) && (addField.compareDocumentPosition(source) & Node.DOCUMENT_POSITION_FOLLOWING));
     });
     expect(fieldsBeforeSource).toBe(true);
     await expect(canvas).toBeVisible();
