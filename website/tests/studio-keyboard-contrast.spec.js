@@ -44,7 +44,9 @@ test('keyboard graph focus and panel resizing remain visible in forced colors', 
       expect(ratios.every(ratio => ratio >= 4.5)).toBe(true);
       await page.keyboard.press('Tab');
       const action = details.getByRole('button').first();
+      await expect(action).toBeEnabled();
       await action.focus();
+      await expect(action).toBeFocused();
       await expect(action).toHaveCSS('outline-color', theme === 'dark' ? 'rgb(124, 221, 194)' : 'rgb(5, 103, 85)');
     }
     const separator = page.getByRole('separator', { name: 'Resize navigator' });
