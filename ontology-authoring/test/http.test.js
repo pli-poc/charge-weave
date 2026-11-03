@@ -116,6 +116,12 @@ test('loopback MCP transport authenticates and shares state', async () => {
       clients.push(client);
     }
     const [first, second] = clients;
+    const source = await first.callTool({ name: 'ontology_source_excerpt', arguments: { workspaceId: workspace.id, name: 'Record', expectedRevision: 0 } });
+    assert.equal(source.structuredContent.path, 'model/domain.schema');
+    assert.equal(source.structuredContent.found, true);
+    const forbiddenSource = await first.callTool({ name: 'ontology_source_excerpt', arguments: { workspaceId: other.id, name: 'Record', expectedRevision: 0 } });
+    assert.equal(forbiddenSource.isError, true);
+    assert.equal(forbiddenSource.structuredContent?.lines, undefined);
     const templates = (await first.listResourceTemplates()).resourceTemplates;
     assert.ok(templates.some(item => item.uriTemplate === 'ontology://workspace/{workspaceId}/v1/summary'));
     const readJson = async uri => JSON.parse((await first.readResource({ uri })).contents[0].text);

@@ -105,3 +105,5 @@ The explorer now supports revision-pinned direct-parent filtering across the who
 GitHub Actions completed successfully for the website, ontology authoring, ontology CI and focused modelling matrix at `01c9b1301b39cc184331b334632b5a775685206b`.
 
 The inspector now offers a revision-pinned, read-only candidate or baseline excerpt around the selected concept's `model/domain.schema` declaration. The tool accepts no filesystem path, limits context and line length, marks truncation, reports an absent baseline declaration and discards stale responses. Other source owners remain available through their change patches. The website build, **245 browser tests with 33 project-specific skips**, and **29 workspace/MCP tests** passed locally. GitHub verification and independent usability review remain separate.
+
+The loopback MCP authorization scenario also checks that source excerpts are returned for the granted workspace and denied for another workspace. The focused HTTP test passed locally; this does not replace broader security or production deployment review.
