@@ -32,6 +32,10 @@ test('carry-forward creates a fresh target-based draft with provenance and fresh
     const baselineCommit = git(['rev-parse', 'HEAD']);
     store = new WorkspaceStore(':memory:');
     const source = createWorkspaceFromRepository(store, repository, { title: 'Original', baselineCommit, operationId: 'source', actor: 'reviewer' });
+    await assert.rejects(carryForwardWorkspaceFromRepository(store, repository, {
+      sourceWorkspaceId: source.id, expectedRevision: 0, expectedSourceDigest: source.sourceDigest,
+      baselineCommit, operationId: 'x'.repeat(114), actor: 'reviewer',
+    }), /Invalid carry-forward request/);
     const edit = store.apply({ workspaceId: source.id, actor: 'author', operationId: 'describe', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'An identifiable tenant-owned domain record.' }] });
     writeFileSync(join(repository, 'README.md'), 'advanced baseline\n');
     git(['add', 'README.md']);

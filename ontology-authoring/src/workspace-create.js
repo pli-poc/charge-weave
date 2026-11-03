@@ -29,7 +29,7 @@ export function createWorkspaceFromRepository(store, repository, { title, baseli
 // Create a target-based workspace and carry only files whose pinned baseline
 // bytes have not changed at the target. Same-path edits fail closed.
 export async function carryForwardWorkspaceFromRepository(store, repository, { sourceWorkspaceId, expectedRevision, expectedSourceDigest, baselineCommit, operationId, actor, publicationFixture = null, preflight = publicationPreflight }) {
-  if (typeof sourceWorkspaceId !== 'string' || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(expectedSourceDigest ?? '') || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof operationId !== 'string' || !operationId || !actor) throw new Error('Invalid carry-forward request');
+  if (typeof sourceWorkspaceId !== 'string' || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(expectedSourceDigest ?? '') || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof operationId !== 'string' || !operationId || operationId.length > 113 || !actor) throw new Error('Invalid carry-forward request');
   const source = store.get(sourceWorkspaceId);
   if (source.revision !== expectedRevision || source.sourceDigest !== expectedSourceDigest) throw new Error('Source draft changed; inspect it and retry carry-forward');
   if (source.digestVersion !== 4 || !source.sourceManifest) throw new Error('Carry-forward requires a version-four source workspace');

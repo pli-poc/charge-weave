@@ -23,6 +23,7 @@ export function createServer(store, actor, options = {}) {
   });
   const workspaceId = z.string().uuid();
   const operationId = z.string().min(1).max(128);
+  const carryForwardOperationId = z.string().min(1).max(113);
   const revision = z.number().int().nonnegative().safe();
   const resource = (name, template, description, read) => server.registerResource(name, new ResourceTemplate(template, { list: undefined }), { description, mimeType: 'application/json' }, async (uri, variables) => {
     const id = workspaceId.parse(variables.workspaceId);
@@ -70,7 +71,7 @@ export function createServer(store, actor, options = {}) {
     const created = options.createWorkspace(args);
     return result({ workspaceId: created.id, title: created.title, baselineCommit: created.baselineCommit, revision: created.revision, sourceDigest: created.sourceDigest });
   });
-  if (options.role === 'reviewer' && options.carryForwardWorkspace) registerTool('ontology_workspace_carry_forward', { description: 'Carry draft files to the exact current configured publication target when each carried path is unchanged there. Same-path conflicts fail closed. This creates a new workspace and requires fresh validation and review.', inputSchema: { sourceWorkspaceId: workspaceId, baselineCommit: z.string().regex(/^[a-f0-9]{40}$/), expectedRevision: revision, expectedSourceDigest: z.string().regex(/^[a-f0-9]{64}$/), operationId }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(await options.carryForwardWorkspace(args)));
+  if (options.role === 'reviewer' && options.carryForwardWorkspace) registerTool('ontology_workspace_carry_forward', { description: 'Carry draft files to the exact current configured publication target when each carried path is unchanged there. Same-path conflicts fail closed. This creates a new workspace and requires fresh validation and review.', inputSchema: { sourceWorkspaceId: workspaceId, baselineCommit: z.string().regex(/^[a-f0-9]{40}$/), expectedRevision: revision, expectedSourceDigest: z.string().regex(/^[a-f0-9]{64}$/), operationId: carryForwardOperationId }, annotations: { destructiveHint: false, idempotentHint: true } }, async args => result(await options.carryForwardWorkspace(args)));
   registerTool('ontology_workspace_get', { description: 'Read a pinned workspace identity, editable source names and event cursor. Use concept and diff tools for model details.', inputSchema: { workspaceId }, annotations: { readOnlyHint: true } }, async args => {
     const { schema, sourceManifest, sourceOverlays, ...identity } = store.snapshot(args.workspaceId);
     return result({ ...identity, workspaceId: args.workspaceId });
