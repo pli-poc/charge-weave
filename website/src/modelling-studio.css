@@ -416,6 +416,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 @media (min-width: 1000px) {
   .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
   .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
+  /* Keep the dock inside the available editor height, above the fixed status bar. */
+  .studio-workspace .studio-bottom-dock { margin-top: .35rem; }
 }
 @media (min-width: 1400px) and (min-height: 950px) {
   /* Use the available height for the model instead of leaving a short canvas
