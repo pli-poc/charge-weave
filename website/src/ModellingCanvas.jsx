@@ -78,6 +78,9 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [hoveredEdgeId, setHoveredEdgeId] = useState('');
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [relationshipQuery, setRelationshipQuery] = useState('');
+  const [relationshipTargetQuery, setRelationshipTargetQuery] = useState('');
+  const [relationshipTarget, setRelationshipTarget] = useState('');
+  const [relationshipCreateNotice, setRelationshipCreateNotice] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
   const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
@@ -116,13 +119,27 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const relationshipFocusHint = useId();
   const relationshipDetailsId = useId();
   const relationshipSearchStatus = useId();
+  const relationshipTargetStatus = useId();
   const relationshipSearchInput = useRef(null);
+  const relationshipTargetSearchInput = useRef(null);
+  const relationshipCreateAttempt = useRef(0);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
   const activeNodes = useMemo(() => graph.nodes.filter(node => !hiddenNodes.has(node.name) || node.name === graph.root || node.name === selectedName), [graph.nodes, graph.root, selectedName, hiddenNodes]);
   const visibleNames = useMemo(() => new Set(activeNodes.map(node => node.name)), [activeNodes]);
   const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
   useEffect(() => { setRelationshipQuery(''); }, [graph.workspaceId, graph.root, viewId]);
+  useEffect(() => {
+    relationshipCreateAttempt.current += 1;
+    setRelationshipTargetQuery(''); setRelationshipTarget(''); setRelationshipCreateNotice('');
+    return () => { relationshipCreateAttempt.current += 1; };
+  }, [graph.workspaceId, graph.root, viewId, selectedName]);
+  useEffect(() => {
+    if (relationshipTarget && !visibleNames.has(relationshipTarget)) {
+      setRelationshipTarget('');
+      setRelationshipCreateNotice('The target is no longer visible. Choose a visible concept.');
+    }
+  }, [relationshipTarget, visibleNames]);
   const frameRoot = useCallback(root => {
     if (!instance.current || lastRoot.current !== root) return false;
     const saved = readCanvasViewport(sessionStorage, graph.workspaceId, viewId, root);
@@ -232,6 +249,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     return term ? activeEdges.filter(edge => `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)) : activeEdges;
   }, [activeEdges, relationshipQuery]);
   const retainedRelationship = selectedEdge && !matchingRelationships.some(edge => edge.id === selectedEdge.id) ? selectedEdge : null;
+  const matchingTargets = useMemo(() => {
+    const term = relationshipTargetQuery.trim().toLowerCase();
+    return term ? activeNodes.filter(node => `${node.name} ${node.label ?? ''} ${node.module ?? ''}`.toLowerCase().includes(term)) : activeNodes;
+  }, [activeNodes, relationshipTargetQuery]);
+  const retainedTarget = relationshipTarget && visibleNames.has(relationshipTarget) && !matchingTargets.some(node => node.name === relationshipTarget) ? relationshipTarget : '';
   const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${highlightedEdge && (node.id === highlightedEdge.source || node.id === highlightedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, highlightedEdge]);
   const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
@@ -369,6 +391,29 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   function inspectEndpoint(name) {
     const item = byName.current.get(name);
     if (item) { onManualInteraction(); onSelect(item); }
+  }
+  function beginSelectedRelationship() {
+    if (!visibleNames.has(selectedName) || !visibleNames.has(relationshipTarget)) {
+      setRelationshipCreateNotice('Choose a visible source and target before continuing.'); return;
+    }
+    if (document.querySelector('form[aria-label="New relationship"]')) {
+      setRelationshipCreateNotice('Finish or cancel the existing relationship draft before starting another.'); return;
+    }
+    const source = selectedName, target = relationshipTarget, previousFocus = document.activeElement;
+    const attempt = ++relationshipCreateAttempt.current;
+    setRelationshipCreateNotice('');
+    try { onManualInteraction(); onConnect({ source, target }); }
+    catch { setRelationshipCreateNotice('Could not open the relationship editor. Check the workspace and try again.'); return; }
+    requestAnimationFrame(() => {
+      if (attempt !== relationshipCreateAttempt.current) return;
+      const form = document.querySelector('form[aria-label="New relationship"]');
+      if (!form || !form.textContent.includes(`${source} → ${target}`)) {
+        setRelationshipCreateNotice('The relationship editor did not open. Check the workspace state and try again.'); return;
+      }
+      if (document.activeElement !== previousFocus && document.activeElement !== document.body) return;
+      form.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      form.querySelector('input')?.focus({ preventScroll: true });
+    });
   }
   function openRelationshipDetails() {
     if (!relationshipDetails.current) return;
@@ -635,6 +680,18 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     <p className="studio-canvas-keyboard-hint">Keyboard: focus the diagram and use arrow keys to pan.</p>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
     {activeEdges.length > 0 && <div className="studio-canvas-line-legend" aria-label="Diagram relationship line styles"><span><i aria-hidden="true" /> Relationship</span><span><i className="studio-canvas-line-inheritance" aria-hidden="true" /> Inheritance (subClassOf)</span><span>Arrows point to the target.</span></div>}
+    <details className="studio-canvas-create-relationship">
+      <summary>Add relationship from selected concept</summary>
+      {!visibleNames.has(selectedName) ? <p>Select a concept shown in the diagram first.</p> : <>
+        <p>Source: <strong>{selectedName}</strong>. Choose a visible target, then complete the relationship editor. No model change is made until you create the relationship.</p>
+        <label>Find visible target concepts <input ref={relationshipTargetSearchInput} type="search" maxLength={200} value={relationshipTargetQuery} onChange={event => { onManualInteraction(); setRelationshipTargetQuery(event.target.value); }} /></label>
+        {relationshipTargetQuery && <button type="button" onClick={() => { setRelationshipTargetQuery(''); relationshipTargetSearchInput.current?.focus(); }}>Clear target search</button>}
+        <p id={relationshipTargetStatus} aria-live="polite">Showing {matchingTargets.length} of {activeNodes.length} visible concepts. Unloaded and hidden concepts are excluded.{retainedTarget && ' The chosen target remains available outside these results.'}</p>
+        <label>Target concept <select aria-describedby={relationshipTargetStatus} value={relationshipTarget} onChange={event => { setRelationshipTarget(event.target.value); setRelationshipCreateNotice(''); }}><option value="">Choose a visible target</option>{retainedTarget && <option value={retainedTarget}>{retainedTarget} (currently chosen)</option>}{matchingTargets.map(node => <option key={node.name} value={node.name}>{node.label || node.name}{node.module ? ` · ${node.module}` : ''}</option>)}</select></label>
+        <button type="button" disabled={!relationshipTarget || !visibleNames.has(relationshipTarget)} onClick={beginSelectedRelationship}>Open relationship editor</button>
+      </>}
+      {relationshipCreateNotice && <p role="status">{relationshipCreateNotice}</p>}
+    </details>
     {viewGroups.length > 0 && <section className="studio-canvas-groups" aria-label="Diagram groups"><h3>Diagram groups</h3><p>Groups organize this view only; they do not add ontology relationships.</p><ul>{viewGroups.map((group, index) => <li key={`${index}-${group.name}`}><strong>{group.name}</strong> · {new Set(group.members.filter(name => visibleNames.has(name))).size} of {new Set(group.members).size} concepts shown<ul>{[...new Set(group.members)].map(name => <li key={name}>{name}{!visibleNames.has(name) ? ' — not shown' : ''}</li>)}</ul><button type="button" disabled={!groupsEditable || !onRemoveGroup || layoutState === 'pending'} onClick={() => removeViewGroup(index, group)}>Remove {group.name} from view</button></li>)}</ul></section>}
     {activeEdges.length > 0 && <div className="studio-canvas-edge-picker">
       <label>Find visible relationships <input ref={relationshipSearchInput} type="search" value={relationshipQuery} maxLength={200} onChange={event => { onManualInteraction(); setRelationshipQuery(event.target.value); }} /></label>

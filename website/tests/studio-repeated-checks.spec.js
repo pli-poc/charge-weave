@@ -28,5 +28,11 @@ test('identical failed steps are grouped without hiding distinct output', async 
     await issues.getByLabel('Filter failed checks').fill('Different failure');
     await expect(issues.getByRole('heading', { name: 'Failed check: example-check' })).toHaveCount(1);
     await expect(issues.getByText('Showing 1 of 3 failed checks matching the filter.')).toBeVisible();
+    await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Problems, 3 failed checks' }).click();
+    const problems = page.getByRole('region', { name: 'Problems' });
+    await expect(problems.getByText('2 identical failures in this job.')).toBeVisible();
+    await expect(problems.getByText('Showing 3 of 3 failed checks. Only the displayed check is covered.')).toBeVisible();
+    await problems.getByLabel('Filter problems by check').fill('missing');
+    await expect(problems.getByText('Showing 0 of 3 failed checks. Only the displayed check is covered.')).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });

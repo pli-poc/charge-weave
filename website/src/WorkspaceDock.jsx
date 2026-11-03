@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import ValidationIssues, { fixtureConcepts, fixtureFailures, noFailureMessage } from './ValidationIssues.jsx';
 import StudioScrollableText from './StudioScrollableText.jsx';
 
@@ -23,6 +23,15 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
   const validationJob = job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) ? job : null;
   const failedSteps = (validationJob?.steps || []).filter(step => step.status === 'failed');
   const failureCount = failedSteps.length || (validationJob?.status === 'failed' ? 1 : 0);
+  const [problemFilter, setProblemFilter] = useState('');
+  useEffect(() => { setProblemFilter(''); }, [validationJob?.id]);
+  const problemGroups = [];
+  for (const step of failedSteps.filter(item => item.checkName.toLocaleLowerCase().includes(problemFilter.trim().toLocaleLowerCase()))) {
+    const output = step.output || validationJob.output || '';
+    const existing = problemGroups.find(item => item.step.checkName === step.checkName && item.output === output);
+    if (existing) existing.count += 1;
+    else problemGroups.push({ step, output, count: 1 });
+  }
   const stale = validationJob && (validationJob.revision !== snapshot.revision || validationJob.digest !== snapshot.sourceDigest);
   const navigation = useRef(null);
   const content = useRef(null);
@@ -75,7 +84,7 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         <h2>Problems</h2>
         {!validationJob ? <p>No validation result is displayed. Run a check to inspect failures.</p> : <>
           <p>{validationJob.profile}: {validationJob.status} at revision {validationJob.revision}{stale ? ' · out of date for this draft' : ''}.</p>
-          {failureCount ? <><p>A failed check needs investigation; it does not automatically identify a model defect.</p><ul>{failedSteps.length ? failedSteps.map(step => <li key={step.ordinal}><strong>{step.checkName}</strong><p>Affected concept and cause are unknown from the check summary.</p>{fixtureFailures(step).map(item => fixtureConcepts[item.case] && <div key={item.case}><p>Synthetic fixture {item.case}: target {fixtureConcepts[item.case].join('.')}.</p><button type="button" disabled={Boolean(stale) || disabled} onClick={() => onFocusIssue(...fixtureConcepts[item.case])}>Inspect fixture target {fixtureConcepts[item.case][0]}</button></div>)}<details><summary>Recorded output for {step.checkName}</summary><StudioScrollableText label={`Problem output: ${step.checkName}`}>{step.output || validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>) : <li>Validation job failed without a reported step.<details><summary>Recorded job output</summary><StudioScrollableText label="Problem job output">{validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>}</ul><button type="button" onClick={onShowChecks}>Inspect failed checks</button></> : <p>{noFailureMessage(validationJob.status)}</p>}
+          {failureCount ? <><p>A failed check needs investigation; it does not automatically identify a model defect.</p>{failedSteps.length > 0 && <><label>Filter problems by check <input value={problemFilter} onChange={event => setProblemFilter(event.target.value)} /></label><p aria-live="polite">Showing {problemGroups.reduce((total, group) => total + group.count, 0)} of {failedSteps.length} failed checks. Only the displayed check is covered.</p></>}<ul>{failedSteps.length ? problemGroups.map(({ step, count }) => <li key={step.ordinal}><strong>{step.checkName}</strong>{count > 1 && <p>{count} identical failures in this job.</p>}<p>Affected concept and cause are unknown from the check summary.</p>{fixtureFailures(step).map(item => fixtureConcepts[item.case] && <div key={item.case}><p>Synthetic fixture {item.case}: target {fixtureConcepts[item.case].join('.')}.</p><button type="button" disabled={Boolean(stale) || disabled} onClick={() => onFocusIssue(...fixtureConcepts[item.case])}>Inspect fixture target {fixtureConcepts[item.case][0]}</button></div>)}<details><summary>Recorded output for {step.checkName}</summary><StudioScrollableText label={`Problem output: ${step.checkName}`}>{step.output || validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>) : <li>Validation job failed without a reported step.<details><summary>Recorded job output</summary><StudioScrollableText label="Problem job output">{validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>}</ul><button type="button" onClick={onShowChecks}>Inspect failed checks</button></> : <p>{noFailureMessage(validationJob.status)}</p>}
         </>}
       </section>
       <div hidden={panel !== 'checks'}>

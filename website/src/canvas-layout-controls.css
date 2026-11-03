@@ -62,6 +62,13 @@ html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-la
 html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canvas-layout-menu, .studio-canvas-zoom) :is(button, summary, input):focus-visible { outline-color: #91e9d1; }
 .studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
 .studio-canvas-keyboard-hint { margin: .4rem 0; font-size: .8rem; }
+.studio-canvas-create-relationship { margin: .6rem 0; padding: .6rem; border: 1px solid var(--studio-border); border-radius: .35rem; background: var(--studio-panel); color: var(--studio-text); }
+.studio-canvas-create-relationship > summary { cursor: pointer; font-weight: 700; }
+.studio-canvas-create-relationship > label { margin: .5rem 0; }
+.modelling-studio .studio-canvas-create-relationship :is(input, select) { width: 100%; min-width: 0; max-width: 100%; }
+.studio-canvas-create-relationship p { margin: .5rem 0; font-size: .8rem; }
+.modelling-studio .studio-graph .studio-canvas-create-relationship :is(button, input, select, summary):focus-visible { outline-color: var(--studio-focus); }
+@media (forced-colors: active) { html[data-studio-theme] .modelling-studio .studio-graph .studio-canvas-create-relationship :is(button, input, select, summary):focus-visible { outline-color: Highlight; } }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
 .studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .18; }
 .studio-flow .react-flow__edge.studio-flow-edge-muted:hover { opacity: 1; }
