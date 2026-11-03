@@ -112,8 +112,9 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const storageWritable = useRef(initialLayout.writable);
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
-  const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null), relationshipFocusTrigger = useRef(null);
+  const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null), relationshipFocusTrigger = useRef(null), relationshipDetails = useRef(null);
   const relationshipFocusHint = useId();
+  const relationshipDetailsId = useId();
   const relationshipSearchStatus = useId();
   const relationshipSearchInput = useRef(null);
   const dragBefore = useRef(null);
@@ -369,6 +370,18 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const item = byName.current.get(name);
     if (item) { onManualInteraction(); onSelect(item); }
   }
+  function openRelationshipDetails() {
+    if (!relationshipDetails.current) return;
+    onManualInteraction();
+    relationshipDetails.current.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    relationshipDetails.current.focus({ preventScroll: true });
+  }
+  function clearRelationshipSelection() {
+    relationshipFocusTrigger.current = null;
+    inspectEdge('');
+    canvasRegion.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    canvasRegion.current?.focus({ preventScroll: true });
+  }
   function focusRelationship(event) {
     if (!selectedEdge || !instance.current || layoutState !== 'ready') return;
     const names = [...new Set([selectedEdge.source, selectedEdge.target])];
@@ -507,7 +520,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={0} aria-label={`Relationships for ${graph.root}`} aria-describedby={relationshipFocusHint} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown" data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
+  return <>{selectedEdge && <div className="studio-canvas-selection-strip" role="group" aria-label={`Selected relationship: ${relationshipAccessibleName(selectedEdge)}`}>
+    <span><strong>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : selectedEdge.predicate}</strong> · {selectedEdge.source} → {selectedEdge.target}</span>
+    <button type="button" aria-controls={relationshipDetailsId} onClick={openRelationshipDetails}>Open relationship details</button>
+    <button type="button" onClick={clearRelationshipSelection}>Clear relationship selection</button>
+  </div>}<div ref={canvasRegion} className="studio-flow" role="region" tabIndex={0} aria-label={`Relationships for ${graph.root}`} aria-describedby={relationshipFocusHint} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown" data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
     onMouseDownCapture={event => {
       if (!event.shiftKey || event.button !== 0) return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
@@ -625,7 +642,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       <p id={relationshipSearchStatus} aria-live="polite">Showing {matchingRelationships.length} of {activeEdges.length} visible relationships. Unloaded and hidden relationships are excluded.{retainedRelationship && ' The inspected relationship remains available outside these results.'}</p>
       <label>Inspect relationship <select aria-describedby={relationshipSearchStatus} value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{retainedRelationship && <option value={retainedRelationship.id}>{retainedRelationship.source} — {retainedRelationship.predicate} → {retainedRelationship.target} (currently inspected)</option>}{matchingRelationships.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label>
     </div>}
-    {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
+    {selectedEdge && <section ref={relationshipDetails} id={relationshipDetailsId} className="studio-canvas-edge-details" tabIndex={-1} aria-label="Relationship details" aria-live="polite">
       <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>
       <p><strong>Direction:</strong> {selectedEdge.source} → {selectedEdge.target}</p>
       <p><strong>Multiplicity:</strong> {selectedEdge.cardinality ? multiplicity[selectedEdge.cardinality] ?? selectedEdge.cardinality : selectedEdge.predicate === 'subClassOf' ? 'Not applicable' : 'Not recorded'}</p>

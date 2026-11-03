@@ -83,7 +83,12 @@ html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge:
 .modelling-studio .studio-canvas-edge-picker :is(input, select) { width: 100%; min-width: 0; max-width: 100%; }
 .studio-canvas-edge-picker button { justify-self: start; }
 .studio-canvas-edge-picker p { margin: 0; font-size: .8rem; }
+.studio-canvas-selection-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; min-width: 0; margin: .4rem 0; padding: .45rem; border: 1px solid var(--studio-strong-border); border-radius: .35rem; background: var(--studio-raised); color: var(--studio-text); }
+.studio-canvas-selection-strip > span { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
+.studio-canvas-selection-strip button { max-width: 100%; }
 .modelling-studio .studio-canvas-edge-details { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
+.modelling-studio .studio-canvas-edge-details:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+@media (forced-colors: active) { .modelling-studio .studio-canvas-edge-details:focus-visible { outline-color: Highlight; } }
 .studio-canvas-edge-details h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
 .studio-canvas-edge-details p { overflow-wrap: anywhere; }
 .studio-canvas-edge-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
