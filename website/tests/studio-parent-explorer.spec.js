@@ -7,7 +7,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 test('explorer pages direct children and combines parent and changed filters', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const children = Array.from({ length: 52 }, (_, i) => `Asset${String(i).padStart(2, '0')}|Record|An asset.|`);
-  const schema = `MODULE|foundation\nRecord|root|A record.|\n${children.join('\n')}\nNested|Asset00|A nested asset.|\n`;
+  const schema = `MODULE|foundation\nRecord|root|A record.|\n${children.join('\n')}\nMODULE|other\nNested|Asset00|A nested asset.|\n`;
   const workspace = store.create({ title: 'Parent explorer', baselineCommit: 'a'.repeat(40), schema });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
@@ -20,6 +20,12 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.getByRole('button', { name: 'Filter parent' }).click();
     await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
     await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
+    await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
+    await page.getByRole('button', { name: 'Browse direct subtypes of Asset00' }).click();
+    await expect(page.getByLabel('Direct parent')).toHaveValue('Asset00');
+    await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Nested', exact: true })).toBeVisible();
+    await page.getByLabel('Direct parent').fill('Record'); await page.getByRole('button', { name: 'Filter parent' }).click();
+    await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
     await page.getByRole('button', { name: 'Load more concepts' }).click();
     await expect(page.getByText('Showing 52 of 52 concepts.')).toBeVisible();
     const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
