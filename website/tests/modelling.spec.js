@@ -53,6 +53,9 @@ test('explorer expands declared and inherited fields at the current revision', a
       await expect(page.getByRole('button', { name: 'Hide fields for Device' })).toHaveAttribute('aria-expanded', 'true');
       const refreshed = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Hide fields for Device' }) }).last();
       await expect(refreshed.getByText('modelNumber', { exact: true })).toBeVisible();
+      await refreshed.getByText('Inherited fields (1)', { exact: true }).click();
+      await refreshed.getByRole('button', { name: 'Inspect declaration of recordName' }).click();
+      await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     } finally { release(); }
     expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
