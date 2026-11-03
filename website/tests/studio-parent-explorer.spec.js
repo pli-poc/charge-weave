@@ -21,8 +21,21 @@ test('explorer pages direct children and combines parent and changed filters', a
     await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
     await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
     await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
+    const rejectChildren = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Asset00') await route.fulfill({ status: 500, body: 'Synthetic failure' });
+      else await route.continue();
+    };
+    await page.route('**/mcp', rejectChildren);
+    try {
+      await page.getByRole('button', { name: 'Browse direct subtypes of Asset00' }).click();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(page.getByLabel('Direct parent')).toHaveValue('Record');
+      await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
+    } finally { await page.unroute('**/mcp', rejectChildren); }
     await page.getByRole('button', { name: 'Browse direct subtypes of Asset00' }).click();
     await expect(page.getByLabel('Direct parent')).toHaveValue('Asset00');
+    await expect(page.getByLabel('Direct parent')).toBeFocused();
     await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Nested', exact: true })).toBeVisible();
     await page.getByLabel('Direct parent').fill('Record'); await page.getByRole('button', { name: 'Filter parent' }).click();
     await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
