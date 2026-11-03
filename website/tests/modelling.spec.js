@@ -1764,6 +1764,8 @@ test('concept context can be previewed and copied for the current draft', async 
     await expect(preview).toHaveValue(/Selected concept: Record/);
     await expect(preview).toHaveValue(/revision: 0/);
     await expect(preview).toHaveValue(/synthetic-check/);
+    await expect(preview).toHaveValue(/Failed check steps \(recorded names; inspect output for cause\):/);
+    await expect(page.getByText(/includes recorded check status and failed check names, but excludes raw check output and credentials/)).toBeVisible();
     await page.getByRole('button', { name: 'Copy context' }).click();
     const copied = await page.evaluate(() => window.copiedContext);
     expect(copied).toContain(workspace.id);
