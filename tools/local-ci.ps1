@@ -28,11 +28,11 @@ try {
         Write-Host 'Installing the pinned project dependencies used by CI.' -ForegroundColor Cyan
         & $Python -m pip install -r requirements-ci.txt
         if ($LASTEXITCODE -ne 0) { throw 'Python dependency installation failed.' }
-        npm ci --prefix ontology-authoring
+        npm.cmd ci --prefix ontology-authoring
         if ($LASTEXITCODE -ne 0) { throw 'Ontology authoring dependency installation failed.' }
-        npm ci --prefix client-runtime
+        npm.cmd ci --prefix client-runtime
         if ($LASTEXITCODE -ne 0) { throw 'Client runtime dependency installation failed.' }
-        npm ci --prefix website
+        npm.cmd ci --prefix website
         if ($LASTEXITCODE -ne 0) { throw 'Website dependency installation failed.' }
     }
 
@@ -50,7 +50,7 @@ try {
         foreach ($check in 'test_domain_schema.py','test_authoring_adapter.py','test_authoring_example_overrides.py','test_business_case_provenance.py','test_check_generated.py') {
             & $add "Authoring support: $check" $Python @("tools/$check") '.'
         }
-        & $add 'Ontology authoring suite' 'npm' @('test','--','--test-skip-pattern=^reference profile (runs generated model and fixture checks|generates evidence from requirement and temporal overlays)$') 'ontology-authoring'
+        & $add 'Ontology authoring suite' 'npm.cmd' @('test','--','--test-skip-pattern=^reference profile (runs generated model and fixture checks|generates evidence from requirement and temporal overlays)$') 'ontology-authoring'
     }
     if ($Profile -in @('ontology','full')) {
         $ontologyCommands = @(
@@ -77,10 +77,10 @@ try {
         }
     }
     if ($Profile -in @('browser','full')) {
-        & $add 'Website production build' 'npm' @('run','build','--prefix','website') '.'
+        & $add 'Website production build' 'npm.cmd' @('run','build','--prefix','website') '.'
         & $add 'Browser model unit tests' 'node' @('--test','src/model/event-cursor.test.js','src/model/canvas-pins.test.js','src/model/canvas-history.test.js','src/model/canvas-viewport.test.js','src/model/canvas-hidden.test.js','src/model/canvas-groups.test.js','src/model/canvas-distribute.test.js','src/model/canvas-redo.test.js','src/model/context-checks.test.js') 'website'
-        & $add 'Playwright desktop and mobile smoke' 'npx' @('playwright','test','tests/modelling.spec.js','--project=desktop') 'website'
-        & $add 'Playwright mobile smoke' 'npx' @('playwright','test','tests/modelling.spec.js','--project=mobile','-g','mobile relationship list') 'website'
+        & $add 'Playwright desktop and mobile smoke' 'npx.cmd' @('playwright','test','tests/modelling.spec.js','--project=desktop') 'website'
+        & $add 'Playwright mobile smoke' 'npx.cmd' @('playwright','test','tests/modelling.spec.js','--project=mobile','-g','mobile relationship list') 'website'
     }
 
     $failed = [System.Collections.Generic.List[string]]::new()
@@ -101,7 +101,9 @@ try {
             $env:CHARGEWEAVE_TEST_MAINTENANCE = '1'
         }
         try {
-            & $step.Program @($step.Arguments)
+            $program = $step.Program
+            $programArguments = $step.Arguments
+            & $program @programArguments
             $exitCode = $LASTEXITCODE
         } finally {
             $timer.Stop()
