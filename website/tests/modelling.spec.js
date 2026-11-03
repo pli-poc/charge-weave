@@ -5,6 +5,8 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { Client } from '../../ontology-authoring/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
+import { StreamableHTTPClientTransport } from '../../ontology-authoring/node_modules/@modelcontextprotocol/sdk/dist/esm/client/streamableHttp.js';
 import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -2999,11 +3001,23 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     service.closeAllConnections();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Reconnecting');
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeDisabled();
+    const offlineDraft = store.get(workspace.id);
+    const otherClient = new Client({ name: 'offline-other-client', version: '1' });
+    try {
+      await otherClient.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+      const result = await otherClient.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'offline-edit', changeSetId: offlineDraft.changeSet?.id, expectedRevision: offlineDraft.revision, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated while the studio was offline.' }] } });
+      expect(result.isError).toBeFalsy();
+    } finally { await otherClient.close(); }
     await page.waitForTimeout(1500);
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Reconnecting');
     await page.unroute('**/mcp');
     await page.unroute('**/events?**');
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Connected');
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText(`revision ${offlineDraft.revision + 1}`);
+    await surface('Model');
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect(page.getByText('Updated while the studio was offline.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: 'Disconnect' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Disconnected');
