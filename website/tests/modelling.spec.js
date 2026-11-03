@@ -1470,6 +1470,7 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     await expect(page.getByText(/existing data or consumers may need migration/)).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Require peer' }).click();
+    await page.getByRole('button', { name: 'Confirm required relationship' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 2');
     expect(store.get(workspace.id).schema).toContain('peer:Record!');
     store.suggestView(workspace.id, { actor: 'codex', operationId: 'suggest-device', expectedRevision: 2, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device.' });

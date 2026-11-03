@@ -40,6 +40,11 @@
 .modelling-studio .studio-canvas-zoom button { min-height: 1.8rem; padding: .2rem .45rem; }
 .studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+.studio-flow .studio-flow-inheritance .react-flow__edge-path { stroke-dasharray: 7 4; }
+.studio-canvas-line-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .5rem 0; color: var(--studio-text, #e4eeef); font-size: .8rem; }
+.studio-canvas-line-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.studio-canvas-line-legend i { display: inline-block; width: 1.6rem; border-top: 2px solid currentColor; }
+.studio-canvas-line-legend i.studio-canvas-line-inheritance { border-top-style: dashed; }
 .studio-canvas-edge-picker { margin: .75rem 0; }
 .studio-canvas-edge-picker select { max-width: 100%; }
 .modelling-studio .studio-canvas-edge-details { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }

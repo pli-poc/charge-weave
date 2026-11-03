@@ -1,6 +1,21 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { WorkspaceStore } from '../src/workspace.js';
+
+test('field search is revision-pinned, bounded and preserves declaring owners', () => {
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const workspace = store.create({ title: 'Field search', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|code:string?\nDevice|Record|A device.|code:string? related:Record?\nOther|Record|Other.|code:string?\n' });
+    const first = store.searchFields(workspace.id, 'code', 0, 0, 2);
+    assert.equal(first.total, 3);
+    assert.deepEqual(first.results.map(item => item.owner), ['Device', 'Other']);
+    assert.equal(first.nextOffset, 2);
+    assert.equal(store.searchFields(workspace.id, 'code', 0, first.nextOffset, 2).results[0].owner, 'Record');
+    assert.equal(store.searchFields(workspace.id, 'related', 0).results[0].kind, 'relationship');
+    store.apply({ workspaceId: workspace.id, actor: 'author', operationId: 'change', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
+    assert.throws(() => store.searchFields(workspace.id, 'code', 0, 2, 2), /Revision conflict/);
+  } finally { store.close(); }
+});
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

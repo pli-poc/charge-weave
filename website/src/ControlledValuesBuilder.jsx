@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 const valuePattern = /^[A-Za-z][A-Za-z0-9]*$/;
 
@@ -15,6 +15,8 @@ export function validFieldRangeDraft(range, candidate) {
 }
 
 export default function ControlledValuesBuilder({ range, candidate, onRangeChange, onCandidateChange }) {
+  const group = useRef(null);
+  const candidateInput = useRef(null);
   const values = parseControlledValues(range);
   const trimmed = candidate.trim();
   let issue = '';
@@ -26,13 +28,20 @@ export default function ControlledValuesBuilder({ range, candidate, onRangeChang
     onRangeChange(`{${[...values, trimmed].join(',')}}`);
     onCandidateChange('');
   }
+  function remove(index) {
+    onRangeChange(`{${values.filter((_, position) => position !== index).join(',')}}`);
+    requestAnimationFrame(() => {
+      const buttons = group.current?.querySelectorAll('[data-remove-controlled-value]');
+      (buttons?.[Math.min(index, buttons.length - 1)] || candidateInput.current)?.focus();
+    });
+  }
   return <details>
     <summary>Build controlled values</summary>
     <p>Choose distinct values using letters and digits. At least two values are required; the entire range is limited to 128 characters.</p>
     {!values && <><p>The current datatype or target is not an editable controlled-value list.</p><button type="button" onClick={() => onRangeChange('{}')}>Start controlled values</button></>}
-    {values && <div role="group" aria-label="Controlled values">
-      {values.length ? <ul>{values.map((value, index) => <li key={`${value}-${index}`}>{value} <button type="button" aria-label={`Remove value ${value}`} onClick={() => onRangeChange(`{${values.filter((_, position) => position !== index).join(',')}}`)}>Remove</button></li>)}</ul> : <p>No values added.</p>}
-      <label>New allowed value <input value={candidate} onChange={event => onCandidateChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); add(); } }} /></label>
+    {values && <div ref={group} role="group" aria-label="Controlled values">
+      {values.length ? <ul>{values.map((value, index) => <li key={`${value}-${index}`}>{value} <button type="button" data-remove-controlled-value aria-label={`Remove value ${value}`} onClick={() => remove(index)}>Remove</button></li>)}</ul> : <p>No values added.</p>}
+      <label>New allowed value <input ref={candidateInput} value={candidate} onChange={event => onCandidateChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); add(); } }} /></label>
       <button type="button" onClick={add} disabled={!candidate || Boolean(issue)}>Add allowed value</button>
       {issue && <p role="status">{issue}</p>}
       {new Set(values).size !== values.length && <p role="status">Remove duplicate values before adding the field.</p>}

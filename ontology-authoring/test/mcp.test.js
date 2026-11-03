@@ -5,6 +5,22 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { WorkspaceStore } from '../src/workspace.js';
 import { createServer } from '../src/mcp.js';
 
+test('MCP field search reports declaration scope and revision conflicts', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Field discovery', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|name:string?\nDevice|Record|A device.|peer:Record?\n' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createServer(store, 'reader', { role: 'draft' });
+  const client = new Client({ name: 'field-search-test', version: '1' });
+  try {
+    await server.connect(serverTransport); await client.connect(clientTransport);
+    const found = await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: 'peer', expectedRevision: 0 } });
+    assert.equal(found.structuredContent.results[0].owner, 'Device');
+    assert.equal(found.structuredContent.results[0].kind, 'relationship');
+    assert.match(found.structuredContent.scope, /inherited/i);
+    assert.equal((await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: 'peer', expectedRevision: 1 } })).structuredContent.error.code, 'REVISION_CONFLICT');
+  } finally { await client.close(); store.close(); }
+});
+
 test('MCP apply accepts an event cursor and reports intervening activity', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Cursor guard', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
