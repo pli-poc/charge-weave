@@ -136,6 +136,8 @@ The explicit fit control now permits zooming below 15% for very large views, and
 
 At very small overview scales, the focus action now falls back to the view root when the selected concept is outside the graph; it preserves that selection and does not change the model. The website build and focused zoom/viewport scenarios passed locally (four desktop passes, four compact project-specific skips), including keyboard use of the root fallback. Dense-view human usability remains open.
 
+When an overview focus action zooms in and disappears, keyboard focus now moves to the persistent zoom control instead of being lost. The website build and focused zoom/viewport browser scenarios passed locally (four desktop passes, four compact project-specific skips); this does not replace assistive-technology review.
+
 Shared-view load and save now require unfinished note or group input to be added or cleared first. A load also stops if such input is started while the request is in flight; a save reports when input typed afterward was not included. The website build, six desktop/mobile note and load-race scenarios, six desktop/mobile load/save-race scenarios, and eight related saved-view scenarios passed locally. GitHub verification remains separate.
 
 When a shared-view save completes after later local changes, the success notice now explicitly says those later changes remain unsaved; unfinished input is also identified, including if the view list refresh fails. The website build and **12 focused desktop/mobile saved-view and delayed-operation scenarios** passed locally. This is not evidence of independent usability review.

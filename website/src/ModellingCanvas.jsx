@@ -47,11 +47,16 @@ const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, onFocusRoot, canFocusSelected, canFocusRoot }) {
   const { zoom } = useViewport();
   const { zoomTo } = useReactFlow();
+  const resetControl = useRef(null);
+  function focusOverview(action) {
+    action();
+    requestAnimationFrame(() => resetControl.current?.focus());
+  }
   useEffect(() => { onOverviewChange(zoom < 0.6); }, [zoom, onOverviewChange]);
   return <div className="studio-canvas-zoom" role="group" aria-label="Diagram zoom">
-    {zoom < 0.15 && <><span className="studio-canvas-overview-hint">Overview: zoom in to read.</span>{canFocusSelected ? <button type="button" onClick={onFocusSelected}>Focus selected</button> : <button type="button" disabled={!canFocusRoot} onClick={onFocusRoot}>Focus view root</button>}</>}
+    {zoom < 0.15 && <><span className="studio-canvas-overview-hint">Overview: zoom in to read.</span>{canFocusSelected ? <button type="button" onClick={() => focusOverview(onFocusSelected)}>Focus selected</button> : <button type="button" disabled={!canFocusRoot} onClick={() => focusOverview(onFocusRoot)}>Focus view root</button>}</>}
     <span aria-label="Diagram zoom level">{Math.round(zoom * 100)}%</span>
-    <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
+    <button ref={resetControl} type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
 }
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onEditRelationship, pendingEdgeEdit, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {

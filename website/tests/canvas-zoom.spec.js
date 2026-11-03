@@ -62,6 +62,7 @@ test('a very small overview can focus its root when selection is outside the vie
     const root = canvas.getByRole('button', { name: 'Focus view root' });
     await expect(root).toBeVisible(); await root.focus(); await page.keyboard.press('Enter');
     await expect(canvas.getByLabel('Diagram zoom level')).toHaveText('100%');
+    await expect(canvas.getByRole('button', { name: 'Reset zoom to 100%' })).toBeFocused();
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Extra');
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
