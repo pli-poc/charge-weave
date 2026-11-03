@@ -264,8 +264,26 @@ function CommandPalette({ commands, onClose }) {
   const input = useRef(null);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const matching = commands.filter(command => command.label.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
-  const selected = Math.min(active, matching.length - 1);
+  const [recentIds, setRecentIds] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('chargeweave.studio.recent-commands.v1') || '[]');
+      return Array.isArray(saved) ? saved.filter(id => typeof id === 'string').slice(0, 5) : [];
+    } catch { return []; }
+  });
+  const term = query.trim().toLocaleLowerCase();
+  const matching = commands.filter(command => `${command.label} ${command.group} ${command.description || ''} ${command.shortcut || ''} ${command.disabledReason || ''}`.toLocaleLowerCase().includes(term));
+  const recent = recentIds.map(id => matching.find(command => command.id === id)).filter(Boolean).slice(0, 5);
+  const recentSet = new Set(recent.map(command => command.id));
+  const groups = [];
+  if (recent.length) groups.push({ label: 'Recently used', commands: recent });
+  for (const command of matching) {
+    if (recentSet.has(command.id)) continue;
+    let group = groups.find(item => item.label === command.group);
+    if (!group) { group = { label: command.group, commands: [] }; groups.push(group); }
+    group.commands.push(command);
+  }
+  const entries = groups.flatMap(group => group.commands);
+  const selected = Math.min(active, entries.length - 1);
   useEffect(() => {
     const previous = document.activeElement;
     dialog.current?.showModal();
@@ -273,19 +291,29 @@ function CommandPalette({ commands, onClose }) {
     return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
   }, []);
   function execute(command) {
-    if (!command) return;
+    if (!command || command.disabledReason) return;
+    const nextRecent = [command.id, ...recentIds.filter(id => id !== command.id)].slice(0, 5);
+    setRecentIds(nextRecent);
+    try { window.localStorage.setItem('chargeweave.studio.recent-commands.v1', JSON.stringify(nextRecent)); } catch { /* Recent commands are a convenience, not required state. */ }
     onClose();
     requestAnimationFrame(command.run);
   }
+  function moveActive(direction) {
+    if (!entries.length) return;
+    for (let step = 1; step <= entries.length; step += 1) {
+      const candidate = (selected + direction * step + entries.length * 2) % entries.length;
+      if (!entries[candidate].disabledReason) { setActive(candidate); return; }
+    }
+  }
   return <dialog ref={dialog} className="studio-command-palette" aria-labelledby="studio-command-title" onCancel={event => { event.preventDefault(); onClose(); }}>
     <div className="studio-command-header"><h2 id="studio-command-title">Commands</h2><button type="button" onClick={onClose} aria-label="Close commands">Close</button></div>
-    <label>Find a command <input ref={input} value={query} role="combobox" aria-expanded="true" aria-controls="studio-command-results" aria-autocomplete="list" aria-activedescendant={selected >= 0 ? `studio-command-${selected}` : undefined} onChange={event => { setQuery(event.target.value); setActive(0); }} onKeyDown={event => {
-      if (event.key === 'ArrowDown' && matching.length) { event.preventDefault(); setActive((selected + 1) % matching.length); }
-      else if (event.key === 'ArrowUp' && matching.length) { event.preventDefault(); setActive((selected + matching.length - 1) % matching.length); }
-      else if (event.key === 'Enter' && matching.length) { event.preventDefault(); execute(matching[selected]); }
+    <label>Find a command <input ref={input} value={query} role="combobox" aria-expanded="true" aria-controls="studio-command-results" aria-autocomplete="list" aria-activedescendant={selected >= 0 && !entries[selected]?.disabledReason ? `studio-command-${selected}` : undefined} onChange={event => { setQuery(event.target.value); setActive(0); }} onKeyDown={event => {
+      if (event.key === 'ArrowDown' && entries.length) { event.preventDefault(); moveActive(1); }
+      else if (event.key === 'ArrowUp' && entries.length) { event.preventDefault(); moveActive(-1); }
+      else if (event.key === 'Enter' && entries.length && !entries[selected]?.disabledReason) { event.preventDefault(); execute(entries[selected]); }
     }} /></label>
-    <p className="studio-command-hint">Use arrow keys to choose, Enter to run, or Escape to close.</p>
-    <ul id="studio-command-results" role="listbox" aria-label="Available commands">{matching.map((command, index) => <li id={`studio-command-${index}`} key={command.label} role="option" aria-selected={index === selected} onMouseDown={event => event.preventDefault()} onClick={() => execute(command)}>{command.label}</li>)}</ul>
+    <p className="studio-command-hint">Use arrow keys to choose, Enter to run, or Escape to close. Shortcut labels use Ctrl; use Command on macOS.</p>
+    <div id="studio-command-results" role="listbox" aria-label="Available commands">{groups.map(group => <div className="studio-command-group" role="group" aria-label={group.label} key={group.label}><h3>{group.label}</h3><ul>{group.commands.map(command => { const index = entries.indexOf(command); return <li key={command.id}><button id={`studio-command-${index}`} type="button" role="option" aria-selected={index === selected} aria-disabled={Boolean(command.disabledReason)} onMouseDown={event => event.preventDefault()} onClick={() => execute(command)}><span className="studio-command-option-label">{command.label}</span>{command.shortcut && <kbd>{command.shortcut}</kbd>}<small className={command.disabledReason ? 'studio-command-unavailable' : 'studio-command-description'}>{command.disabledReason || command.description}</small></button></li>; })}</ul></div>)}</div>
     {!matching.length && <p role="status">No matching commands.</p>}
   </dialog>;
 }
@@ -2208,13 +2236,14 @@ export default function ModellingStudio() {
   return <main id="main" className="container modelling-studio">
     <header className="studio-app-bar"><a href={import.meta.env.BASE_URL} className="studio-home-link">ChargeWeave</a><h1>Ontology modelling studio</h1><StudioThemeControl />{connection && <div className="studio-workspaces"><label>Current workspace <select value={connection.workspaceId} disabled={commandPending} onChange={event => switchWorkspace(event.target.value)}>{workspaces.map(item => <option key={item.workspaceId} value={item.workspaceId}>{item.title}</option>)}</select></label>{canCreateWorkspace && <details><summary>Create a workspace</summary><form onSubmit={createWorkspace}><label>New workspace title <input value={workspaceTitle} onChange={event => setWorkspaceTitle(event.target.value)} maxLength={120} required /></label><label>Baseline commit SHA <input value={workspaceBaseline} onChange={event => setWorkspaceBaseline(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button disabled={creatingWorkspace || commandPending}>{creatingWorkspace ? 'Creating workspace…' : 'Create workspace'}</button></form></details>}</div>}{snapshot && <button ref={commandTrigger} type="button" disabled={!online} onClick={() => setCommandsOpen(true)} title="Ctrl+Shift+P">Commands</button>}{snapshot && <details className="studio-tools-menu"><summary>More</summary><div><button type="button" onClick={() => toggleStudioUtility(".studio-context-tools")}>Draft context and history</button><button type="button" onClick={() => toggleStudioUtility(".studio-connection-tools")}>Connection and diagnostics</button>{connection && <button type="button" disabled={commandPending} onClick={() => { document.querySelector('.studio-tools-menu')?.removeAttribute('open'); void disconnect(); }}>Disconnect</button>}</div></details>}</header>
     {commandsOpen && snapshot && online && <CommandPalette onClose={() => setCommandsOpen(false)} commands={[
-      { label: 'Search model', run: focusModelSearch },
-      { label: 'Add a concept', run: openConceptCreator },
-      { label: 'Focus diagram', run: () => openCompactPane('studio-editor-pane') },
-      { label: 'Open inspector', run: () => openCompactPane('studio-inspector-pane') },
-      ...(!checkStarting && !['queued', 'running', 'cancelling'].includes(job?.status) ? [{ label: 'Check draft', run: () => runChecks(checkProfile) }] : []),
-      { label: 'Show check details', run: showValidation },
-      { label: 'Review draft changes', run: () => openWorkspaceTask(null, 'studio-review-workflow-heading') },
+      { id: 'search-model', label: 'Search model', group: 'Navigate', description: 'Find concepts and open the explorer.', shortcut: 'Ctrl/⌘ K', run: focusModelSearch },
+      { id: 'focus-diagram', label: 'Focus diagram', group: 'Navigate', description: 'Show the current model view.', run: () => openCompactPane('studio-editor-pane') },
+      { id: 'open-inspector', label: 'Open inspector', group: 'Navigate', description: 'Show details for the selected concept.', run: () => openCompactPane('studio-inspector-pane'), disabledReason: selected ? undefined : 'Select a concept first.' },
+      { id: 'add-concept', label: 'Add a concept', group: 'Create', description: 'Open the concept form in the current view.', run: openConceptCreator, disabledReason: snapshot.changeSet && snapshot.changeSet.status !== 'draft' ? 'Reopen the change set before editing.' : undefined },
+      { id: 'add-field-relationship', label: 'Add a field or relationship', group: 'Create', description: selected ? `Add a property to ${selected.name}.` : 'Select a concept, then add a property or relationship.', run: openRelationshipAuthoring, disabledReason: !selected ? 'Select a concept first.' : snapshot.changeSet && snapshot.changeSet.status !== 'draft' ? 'Reopen the change set before editing.' : undefined },
+      { id: 'check-draft', label: 'Check draft', group: 'Checks', description: 'Run the selected validation profile on this revision.', run: () => runChecks(checkProfile), disabledReason: checkStarting || ['queued', 'running', 'cancelling'].includes(job?.status) ? 'A validation job is already active.' : undefined },
+      { id: 'show-check-details', label: 'Show check details', group: 'Checks', description: 'Open Problems and check output.', run: showValidation },
+      { id: 'review-draft', label: 'Review draft changes', group: 'Review', description: 'Inspect the exact draft and its review gates.', run: () => openWorkspaceTask(null, 'studio-review-workflow-heading') },
     ]} />}
     {!connection && <p>Use Codex to propose changes; inspect and refine them here.</p>}
     <form className="studio-connect studio-pairing" onSubmit={pair} hidden={Boolean(connection)}>

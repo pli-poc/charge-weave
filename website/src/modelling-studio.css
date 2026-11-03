@@ -291,9 +291,18 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-command-header h2 { margin: 0; }
 .studio-command-palette input { width: 100%; }
 .studio-command-hint { color: var(--studio-muted); font-size: .8rem; }
-.studio-command-palette [role="listbox"] { max-height: 50vh; overflow: auto; list-style: none; padding: 0; margin: .75rem 0 0; }
-.studio-command-palette [role="option"] { cursor: pointer; padding: .7rem; border-radius: .3rem; }
-.studio-command-palette [role="option"][aria-selected="true"], .studio-command-palette [role="option"]:hover { background: var(--studio-hover); }
+.studio-command-palette [role="listbox"] { max-height: 50vh; overflow: auto; margin: .75rem 0 0; }
+.studio-command-group { margin-top: .8rem; }
+.studio-command-group h3 { margin: 0; padding: .25rem .55rem; color: var(--studio-muted); font-size: .75rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.studio-command-group ul { list-style: none; margin: 0; padding: 0; }
+.studio-command-group li { margin: 0; }
+.studio-command-palette [role="option"] { display: grid; grid-template-columns: minmax(0, 1fr) auto; width: 100%; min-height: 2.75rem; gap: .15rem .75rem; align-items: center; text-align: left; cursor: pointer; padding: .5rem .6rem; border: 0; border-radius: .3rem; background: transparent; color: var(--studio-text); }
+.studio-command-palette [role="option"][aria-selected="true"] { background: var(--studio-hover); outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-command-palette [role="option"][aria-disabled="true"] { color: var(--studio-muted); cursor: not-allowed; }
+.studio-command-option-label { min-width: 0; }
+.studio-command-palette [role="option"] small { grid-column: 1 / -1; color: var(--studio-muted); font-size: .78rem; line-height: 1.35; }
+.studio-command-palette [role="option"] .studio-command-unavailable { color: var(--studio-warning-text, var(--studio-error)); }
+.studio-command-palette kbd { padding: .1rem .35rem; border: 1px solid var(--studio-border); border-radius: .25rem; color: var(--studio-muted); font: inherit; font-size: .75rem; }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
 .studio-view-import { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; padding: .7rem; border: 1px solid var(--studio-border); border-radius: .4rem; }
 .studio-view-import h3, .studio-view-import p { flex-basis: 100%; margin: 0; }
