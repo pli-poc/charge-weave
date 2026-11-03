@@ -24,11 +24,10 @@ test('delayed clipboard feedback cannot describe a newer context', async ({ page
     await expect.poll(() => page.evaluate(() => Boolean(window.completeCopy))).toBe(true);
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'copy-race', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
     await expect(preview).toHaveValue(/revision: 1/);
+    await expect(page.locator('details.studio-context-handoff')).toHaveAttribute('open', '');
     await page.evaluate(() => window.completeCopy());
     await expect(page.getByText('Context copied. Paste it into your connected client.')).toHaveCount(0);
     expect(await page.evaluate(() => window.copiedContext)).toContain('revision: 0');
-    const section = page.locator('details.studio-context-handoff');
-    if (!await section.evaluate(element => element.open)) await page.getByText('Prepare context for Codex').click();
     await page.getByRole('button', { name: 'Copy context' }).click();
     await page.evaluate(() => window.completeCopy());
     await expect(page.getByText('Context copied. Paste it into your connected client.')).toBeVisible();
