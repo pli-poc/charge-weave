@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Activity, Boxes, CircleCheck, GitPullRequest } from 'lucide-react';
 import { classifyEvent } from './model/event-cursor.js';
+import { takeEventFrames } from './model/event-stream.js';
 import ModellingCanvas from './ModellingCanvas.jsx';
 import WorkspaceDock from './WorkspaceDock.jsx';
 import PerspectivePanels from './PerspectivePanels.jsx';
@@ -811,14 +812,13 @@ export default function ModellingStudio() {
               resetHeartbeat();
               buffer += decoder.decode(value, { stream: true });
               if (buffer.length > 1024 * 1024) throw new Error('Event buffer exceeded; reload snapshot');
-              let boundary;
-              while ((boundary = buffer.indexOf('\n\n')) !== -1) {
-                const event = buffer.slice(0, boundary); buffer = buffer.slice(boundary + 2);
-                if (event.includes('event: workspace-change')) {
-                  const data = event.split('\n').find(line => line.startsWith('data: '));
-                  const disposition = classifyEvent(data ? JSON.parse(data.slice(6)) : null, cursor.current);
+              const parsed = takeEventFrames(buffer);
+              buffer = parsed.remainder;
+              for (const event of parsed.frames) {
+                if (event.type === 'workspace-change') {
+                  const disposition = classifyEvent(JSON.parse(event.data), cursor.current);
                   if (disposition !== 'duplicate') { setOnline(false); await refresh(); setOnline(true); }
-                } else if (event.includes('event: validation-evidence')) {
+                } else if (event.type === 'validation-evidence') {
                   invalidateReadiness();
                   if (!checkInFlight.current && !jobRef.current?.profile?.startsWith('publication-')) setValidationRefresh(value => value + 1);
                 }
