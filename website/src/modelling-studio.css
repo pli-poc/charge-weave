@@ -286,6 +286,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-module-tree summary { padding: .35rem 0; overflow-wrap: anywhere; }
 .studio-module-tree summary span { color: var(--studio-muted); font-size: .75rem; font-weight: 400; }
 .studio-module-tree ul { margin-left: .6rem; padding-left: .65rem; border-left: 1px solid var(--studio-strong-border); }
+.studio-module-tree .studio-subtypes ul { margin-left: .2rem; padding-left: .4rem; }
+.studio-module-tree .studio-subtypes p { margin: .15rem 0; }
+.modelling-studio .studio-module-tree .studio-subtypes-toggle { min-height: 1.75rem; color: var(--studio-muted); font-size: .78rem; }
 .studio-module-tree li { margin: 0; }
 .modelling-studio .studio-module-tree li li button { width: 100%; min-height: 2rem; text-align: left; background: transparent; border-color: transparent; }
 .modelling-studio .studio-module-tree li li button[aria-current="true"] { background: var(--studio-hover); border-color: var(--studio-accent-border); }
