@@ -24,7 +24,7 @@ test('field search pages declared owners and clears stale results', async ({ pag
     await page.getByLabel('Concept context (optional)').fill('Asset26');
     await page.getByLabel('Find properties or relationships').fill('parentField');
     await page.getByRole('button', { name: 'Search fields', exact: true }).click();
-    await expect(page.getByText('inherited from Record', { exact: false })).toBeVisible();
+    await expect(page.locator('details').filter({ has: page.getByText('Properties and relationships', { exact: true }) }).getByText('inherited from Record', { exact: false })).toBeVisible();
     await page.getByRole('button', { name: 'Inspect context Asset26' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Asset26', exact: true })).toBeVisible();

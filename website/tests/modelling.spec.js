@@ -91,11 +91,11 @@ test('unreadable local layout is not silently overwritten by automatic placement
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
   try {
+    const key = `chargeweave.canvas.v2.${workspace.id}.default`;
+    await page.addInitScript(key => sessionStorage.setItem(key, '{broken'), key);
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    const key = `chargeweave.canvas.v2.${workspace.id}.default`;
-    await page.evaluate(key => sessionStorage.setItem(key, '{broken'), key);
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toHaveAttribute('data-layout', 'ready');
     await expect(page.getByText(/Local layout could not be read/)).toBeVisible();
@@ -335,11 +335,11 @@ test('navigator search refreshes when another client changes the draft', async (
     await tree.locator('summary').click();
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
-    await expect(page.getByText('Original device.')).toBeVisible();
+    await expect(page.locator('#studio-navigator-pane').getByText('Original device.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-search-result', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'Updated device definition.' }] });
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
     await expect(workspaceStatus).toContainText('Revision 1');
-    await expect(page.getByText('Updated device definition.')).toBeVisible();
+    await expect(page.locator('#studio-navigator-pane').getByText('Updated device definition.')).toBeVisible();
     await expect(page.getByLabel('Search model')).toHaveValue('Device');
     await expect(page.getByText('1 matching concept shown.')).toBeVisible();
     await page.getByRole('button', { name: 'Clear search' }).click();
@@ -678,7 +678,7 @@ test('concept creation offers existing modules and validates its definition', as
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
       if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
-      await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Asset000', exact: true }).click();
+      await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Asset001', exact: true }).click();
       await expect(page.getByRole('alert')).toContainText('Wait for the model change to finish before selecting another concept.');
       expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
       releaseCommand();

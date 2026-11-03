@@ -14,6 +14,15 @@ test('explorer filters changed class contracts and refreshes on external edits',
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const rejectFilter = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments.changedOnly) await route.abort();
+      else await route.continue();
+    };
+    await page.route('**/mcp', rejectFilter);
+    await page.getByLabel('Show changed class contracts only').click();
+    await expect(page.getByLabel('Show changed class contracts only')).not.toBeChecked();
+    await page.unroute('**/mcp', rejectFilter);
     await page.getByLabel('Show changed class contracts only').check();
     await expect(page.getByText('Showing 0 of 0 concepts.')).toBeVisible();
     store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'describe', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'Updated device.' }] });
