@@ -24,6 +24,8 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 
 ## Local integration check
 
+On 2026-11-03, a signed-in local Codex CLI `0.166.0-alpha.5.1` session using `gpt-6.1-sol` connected over loopback HTTP to an isolated in-memory synthetic workspace based on commit `2db840e3e6c74126bfd521cc8cbb399291f4bc3f`. The live session invoked `ontology_workspace_get` and `ontology_context_search`, reported revision 0, and found `ChargingStation`. It used a temporary synthetic token, read-only instructions and no semantic edits. The service was stopped afterward. This is live Codex read/discovery evidence, not the full collaborative maintenance storyboard, validation, review or publication acceptance.
+
 On implementation commit `e35a13bdf493458219cbdecb38aec74f1e71b690`, the full desktop and mobile `website/tests/modelling.spec.js` suite completed with **68 passed and six project-specific skips**. These tests used isolated synthetic workspaces; the publication scenario was simulated.
 
 On compact-workbench commit `3bacd1ce64c3173afec15affc81391e5cbdd2ec3`, the full modelling browser suite completed locally with **80 passed and eight project-specific skips**. The focused modelling matrix succeeded on GitHub; ontology CI, ontology authoring, and the website workflow were still queued or running when inspected. These results do not establish real publication or independent usability acceptance. Subsequent changes require their own exact-commit verification.
