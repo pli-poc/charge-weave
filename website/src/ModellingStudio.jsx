@@ -119,7 +119,7 @@ function RequirementExplorer({ connection, snapshot, selected, available, canLin
 const relationshipCardinalities = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 function RelationshipList({ graph, onSelect, onEditRelationship, pendingEdgeEdit }) {
   return <div className="studio-relationship-list" role="region" aria-label={`Relationship list for ${graph.root}`}>
-    {graph.edges.length ? <ul>{graph.edges.map((edge, index) => <li key={`${edge.predicate}-${index}`}><span>{edge.source === graph.root ? edge.predicate + ' → ' : '← ' + edge.predicate + ' from '}</span><button type="button" aria-label={`Open related concept ${edge.source === graph.root ? edge.target : edge.source}`} onClick={() => { const name = edge.source === graph.root ? edge.target : edge.source; onSelect(graph.nodes.find(item => item.name === name)); }}>{edge.source === graph.root ? edge.target : edge.source}</button> <small>{edge.cardinality ? ' (' + (relationshipCardinalities[edge.cardinality] ?? edge.cardinality) + ')' : ''} · {edge.changeStatus} · {edge.sourceRef.path}:{edge.sourceRef.line}</small>{edge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={() => onEditRelationship(edge)} aria-label={`Edit relationship ${edge.source} ${edge.predicate} ${edge.target}`}>Edit relationship</button>}</li>)}</ul> : <p>{graph.omitted > 0 ? 'No relationships match the current view.' : 'No explicit class relationships in this view.'}</p>}
+    {graph.edges.length ? <ul>{graph.edges.map((edge, index) => <li key={`${edge.predicate}-${index}`}><span>{edge.source === graph.root ? edge.predicate + ' → ' : '← ' + edge.predicate + ' from '}</span><button type="button" aria-label={`Open related concept ${edge.source === graph.root ? edge.target : edge.source}`} onClick={() => { const name = edge.source === graph.root ? edge.target : edge.source; onSelect(graph.nodes.find(item => item.name === name)); }}>{edge.source === graph.root ? edge.target : edge.source}</button> <small>{edge.cardinality ? ' (' + (relationshipCardinalities[edge.cardinality] ?? edge.cardinality) + ')' : ''} · {edge.changeStatus} · {edge.sourceRef.path}:{edge.sourceRef.line}</small>{edge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={event => onEditRelationship(edge, event.currentTarget)} aria-label={`Edit relationship ${edge.source} ${edge.predicate} ${edge.target}`}>Edit relationship</button>}</li>)}</ul> : <p>{graph.omitted > 0 ? 'No relationships match the current view.' : 'No explicit class relationships in this view.'}</p>}
   </div>;
 }
 
@@ -1202,7 +1202,7 @@ export default function ModellingStudio() {
     const range = item.values ? `{${item.values.join(',')}}` : item.range;
     setFieldEdit({ name: item.property, expectedRange: range, expectedCardinality: item.cardinality, range, cardinality: item.cardinality, owner: selected.name, workspaceId: connection.workspaceId, revision: snapshot.revision, eventSequence: snapshot.eventSequence });
   }
-  function editDiagramRelationship(edge) {
+  function editDiagramRelationship(edge, trigger) {
     if (hasUnsavedInspectorEdits()) { setError('Apply or discard the current inspector input before editing a relationship.'); return; }
     if (snapshot.changeSet && snapshot.changeSet.status !== 'draft') { setError('Reopen the change set before editing a relationship.'); return; }
     const owner = graph.nodes.find(node => node.name === edge.source);
@@ -1210,7 +1210,7 @@ export default function ModellingStudio() {
     pauseFollowing();
     setError('');
     if (selected?.name === owner.name && (!entityInfo || entityRevision !== snapshot.revision)) setEntityReload(value => value + 1);
-    setPendingEdgeEdit({ workspaceId: connection.workspaceId, revision: snapshot.revision, eventSequence: snapshot.eventSequence, owner: edge.source, name: edge.predicate, range: edge.target });
+    setPendingEdgeEdit({ workspaceId: connection.workspaceId, revision: snapshot.revision, eventSequence: snapshot.eventSequence, owner: edge.source, name: edge.predicate, range: edge.target, trigger });
     if (window.matchMedia('(max-width: 900px)').matches) setCompactSurface('inspector');
     else setHideInspector(false);
   }
@@ -1225,7 +1225,7 @@ export default function ModellingStudio() {
     const field = entityInfo.fields.find(item => !item.inherited && item.type === 'object' && item.property === pending.name && item.range === pending.range);
     setPendingEdgeEdit(null);
     if (!field) { setError('The selected relationship is not an editable field on its source concept.'); return; }
-    startFieldEdit(field, null);
+    startFieldEdit(field, pending.trigger);
   }, [pendingEdgeEdit, connection, snapshot, selected, entityInfo, entityRevision]);
   function startValueConstraint(item, trigger) {
     if (snapshot.changeSet && snapshot.changeSet.status !== 'draft') return;
@@ -1276,7 +1276,8 @@ export default function ModellingStudio() {
     const name = fieldEdit?.name;
     setFieldEdit(null);
     requestAnimationFrame(() => {
-      const trigger = fieldEditTrigger.current?.isConnected ? fieldEditTrigger.current : [...document.querySelectorAll('.studio-field-table button')].find(button => button.textContent === `Edit ${name}`);
+      const original = fieldEditTrigger.current;
+      const trigger = original?.isConnected && original.getClientRects().length ? original : [...document.querySelectorAll('.studio-field-table button')].find(button => button.textContent === `Edit ${name}` && button.getClientRects().length);
       trigger?.focus();
     });
   }

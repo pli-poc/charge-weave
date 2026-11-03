@@ -545,7 +545,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {selectedEdge.sourceRef?.path && <p><strong>Source:</strong> {selectedEdge.sourceRef.path}{selectedEdge.sourceRef.line != null ? `:${selectedEdge.sourceRef.line}` : ''}</p>}
       {selectedEdge.mappingVersion && <p><strong>Mapping version:</strong> {selectedEdge.mappingVersion}</p>}
       <p>Inspect a concept to review its supported field controls. Selecting this relationship does not change the model.</p>
-      {selectedEdge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={() => onEditRelationship(selectedEdge)}>Edit relationship {selectedEdge.predicate}</button>}
+      {selectedEdge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={event => onEditRelationship(selectedEdge, event.currentTarget)}>Edit relationship {selectedEdge.predicate}</button>}
       <div className="studio-canvas-edge-actions"><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.source)} onClick={() => inspectEndpoint(selectedEdge.source)}>Inspect source {selectedEdge.source}</button><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.target)} onClick={() => inspectEndpoint(selectedEdge.target)}>Inspect target {selectedEdge.target}</button><button type="button" onClick={() => inspectEdge('')}>Close relationship details</button></div>
     </section>}
   </>;

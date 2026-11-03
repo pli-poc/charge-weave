@@ -149,6 +149,11 @@ test('the relationship list opens the shared editor with the keyboard', async ({
     await edit.focus(); await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await expect(page.getByLabel('New datatype or target class')).toHaveValue('Asset');
+    await page.getByRole('button', { name: 'Cancel field edit' }).click();
+    const returnTarget = isMobile ? page.getByRole('button', { name: 'Edit asset', exact: true }) : edit;
+    await expect(returnTarget).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
     await page.getByLabel('New cardinality').selectOption('!');
     await page.getByRole('button', { name: 'Update field contract' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
