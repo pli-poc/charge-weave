@@ -44,3 +44,30 @@ test('switching results panels starts at the beginning of the selected panel', a
     expect(store.get(workspace.id).revision).toBe(10);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
+
+test('desktop workbench fits the viewport without the status bar covering workspace content', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Viewport shell', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toBeVisible();
+    const geometry = await page.evaluate(() => {
+      const shell = document.querySelector('.modelling-studio');
+      const workspace = document.querySelector('.studio-workspace');
+      const status = document.querySelector('.studio-status-bar');
+      const bounds = element => { const rect = element.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom, height: rect.height }; };
+      return { viewport: window.innerHeight, document: document.documentElement.scrollHeight, shell: bounds(shell), workspace: bounds(workspace), status: bounds(status) };
+    });
+    expect(geometry.shell.top).toBe(0);
+    expect(geometry.shell.bottom).toBeLessThanOrEqual(geometry.viewport);
+    expect(geometry.document).toBeLessThanOrEqual(geometry.viewport + 1);
+    expect(geometry.workspace.bottom).toBeLessThanOrEqual(geometry.status.top + 1);
+    expect(geometry.status.bottom).toBeLessThanOrEqual(geometry.viewport);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
