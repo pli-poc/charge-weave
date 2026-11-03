@@ -141,7 +141,7 @@ test('inherited fields link to their declaring concept', async ({ page, isMobile
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a delayed inspector navigation cannot replace a later selection', async ({ page, isMobile }) => {
+for (const nextSelection of ['Device', 'Other']) test(`a delayed inspector navigation cannot replace a later ${nextSelection} selection`, async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Inspector navigation race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nOther|Record|Another concept.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -167,10 +167,10 @@ test('a delayed inspector navigation cannot replace a later selection', async ({
     await page.getByRole('button', { name: 'Inspect parent Record' }).click();
     await intercepted;
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
-    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Other', exact: true }).click();
+    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: nextSelection, exact: true }).click();
     release(); await page.unrouteAll({ behavior: 'wait' });
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
-    await expect(page.locator('#studio-inspector-pane').getByRole('heading', { name: 'Other', exact: true })).toBeVisible();
+    await expect(page.locator('#studio-inspector-pane').getByRole('heading', { name: nextSelection, exact: true })).toBeVisible();
   } finally { release(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await service.shutdown(); store.close(); }
 });
 

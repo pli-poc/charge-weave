@@ -1212,8 +1212,8 @@ export default function ModellingStudio() {
   function selectConcept(item, { focusView = true, issueField = null } = {}) {
     if (!item) return false;
     if (commandInFlight.current && item.name !== selected?.name) { setError('Wait for the model change to finish before selecting another concept.'); return false; }
-    if (item.name === selected?.name) { if (focusView) focusViewRoot(item.name); if (initialViewChoice.current?.key === activeViewKey) initialViewChoice.current.automatic = false; return true; }
     selectionGeneration.current += 1;
+    if (item.name === selected?.name) { if (focusView) focusViewRoot(item.name); if (initialViewChoice.current?.key === activeViewKey) initialViewChoice.current.automatic = false; return true; }
     if (hasUnsavedInspectorEdits()) { setPendingSelection({ kind: 'concept-selection', name: item.name, item, focusView, issueField }); return false; }
     setSelected(item); setDefinition(item.definition); if (focusView) focusViewRoot(item.name); if (initialViewChoice.current?.key === activeViewKey) initialViewChoice.current.automatic = false; return true;
   }
