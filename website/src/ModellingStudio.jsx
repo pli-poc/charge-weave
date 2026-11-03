@@ -1424,13 +1424,16 @@ export default function ModellingStudio() {
       const positions = readCanvasPositions(sessionStorage, connection.workspaceId, viewId, { strict: true });
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_save', arguments: { workspaceId: connection.workspaceId, viewId, operationId: crypto.randomUUID(), expectedViewRevision: savedViewRevision, definition: { root: viewRoot, positions, ...viewMetadata, groups: viewGroups, annotations: viewAnnotations } } });
       if (context !== viewContext.current) return;
-      setSavedViewRevision(response.structuredContent.viewRevision); if (version === viewChangeVersion.current) { changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); } setViewNotice(pendingViewInput.current ? 'Shared view saved. Unfinished view input was not included.' : 'Shared view saved.');
+      const laterChanges = version !== viewChangeVersion.current;
+      const unfinishedInput = pendingViewInput.current;
+      const savedNotice = `Shared view saved.${laterChanges ? ' Later view changes remain unsaved.' : ''}${unfinishedInput ? ' Unfinished view input was not included.' : ''}`;
+      setSavedViewRevision(response.structuredContent.viewRevision); if (!laterChanges) { changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); } setViewNotice(savedNotice);
       const listRequest = ++savedViewsRequest.current;
       try {
         const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } });
         if (context === viewContext.current && listRequest === savedViewsRequest.current && listing.structuredContent.workspaceId === connection.workspaceId) { setSavedViews(listing.structuredContent.views); setSavedViewsState({ workspaceId: connection.workspaceId, status: 'ready', truncated: listing.structuredContent.truncated }); }
       } catch (problem) {
-        if (context === viewContext.current && listRequest === savedViewsRequest.current) { setSavedViewsState({ workspaceId: connection.workspaceId, status: 'error', truncated: false }); setViewNotice(`Shared view saved, but the view list could not be refreshed: ${problem.message}`); }
+        if (context === viewContext.current && listRequest === savedViewsRequest.current) { setSavedViewsState({ workspaceId: connection.workspaceId, status: 'error', truncated: false }); setViewNotice(`Shared view saved, but the view list could not be refreshed: ${problem.message}.${laterChanges ? ' Later view changes remain unsaved.' : ''}${unfinishedInput ? ' Unfinished view input was not included.' : ''}`); }
       }
     } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not save view: ${problem.message}. Load the shared view to refresh its revision.`); }
     finally { setPendingViewOps(previous => ({ ...previous, [activeViewKey]: Math.max(0, (previous[activeViewKey] || 1) - 1) })); if (viewOperation.current === operation) { viewOperation.current = null; setViewBusy(null); } }

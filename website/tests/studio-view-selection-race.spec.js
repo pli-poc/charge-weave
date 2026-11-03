@@ -75,7 +75,7 @@ test('a delayed shared-view load retains newly typed view input', async ({ page,
   } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('a delayed save identifies view input typed after it began', async ({ page, isMobile }) => {
+test('a delayed save identifies view changes and input entered after it began', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'View save race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -98,10 +98,14 @@ test('a delayed save identifies view input typed after it began', async ({ page,
     await page.getByRole('button', { name: 'Save shared view' }).click();
     await intercepted;
     await page.getByText('View groups and annotations', { exact: true }).click();
+    await page.getByLabel('Note for selected concept').fill('Later view note');
+    await page.getByRole('button', { name: 'Add view note' }).click();
     await page.getByLabel('Note for selected concept').fill('Not yet saved');
     release();
-    await expect(page.getByText('Shared view saved. Unfinished view input was not included.')).toBeVisible();
+    await expect(page.getByText('Shared view saved. Later view changes remain unsaved. Unfinished view input was not included.')).toBeVisible();
     await expect(page.getByLabel('Note for selected concept')).toHaveValue('Not yet saved');
+    await expect(page.getByText('Device: Later view note')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
     expect(store.savedView(workspace.id, 'default').definition.annotations ?? []).toEqual([]);
   } finally { release(); await page.unroute('**/mcp', delay); await page.close(); await service.shutdown(); store.close(); }
 });
