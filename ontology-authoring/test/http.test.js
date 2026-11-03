@@ -12,6 +12,8 @@ import { WorkspaceStore } from '../src/workspace.js';
 import { createHttpService } from '../src/http.js';
 import { editableSourcePaths } from '../src/source-manifest.js';
 
+const completeEventFrames = text => text.split('\n\n').slice(0, -1).filter(frame => frame.includes('event: workspace-change'));
+
 test('committed MCP edits wake an event stream without waiting for polling', { timeout: 10000 }, async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Event wake', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
@@ -60,12 +62,40 @@ test('event replay resumes from the workspace cursor and rejects a foreign curso
     assert.equal(response.status, 200);
     const reader = response.body.getReader();
     let text = '';
-    while ((text.match(/event: workspace-change/g) || []).length < 2) text += new TextDecoder().decode((await reader.read()).value);
-    const delivered = text.split('\n\n').filter(frame => frame.includes('event: workspace-change')).map(frame => JSON.parse(frame.split('\n').find(line => line.startsWith('data: ')).slice(6)));
+    while (completeEventFrames(text).length < 2) {
+      const chunk = await reader.read();
+      if (chunk.done) throw new Error('Event stream closed before replay completed');
+      text += new TextDecoder().decode(chunk.value);
+    }
+    const delivered = completeEventFrames(text).map(frame => JSON.parse(frame.split('\n').find(line => line.startsWith('data: ')).slice(6)));
     assert.deepEqual(delivered.map(event => event.sequence), events.slice(1).map(event => event.sequence));
     assert.deepEqual(delivered.map(event => event.previousSequence), [first.sequence, events[1].sequence]);
     assert.equal(text.includes('Foreign.'), false);
   } finally { abort.abort(); await service.shutdown(); store.close(); }
+});
+
+test('event replay drains more than one page without waiting for the polling interval', { timeout: 10000 }, async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Replay backlog', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const token = 'a'.repeat(32);
+  for (let i = 0; i < 105; i++) store.suggestView(workspace.id, { actor: 'test', operationId: `suggest-${i}`, expectedRevision: 0, root: 'Record', viewpoint: 'information', explanation: `Suggestion ${i}` });
+  const service = createHttpService({ store, token, workspaceId: workspace.id, eventPollMs: 10000 });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const abort = new AbortController();
+  const timeout = setTimeout(() => abort.abort(), 3000);
+  try {
+    const response = await fetch(`http://127.0.0.1:${service.address().port}/events?workspaceId=${workspace.id}&after=0`, { headers: { authorization: `Bearer ${token}` }, signal: abort.signal });
+    const reader = response.body.getReader();
+    let text = '';
+    while (completeEventFrames(text).length < 105) {
+      const chunk = await reader.read();
+      if (chunk.done) throw new Error('Event stream closed before the backlog was replayed');
+      text += new TextDecoder().decode(chunk.value);
+    }
+    const delivered = completeEventFrames(text).map(frame => JSON.parse(frame.split('\n').find(line => line.startsWith('data: ')).slice(6)));
+    assert.deepEqual(delivered.map(event => event.sequence), store.events(workspace.id).map(event => event.sequence).concat(store.events(workspace.id, delivered[99].sequence).map(event => event.sequence)));
+    assert.equal(delivered.at(-1).payload.explanation, 'Suggestion 104');
+  } finally { clearTimeout(timeout); abort.abort(); await service.shutdown(); store.close(); }
 });
 
 test('reviewer creates a scoped workspace idempotently from a committed baseline', { timeout: 120000 }, async () => {

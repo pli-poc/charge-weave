@@ -120,8 +120,10 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       res.flushHeaders();
       const send = () => {
         try {
+          if (res.writableEnded || res.destroyed) return;
           if (sessionAuthorized && !pairing.get(sessionId)) { res.end(); return; }
-          const events = store.events(requestedWorkspace, sequence);
+          // Yield between small pages so a healthy reader can drain the socket.
+          const events = store.events(requestedWorkspace, sequence).slice(0, 20);
           for (const event of events) {
             sequence = event.sequence;
             if (!res.write(`id: ${sequence}\nevent: workspace-change\ndata: ${JSON.stringify(event)}\n\n`)) { res.end(); return; }
@@ -131,6 +133,10 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
             evidenceVersion = nextEvidenceVersion;
             if (!res.write('event: validation-evidence\ndata: {}\n\n')) { res.end(); return; }
           }
+          // Replay another bounded page on the next event-loop turn instead of
+          // waiting for the fallback polling interval. A full page may be the
+          // last one; the next read can safely return no events.
+          if (events.length === 20) setImmediate(send);
         } catch { res.end(); }
       };
       if (!listeners.has(requestedWorkspace)) listeners.set(requestedWorkspace, new Set());
