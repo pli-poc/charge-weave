@@ -25,7 +25,7 @@ Plan: [ontology modelling IDE UX](ontology-modelling-ide-ux-plan.md). The redesi
 
 ## Desktop viewport regression
 
-The 1440×1000 browser assertion added in commit `43293ecefd5cb230139854c94fea34a989bddb55` reproduced the screenshot defect: the workbench shell and page stayed within the viewport, but the workspace fieldset extended to y=976.97 while the fixed status bar began at y=968. The desktop results-dock top gap is reduced to `.35rem` to keep the fieldset above the bar. Production build passed locally; this machine lacks the pinned Playwright Chromium executable. Recheck the viewport assertion and full browser workflow on the fix commit before treating the defect as resolved.
+The 1440×1000 browser assertion added in commit `43293ecefd5cb230139854c94fea34a989bddb55` reproduced the screenshot defect: the workbench shell and page stayed within the viewport, but the workspace fieldset extended to y=976.97 while the fixed status bar began at y=968. Commit `c780438797483a63c336682762e1a72f8be13573` reduced the desktop results-dock top gap to `.35rem`; its authoring browser run passed the desktop geometry assertion. Commit `f3ae943d9b31fdc7acbda5795dfe76e71f6a25aa` scoped the assertion to desktop, and its authoring desktop/mobile browser workflow passed. The website build and full browser workflow, ontology CI, and focused modelling matrix also passed on that exact commit. The local production build passed; this machine lacks the pinned Playwright Chromium executable. This resolves the measured viewport overlap; the separate human visual, accessibility, and usability acceptance remains open.
 
 ## Local integration check
 
