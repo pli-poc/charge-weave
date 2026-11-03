@@ -983,7 +983,7 @@ export default function ModellingStudio() {
     if (!revealTarget || browsePending || !browse?.results.some(item => item.name === revealTarget)) return undefined;
     const frame = requestAnimationFrame(() => {
       const target = [...document.querySelectorAll('.studio-module-tree button[aria-current="true"]')].find(button => button.textContent === revealTarget);
-      if (target) { target.scrollIntoView({ block: 'nearest' }); target.focus({ preventScroll: true }); setRevealTarget(''); }
+      if (target) { const group = target.closest('details'); if (group) group.open = true; target.scrollIntoView({ block: 'nearest' }); target.focus({ preventScroll: true }); setRevealTarget(''); }
     });
     return () => cancelAnimationFrame(frame);
   }, [revealTarget, browse, browsePending]);

@@ -35,6 +35,11 @@ test('reveal locates a selected concept beyond the first explorer page', async (
     await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toBeVisible();
     await page.getByRole('button', { name: 'Browse from beginning' }).click();
     await expect(tree.getByRole('button', { name: 'Asset000', exact: true })).toBeVisible();
+    await tree.locator('summary').filter({ hasText: 'assets' }).click();
+    await page.getByRole('button', { name: 'Reveal selected concept' }).click();
+    await expect(tree.getByRole('button', { name: 'Asset075', exact: true })).toBeFocused();
+    await page.getByRole('button', { name: 'Browse from beginning' }).click();
+    await expect(tree.getByRole('button', { name: 'Asset000', exact: true })).toBeVisible();
     let release, observed;
     const gate = new Promise(resolve => { release = resolve; });
     const intercepted = new Promise(resolve => { observed = resolve; });
