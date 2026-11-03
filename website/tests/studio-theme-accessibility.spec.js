@@ -90,6 +90,14 @@ test('desktop activity rail keeps labelled destinations keyboard accessible', as
     }
     await rail.getByRole('link', { name: 'Checks' }).press('Enter');
     await expect(page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks' })).toHaveAttribute('aria-pressed', 'true');
+    await rail.getByRole('link', { name: 'Activity' }).press('Enter');
+    await expect(page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('heading', { name: 'Recent activity' })).toBeFocused();
+    await page.getByRole('button', { name: 'Hide navigator' }).click();
+    await rail.getByRole('link', { name: 'Model' }).press('Enter');
+    await expect(page.getByRole('heading', { name: 'Discover concepts' })).toBeVisible();
+    await rail.getByRole('link', { name: 'Review' }).press('Enter');
+    await expect(page.getByRole('heading', { name: 'Review workflow' })).toBeVisible();
   });
 });
 
