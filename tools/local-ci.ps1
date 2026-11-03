@@ -2,12 +2,26 @@
 param(
     [ValidateSet('fast', 'backend', 'ontology', 'browser', 'full')]
     [string] $Profile = 'fast',
-    [string] $Python = 'python',
+    [string] $Python,
     [switch] $Install
 )
 
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if (-not $Python) {
+    $Python = @('.venv-ci/Scripts/python.exe', '.venv-ci/bin/python.exe', '.venv/Scripts/python.exe', '.venv/bin/python.exe') |
+        ForEach-Object { Join-Path $repo $_ } |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        Select-Object -First 1
+    if (-not $Python) { $Python = 'python' }
+}
+$oldPythonUtf8 = $env:PYTHONUTF8
+$oldPythonUnbuffered = $env:PYTHONUNBUFFERED
+$oldPythonNoBytecode = $env:PYTHONDONTWRITEBYTECODE
+$env:PYTHONUTF8 = '1'
+$env:PYTHONUNBUFFERED = '1'
+$env:PYTHONDONTWRITEBYTECODE = '1'
+Write-Host "Local CI Python: $Python (UTF-8 mode enabled)" -ForegroundColor DarkCyan
 Push-Location $repo
 try {
     if ($Install) {
@@ -108,4 +122,7 @@ try {
     Write-Host 'GitHub Actions remains the shared verification authority.'
 } finally {
     Pop-Location
+    $env:PYTHONUTF8 = $oldPythonUtf8
+    $env:PYTHONUNBUFFERED = $oldPythonUnbuffered
+    $env:PYTHONDONTWRITEBYTECODE = $oldPythonNoBytecode
 }
