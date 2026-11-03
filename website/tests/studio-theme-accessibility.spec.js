@@ -21,13 +21,14 @@ async function withStudio(page, run) {
 test('graph controls stay legible on hover and show a contrasting focus ring in both themes', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Hover is exercised in the desktop browser.');
   await withStudio(page, async () => {
-    await page.getByLabel('Search model').fill('Record');
+    await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
     const control = page.locator('.studio-flow .react-flow__controls button').first();
     await expect(control).toBeVisible();
     for (const theme of ['dark', 'light']) {
       await page.getByLabel('Appearance').selectOption(theme);
+      await expect(page.getByLabel('Diagram relationship line styles')).toHaveCSS('color', 'rgb(24, 58, 57)');
       await control.hover();
       const contrast = await control.evaluate(element => {
         const style = getComputedStyle(element);
@@ -63,7 +64,12 @@ test('320px compact navigation keeps controls usable without page overflow', asy
     for (const theme of ['light', 'dark']) {
       await page.getByLabel('Appearance').selectOption(theme);
       await navigation.getByRole('button', { name: 'Diagram' }).click();
+      await navigation.getByRole('button', { name: 'Diagram' }).hover();
+      await expect(navigation.getByRole('button', { name: 'Diagram' })).toHaveCSS('background-color', 'rgb(43, 98, 89)');
+      await expect(navigation.getByRole('button', { name: 'Diagram' })).toHaveCSS('color', 'rgb(255, 255, 255)');
       await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
+      const tabs = page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button');
+      expect(await tabs.evaluateAll(elements => elements.every(element => element.scrollWidth <= element.clientWidth && getComputedStyle(element).whiteSpace === 'nowrap'))).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     }
   });
