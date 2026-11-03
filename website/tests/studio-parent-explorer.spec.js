@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
-test('explorer pages direct children and combines parent and changed filters', async ({ page }) => {
+test('explorer pages direct children and combines parent and changed filters', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const children = Array.from({ length: 52 }, (_, i) => `Asset${String(i).padStart(2, '0')}|Record|An asset.|`);
   const schema = `MODULE|foundation\nRecord|root|A record.|\n${children.join('\n')}\nMODULE|other\nNested|Asset00|A nested asset.|\n`;
@@ -44,7 +44,11 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
     await page.getByRole('button', { name: 'Show inline subtypes of Asset00' }).click();
     const nested = page.getByRole('list', { name: 'Direct subtypes of Asset00' });
-    await expect(nested.getByRole('button', { name: 'Nested · other', exact: true })).toBeVisible();
+    const nestedConcept = nested.getByRole('button', { name: 'Nested · other', exact: true });
+    await expect(nestedConcept).toBeVisible();
+    await nestedConcept.click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await expect(nestedConcept).toHaveAttribute('aria-current', 'true');
     await expect(page.getByLabel('Direct parent')).toHaveValue('Record');
     await nested.getByRole('button', { name: 'Show inline subtypes of Nested' }).click();
     await expect(nested.getByText('No direct subtypes.')).toBeVisible();
