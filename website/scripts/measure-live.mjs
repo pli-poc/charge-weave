@@ -15,6 +15,7 @@ const store = new WorkspaceStore(':memory:');
 const workspace = store.create({ title: 'Synthetic latency measurement', baselineCommit: commit, schema });
 const token = 'synthetic-measurement-token-'.repeat(2), pairingCode = 'synthetic-pairing-code-'.repeat(2);
 const graphMode = process.argv.includes('--graph');
+const detail = process.argv.includes('--detail');
 const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: resolve(repo, 'website/dist') });
 service.listen(0, '127.0.0.1'); await once(service, 'listening');
 const origin = `http://127.0.0.1:${service.address().port}`;
@@ -33,7 +34,7 @@ try {
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     await page.getByRole('region', { name: 'Relationships for Record' }).waitFor({ state: 'visible' });
   }
-  const times = [], commandTimes = [], revisionTimes = [];
+  const times = [], commandTimes = [], revisionTimes = [], samples = [];
   for (let i = 0; i < 35; i++) {
     const expected = i + 1, start = performance.now();
     const name = 'latencyRelationship';
@@ -48,9 +49,13 @@ try {
     await page.waitForFunction(value => new RegExp(`revision ${value}(?:\\s|$)`).test(document.querySelector('[role=status]')?.textContent ?? ''), expected);
     const revisionVisible = performance.now();
     if (graphMode) await page.locator('.react-flow__edge-text').getByText(`${name} ${cardinality === '!' ? '1' : '0..1'}`, { exact: true }).waitFor({ state: 'visible' });
-    if (i >= 5) { times.push(performance.now() - start); commandTimes.push(commandDone - start); revisionTimes.push(revisionVisible - start); }
+    if (i >= 5) {
+      const finished = performance.now();
+      times.push(finished - start); commandTimes.push(commandDone - start); revisionTimes.push(revisionVisible - start);
+      if (detail) samples.push({ commandMs: commandDone - start, afterCommandToRevisionMs: revisionVisible - commandDone, afterRevisionToGraphMs: finished - revisionVisible, totalMs: finished - start });
+    }
   }
   times.sort((a, b) => a - b);
   commandTimes.sort((a, b) => a - b); revisionTimes.sort((a, b) => a - b);
-  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, commandP95Ms: commandTimes[28], revisionVisibleP95Ms: revisionTimes[28], p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship cardinality edit start to updated graph label in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}) }));
+  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, commandP95Ms: commandTimes[28], revisionVisibleP95Ms: revisionTimes[28], p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship cardinality edit start to updated graph label in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}), ...(detail ? { sampleDetails: samples } : {}) }));
 } finally { await page.close(); await browser.close(); await client.close(); await service.shutdown(); store.close(); }
