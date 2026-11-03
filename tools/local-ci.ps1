@@ -18,10 +18,16 @@ if (-not $Python) {
 $oldPythonUtf8 = $env:PYTHONUTF8
 $oldPythonUnbuffered = $env:PYTHONUNBUFFERED
 $oldPythonNoBytecode = $env:PYTHONDONTWRITEBYTECODE
+$oldPlaywrightBrowsersPath = $env:PLAYWRIGHT_BROWSERS_PATH
 $env:PYTHONUTF8 = '1'
 $env:PYTHONUNBUFFERED = '1'
 $env:PYTHONDONTWRITEBYTECODE = '1'
+if (-not $env:PLAYWRIGHT_BROWSERS_PATH) {
+    $localBrowserPath = Join-Path $repo '.venv-local/playwright-browsers'
+    if (Test-Path -LiteralPath $localBrowserPath) { $env:PLAYWRIGHT_BROWSERS_PATH = $localBrowserPath }
+}
 Write-Host "Local CI Python: $Python (UTF-8 mode enabled)" -ForegroundColor DarkCyan
+if ($env:PLAYWRIGHT_BROWSERS_PATH) { Write-Host "Playwright browser cache: $env:PLAYWRIGHT_BROWSERS_PATH" -ForegroundColor DarkCyan }
 Push-Location $repo
 try {
     if ($Install) {
@@ -127,4 +133,5 @@ try {
     $env:PYTHONUTF8 = $oldPythonUtf8
     $env:PYTHONUNBUFFERED = $oldPythonUnbuffered
     $env:PYTHONDONTWRITEBYTECODE = $oldPythonNoBytecode
+    $env:PLAYWRIGHT_BROWSERS_PATH = $oldPlaywrightBrowsersPath
 }
