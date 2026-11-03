@@ -45,7 +45,8 @@ test('switching results panels starts at the beginning of the selected panel', a
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('desktop workbench fits the viewport without the status bar covering workspace content', async ({ page }) => {
+test('desktop workbench fits the viewport without the status bar covering workspace content', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop viewport shell geometry is not a compact-layout requirement.');
   await page.setViewportSize({ width: 1440, height: 1000 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Viewport shell', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
