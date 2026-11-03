@@ -70,5 +70,27 @@ test('desktop workbench fits the viewport without the status bar covering worksp
     expect(geometry.document).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.workspace.bottom).toBeLessThanOrEqual(geometry.status.top + 1);
     expect(geometry.status.bottom).toBeLessThanOrEqual(geometry.viewport);
+
+    async function expectUtilityFits(menuName, selector) {
+      const menu = page.locator('.studio-tools-menu');
+      if (!await menu.evaluate(element => element.open)) await page.getByText('More', { exact: true }).click();
+      const utility = page.locator(selector);
+      await page.getByRole('button', { name: menuName }).click();
+      await expect(utility).toHaveJSProperty('open', true);
+      const bounds = await utility.evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        return { position: getComputedStyle(element).position, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, viewportWidth: innerWidth, viewportHeight: innerHeight, documentHeight: document.documentElement.scrollHeight };
+      });
+      expect(bounds.position).toBe('fixed');
+      expect(bounds.left).toBeGreaterThanOrEqual(0);
+      expect(bounds.top).toBeGreaterThanOrEqual(0);
+      expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth);
+      expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
+      await utility.locator(':scope > summary').click({ force: true });
+      await expect(utility).toHaveJSProperty('open', false);
+    }
+
+    await expectUtilityFits('Draft context and history', '.studio-context-tools');
+    await expectUtilityFits('Connection and diagnostics', '.studio-connection-tools');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
