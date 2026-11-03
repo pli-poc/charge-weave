@@ -507,7 +507,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={-1} aria-label={`Relationships for ${graph.root}`} aria-describedby={relationshipFocusHint} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
+  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={0} aria-label={`Relationships for ${graph.root}`} aria-describedby={relationshipFocusHint} aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown" data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
     onMouseDownCapture={event => {
       if (!event.shiftKey || event.button !== 0) return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
@@ -517,6 +517,10 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (event.shiftKey && event.target.closest?.('.react-flow__node[data-id]')) { event.preventDefault(); event.stopPropagation(); }
     }}
     onKeyDownCapture={event => {
+      if (event.target === canvasRegion.current && instance.current && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        const movement = { ArrowLeft: [-100, 0], ArrowRight: [100, 0], ArrowUp: [0, -100], ArrowDown: [0, 100] }[event.key];
+        if (movement) { event.preventDefault(); event.stopPropagation(); panDiagram(...movement); return; }
+      }
       if (event.key === 'Escape' && event.target === canvasRegion.current && relationshipFocusTrigger.current?.isConnected) {
         event.preventDefault(); event.stopPropagation();
         const trigger = relationshipFocusTrigger.current;
@@ -531,7 +535,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       const edge = event.target.closest?.('.react-flow__edge[data-id]');
       if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
-    <span id={relationshipFocusHint} className="sr-only">After focusing a relationship on the diagram, press Escape to return to its details.</span>
+    <span id={relationshipFocusHint} className="sr-only">Use the arrow keys to pan the diagram. After focusing a relationship on the diagram, press Escape to return to its details.</span>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
     <details ref={layoutMenu} className="studio-canvas-layout-menu" onKeyDown={event => {
       if (event.key !== 'Escape' || !layoutMenu.current?.open) return;
@@ -611,6 +615,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !visibleNames.has(selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} onFocusSelected={focusSelected} onFocusRoot={focusRoot} canFocusSelected={layoutState === 'ready' && visibleNames.has(selectedName)} canFocusRoot={layoutState === 'ready' && visibleNames.has(graph.root)} />
     </ReactFlow>
   </div>
+    <p className="studio-canvas-keyboard-hint">Keyboard: focus the diagram and use arrow keys to pan.</p>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
     {activeEdges.length > 0 && <div className="studio-canvas-line-legend" aria-label="Diagram relationship line styles"><span><i aria-hidden="true" /> Relationship</span><span><i className="studio-canvas-line-inheritance" aria-hidden="true" /> Inheritance (subClassOf)</span><span>Arrows point to the target.</span></div>}
     {viewGroups.length > 0 && <section className="studio-canvas-groups" aria-label="Diagram groups"><h3>Diagram groups</h3><p>Groups organize this view only; they do not add ontology relationships.</p><ul>{viewGroups.map((group, index) => <li key={`${index}-${group.name}`}><strong>{group.name}</strong> · {new Set(group.members.filter(name => visibleNames.has(name))).size} of {new Set(group.members).size} concepts shown<ul>{[...new Set(group.members)].map(name => <li key={name}>{name}{!visibleNames.has(name) ? ' — not shown' : ''}</li>)}</ul><button type="button" disabled={!groupsEditable || !onRemoveGroup || layoutState === 'pending'} onClick={() => removeViewGroup(index, group)}>Remove {group.name} from view</button></li>)}</ul></section>}

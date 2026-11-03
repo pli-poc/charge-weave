@@ -26,7 +26,7 @@ test('keyboard focus returns from the diagram to the inspected relationship', as
     const focus = details.getByRole('button', { name: 'Focus relationship on diagram' });
     await focus.focus(); await page.keyboard.press('Enter');
     await expect(canvas).toBeFocused();
-    await expect(canvas).toHaveAccessibleDescription('After focusing a relationship on the diagram, press Escape to return to its details.');
+    await expect(canvas).toHaveAccessibleDescription('Use the arrow keys to pan the diagram. After focusing a relationship on the diagram, press Escape to return to its details.');
     await page.keyboard.press('Escape');
     await expect(focus).toBeFocused();
     await expect(details).toContainText('Relationship: peer');
