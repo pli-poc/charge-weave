@@ -27,6 +27,7 @@ export default function ControlledValuesBuilder({ range, candidate, onRangeChang
     if (!values || !candidate || issue) return;
     onRangeChange(`{${[...values, trimmed].join(',')}}`);
     onCandidateChange('');
+    requestAnimationFrame(() => candidateInput.current?.focus());
   }
   function remove(index) {
     onRangeChange(`{${values.filter((_, position) => position !== index).join(',')}}`);
@@ -38,7 +39,7 @@ export default function ControlledValuesBuilder({ range, candidate, onRangeChang
   return <details>
     <summary>Build controlled values</summary>
     <p>Choose distinct values using letters and digits. At least two values are required; the entire range is limited to 128 characters.</p>
-    {!values && <><p>The current datatype or target is not an editable controlled-value list.</p><button type="button" onClick={() => onRangeChange('{}')}>Start controlled values</button></>}
+    {!values && <><p>The current datatype or target is not an editable controlled-value list.</p><button type="button" onClick={() => { onRangeChange('{}'); requestAnimationFrame(() => candidateInput.current?.focus()); }}>Start controlled values</button></>}
     {values && <div ref={group} role="group" aria-label="Controlled values">
       {values.length ? <ul>{values.map((value, index) => <li key={`${value}-${index}`}>{value} <button type="button" data-remove-controlled-value aria-label={`Remove value ${value}`} onClick={() => remove(index)}>Remove</button></li>)}</ul> : <p>No values added.</p>}
       <label>New allowed value <input ref={candidateInput} value={candidate} onChange={event => onCandidateChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); add(); } }} /></label>

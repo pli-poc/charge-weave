@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, Position, ReactFlow, ViewportPortal, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
+import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, MiniMap, Position, ReactFlow, ViewportPortal, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
@@ -60,6 +60,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [newGroupName, setNewGroupName] = useState('');
   const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
+  const [showMinimap, setShowMinimap] = useState(false);
   const [initialPins] = useState(() => {
     try { return { pins: readCanvasPins(sessionStorage, graph.workspaceId, viewId), writable: true }; }
     catch { return { pins: new Set(), writable: false }; }
@@ -454,6 +455,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {missingPinnedPositions && <p>Some previously pinned positions were unavailable. Check their positions before continuing.</p>}
       {pinRecoveryNeeded && <><p>Local pin settings could not be read. Replacing them removes the stored pins for this view.</p><button type="button" onClick={replaceUnreadablePins}>Replace unreadable pin settings</button></>}
       <button type="button" disabled={layoutState !== 'ready' || layoutRecoveryNeeded || pinRecoveryNeeded} onClick={arrangeVisible}>Arrange visible concepts</button>
+      <label className="studio-canvas-minimap-toggle"><input type="checkbox" checked={showMinimap} onChange={event => setShowMinimap(event.target.checked)} /> Show diagram overview</label>
+      {showMinimap && <p>The overview shows visible concepts and the current viewport. Use Pan diagram or the zoom controls to navigate with the keyboard.</p>}
       <details>
         <summary>Pan diagram</summary>
         <p>Move the diagram in the indicated direction without moving individual concepts.</p>
@@ -509,6 +512,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
       nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
       <ViewportPortal>{groupFrames.map(frame => <div key={frame.index} className="studio-canvas-group-frame" aria-hidden="true" style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}><span>{frame.name}</span></div>)}</ViewportPortal>
+      {showMinimap && <MiniMap className="studio-canvas-minimap" position="top-left" style={{ width: 140, height: 90 }} ariaLabel="Diagram overview" nodeColor="#5c8580" maskColor="rgba(20, 42, 42, .25)" />}
       <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} />
     </ReactFlow>
   </div>
