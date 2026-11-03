@@ -28,7 +28,7 @@ test('graph controls stay legible on hover and show a contrasting focus ring in 
     await expect(control).toBeVisible();
     for (const theme of ['dark', 'light']) {
       await page.getByLabel('Appearance').selectOption(theme);
-      await expect(page.getByLabel('Diagram relationship line styles')).toHaveCSS('color', 'rgb(24, 58, 57)');
+      await expect(page.getByLabel('Diagram relationship line styles')).toHaveCSS('color', theme === 'dark' ? 'rgb(228, 238, 239)' : 'rgb(24, 58, 57)');
       await control.hover();
       const contrast = await control.evaluate(element => {
         const style = getComputedStyle(element);
@@ -40,6 +40,18 @@ test('graph controls stay legible on hover and show a contrasting focus ring in 
         return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
       });
       expect(contrast).toBeGreaterThanOrEqual(4.5);
+      const cardContrast = await page.locator('.studio-flow-node').first().evaluate(element => {
+        const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+        const style = getComputedStyle(element), foreground = luminance(style.color), background = luminance(style.backgroundColor);
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      expect(cardContrast).toBeGreaterThanOrEqual(4.5);
+      const menuContrast = await page.locator('.studio-canvas-layout-menu > summary').evaluate(element => {
+        const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [0.2126, 0.7152, 0.0722][index], 0);
+        const foreground = luminance(getComputedStyle(element).color), background = luminance(getComputedStyle(element.parentElement).backgroundColor);
+        return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+      });
+      expect(menuContrast).toBeGreaterThanOrEqual(4.5);
       await page.keyboard.press('Tab');
       await control.focus();
       await expect(control).toHaveCSS('outline-color', 'rgb(23, 63, 116)');

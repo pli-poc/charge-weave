@@ -21,6 +21,29 @@ html[data-studio-theme="light"] .modelling-studio .studio-check-action button:ho
 html[data-studio-theme="light"] .modelling-studio .studio-conflict label { color: #ffefc4; }
 html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(code, summary, a) { color: #a4e6d0; }
 html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: #a4e6d0; }
+/* Match the diagram to the dark workbench while keeping the light palette for
+   the light theme. Text and edges remain distinct from their surfaces. */
+html[data-studio-theme="dark"] .modelling-studio .studio-graph { background: #15242a; color: #e4eeef; border-left-color: #79cbb6; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(h3, p, label) { color: #e4eeef; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(summary, code) { color: #a4e6d0; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow { background: #101b20; border-color: #49666a; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-node { background: #20363b; color: #edf8f5; border-color: #79cbb6; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-added { background: #164336; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-changed { background: #493b23; border-color: #f0c46d; }
+html[data-studio-theme="dark"] .modelling-studio .studio-concept-kind { color: #a4e6d0; }
+html[data-studio-theme="dark"] .modelling-studio :is(.studio-concept-module, .studio-concept-more) { color: #c3d8d4; }
+html[data-studio-theme="dark"] .modelling-studio .studio-concept-change { color: #ffe4a8; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-path { stroke: #a6c1bd; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-text { fill: #edf8f5; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-textbg { fill: #15242a; }
+html[data-studio-theme="dark"] .modelling-studio .studio-canvas-line-legend { color: #e4eeef; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__node.selected { outline-color: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__node.selectable:focus-visible { outline-color: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow :is(.studio-concept-layout-selected, .studio-concept-layout-pinned) { color: #d9c8ff; }
+/* The layout popover retains its light surface in both themes. */
+html[data-studio-theme="dark"] .modelling-studio .studio-canvas-layout-menu :is(summary, p, label) { color: #183a39; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-layout-notice { color: #183a39; }
 .studio-appearance-controls { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .modelling-studio :is(.studio-theme-control, .studio-density-control) { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
 .modelling-studio :is(.studio-theme-control, .studio-density-control) select { width: auto; min-width: 0; }
