@@ -78,6 +78,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [hoveredEdgeId, setHoveredEdgeId] = useState('');
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [relationshipQuery, setRelationshipQuery] = useState('');
+  const [relationshipDirection, setRelationshipDirection] = useState('all');
   const [relationshipTargetQuery, setRelationshipTargetQuery] = useState('');
   const [relationshipTarget, setRelationshipTarget] = useState('');
   const [relationshipCreateNotice, setRelationshipCreateNotice] = useState('');
@@ -129,6 +130,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const visibleNames = useMemo(() => new Set(activeNodes.map(node => node.name)), [activeNodes]);
   const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
   useEffect(() => { setRelationshipQuery(''); }, [graph.workspaceId, graph.root, viewId]);
+  useEffect(() => { setRelationshipDirection('all'); }, [graph.workspaceId, graph.root, viewId, selectedName]);
   useEffect(() => {
     relationshipCreateAttempt.current += 1;
     setRelationshipTargetQuery(''); setRelationshipTarget(''); setRelationshipCreateNotice('');
@@ -246,8 +248,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const highlightedEdge = activeEdges.find(edge => edge.id === hoveredEdgeId) ?? selectedEdge;
   const matchingRelationships = useMemo(() => {
     const term = relationshipQuery.trim().toLowerCase();
-    return term ? activeEdges.filter(edge => `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)) : activeEdges;
-  }, [activeEdges, relationshipQuery]);
+    return activeEdges.filter(edge => (relationshipDirection === 'all' || (relationshipDirection === 'incoming' ? edge.target === selectedName : edge.source === selectedName)) && (!term || `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)));
+  }, [activeEdges, relationshipQuery, relationshipDirection, selectedName]);
   const retainedRelationship = selectedEdge && !matchingRelationships.some(edge => edge.id === selectedEdge.id) ? selectedEdge : null;
   const matchingTargets = useMemo(() => {
     const term = relationshipTargetQuery.trim().toLowerCase();
@@ -694,6 +696,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     </details>
     {viewGroups.length > 0 && <section className="studio-canvas-groups" aria-label="Diagram groups"><h3>Diagram groups</h3><p>Groups organize this view only; they do not add ontology relationships.</p><ul>{viewGroups.map((group, index) => <li key={`${index}-${group.name}`}><strong>{group.name}</strong> · {new Set(group.members.filter(name => visibleNames.has(name))).size} of {new Set(group.members).size} concepts shown<ul>{[...new Set(group.members)].map(name => <li key={name}>{name}{!visibleNames.has(name) ? ' — not shown' : ''}</li>)}</ul><button type="button" disabled={!groupsEditable || !onRemoveGroup || layoutState === 'pending'} onClick={() => removeViewGroup(index, group)}>Remove {group.name} from view</button></li>)}</ul></section>}
     {activeEdges.length > 0 && <div className="studio-canvas-edge-picker">
+      <label>Relationship direction <select value={relationshipDirection} onChange={event => { onManualInteraction(); setRelationshipDirection(event.target.value); }}><option value="all">All visible relationships</option><option value="incoming" disabled={!visibleNames.has(selectedName)}>Incoming to {selectedName || 'selected concept'}</option><option value="outgoing" disabled={!visibleNames.has(selectedName)}>Outgoing from {selectedName || 'selected concept'}</option></select></label>
       <label>Find visible relationships <input ref={relationshipSearchInput} type="search" value={relationshipQuery} maxLength={200} onChange={event => { onManualInteraction(); setRelationshipQuery(event.target.value); }} /></label>
       {relationshipQuery && <button type="button" onClick={() => { setRelationshipQuery(''); relationshipSearchInput.current?.focus(); }}>Clear relationship search</button>}
       <p id={relationshipSearchStatus} aria-live="polite">Showing {matchingRelationships.length} of {activeEdges.length} visible relationships. Unloaded and hidden relationships are excluded.{retainedRelationship && ' The inspected relationship remains available outside these results.'}</p>
