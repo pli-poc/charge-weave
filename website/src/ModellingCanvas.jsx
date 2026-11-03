@@ -12,6 +12,12 @@ import '@xyflow/react/dist/style.css';
 import './canvas-layout-controls.css';
 
 const motionDuration = duration => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
+const layoutNodes = (names, instance) => names.map(id => {
+  const size = instance?.getNode(id)?.measured;
+  return { id, width: Number.isFinite(size?.width) && size.width > 0 ? size.width : 220, height: Number.isFinite(size?.height) && size.height > 0 ? size.height : 128 };
+});
+const layoutBox = (point, size) => ({ ...point, width: size?.width ?? 220, height: size?.height ?? 128 });
+const boxesOverlap = (a, b) => a.x < b.x + b.width + 20 && a.x + a.width + 20 > b.x && a.y < b.y + b.height + 20 && a.y + a.height + 20 > b.y;
 const ConceptNode = memo(function ConceptNode({ data }) {
   const fields = typeof data.fields === 'string' ? data.fields.split(/\s+/).filter(Boolean) : Array.isArray(data.fields) ? data.fields.map(field => `${field.property}:${field.range}${field.cardinality ?? ''}`) : [];
   const changed = ['added', 'changed'].includes(data.changeStatus);
@@ -149,16 +155,19 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       return;
     }
     setLayoutState('pending');
+    const dimensions = layoutNodes(graph.nodes.map(node => node.name), instance.current);
+    const sizes = new Map(dimensions.map(node => [node.id, node]));
     worker.current.onmessage = event => {
       if (event.data.requestId !== sequence.current) return;
       if (event.data.error) { setLayoutState('unavailable'); setLayoutNotice(event.data.error); return; }
       const layout = new Map(event.data.positions.map(point => [point.id, point]));
-      const occupied = Object.values(positions.current), placed = new Map();
+      const occupied = Object.entries(positions.current).map(([name, point]) => layoutBox(point, sizes.get(name))), placed = new Map();
       for (const node of graph.nodes) {
         if (!newNames.has(node.name) || positions.current[node.name] || !layout.has(node.name)) continue;
         const point = layout.get(node.name), position = { x: point.x, y: point.y };
-        while (occupied.some(other => Math.abs(other.x - position.x) < 240 && Math.abs(other.y - position.y) < 148)) position.y += 150;
-        occupied.push(position); positions.current[node.name] = position; placed.set(node.name, position);
+        const size = sizes.get(node.name);
+        while (occupied.some(other => boxesOverlap(other, layoutBox(position, size)))) position.y += (size?.height ?? 128) + 20;
+        occupied.push(layoutBox(position, size)); positions.current[node.name] = position; placed.set(node.name, position);
       }
       setNodes(current => current.map(node => placed.has(node.id) ? { ...node, position: placed.get(node.id) } : node));
       if (storageWritable.current) try { writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, positions.current); } catch { /* Layout remains available for this session. */ }
@@ -171,7 +180,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         requestAnimationFrame(() => frameRoot(graph.root));
       }
     };
-    worker.current.postMessage({ requestId, nodes: graph.nodes.map(node => node.name), edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
+    worker.current.postMessage({ requestId, nodes: dimensions, edges: graph.edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) });
   }, [graph, selectedName, viewId, layoutAttempt, frameRoot]);
   const onNodesChange = useCallback(changes => {
     const before = { ...positions.current };
@@ -358,6 +367,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     if (pinRecoveryNeeded) { setLayoutNotice('Resolve unreadable pin settings before arranging concepts.'); return; }
     if (activeNodes.every(node => layoutPins.has(node.name))) { setLayoutNotice('All visible concepts are pinned. Unpin one to arrange it.'); return; }
     const requestId = ++sequence.current;
+    const dimensions = layoutNodes(activeNodes.map(node => node.name), instance.current);
+    const sizes = new Map(dimensions.map(node => [node.id, node]));
     arranging.current = true;
     setLayoutState('pending');
     setLayoutNotice('Arranging visible concepts…');
@@ -370,13 +381,14 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (event.data.error || !Array.isArray(points) || points.length !== names.size || points.some(point => !names.has(point.id) || !Number.isFinite(point.x) || !Number.isFinite(point.y)) || new Set(points.map(point => point.id)).size !== names.size) {
         setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); return;
       }
-      const layout = new Map(), occupied = [...layoutPins].map(name => positions.current[name]).filter(Boolean);
+      const layout = new Map(), occupied = [...layoutPins].filter(name => positions.current[name]).map(name => layoutBox(positions.current[name], sizes.get(name)));
       for (const point of points) {
         if (layoutPins.has(point.id) && positions.current[point.id]) continue;
         const position = { x: point.x, y: point.y };
-        while (occupied.some(other => Math.abs(other.x - position.x) < 240 && Math.abs(other.y - position.y) < 148)) position.y += 150;
+        const size = sizes.get(point.id);
+        while (occupied.some(other => boxesOverlap(other, layoutBox(position, size)))) position.y += (size?.height ?? 128) + 20;
         if (Math.abs(position.x) >= 100000 || Math.abs(position.y) >= 100000) { setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram without exceeding position limits. Existing positions were kept.'); return; }
-        occupied.push(position); layout.set(point.id, position);
+        occupied.push(layoutBox(position, size)); layout.set(point.id, position);
       }
       let changed = false;
       for (const [name, point] of layout) {
@@ -397,7 +409,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice(changed ? 'Visible concepts arranged locally. Save the shared view to share this layout.' : 'Visible concepts are already arranged.');
       if (layoutMenu.current) layoutMenu.current.open = false;
     };
-    try { worker.current.postMessage({ requestId, nodes: activeNodes.map(node => node.name), edges: activeEdges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
+    try { worker.current.postMessage({ requestId, nodes: dimensions, edges: activeEdges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target })) }); }
     catch { arranging.current = false; setLayoutState('unavailable'); setLayoutNotice('Could not arrange the diagram. Existing positions were kept.'); }
   }
   function startNodeDrag(_event, node, draggedNodes) {

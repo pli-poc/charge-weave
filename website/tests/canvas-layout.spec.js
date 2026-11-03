@@ -4,20 +4,21 @@ import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
-async function setup(page, { failFirstWorker = false, delayWorker = false } = {}) {
+async function setup(page, { failFirstWorker = false, delayWorker = false, recordWorker = false } = {}) {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Layout', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
-  await page.addInitScript(({ id, fail, delay }) => {
+  await page.addInitScript(({ id, fail, delay, record }) => {
     sessionStorage.setItem(`chargeweave.canvas.v2.${id}.default`, JSON.stringify({ Device: { x: 700, y: 500 }, Record: { x: 0, y: 0 }, HiddenRecord: { x: 1200, y: 200 } }));
-    if (fail || delay) {
+    if (fail || delay || record) {
       const OriginalWorker = window.Worker;
       let first = true;
       window.Worker = class extends OriginalWorker {
         constructor(...args) { if (fail && first) { first = false; throw new Error('Synthetic worker startup failure'); } super(...args); }
         postMessage(...args) {
+          if (record) window.lastLayoutRequest = args[0];
           if (delay && first) {
             first = false;
             this.addEventListener('message', () => { window.layoutReplyReceived = true; }, { once: true });
@@ -26,7 +27,7 @@ async function setup(page, { failFirstWorker = false, delayWorker = false } = {}
         }
       };
     }
-  }, { id: workspace.id, fail: failFirstWorker, delay: delayWorker });
+  }, { id: workspace.id, fail: failFirstWorker, delay: delayWorker, record: recordWorker });
   await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
   await page.getByLabel('Pairing code').fill(pairingCode);
   await page.getByRole('button', { name: 'Pair local studio' }).click();
@@ -35,6 +36,28 @@ async function setup(page, { failFirstWorker = false, delayWorker = false } = {}
   await page.getByRole('button', { name: 'Device', exact: true }).click();
   return { store, workspace, service };
 }
+
+test('explicit layout sends measured card dimensions to the worker', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The desktop canvas provides explicit layout; mobile has a list-first view.');
+  const { store, service } = await setup(page, { recordWorker: true });
+  try {
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await page.addStyleTag({ content: '.studio-flow .studio-flow-node { width: 320px !important; height: 160px !important; }' });
+    await expect.poll(() => canvas.locator('.react-flow__node[data-id="Device"]').evaluate(node => node.offsetWidth)).toBe(320);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await canvas.getByText('Layout', { exact: true }).click();
+    await canvas.getByRole('button', { name: 'Arrange visible concepts' }).click();
+    const requested = await page.evaluate(() => window.lastLayoutRequest.nodes);
+    expect(requested.find(node => node.id === 'Device')).toMatchObject({ width: 320, height: 160 });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    const boxes = await canvas.locator('.react-flow__node').evaluateAll(elements => elements.map(element => {
+      const rect = element.getBoundingClientRect(); return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+    }));
+    expect(boxes.length).toBe(2);
+    expect(boxes[0].right <= boxes[1].left || boxes[1].right <= boxes[0].left || boxes[0].bottom <= boxes[1].top || boxes[1].bottom <= boxes[0].top).toBe(true);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
 
 test('explicit layout rearranges visible concepts without changing the model or hidden positions', async ({ page, isMobile }) => {
   test.skip(isMobile, 'The desktop canvas provides explicit layout; mobile has a list-first view.');
