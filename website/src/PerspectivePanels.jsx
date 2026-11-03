@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function PerspectivePanels({ selected, snapshot, entityInfo, responsibility, temporal, temporalPolicy, setTemporalPolicy, inspectResponsibility, inspectTemporal, saveTemporalPolicy, selectConcept, addRelationship, addBinding, commandPending, binding, setBinding, temporalDirty, discardTemporal }) {
   const [category, setCategory] = useState('all');
+  useEffect(() => { setCategory('all'); }, [selected?.name]);
   const currentResponsibility = responsibility && responsibility.root === selected?.name && responsibility.revision === snapshot.revision ? responsibility : null;
   const currentTemporal = temporal && temporal.root === selected?.name && temporal.revision === snapshot.revision ? temporal : null;
   const visible = currentResponsibility?.bindings.filter(binding => category === 'all' || binding.category === category) || [];
@@ -12,6 +13,7 @@ export default function PerspectivePanels({ selected, snapshot, entityInfo, resp
         <p>{currentResponsibility.note}</p>
         <p>Concept: <strong>{currentResponsibility.root}</strong>. Each listed arrow is an explicit declared or inherited relationship; its role label comes from the named mapping.</p>
         <label>Filter responsibility category <select value={category} onChange={event => setCategory(event.target.value)}><option value="all">All categories</option><option value="ownership">Ownership</option><option value="service">Service and operations</option><option value="role">Role</option><option value="assignment">Assignment</option><option value="affected">Affected record</option></select></label>
+        <p role="status">Showing {visible.length} of {currentResponsibility.bindings.length} responsibility {currentResponsibility.bindings.length === 1 ? 'binding' : 'bindings'}.</p>
         {currentResponsibility.bindings.length ? visible.length ? <ul>{visible.map(binding => <li key={`${binding.owner}-${binding.property}`}><strong>{binding.label}</strong>: {binding.property} → {binding.range} ({binding.cardinality}) · {binding.category} · {binding.source.path}:{binding.source.line} · {binding.mappingVersion}
           <button type="button" onClick={() => selectConcept(binding.range)}>Inspect {binding.range}</button>
           <details><summary>Why this binding appears</summary><p>{binding.inherited ? `Inherited from ${binding.owner}` : `Declared by ${binding.owner}`}; mapping {binding.mappingVersion} matched this owner, predicate and target.</p>{binding.mappingSource && <p>Mapping source: {binding.mappingSource.path} ({binding.mappingSource.scope}).</p>}<p>Predicate IRI: <code>{binding.predicateIri}</code>; target IRI: <code>{binding.targetIri}</code>.</p></details>

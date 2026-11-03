@@ -7,7 +7,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 test('field search pages declared owners and clears stale results', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const rows = Array.from({ length: 27 }, (_, i) => `Asset${String(i).padStart(2, '0')}|Record|Asset.|shared:string?`);
-  const workspace = store.create({ title: 'Field discovery', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|Record.|\n${rows.join('\n')}\n` });
+  const workspace = store.create({ title: 'Field discovery', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|Record.|parentField:string?\n${rows.join('\n')}\n` });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -21,6 +21,14 @@ test('field search pages declared owners and clears stale results', async ({ pag
     await expect(page.getByText('Showing 25 of 27 declared fields.')).toBeVisible();
     await page.getByRole('button', { name: 'Load more fields' }).click();
     await expect(page.getByText('Showing 27 of 27 declared fields.')).toBeVisible();
+    await page.getByLabel('Concept context (optional)').fill('Asset26');
+    await page.getByLabel('Find properties or relationships').fill('parentField');
+    await page.getByRole('button', { name: 'Search fields', exact: true }).click();
+    await expect(page.getByText('inherited from Record', { exact: false })).toBeVisible();
+    await page.getByLabel('Concept context (optional)').fill('');
+    await page.getByLabel('Find properties or relationships').fill('shared');
+    await page.getByRole('button', { name: 'Search fields', exact: true }).click();
+    await page.getByRole('button', { name: 'Load more fields' }).click();
     await page.getByRole('button', { name: 'Inspect owner Asset26' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Asset26', exact: true })).toBeVisible();

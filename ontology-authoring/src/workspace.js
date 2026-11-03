@@ -85,6 +85,7 @@ function verifyAdapter(workspace) {
 export class WorkspaceStore {
   constructor(path) {
     this.db = new DatabaseSync(path);
+    this.fieldSearchCache = new Map();
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
       CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
@@ -533,19 +534,34 @@ export class WorkspaceStore {
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
   }
-  searchFields(id, query, expectedRevision, offset = 0, limit = 25) {
-    if (typeof query !== 'string' || query.length > 200 || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid field search');
+  searchFields(id, query, expectedRevision, offset = 0, limit = 25, context = undefined) {
+    if (typeof query !== 'string' || query.length > 200 || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100 || (context !== undefined && (typeof context !== 'string' || !identifier.test(context) || context.length > 128))) throw new Error('Invalid field search');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    const { classes } = parse(workspace.schema), needle = query.trim().toLowerCase(), results = [];
-    for (const owner of classes.values()) {
-      for (const [name, contract] of fieldContracts(owner)) {
-        const kind = classes.has(contract.range) ? 'relationship' : 'property';
-        if (`${name} ${owner.name} ${contract.range}`.toLowerCase().includes(needle)) results.push({ name, owner: owner.name, module: owner.module, kind, range: contract.range, cardinality: contract.cardinality });
+    let index = this.fieldSearchCache.get(id);
+    if (!index || index.revision !== workspace.revision || index.digest !== workspace.sourceDigest) {
+      const { classes } = parse(workspace.schema);
+      const fields = new Map([...classes.values()].map(owner => [owner.name, [...fieldContracts(owner)].map(([name, contract]) => ({ name, owner: owner.name, module: owner.module, kind: classes.has(contract.range) ? 'relationship' : 'property', range: contract.range, cardinality: contract.cardinality }))]));
+      index = { revision: workspace.revision, digest: workspace.sourceDigest, classes, fields };
+      this.fieldSearchCache.delete(id);
+      this.fieldSearchCache.set(id, index);
+      if (this.fieldSearchCache.size > 20) this.fieldSearchCache.delete(this.fieldSearchCache.keys().next().value);
+    }
+    const { classes, fields } = index, needle = query.trim().toLowerCase(), results = [];
+    const owners = [];
+    if (context !== undefined) {
+      if (!classes.has(context)) throw new Error('Unknown concept');
+      const seen = new Set();
+      let name = context;
+      while (classes.has(name) && !seen.has(name)) { seen.add(name); const owner = classes.get(name); owners.push(owner); name = owner.parent; }
+    } else owners.push(...classes.values());
+    for (const owner of owners) {
+      for (const field of fields.get(owner.name)) {
+        if (`${field.name} ${owner.name} ${field.range}`.toLowerCase().includes(needle)) results.push({ ...field, inherited: context !== undefined && owner.name !== context });
       }
     }
     results.sort((a, b) => a.name.localeCompare(b.name, 'en') || a.owner.localeCompare(b.owner, 'en'));
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, query, offset, total: results.length, nextOffset: offset + limit < results.length ? offset + limit : null, results: results.slice(offset, offset + limit), scope: 'Declared fields in the current workspace schema; inherited appearances are not enumerated.' };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, query, context: context ?? null, offset, total: results.length, nextOffset: offset + limit < results.length ? offset + limit : null, results: results.slice(offset, offset + limit), scope: context ? `Fields declared on ${context} and its recorded ancestors; each field identifies its declaring owner.` : 'Declared fields in the current workspace schema; inherited appearances are not enumerated.' };
   }
   entity(id, name, expectedRevision) {
     const workspace = this.get(id);

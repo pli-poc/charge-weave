@@ -317,6 +317,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     onManualInteraction();
     void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
+  function panDiagram(dx, dy) {
+    if (!instance.current) return;
+    const viewport = instance.current.getViewport();
+    onManualInteraction();
+    void instance.current.setViewport({ ...viewport, x: viewport.x + dx, y: viewport.y + dy }, { duration: 0 });
+  }
   const offsets = parallelEdgeOffsets(activeEdges);
   function arrangeVisible() {
     if (!worker.current || layoutState !== 'ready') return;
@@ -428,6 +434,16 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {missingPinnedPositions && <p>Some previously pinned positions were unavailable. Check their positions before continuing.</p>}
       {pinRecoveryNeeded && <><p>Local pin settings could not be read. Replacing them removes the stored pins for this view.</p><button type="button" onClick={replaceUnreadablePins}>Replace unreadable pin settings</button></>}
       <button type="button" disabled={layoutState !== 'ready' || layoutRecoveryNeeded || pinRecoveryNeeded} onClick={arrangeVisible}>Arrange visible concepts</button>
+      <details>
+        <summary>Pan diagram</summary>
+        <p>Move the diagram in the indicated direction without moving individual concepts.</p>
+        <div className="studio-canvas-edge-actions" role="group" aria-label="Pan diagram">
+          <button type="button" onClick={() => panDiagram(-100, 0)}>Move diagram left</button>
+          <button type="button" onClick={() => panDiagram(100, 0)}>Move diagram right</button>
+          <button type="button" onClick={() => panDiagram(0, -100)}>Move diagram up</button>
+          <button type="button" onClick={() => panDiagram(0, 100)}>Move diagram down</button>
+        </div>
+      </details>
       <button type="button" disabled={!layoutHistory.length || layoutState === 'pending' || draggingLayout || layoutRecoveryNeeded} onClick={undoLayout}>Undo last layout change</button>
       {layoutHistory.length > 0 && <p>Last {layoutHistory.at(-1).label}: {layoutHistory.at(-1).changes.slice(0, 5).map(change => change.name).join(', ')}{layoutHistory.at(-1).changes.length > 5 ? ` and ${layoutHistory.at(-1).changes.length - 5} more` : ''}. Undo restores positions even if pinned. It does not change the ontology or pin settings; history clears on reload.</p>}
       {layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout...'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}
