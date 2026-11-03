@@ -579,15 +579,16 @@ export class WorkspaceStore {
     if (intervalSourcePaths.every(path => workspace.editableSources.includes(path))) templates.push({ id: 'valid-interval', description: 'For a new class and new dateTime fields, the end must be later than the start when both are present.', sourceOwner: intervalSourcePaths, compiler: 'tools/build_rules.py', testFactory: 'template-derived-positive-equal-and-reversed; independent review required' });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, templates };
   }
-  requirementsSearch(id, query, limit = 20, expectedRevision) {
+  requirementsSearch(id, query, limit = 20, expectedRevision, offset = 0) {
     const workspace = this.get(id);
-    if (workspace.digestVersion !== 4 || typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Requirements search needs a version-four workspace and bounded query');
+    if (workspace.digestVersion !== 4 || typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 50 || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || (offset > 0 && !Number.isSafeInteger(expectedRevision))) throw new Error('Requirements search needs a version-four workspace and bounded query');
     if (expectedRevision !== undefined && expectedRevision !== workspace.revision) throw new Error('Revision conflict');
     const row = this.db.prepare('SELECT content FROM workspace_sources WHERE workspace = ? AND path = ?').get(id, requirementsPath);
     if (!row) throw new Error('Requirements source is unavailable');
     const needle = query.toLowerCase(), entries = JSON.parse(row.content);
     if (!Array.isArray(entries)) throw new Error('Invalid requirements source');
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, rules: item.rules, source: requirementsPath })) };
+    const matches = entries.filter(item => `${item.id} ${item.statement}`.toLowerCase().includes(needle));
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, total: matches.length, nextOffset: offset + limit < matches.length ? offset + limit : null, results: matches.slice(offset, offset + limit).map(item => ({ id: item.id, statement: item.statement, classes: item.classes, rules: item.rules, source: requirementsPath })) };
   }
   requirementLinks(id, name, expectedRevision, offset = 0, limit = 50) {
     if (!identifier.test(name ?? '') || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Invalid requirement links request');

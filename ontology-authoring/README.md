@@ -107,6 +107,8 @@ For versions 3 and 4, semantic writes and source-grounded inspection require the
 
 Version-four workspaces can search the existing requirement register and explicitly link a known class using an expected class-list precondition. The requirement source and schema changes share a revision, digest, receipt and undo; their source patches are shown in review and validation materializes both. A link records an author decision, not proof that the requirement is met, and does not create a requirement or acceptance case.
 
+`ontology_requirement_search` returns bounded pages with a total and `nextOffset`. Supply the returned revision as `expectedRevision` when fetching later pages; a changed workspace requires a fresh search. Results are ordered by the requirement source, and an empty query enumerates the register without asserting that its requirements are satisfied.
+
 `ontology_requirement_links` lists explicitly linked records for one existing concept at a required workspace revision. Results are bounded and include a total and continuation offset; callers must use the same revision on later pages. This lookup requires the imported requirement source and does not infer links or establish requirement coverage.
 
 `ontology_validation_latest` returns the latest validation job for the authorized workspace, including its input identity and freshness, or no job. It excludes publication operations. The studio uses this to restore the displayed check after reconnecting; running jobs are monitored until terminal, and an older result remains marked stale after a draft change.

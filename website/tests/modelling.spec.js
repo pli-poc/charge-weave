@@ -140,7 +140,7 @@ test('explorer finds and links a requirement to the selected concept', async ({ 
     await explorer.getByLabel('Find requirements').fill('BR-001');
     await explorer.getByRole('button', { name: 'Find requirements' }).click();
     await expect(explorer).toContainText('Track the record.');
-    await expect(explorer).toContainText('search returns up to 20');
+    await expect(explorer).toContainText('Showing 1 of 1 matching requirements.');
     await explorer.getByRole('button', { name: 'Link Device' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
     await explorer.getByRole('button', { name: 'Find requirements' }).click();
@@ -1584,6 +1584,12 @@ test('inspector pages through explicit linked requirements', async ({ page, isMo
     { path: 'tools/domain_schema.py', sha256: hash(readFileSync(new URL('../../tools/domain_schema.py', import.meta.url))) },
   ];
   const workspace = store.create({ title: 'Many requirements', baselineCommit: 'a'.repeat(40), schema, sourceManifest: manifest, sourceBlobs: { 'requirements/business-requirements.json': requirements } });
+  const firstPage = store.requirementsSearch(workspace.id, '', 20, 0);
+  expect(firstPage.total).toBe(51);
+  expect(firstPage.nextOffset).toBe(20);
+  expect(store.requirementsSearch(workspace.id, '', 20, 0, 20).results[0].id).toBe('BR-021');
+  expect(() => store.requirementsSearch(workspace.id, '', 20, undefined, 20)).toThrow();
+  expect(() => store.requirementsSearch(workspace.id, '', 20, 1, 20)).toThrow(/Revision conflict/);
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -1591,6 +1597,15 @@ test('inspector pages through explicit linked requirements', async ({ page, isMo
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const explorer = page.locator('details.studio-requirement-explorer');
+    await explorer.getByText('Requirements', { exact: true }).click();
+    await explorer.getByRole('button', { name: 'Find requirements' }).click();
+    await expect(explorer).toContainText('Showing 20 of 51 matching requirements.');
+    await explorer.getByRole('button', { name: 'Load more requirements' }).click();
+    await expect(explorer).toContainText('Showing 40 of 51 matching requirements.');
+    await explorer.getByRole('button', { name: 'Load more requirements' }).click();
+    await expect(explorer).toContainText('Showing 51 of 51 matching requirements.');
+    await expect(explorer.getByRole('button', { name: 'Load more requirements' })).toHaveCount(0);
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();

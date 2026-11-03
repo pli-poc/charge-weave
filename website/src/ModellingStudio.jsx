@@ -66,16 +66,16 @@ function RequirementExplorer({ connection, snapshot, selected, available, canLin
     return () => controller.current?.abort();
   }, [connection, snapshot.revision, snapshot.sourceDigest]);
   const current = result && result.workspaceId === snapshot.workspaceId && result.revision === snapshot.revision && result.sourceDigest === snapshot.sourceDigest && result.query === query;
-  async function search(event) {
-    event.preventDefault();
+  async function search(event, offset = 0) {
+    event?.preventDefault();
     const sequence = ++request.current;
     controller.current?.abort();
     const abort = new AbortController(); controller.current = abort;
-    setPending(true); setResult(null); setFailure('');
+    setPending(true); if (!offset) setResult(null); setFailure('');
     try {
-      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_requirement_search', arguments: { workspaceId: snapshot.workspaceId, expectedRevision: snapshot.revision, query, limit: 20 } }, abort.signal);
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_requirement_search', arguments: { workspaceId: snapshot.workspaceId, expectedRevision: snapshot.revision, query, limit: 20, offset } }, abort.signal);
       const value = response.structuredContent;
-      if (!abort.signal.aborted && sequence === request.current && value.workspaceId === snapshot.workspaceId && value.revision === snapshot.revision && value.sourceDigest === snapshot.sourceDigest) setResult({ ...value, query });
+      if (!abort.signal.aborted && sequence === request.current && value.workspaceId === snapshot.workspaceId && value.revision === snapshot.revision && value.sourceDigest === snapshot.sourceDigest) setResult(previous => offset ? previous && previous.query === query && previous.revision === value.revision && previous.sourceDigest === value.sourceDigest && previous.nextOffset === offset ? { ...value, query, results: [...previous.results, ...value.results] } : previous : { ...value, query });
     } catch (problem) { if (!abort.signal.aborted && sequence === request.current) setFailure(problem.message); }
     finally { if (!abort.signal.aborted && sequence === request.current) setPending(false); }
   }
@@ -83,7 +83,7 @@ function RequirementExplorer({ connection, snapshot, selected, available, canLin
     <p>Search the existing requirement register. A recorded link does not establish coverage or acceptance.</p>
     {!available || snapshot.digestVersion !== 4 ? <p>Requirement search is unavailable for this workspace or connection.</p> : <><form onSubmit={search}><label>Find requirements <input value={query} maxLength={200} onChange={event => { request.current += 1; controller.current?.abort(); setPending(false); setFailure(''); setQuery(event.target.value); }} /></label><button type="submit" disabled={pending}>Find requirements</button></form>
       {pending && <p role="status">Searching requirements…</p>}{failure && <p role="status">Requirement search unavailable: {failure}</p>}
-      {current && <><p aria-live="polite">{result.results.length} matches shown; search returns up to 20. Refine the query to explore further.</p>{!canLink && <p>Linking is unavailable for this workspace, role or change-set state.</p>}{result.results.length ? <ul>{result.results.map(item => <li key={item.id}><strong>{item.id}</strong><p>{item.statement}</p><p>Linked concepts: {item.classes.length ? item.classes.join(', ') : 'none recorded'}.</p>{item.classes.map(name => <button key={name} type="button" onClick={() => onInspect(name)}>Inspect {name}</button>)}<button type="button" disabled={!canLink || !selected || commandPending || item.classes.includes(selected.name)} onClick={() => onLink(item)}>{selected && item.classes.includes(selected.name) ? `Linked to ${selected.name}` : selected ? `Link ${selected.name}` : 'Select a concept to link'}</button></li>)}</ul> : <p>No requirements match this search.</p>}</>}
+      {current && <><p aria-live="polite">Showing {result.results.length} of {result.total} matching requirements.</p>{!canLink && <p>Linking is unavailable for this workspace, role or change-set state.</p>}{result.results.length ? <ul>{result.results.map(item => <li key={item.id}><strong>{item.id}</strong><p>{item.statement}</p><p>Linked concepts: {item.classes.length ? item.classes.join(', ') : 'none recorded'}.</p>{item.classes.map(name => <button key={name} type="button" onClick={() => onInspect(name)}>Inspect {name}</button>)}<button type="button" disabled={!canLink || !selected || commandPending || item.classes.includes(selected.name)} onClick={() => onLink(item)}>{selected && item.classes.includes(selected.name) ? `Linked to ${selected.name}` : selected ? `Link ${selected.name}` : 'Select a concept to link'}</button></li>)}</ul> : <p>No requirements match this search.</p>}{result.nextOffset != null && <button type="button" disabled={pending} onClick={() => search(null, result.nextOffset)}>Load more requirements</button>}</>}
     </>}
   </details>;
 }
