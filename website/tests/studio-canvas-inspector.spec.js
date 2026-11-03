@@ -22,10 +22,26 @@ test('diagram selection opens the inspector without changing the view or discard
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     const canvas = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(canvas).toHaveAttribute('data-layout', 'ready');
-    await canvas.locator('.react-flow__node[data-id="Record"]').click();
     const inspector = page.locator('#studio-inspector-pane');
+    await page.getByRole('button', { name: 'Show inspector' }).click();
+    await expect(inspector.getByText('https://example.org/charge-domain#Device', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Hide inspector' }).click();
+    let releaseRecord;
+    const gate = new Promise(resolve => { releaseRecord = resolve; });
+    const delayRecord = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_entity_get' && params.arguments?.name === 'Record') await gate;
+      await route.continue();
+    };
+    await page.route('**/mcp', delayRecord);
+    await canvas.locator('.react-flow__node[data-id="Record"]').click();
     await expect(inspector).toBeVisible();
     await expect(inspector.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(inspector.getByRole('status').filter({ hasText: 'Loading Record details' })).toBeVisible();
+    await expect(inspector.getByText('https://example.org/charge-domain#Device', { exact: true })).toHaveCount(0);
+    releaseRecord();
+    await expect(inspector.getByText('https://example.org/charge-domain#Record', { exact: true })).toBeVisible();
+    await page.unroute('**/mcp', delayRecord);
     await expect(canvas).toBeVisible();
     await inspector.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied record definition.');
     await canvas.locator('.react-flow__node[data-id="Device"]').click();
