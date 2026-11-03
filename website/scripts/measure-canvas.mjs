@@ -41,6 +41,27 @@ try {
     await page.waitForFunction(n => document.querySelectorAll('.react-flow__edge').length >= n && document.querySelector('.studio-flow')?.dataset.layout === 'ready', outgoing + 40 + i * 20);
     expansions.push(performance.now() - start);
   }
+  const graphRegion = page.getByRole('region', { name: 'Relationships for Record' });
+  await graphRegion.getByText('Layout', { exact: true }).click();
+  await page.evaluate(() => {
+    const flow = document.querySelector('.studio-flow');
+    const button = [...flow.querySelectorAll('button')].find(element => element.textContent === 'Arrange visible concepts');
+    const input = document.querySelector('input[aria-label="Search model"]') || [...document.querySelectorAll('label')].find(element => element.textContent.includes('Search model'))?.querySelector('input');
+    if (!button || !input) throw new Error('Layout or search control unavailable');
+    const trace = window.layoutTrace = { states: [], input: null, start: null };
+    const observer = new MutationObserver(() => trace.states.push({ state: flow.dataset.layout, at: performance.now() }));
+    observer.observe(flow, { attributes: true, attributeFilter: ['data-layout'] });
+    button.addEventListener('click', () => { trace.start = performance.now(); }, { capture: true, once: true });
+    input.addEventListener('input', () => { trace.input = { at: performance.now(), layout: flow.dataset.layout }; }, { once: true });
+    window.finishLayoutTrace = () => { observer.disconnect(); return trace; };
+  });
+  await graphRegion.getByRole('button', { name: 'Arrange visible concepts' }).click();
+  await page.getByLabel('Search model').fill('Synthetic149');
+  await page.waitForFunction(() => document.querySelector('.studio-flow')?.dataset.layout === 'ready');
+  const layoutTrace = await page.evaluate(() => window.finishLayoutTrace());
+  const pending = layoutTrace.states.find(item => item.state === 'pending');
+  const ready = layoutTrace.states.find(item => item.state === 'ready' && item.at >= (pending?.at ?? Infinity));
+  const layoutInteraction = { pendingObserved: Boolean(pending), inputDuringLayout: layoutTrace.input?.layout === 'pending', inputDelayMs: layoutTrace.input && layoutTrace.start != null ? layoutTrace.input.at - layoutTrace.start : null, readyDelayMs: ready && layoutTrace.start != null ? ready.at - layoutTrace.start : null };
   const canvas = page.locator('.react-flow__pane');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Canvas is not visible');
@@ -60,5 +81,5 @@ try {
   if (viewportBefore === viewportAfter) throw new Error('The synthetic pan did not move the viewport');
   const frames = await page.evaluate(() => { cancelAnimationFrame(window.measureFrame); return window.measureFrames; });
   frames.sort((a, b) => a - b);
-  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), viewport: '1280x800', graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count(), incomingExpansionMs: expansions, frameSamples: frames.length, frameP95Ms: frames[Math.ceil(frames.length * 0.95) - 1], slowFramesOver22ms: frames.filter(ms => ms > 1000 / 45).length, scope: `Synthetic ${typical ? 'typical' : 'stress'} bounded neighbourhood in built app, headless Chromium; expansion includes server reads and DOM rendering. Pan frame intervals are an approximation, not physical-display frame rate. Single run.` }));
+  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), viewport: '1280x800', graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count(), incomingExpansionMs: expansions, layoutInteraction, frameSamples: frames.length, frameP95Ms: frames[Math.ceil(frames.length * 0.95) - 1], slowFramesOver22ms: frames.filter(ms => ms > 1000 / 45).length, scope: `Synthetic ${typical ? 'typical' : 'stress'} bounded neighbourhood in built app, headless Chromium; expansion includes server reads and DOM rendering. Layout input delay includes Playwright action overhead; pan frame intervals are an approximation, not physical-display frame rate. Single run.` }));
 } finally { await page.close(); await browser.close(); await service.shutdown(); store.close(); }
