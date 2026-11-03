@@ -76,6 +76,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
+  const [relationshipQuery, setRelationshipQuery] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
   const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
@@ -112,11 +113,14 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
   const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null), relationshipFocusTrigger = useRef(null);
   const relationshipFocusHint = useId();
+  const relationshipSearchStatus = useId();
+  const relationshipSearchInput = useRef(null);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
   const activeNodes = useMemo(() => graph.nodes.filter(node => !hiddenNodes.has(node.name) || node.name === graph.root || node.name === selectedName), [graph.nodes, graph.root, selectedName, hiddenNodes]);
   const visibleNames = useMemo(() => new Set(activeNodes.map(node => node.name)), [activeNodes]);
   const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
+  useEffect(() => { setRelationshipQuery(''); }, [graph.workspaceId, graph.root, viewId]);
   const frameRoot = useCallback(root => {
     if (!instance.current || lastRoot.current !== root) return false;
     const saved = readCanvasViewport(sessionStorage, graph.workspaceId, viewId, root);
@@ -220,6 +224,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     });
   }, [visibleNames]);
   const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
+  const matchingRelationships = useMemo(() => {
+    const term = relationshipQuery.trim().toLowerCase();
+    return term ? activeEdges.filter(edge => `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)) : activeEdges;
+  }, [activeEdges, relationshipQuery]);
+  const retainedRelationship = selectedEdge && !matchingRelationships.some(edge => edge.id === selectedEdge.id) ? selectedEdge : null;
   const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${selectedEdge && (node.id === selectedEdge.source || node.id === selectedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, selectedEdge]);
   const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
@@ -597,7 +606,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
     {activeEdges.length > 0 && <div className="studio-canvas-line-legend" aria-label="Diagram relationship line styles"><span><i aria-hidden="true" /> Relationship</span><span><i className="studio-canvas-line-inheritance" aria-hidden="true" /> Inheritance (subClassOf)</span><span>Arrows point to the target.</span></div>}
     {viewGroups.length > 0 && <section className="studio-canvas-groups" aria-label="Diagram groups"><h3>Diagram groups</h3><p>Groups organize this view only; they do not add ontology relationships.</p><ul>{viewGroups.map((group, index) => <li key={`${index}-${group.name}`}><strong>{group.name}</strong> · {new Set(group.members.filter(name => visibleNames.has(name))).size} of {new Set(group.members).size} concepts shown<ul>{[...new Set(group.members)].map(name => <li key={name}>{name}{!visibleNames.has(name) ? ' — not shown' : ''}</li>)}</ul><button type="button" disabled={!groupsEditable || !onRemoveGroup || layoutState === 'pending'} onClick={() => removeViewGroup(index, group)}>Remove {group.name} from view</button></li>)}</ul></section>}
-    {activeEdges.length > 0 && <div className="studio-canvas-edge-picker"><label>Inspect relationship <select value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{activeEdges.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label></div>}
+    {activeEdges.length > 0 && <div className="studio-canvas-edge-picker">
+      <label>Find visible relationships <input ref={relationshipSearchInput} type="search" value={relationshipQuery} maxLength={200} onChange={event => { onManualInteraction(); setRelationshipQuery(event.target.value); }} /></label>
+      {relationshipQuery && <button type="button" onClick={() => { setRelationshipQuery(''); relationshipSearchInput.current?.focus(); }}>Clear relationship search</button>}
+      <p id={relationshipSearchStatus} aria-live="polite">Showing {matchingRelationships.length} of {activeEdges.length} visible relationships. Unloaded and hidden relationships are excluded.{retainedRelationship && ' The inspected relationship remains available outside these results.'}</p>
+      <label>Inspect relationship <select aria-describedby={relationshipSearchStatus} value={selectedEdge?.id ?? ''} onChange={event => inspectEdge(event.target.value)}><option value="">Choose a visible relationship</option>{retainedRelationship && <option value={retainedRelationship.id}>{retainedRelationship.source} — {retainedRelationship.predicate} → {retainedRelationship.target} (currently inspected)</option>}{matchingRelationships.map(edge => <option key={edge.id} value={edge.id}>{edge.source} — {edge.predicate} → {edge.target}</option>)}</select></label>
+    </div>}
     {selectedEdge && <section className="studio-canvas-edge-details" aria-label="Relationship details" aria-live="polite">
       <h3>{selectedEdge.predicate === 'subClassOf' ? 'Inheritance' : 'Relationship'}: {selectedEdge.predicate}</h3>
       <p><strong>Direction:</strong> {selectedEdge.source} → {selectedEdge.target}</p>

@@ -941,6 +941,12 @@ test('command palette supports keyboard search, execution and dismissal', async 
     await expect(palette.getByText('No matching commands.')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(trigger).toBeFocused();
+    if (page.viewportSize().width >= 1000) {
+      await trigger.click();
+      await palette.getByRole('combobox').fill('focus diagram');
+      await page.keyboard.press('Enter');
+      await expect(page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Diagram view' })).toBeFocused();
+    }
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

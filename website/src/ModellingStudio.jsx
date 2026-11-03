@@ -686,7 +686,10 @@ export default function ModellingStudio() {
       if (document.activeElement !== previousFocus && document.activeElement !== document.body) return;
       const pane = document.getElementById(id);
       pane?.scrollIntoView({ block: 'start' });
-      pane?.querySelector('h2')?.focus({ preventScroll: true });
+      const target = id === 'studio-editor-pane' && window.matchMedia('(min-width: 1000px)').matches
+        ? pane?.querySelector('.studio-document-tabs button[aria-controls="studio-diagram-document"]')
+        : pane?.querySelector('h2');
+      target?.focus({ preventScroll: true });
     });
   }
   function invalidateReadiness() {

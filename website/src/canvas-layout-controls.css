@@ -72,8 +72,10 @@ html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canva
 .studio-canvas-line-legend span { display: inline-flex; align-items: center; gap: .35rem; }
 .studio-canvas-line-legend i { display: inline-block; width: 1.6rem; border-top: 2px solid currentColor; }
 .studio-canvas-line-legend i.studio-canvas-line-inheritance { border-top-style: dashed; }
-.studio-canvas-edge-picker { margin: .75rem 0; }
-.studio-canvas-edge-picker select { max-width: 100%; }
+.studio-canvas-edge-picker { display: grid; gap: .4rem; margin: .75rem 0; }
+.modelling-studio .studio-canvas-edge-picker :is(input, select) { width: 100%; min-width: 0; max-width: 100%; }
+.studio-canvas-edge-picker button { justify-self: start; }
+.studio-canvas-edge-picker p { margin: 0; font-size: .8rem; }
 .modelling-studio .studio-canvas-edge-details { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
 .studio-canvas-edge-details h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
 .studio-canvas-edge-details p { overflow-wrap: anywhere; }
