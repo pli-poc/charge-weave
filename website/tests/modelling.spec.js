@@ -2277,6 +2277,8 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await expect(page.locator('#studio-editor-pane')).toBeHidden();
     await navigation.getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
+    await expect(page.locator('.studio-compact-relationships')).not.toHaveAttribute('open', '');
+    await page.getByText('Relationship list (2)', { exact: true }).click();
     const list = page.getByRole('region', { name: 'Relationship list for Device' });
     const graph = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(list).toBeVisible();
@@ -2312,7 +2314,7 @@ test('mobile relationship list remains usable without horizontal page scrolling'
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('relationship list moves before the canvas at phone width', async ({ page, isMobile }) => {
+test('compact layout retains the relationship list and diagram on resize', async ({ page, isMobile }) => {
   test.skip(isMobile, 'This checks a desktop-to-phone viewport transition.');
   await page.setViewportSize({ width: 1440, height: 900 });
   const store = new WorkspaceStore(':memory:');
@@ -2330,9 +2332,11 @@ test('relationship list moves before the canvas at phone width', async ({ page, 
     await expect(canvas).toBeVisible();
     await expect(list).toBeVisible();
     expect(await canvas.evaluate((element, other) => Boolean(element.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING), await list.elementHandle())).toBe(true);
+    await canvas.evaluate(element => { window.__testCanvasBeforeResize = element; });
     await page.getByRole('button', { name: 'Hide navigator' }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect.poll(() => page.evaluate(() => Boolean(document.querySelector('.studio-relationship-list').compareDocumentPosition(document.querySelector('.studio-flow')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    expect(await page.evaluate(() => document.querySelector('.studio-flow') === window.__testCanvasBeforeResize)).toBe(true);
     await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(canvas).toBeVisible();
     await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model', exact: true }).click();
@@ -2452,6 +2456,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('temporal');
+    if (isMobile) await page.locator('.studio-compact-relationships > summary').click();
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
     await page.getByLabel('Filter graph relationships').fill('exceptionWindow');
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
@@ -2797,6 +2802,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await surface('Diagram');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');
+    if (isMobile) await page.locator('.studio-compact-relationships > summary').click();
     await expect(page.getByText('subClassOf →', { exact: true })).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await surface('Inspector');
