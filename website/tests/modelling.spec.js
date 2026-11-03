@@ -14,6 +14,67 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+async function openDraftContext(page) {
+  const context = page.locator('details.studio-context-tools');
+  if (await context.evaluate(element => element.open)) return;
+  const menu = page.locator('.studio-tools-menu');
+  if (!await menu.evaluate(element => element.open)) await page.getByText('More', { exact: true }).click();
+  await page.getByRole('button', { name: 'Draft context and history' }).click();
+  await expect(context).toHaveJSProperty('open', true);
+}
+
+async function closeDraftContext(page) {
+  const context = page.locator('details.studio-context-tools');
+  if (await context.evaluate(element => element.open)) await context.locator(':scope > summary').click({ force: true });
+}
+
+async function openConnectionTools(page) {
+  await page.getByText('More', { exact: true }).click();
+  await page.getByRole('button', { name: 'Connection and diagnostics' }).click();
+  await expect(page.locator('details.studio-connection-tools')).toHaveAttribute('open', '');
+}
+
+test('secondary draft context and connection settings stay out of the default workspace', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Workspace disclosure', baselineCommit: 'a'.repeat(40), schema: readFileSync(fileURLToPath(new URL('../../model/domain.schema', import.meta.url)), 'utf8') });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.locator('.studio-workspace').waitFor();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    if (!isMobile) {
+      const layout = await page.evaluate(() => ({
+        viewportHeight: window.innerHeight,
+        documentHeight: document.documentElement.scrollHeight,
+        studioHeight: document.querySelector('.modelling-studio').getBoundingClientRect().height,
+        navigatorOverflows: document.querySelector('#studio-navigator-pane').scrollHeight > document.querySelector('#studio-navigator-pane').clientHeight,
+      }));
+      expect(layout.studioHeight).toBe(layout.viewportHeight);
+      expect(layout.documentHeight).toBeLessThanOrEqual(layout.viewportHeight + 1);
+      expect(layout.navigatorOverflows).toBe(true);
+    }
+    const context = page.locator('details.studio-workspace-details').filter({ has: page.getByText('Change set', { exact: true }) });
+    await expect(context).not.toHaveAttribute('open', '');
+    await expect(context.getByText('Change set', { exact: true })).toBeHidden();
+    await page.getByText('More', { exact: true }).click();
+    await page.getByRole('button', { name: 'Draft context and history' }).click();
+    await expect(context).toHaveAttribute('open', '');
+    await expect(context.getByText('Change set', { exact: true })).toBeVisible();
+    await expect(context.getByText('Requirement links', { exact: true })).toBeVisible();
+    await context.locator('summary').click();
+    const connection = page.locator('details.studio-workspace-details').filter({ hasText: 'Connection and diagnostics' });
+    await expect(connection).not.toHaveAttribute('open', '');
+    await page.getByText('More', { exact: true }).click();
+    await page.getByRole('button', { name: 'Connection and diagnostics' }).click();
+    await expect(connection).toHaveAttribute('open', '');
+    await expect(connection.getByRole('region', { name: 'Connection settings' })).toBeVisible();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('reveal locates a selected concept beyond the first explorer page', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const schema = 'MODULE|assets\nRecord|root|A record.|\n' + Array.from({ length: 80 }, (_, i) => `Asset${String(i).padStart(3, '0')}|Record|An asset.|`).join('\n') + '\n';
@@ -658,10 +719,12 @@ test('disconnecting warns about an unfinished concept', async ({ page, isMobile 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByText('Add a concept', { exact: true }).click();
     await page.getByLabel('Class name').fill('UnfinishedConcept');
+    await page.getByText('More', { exact: true }).click();
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await expect(page.getByLabel('Class name')).toHaveValue('UnfinishedConcept');
+    await page.getByText('More', { exact: true }).click();
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await page.getByRole('button', { name: 'Discard and disconnect' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Disconnected');
@@ -769,6 +832,7 @@ test('concept creation offers existing modules and validates its definition', as
       await expect(page.getByLabel('Reason for next edit (optional)')).toBeDisabled();
       await expect(page.getByText('Saving model change…')).toBeVisible();
       await expect(page.getByLabel('Current workspace')).toBeDisabled();
+      await page.getByText('More', { exact: true }).click();
       await expect(page.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
       if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
       await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Asset001', exact: true }).click();
@@ -901,6 +965,7 @@ test('switching concepts preserves an unapplied definition until the modeller de
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(definition).toHaveValue('An unsaved definition.');
+    await page.getByText('More', { exact: true }).click();
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Discard and disconnect' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
@@ -1362,6 +1427,7 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'PlannedServiceWindow', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByLabel('Search requirements').fill('BR-012');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.getByText('Add interval rule for BR-012').click();
@@ -1369,14 +1435,17 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
     await page.getByLabel('New rule ID').fill('B900');
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await expect(page.getByLabel('New rule ID')).toHaveValue('B900');
+    await openDraftContext(page);
     let releaseRule, interceptedRule;
     const ruleGate = new Promise(resolve => { releaseRule = resolve; });
     const ruleIntercepted = new Promise(resolve => { interceptedRule = resolve; });
@@ -1394,8 +1463,11 @@ test('browser authors an interval rule with draft cases and source patches', asy
       await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 2');
     } finally { releaseRule(); await page.unroute('**/mcp', delayRule); }
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 2');
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
-    await page.getByRole('button', { name: 'Inspect changes' }).click();
+    else await page.getByRole('button', { name: 'Inspect changes' }).click();
+    if (!isMobile) await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Changes', exact: true }).click();
+    else await page.getByRole('navigation', { name: 'Editor documents' }).getByRole('button', { name: 'Changes', exact: true }).click();
     await expect(page.getByText('Source patch: model/audit-rules.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/negative-cases.json')).toBeVisible();
     await expect(page.getByText('Source patch: tests/business-acceptance.json')).toBeVisible();
@@ -1540,6 +1612,7 @@ test('reviewer opens a simulated draft pull request for a recorded branch', asyn
     await expect(page.getByRole('link', { name: 'Pull request #77' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Pull request #77' })).toHaveAttribute('href', 'https://github.com/pli-poc/charge-weave/pull/77');
     expect(store.publication(workspace.id, intent.id).state).toBe('pr_created');
+    await page.getByText('More', { exact: true }).click();
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await page.getByText('Advanced connection with workspace ID and token').click();
     await page.getByLabel('Workspace ID').fill(workspace.id);
@@ -1603,8 +1676,10 @@ test('browser updates a field with a visible compatibility warning', async ({ pa
     expect(store.get(workspace.id).schema).toContain('peer:Record!');
     store.suggestView(workspace.id, { actor: 'codex', operationId: 'suggest-device', expectedRevision: 2, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device.' });
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
-    await expect(page.getByText('Inspect the device.')).toBeVisible();
+    await openDraftContext(page);
+    await expect(page.getByRole('region', { name: 'Recent activity' }).getByText('Inspect the device.')).toBeVisible();
     await page.getByRole('button', { name: 'Focus Device' }).click();
+    await closeDraftContext(page);
     if (isMobile) {
       await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
@@ -1677,6 +1752,7 @@ test('concept context can be previewed and copied for the current draft', async 
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByText(/Latest structural operation: failed/)).toBeVisible();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
@@ -2103,6 +2179,8 @@ test('undo identifies the author and refuses a newer draft', async ({ page, isMo
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
+    await openDraftContext(page);
     const undo = page.getByRole('button', { name: 'Undo latest command group' });
     await undo.click();
     const confirmation = page.getByRole('region', { name: 'Confirm undo' });
@@ -2180,8 +2258,10 @@ test('following suggestions pauses for manual work and resumes for new events', 
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByLabel('Follow new changes and suggestions').check();
     await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
+    await closeDraftContext(page);
     suggest('first-suggestion', 'Device');
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Device');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
@@ -2189,39 +2269,51 @@ test('following suggestions pauses for manual work and resumes for new events', 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').focus();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await expect(page.getByText('Following paused after interaction.')).toBeVisible();
     suggest('paused-suggestion', 'Record');
-    await expect(page.getByText('paused-suggestion', { exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Recent activity' }).getByText('paused-suggestion', { exact: true })).toBeVisible();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Resume following' }).click();
     await expect(page.getByText('Following new changes and suggestions.', { exact: true })).toBeVisible();
     suggest('resumed-suggestion', 'Record');
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Record');
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByLabel('Follow new changes and suggestions').uncheck();
     suggest('disabled-suggestion', 'Device');
-    await expect(page.getByText('disabled-suggestion', { exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Recent activity' }).getByText('disabled-suggestion', { exact: true })).toBeVisible();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByLabel('Follow new changes and suggestions').check();
     store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'add-planned-window', expectedRevision: 0, commands: [{ type: 'class.add', name: 'PlannedWindow', module: 'foundation', parent: 'Record', definition: 'A planned window.' }] });
     await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: PlannedWindow');
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'PlannedWindow', exact: true })).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
-    await expect(page.getByText(/Latest change: codex updated PlannedWindow/)).toBeVisible();
+    await openDraftContext(page);
+    await expect(page.locator('.studio-context-tools').getByText(/Latest change: codex updated PlannedWindow/)).toBeVisible();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Record', exact: true }).first().click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Show latest change' }).click();
+    await closeDraftContext(page);
     if (isMobile) {
       await expect(page.getByRole('region', { name: 'Relationships for PlannedWindow' })).toBeVisible();
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
@@ -2507,18 +2599,22 @@ test('browser maps an existing responsibility relationship without inventing one
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await page.getByText('Map an existing responsibility relationship').click();
     await page.getByLabel('Declared object relationship').selectOption('owner');
     await page.getByLabel('Responsibility label').fill('Accountable party');
     expect(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; })).toBe(true);
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Record', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await expect(page.getByLabel('Responsibility label')).toHaveValue('Accountable party');
     let releaseMapping, interceptedMapping;
     const mappingGate = new Promise(resolve => { releaseMapping = resolve; });
@@ -2565,7 +2661,7 @@ test('browser maps an existing responsibility relationship without inventing one
 
 test('browser inspects the pinned temporal policy and explicit time fields', async ({ page, isMobile }) => {
   test.setTimeout(90000);
-  const surface = async name => { if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); };
+  const surface = async name => { if (isMobile) { await closeDraftContext(page); await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); } };
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
@@ -2583,18 +2679,22 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'TimeWindow', exact: true }).first().click();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByText('Class policy: snapshot-versioned')).toBeVisible();
     await expect(page.getByText(/Policy source: model\/temporal-policy\.json/)).toBeVisible();
     await expect(page.getByText(/Model revision 0; policy from baseline/)).toContainText(commit);
     await expect(page.getByRole('heading', { name: 'Explicit time fields and window references' })).toBeVisible();
+    await closeDraftContext(page);
     await surface('Model');
     await page.getByLabel('Search model').fill('RecurringWindow');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'RecurringWindow', exact: true }).first().click();
     await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await closeDraftContext(page);
     await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('temporal');
     if (isMobile && !await page.locator('.studio-compact-relationships').evaluate(element => element.open)) await page.locator('.studio-compact-relationships > summary').click();
@@ -2610,18 +2710,20 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByLabel('Graph viewpoint')).toHaveValue('temporal');
     await expect(page.getByLabel('Filter graph relationships')).toHaveValue('exceptionWindow');
     await surface('Results');
-    await page.getByRole('button', { name: 'Inspect TimeWindow' }).click();
-    if (isMobile) await expect(page.getByRole('region', { name: 'Relationships for TimeWindow' })).toBeVisible();
-    await surface('Inspector');
-    await expect(page.getByRole('heading', { name: 'TimeWindow', exact: true })).toBeVisible();
+    await openDraftContext(page);
+    await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
+    await expect(page.getByRole('heading', { name: 'Explicit time fields and window references' })).toBeVisible();
+    await closeDraftContext(page);
     await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('information');
     await page.getByLabel('Filter graph relationships').fill('');
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText('No responsibility binding defined in this mapping.')).toBeVisible();
     await page.getByRole('button', { name: 'Add a field or relationship', exact: true }).click();
     await expect(page.getByLabel('Field name')).toBeVisible();
+    await closeDraftContext(page);
     await surface('Model');
     await page.getByLabel('Search model').fill('ChargingStation');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
@@ -2635,6 +2737,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByLabel('Graph viewpoint').selectOption('information');
     await page.getByLabel('Filter graph relationships').fill('');
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByText('Asset owner', { exact: true })).toBeVisible();
     await expect(page.getByText(/Asset owner: assetOwner → LegalEntity/)).toBeVisible();
@@ -2670,6 +2773,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByText(/Changes requested · revision 1 · local-reviewer · stale/)).toBeVisible();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByLabel('Search requirements').fill('BR-001');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.locator('li').filter({ hasText: 'BR-001' }).getByRole('button', { name: 'Link selected concept' }).click();
@@ -2686,6 +2790,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect changes' }).click();
     await expect(page.getByText('Source patch: requirements/business-requirements.json')).toBeVisible();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByLabel('Set explicit temporal policy')).toBeVisible();
     let releaseTemporal, interceptedTemporal;
@@ -2712,6 +2817,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await expect(page.getByRole('dialog', { name: 'Unapplied edits' })).toBeVisible();
     await page.getByRole('button', { name: 'Stay and keep editing' }).click();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await expect(page.getByRole('alert')).toContainText('Apply or discard the temporal policy edit');
     await expect(page.getByLabel('Set explicit temporal policy')).toHaveValue('immutable-aggregate');
@@ -2790,6 +2896,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied text to discard.');
+    await closeDraftContext(page);
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
     await expect(problems.getByText('Synthetic fixture missing-station: target PlannedMaintenanceWindow.maintenanceStation.')).toBeVisible();
@@ -2842,7 +2949,7 @@ for (const denied of ['events', 'mcp']) test(`browser stops reconnecting when ${
 });
 
 test('browser discovers and edits the shared MCP workspace', async ({ page, isMobile }) => {
-  const surface = async name => { if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); };
+  const surface = async name => { if (isMobile) { await closeDraftContext(page); await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name, exact: true }).click(); } };
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Browser test', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string!\n' });
   const token = 'test-token-'.repeat(4);
@@ -2865,6 +2972,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await page.reload();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 0');
     await surface('Results');
+    await openDraftContext(page);
     await page.getByLabel('Change-set intent').fill('Clarify and extend the record.');
     await page.getByRole('button', { name: 'Open change set' }).click();
     await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
@@ -2876,6 +2984,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
       await expect(page.getByRole('heading', { name: 'Inspector', exact: true })).not.toBeVisible();
       await page.getByRole('button', { name: 'Show inspector' }).click();
     }
+    await openConnectionTools(page);
     await page.getByText('Connection diagnostics').click();
     await expect(page.getByText(/negotiated MCP protocol:/)).toContainText('2025-06-18');
     await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: text => { window.copiedDiagnostics = text; return Promise.resolve(); } } }); });
@@ -2890,6 +2999,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     expect(connectionDetails).toContain(workspace.id);
     expect(connectionDetails).toContain('<your draft token>');
     expect(connectionDetails).not.toContain(token);
+    await page.locator('details.studio-connection-tools[open] > summary').click({ force: true });
     await surface('Diagram');
     await page.getByRole('button', { name: 'Run structural generator' }).click();
     await expect(page.getByText('tools/build.py: passed')).toBeVisible();
@@ -2902,9 +3012,12 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     expect(report.steps).toEqual([{ checkName: 'tools/build.py', status: 'passed' }]);
     await surface('Diagram');
     await page.getByRole('button', { name: 'Run reference checks' }).click();
+    await page.getByRole('button', { name: 'View check details' }).click();
     await surface('Results');
+    await openDraftContext(page);
     await expect(page.getByRole('heading', { name: 'Generated artifact comparison' })).toBeVisible();
     await expect(page.getByText('changed: ontology/example.ttl')).toBeVisible();
+    await closeDraftContext(page);
     await surface('Model');
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
@@ -2917,7 +3030,9 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
     await surface('Results');
-    await expect(page.getByText('Reason: Clarify the definition.')).toBeVisible();
+    await openDraftContext(page);
+    await expect(page.locator('.studio-context-tools').getByText('Reason: Clarify the definition.', { exact: true })).toBeVisible();
+    await closeDraftContext(page);
     await surface('Diagram');
     await expect(page.getByLabel('Reason for next edit (optional)')).toHaveValue('');
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('An edited record.');
@@ -2969,12 +3084,13 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 3');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('windowNote:string?');
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Undo latest command group' }).click();
     await page.getByRole('button', { name: 'Confirm undo revision 3' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 4');
     expect(store.search(workspace.id, 'MaintenanceWindow').results[0].fields).toBe('');
     await expect(page.getByText(/undid revision 3/)).toBeVisible();
-    await page.getByRole('button', { name: 'Inspect revision 1', exact: true }).click();
+    await page.getByRole('region', { name: 'Recent activity' }).getByRole('button', { name: 'Inspect revision 1', exact: true }).click();
     const historical = page.getByRole('region', { name: 'Historical comparison' });
     await expect(historical.getByText('Historical revision 1')).toBeVisible();
     await expect(historical.locator('pre').first()).toContainText('+Record|root|An edited record.');
@@ -3004,14 +3120,17 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await historical.getByRole('button', { name: 'Return to current draft' }).click();
     await expect(historical).toHaveCount(0);
+    await surface('Diagram');
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await page.getByLabel('Decision').selectOption('reject');
     await page.getByLabel('Reason', { exact: true }).fill('The proposal needs revision.');
     await page.getByRole('button', { name: 'Record reviewer decision' }).click();
     await surface('Results');
+    await openDraftContext(page);
     await expect(page.getByText(/Clarify and extend the record. · rejected/)).toBeVisible();
     await page.getByRole('button', { name: 'Reopen change set' }).click();
     await expect(page.getByText(/Clarify and extend the record. · draft/)).toBeVisible();
+    await closeDraftContext(page);
     await surface('Model');
     await page.route('**/events?**', route => route.abort());
     await page.route('**/mcp', route => route.abort());
@@ -3036,6 +3155,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByText('Updated while the studio was offline.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeEnabled();
+    await page.getByText('More', { exact: true }).click();
     await page.getByRole('button', { name: 'Disconnect' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Disconnected');
     expect((await page.context().cookies()).some(cookie => cookie.name === 'cw_studio')).toBe(false);

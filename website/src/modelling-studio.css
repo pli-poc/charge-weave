@@ -124,6 +124,10 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .modelling-studio .studio-graph .studio-canvas-edge-details :is(h3, p, strong, small) { color: var(--studio-text); }
 .modelling-studio .studio-graph .studio-canvas-edge-details :is(button, input, select, textarea, summary, a):focus-visible { outline-color: var(--studio-focus); }
 .studio-activity { margin-top: 1rem; padding: 1rem; min-width: 0; overflow-wrap: anywhere; border: 1px solid #b8c5cc; border-radius: .5rem; }
+.studio-workspace-details { margin-top: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .5rem; background: var(--studio-panel); color: var(--studio-text); }
+.studio-workspace-details > summary { min-height: 2.75rem; padding: .65rem .9rem; color: var(--studio-muted); cursor: pointer; font-weight: 600; }
+.studio-workspace-details[open] > summary { border-bottom: 1px solid var(--studio-strong-border); color: var(--studio-text); }
+.studio-workspace-details > :not(summary) { margin-inline: .75rem; }
 .studio-review-workflow ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .75rem; padding: 0; list-style: none; counter-reset: review-step; }
 .studio-review-workflow li { display: grid; align-content: start; gap: .45rem; padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; counter-increment: review-step; }
 .studio-review-workflow li strong::before { content: counter(review-step) '. '; color: var(--studio-accent-text); }
@@ -423,7 +427,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-workspace[data-compact-surface="inspector"] .studio-panels > #studio-navigator-pane,
   .studio-workspace[data-compact-surface="inspector"] .studio-panels > #studio-editor-pane,
   .studio-workspace[data-compact-surface="results"] .studio-panels,
-  .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none; }
+  .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none !important; visibility: hidden; pointer-events: none; }
   .studio-panels > section { scroll-margin-top: 4rem; }
   .modelling-studio :is(button, input, select, textarea, summary, a) { scroll-margin-block: 5rem 4.5rem; }
   #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 4.5rem; }
@@ -469,6 +473,42 @@ html[data-studio-density="compact"] .modelling-studio .studio-panels > section {
 html[data-studio-density="compact"] .modelling-studio .studio-field-table :is(th, td) { padding: .3rem .3rem; }
 html[data-studio-density="compact"] .modelling-studio .studio-activity { padding: .7rem; }
 html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li { padding: .5rem; }
+
+/* The modeller is a workbench, not a document page. Keep its shell on the
+   viewport and let the explorer, editor, inspector and results own scrolling. */
+@media (min-width: 901px) {
+  .modelling-studio.container {
+    position: fixed;
+    z-index: 5;
+    inset: 0;
+    width: 100%;
+    max-width: 1800px;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: 0 0 2rem;
+    overflow: hidden;
+    background: var(--studio-bg);
+  }
+  .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
+  .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
+}
+.studio-workspace-details:not([open]) { display: none; }
+.studio-compact-results[hidden] { display: none !important; }
+.studio-tools-menu { position: relative; flex: 0 0 auto; margin: 0; }
+.studio-tools-menu > summary { padding: .45rem .65rem; border: 1px solid var(--studio-strong-border); border-radius: .35rem; background: var(--studio-button); color: var(--studio-button-text); }
+.studio-tools-menu[open] > div { position: absolute; z-index: 25; top: calc(100% + .4rem); right: 0; display: grid; gap: .3rem; min-width: 15rem; padding: .5rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-panel); box-shadow: 0 .5rem 1.5rem #0007; }
+.studio-tools-menu[open] > div button { text-align: left; }
+.studio-context-tools[open],
+.studio-connection-tools[open] { position: fixed; z-index: 24; top: 4rem; right: 1rem; width: min(42rem, calc(100vw - 2rem)); max-height: min(72dvh, 48rem); overflow: auto; box-shadow: 0 .6rem 2rem #0005; }
+.studio-connection-tools[open] { width: min(34rem, calc(100vw - 2rem)); }
+@media (max-width: 900px) {
+  .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+}
+@media (max-width: 900px) {
+  .modelling-studio.container { min-height: 100dvh; padding-bottom: 5rem; }
+  .studio-context-tools[open],
+  .studio-connection-tools[open] { top: min(7rem, 18dvh); right: .5rem; width: calc(100vw - 1rem); max-height: 65dvh; }
+}
 @media (min-width: 901px) and (hover: hover) and (pointer: fine) {
   html[data-studio-density="compact"] .modelling-studio button { min-height: 2rem; padding: .3rem .6rem; }
   html[data-studio-density="compact"] .modelling-studio :is(input, select) { padding: .38rem .55rem; }
