@@ -15,7 +15,7 @@ test('command palette groups contextual actions and remembers the last command',
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    await page.getByRole('button', { name: 'Commands' }).click();
+    await page.locator('.studio-app-bar').getByRole('button', { name: 'Commands' }).click();
     const palette = page.getByRole('dialog', { name: 'Commands' });
     await expect(palette.getByRole('group', { name: 'Navigate' })).toBeVisible();
     await expect(palette.getByRole('group', { name: 'Create' })).toBeVisible();
@@ -29,7 +29,7 @@ test('command palette groups contextual actions and remembers the last command',
     await page.getByLabel('Search model').fill('Device');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
-    await page.getByRole('button', { name: 'Commands' }).click();
+    await page.locator('.studio-app-bar').getByRole('button', { name: 'Commands' }).click();
     const reopened = page.getByRole('dialog', { name: 'Commands' });
     const recent = reopened.getByRole('group', { name: 'Recently used' });
     await expect(recent.getByRole('option', { name: /Search model/ })).toBeVisible();

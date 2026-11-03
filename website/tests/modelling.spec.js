@@ -988,7 +988,8 @@ test('command palette supports keyboard search, execution and dismissal', async 
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    const trigger = page.getByRole('button', { name: 'Commands', exact: true });
+    const trigger = page.locator('.studio-app-bar').getByRole('button', { name: 'Commands', exact: true });
+    await expect(trigger).toBeEnabled();
     await trigger.focus();
     await page.keyboard.press('Control+Shift+P');
     const palette = page.getByRole('dialog', { name: 'Commands' });
