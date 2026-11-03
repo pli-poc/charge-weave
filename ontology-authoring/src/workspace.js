@@ -576,6 +576,16 @@ export class WorkspaceStore {
     const result = adapterCall({ action: 'inspect', schema: workspace.schema, name });
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, entity: result.entity };
   }
+  sourceExcerpt(id, name, expectedRevision, version = 'candidate') {
+    if (typeof name !== 'string' || name.length > 128 || !identifier.test(name) || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !['candidate', 'baseline'].includes(version)) throw new Error('Invalid source excerpt request');
+    const workspace = this.get(id);
+    if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
+    const source = version === 'candidate' ? workspace.schema : this.db.prepare('SELECT baseline_schema FROM workspaces WHERE id = ?').get(id).baseline_schema;
+    const lines = source.split(/\r?\n/);
+    const index = lines.findIndex(line => line.startsWith(`${name}|`));
+    const start = Math.max(0, index - 2), end = Math.min(lines.length, index + 3);
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, baselineCommit: workspace.baselineCommit, version, name, path: 'model/domain.schema', found: index >= 0, declarationLine: index >= 0 ? index + 1 : null, lines: index < 0 ? [] : lines.slice(start, end).map((text, offset) => ({ number: start + offset + 1, text: text.slice(0, 2000), truncated: text.length > 2000 })) };
+  }
   constraintTemplates(id) {
     const workspace = this.get(id);
     verifyAdapter(workspace);

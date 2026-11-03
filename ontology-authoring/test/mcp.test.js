@@ -13,6 +13,10 @@ test('MCP field search reports declaration scope and revision conflicts', async 
   const client = new Client({ name: 'field-search-test', version: '1' });
   try {
     await server.connect(serverTransport); await client.connect(clientTransport);
+    const excerpt = await client.callTool({ name: 'ontology_source_excerpt', arguments: { workspaceId: workspace.id, name: 'Device', expectedRevision: 0, version: 'candidate' } });
+    assert.equal(excerpt.structuredContent.path, 'model/domain.schema');
+    assert.equal(excerpt.structuredContent.lines.find(line => line.number === excerpt.structuredContent.declarationLine).text, 'Device|Record|A device.|peer:Record?');
+    assert.equal((await client.callTool({ name: 'ontology_source_excerpt', arguments: { workspaceId: workspace.id, name: '../secret', expectedRevision: 0 } })).isError, true);
     const found = await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: 'peer', expectedRevision: 0 } });
     assert.equal(found.structuredContent.results[0].owner, 'Device');
     assert.equal(found.structuredContent.results[0].kind, 'relationship');

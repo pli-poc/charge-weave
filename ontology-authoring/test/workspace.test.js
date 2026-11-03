@@ -12,6 +12,10 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     browsed.modules[0].count = -1;
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).results[0].name, 'Device');
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).modules[0].count, 3);
+    const excerpt = store.sourceExcerpt(workspace.id, 'Device', 0);
+    assert.equal(excerpt.path, 'model/domain.schema');
+    assert.equal(excerpt.lines.find(line => line.number === excerpt.declarationLine).text, 'Device|Record|A device.|code:string? related:Record?');
+    assert.throws(() => store.sourceExcerpt(workspace.id, '../secret', 0), /Invalid source excerpt/);
     const children = store.explore(workspace.id, { expectedRevision: 0, parent: 'Record', limit: 1 });
     assert.equal(children.total, 2);
     assert.equal(children.results[0].name, 'Device');
@@ -34,6 +38,10 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     assert.throws(() => store.searchFields(workspace.id, 'code', 0, 2, 2), /Revision conflict/);
     assert.throws(() => store.explore(workspace.id, { expectedRevision: 0, cursor: 'Device' }), /Revision conflict/);
     assert.equal(store.explore(workspace.id, { expectedRevision: 1 }).results.find(item => item.name === 'Record').definition, 'Updated record.');
+    assert.match(store.sourceExcerpt(workspace.id, 'Record', 1).lines.find(line => line.number === 2).text, /Updated record/);
+    assert.match(store.sourceExcerpt(workspace.id, 'Record', 1, 'baseline').lines.find(line => line.number === 2).text, /A record/);
+    assert.equal(store.sourceExcerpt(workspace.id, 'Missing', 1, 'baseline').found, false);
+    assert.throws(() => store.sourceExcerpt(workspace.id, 'Record', 0), /Revision conflict/);
     assert.deepEqual(store.explore(workspace.id, { expectedRevision: 1, changedOnly: true }).results.map(item => item.name), ['Record']);
     store.apply({ workspaceId: workspace.id, actor: 'author', operationId: 'add-field', expectedRevision: 1, commands: [{ type: 'property.add', owner: 'Record', name: 'newSearchField', range: 'string', cardinality: '?' }] });
     assert.equal(store.searchFields(workspace.id, 'newSearchField', 2).results[0].owner, 'Record');
@@ -44,6 +52,17 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     assert.deepEqual(store.explore(workspace.id, { expectedRevision: 3, changedOnly: true, module: 'foundation', cursor: changedPage.nextCursor, limit: 1 }).results.map(item => item.name), ['Record']);
     assert.throws(() => store.explore(workspace.id, { expectedRevision: 2, changedOnly: true, cursor: changedPage.nextCursor }), /Revision conflict/);
     assert.deepEqual(store.explore(workspace.id, { expectedRevision: 3, changedOnly: true, parent: 'Record' }).results.map(item => item.name), ['Device']);
+  } finally { store.close(); }
+});
+test('source excerpts bound line length and remain tied to the workspace', () => {
+  const store = new WorkspaceStore(':memory:');
+  try {
+    const workspace = store.create({ title: 'Excerpt bounds', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\n#${'x'.repeat(3000)}\nRecord|root|A record.|\n` });
+    const result = store.sourceExcerpt(workspace.id, 'Record', 0);
+    assert.equal(result.workspaceId, workspace.id);
+    assert.equal(result.lines[1].text.length, 2000);
+    assert.equal(result.lines[1].truncated, true);
+    assert.equal(result.lines.length, 4);
   } finally { store.close(); }
 });
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
