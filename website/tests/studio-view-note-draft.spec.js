@@ -21,6 +21,11 @@ test('unfinished view note cannot be silently moved to another concept or view',
     await page.getByText('View groups and annotations', { exact: true }).click();
     const note = page.getByLabel('Note for selected concept');
     await note.fill('Keep this with Device');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText('Add or clear unfinished view input before saving the shared view.')).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').viewRevision).toBe(0);
+    await page.getByRole('button', { name: 'Load shared view' }).click();
+    await expect(page.getByText('Add or clear unfinished view input before loading the shared view.')).toBeVisible();
     await page.getByLabel('View ID').fill('other');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(page.getByText('Add or clear the unfinished view note before switching views.')).toBeVisible();

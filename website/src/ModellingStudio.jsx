@@ -389,6 +389,8 @@ export default function ModellingStudio() {
   const [canvasGroupName, setCanvasGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');
   const [annotationText, setAnnotationText] = useState('');
+  const pendingViewInput = useRef(false);
+  pendingViewInput.current = Boolean(annotationText.trim() || groupName.trim() || groupMembers.trim() || canvasGroupName.trim());
   const [canvasVersion, setCanvasVersion] = useState(0);
   const [viewNotice, setViewNotice] = useState('');
   const [hideNavigator, setHideNavigator] = useState(() => panelHidden('navigator-hidden', false));
@@ -1411,6 +1413,7 @@ export default function ModellingStudio() {
   }
   async function saveLayout() {
     if (viewReadyKey !== activeViewKey) return;
+    if (pendingViewInput.current) { setViewNotice('Add or clear unfinished view input before saving the shared view.'); return; }
     const context = viewContext.current;
     const version = viewChangeVersion.current;
     if (viewOperation.current?.context === context) return;
@@ -1421,7 +1424,7 @@ export default function ModellingStudio() {
       const positions = readCanvasPositions(sessionStorage, connection.workspaceId, viewId, { strict: true });
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_save', arguments: { workspaceId: connection.workspaceId, viewId, operationId: crypto.randomUUID(), expectedViewRevision: savedViewRevision, definition: { root: viewRoot, positions, ...viewMetadata, groups: viewGroups, annotations: viewAnnotations } } });
       if (context !== viewContext.current) return;
-      setSavedViewRevision(response.structuredContent.viewRevision); if (version === viewChangeVersion.current) { changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); } setViewNotice('Shared view saved.');
+      setSavedViewRevision(response.structuredContent.viewRevision); if (version === viewChangeVersion.current) { changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); } setViewNotice(pendingViewInput.current ? 'Shared view saved. Unfinished view input was not included.' : 'Shared view saved.');
       const listRequest = ++savedViewsRequest.current;
       try {
         const listing = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_list', arguments: { workspaceId: connection.workspaceId } });
@@ -1434,6 +1437,7 @@ export default function ModellingStudio() {
   }
   async function loadLayout() {
     if (viewReadyKey !== activeViewKey) return;
+    if (pendingViewInput.current) { setViewNotice('Add or clear unfinished view input before loading the shared view.'); return; }
     if (viewDirty && !window.confirm('Loading the shared view will replace local changes to this view. Continue?')) return;
     const context = viewContext.current;
     const version = viewChangeVersion.current;
@@ -1451,6 +1455,7 @@ export default function ModellingStudio() {
       if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) return;
       if (version !== viewChangeVersion.current) { setViewNotice('The shared view was not loaded because this view changed while it was loading.'); return; }
       if (selection !== selectionGeneration.current) { setViewNotice('The shared view was not loaded because your selection changed while it was loading.'); return; }
+      if (pendingViewInput.current) { setViewNotice('The shared view was not loaded because view input was started while it was loading.'); return; }
       pauseFollowing();
       if (selectConcept(entity.structuredContent.entity)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setSavedViewRevision(saved.viewRevision); setViewLoaded(true); changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); viewChangeVersion.current += 1; setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
       else setViewNotice('The saved view was not loaded. Resolve any unapplied inspector edits and try again.');
