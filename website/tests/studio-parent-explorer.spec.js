@@ -16,11 +16,28 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Load more concepts' }).click();
+    await page.getByRole('button', { name: 'Show fields for Record' }).click();
+    await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
+    const childrenList = page.getByRole('list', { name: 'Direct subtypes of Record' });
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Load more subtypes of Record' }).click();
+    await expect(childrenList.getByRole('button', { name: 'Asset51 · foundation', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Hide inline subtypes of Record' }).click();
+    await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Load more subtypes of Record' })).toBeVisible();
     await page.getByLabel('Direct parent').fill('Record');
     await page.getByRole('button', { name: 'Filter parent' }).click();
     await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
     await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
     await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
+    await page.getByRole('button', { name: 'Show inline subtypes of Asset00' }).click();
+    const nested = page.getByRole('list', { name: 'Direct subtypes of Asset00' });
+    await expect(nested.getByRole('button', { name: 'Nested · other', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Direct parent')).toHaveValue('Record');
+    await nested.getByRole('button', { name: 'Show inline subtypes of Nested' }).click();
+    await expect(nested.getByText('No direct subtypes.')).toBeVisible();
     const rejectChildren = async route => {
       const params = route.request().postDataJSON()?.params;
       if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Asset00') await route.fulfill({ status: 500, body: 'Synthetic failure' });

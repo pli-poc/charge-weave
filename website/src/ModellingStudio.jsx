@@ -15,6 +15,31 @@ import { mergeIncoming } from './model/incoming-view.js';
 import { canvasPositionKey, readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import './modelling-studio.css';
 
+function BrowseSubtypeBranch({ parent, connection, revision, onSelect, onOpen }) {
+  const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(null);
+  const [failure, setFailure] = useState('');
+  const [cursor, setCursor] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => { setPage(null); setCursor(''); setFailure(''); }, [connection.endpoint, connection.token, connection.workspaceId, revision, parent]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const controller = new AbortController();
+    setFailure('');
+    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: revision, parent, limit: 50, ...(cursor ? { cursor } : {}) } }, controller.signal)
+      .then(response => {
+        const result = response.structuredContent;
+        if (!controller.signal.aborted && result.revision === revision) setPage(previous => cursor && previous?.revision === revision ? { ...result, results: [...previous.results, ...result.results] } : result);
+      })
+      .catch(error => { if (!controller.signal.aborted) setFailure(error.message); });
+    return () => controller.abort();
+  }, [open, connection.endpoint, connection.token, connection.workspaceId, revision, parent, cursor, retry]);
+  const current = page?.revision === revision && page.workspaceId === connection.workspaceId && page.parent === parent ? page : null;
+  return <div className="studio-subtypes"><button type="button" aria-expanded={open} onClick={() => { if (open) { setPage(null); setCursor(''); } setOpen(value => !value); }}>{open ? 'Hide' : 'Show'} inline subtypes of {parent}</button>
+    {open && <>{failure ? <p role="status">Subtypes unavailable: {failure} <button type="button" onClick={() => setRetry(value => value + 1)}>Retry subtypes of {parent}</button></p> : !current ? <p role="status">Loading subtypes of {parent}…</p> : <><p>{current.total ? `${current.results.length} of ${current.total} direct subtypes` : 'No direct subtypes.'}</p><ul aria-label={`Direct subtypes of ${parent}`}>{current.results.map(item => <li key={item.name}><button type="button" onClick={() => onSelect(item)} onDoubleClick={() => onOpen(item)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onOpen(item); } }}>{item.name} <small>· {item.module}</small></button><BrowseSubtypeBranch parent={item.name} connection={connection} revision={revision} onSelect={onSelect} onOpen={onOpen} /></li>)}</ul>{current.nextCursor && <button type="button" onClick={() => setCursor(current.nextCursor)}>Load more subtypes of {parent}</button>}</>}</>}
+  </div>;
+}
+
 function BrowseConceptRow({ item, selectedName, onSelect, onOpen, onInspectOwner, onBrowseChildren, pending, connection, revision, expanded, onToggle }) {
   const [loaded, setLoaded] = useState(null);
   const [failure, setFailure] = useState('');
@@ -36,7 +61,7 @@ function BrowseConceptRow({ item, selectedName, onSelect, onOpen, onInspectOwner
   const inherited = fields.filter(field => field.inherited);
   const fieldList = entries => <ul>{entries.map((field, index) => <li key={`${field.owner}-${field.property}-${index}`}><span>{field.property}</span> <small>{field.range} · {cardinalityLabels[field.cardinality] ?? field.cardinality}{field.inherited ? ` · from ${field.owner}` : ''}</small>{field.inherited && <button type="button" onClick={() => onInspectOwner(field.owner)}>Inspect declaration of {field.property}</button>}</li>)}</ul>;
   return <li><div className="studio-explorer-concept"><button type="button" className="studio-explorer-expand" aria-label={`${expanded ? 'Hide' : 'Show'} fields for ${item.name}`} aria-expanded={expanded} onClick={() => onToggle(item.name)}>{expanded ? '−' : '+'}</button><button type="button" title="Select to inspect; double-click or press Enter to focus its neighbourhood" aria-current={item.name === selectedName ? 'true' : undefined} onClick={() => onSelect(item)} onDoubleClick={() => onOpen(item)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onOpen(item); } }}>{item.name}</button></div>
-    {expanded && <div className="studio-explorer-fields"><button type="button" disabled={pending} onClick={() => onBrowseChildren(item.name)}>Browse direct subtypes of {item.name}</button>{failure ? <><p role="status">Fields unavailable: {failure}</p><button type="button" onClick={() => setRetry(value => value + 1)}>Retry fields for {item.name}</button></> : !entity ? <p role="status">Loading fields for {item.name}…</p> : <><p>Declared fields</p>{declared.length ? fieldList(declared) : <p>No declared fields.</p>}{inherited.length > 0 && <details><summary>Inherited fields ({inherited.length})</summary>{fieldList(inherited)}</details>}</>}</div>}
+    {expanded && <div className="studio-explorer-fields"><BrowseSubtypeBranch parent={item.name} connection={connection} revision={revision} onSelect={onSelect} onOpen={onOpen} /><button type="button" disabled={pending} onClick={() => onBrowseChildren(item.name)}>Browse direct subtypes of {item.name}</button>{failure ? <><p role="status">Fields unavailable: {failure}</p><button type="button" onClick={() => setRetry(value => value + 1)}>Retry fields for {item.name}</button></> : !entity ? <p role="status">Loading fields for {item.name}…</p> : <><p>Declared fields</p>{declared.length ? fieldList(declared) : <p>No declared fields.</p>}{inherited.length > 0 && <details><summary>Inherited fields ({inherited.length})</summary>{fieldList(inherited)}</details>}</>}</div>}
   </li>;
 }
 
