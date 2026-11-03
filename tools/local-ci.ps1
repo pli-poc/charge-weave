@@ -93,37 +93,72 @@ try {
     if (-not $Install) {
         Write-Host 'If Python checks report missing packages, rerun with -Install and a valid Python 3.12 executable, or install requirements-ci.txt into that interpreter.' -ForegroundColor DarkYellow
     }
-    foreach ($step in $steps) {
-        Write-Host "`n=== $($step.Label) ===" -ForegroundColor Cyan
-        $stepPath = Join-Path $repo $step.Directory
-        Push-Location $stepPath
-        $timer = [System.Diagnostics.Stopwatch]::StartNew()
-        $previousTestPython = $env:CHARGEWEAVE_TEST_PYTHON
-        $previousTestReference = $env:CHARGEWEAVE_TEST_REFERENCE
-        $previousTestMaintenance = $env:CHARGEWEAVE_TEST_MAINTENANCE
-        if ($step.Label -eq 'Ontology authoring suite') {
-            $env:CHARGEWEAVE_TEST_PYTHON = $Python
-            $env:CHARGEWEAVE_TEST_REFERENCE = '1'
-            $env:CHARGEWEAVE_TEST_MAINTENANCE = '1'
+    if ($Profile -eq 'fast') {
+        Write-Host 'Running generated consistency and business-rule checks in parallel; they write separate reports.' -ForegroundColor Cyan
+        $worker = {
+            param($executable, $argumentsJson, $workingDirectory)
+            $arguments = @(ConvertFrom-Json -InputObject $argumentsJson)
+            Push-Location $workingDirectory
+            try {
+                $lines = & $executable @arguments 2>&1
+                $code = $LASTEXITCODE
+                [pscustomobject]@{ ExitCode=$code; Output=@($lines | ForEach-Object { [string]$_ }) }
+            } catch {
+                [pscustomobject]@{ ExitCode=1; Output=@($_.Exception.Message) }
+            } finally { Pop-Location }
         }
-        try {
-            $program = $step.Program
-            $programArguments = $step.Arguments
-            & $program @programArguments
-            $exitCode = $LASTEXITCODE
-        } finally {
-            $timer.Stop()
-            $env:CHARGEWEAVE_TEST_PYTHON = $previousTestPython
-            $env:CHARGEWEAVE_TEST_REFERENCE = $previousTestReference
-            $env:CHARGEWEAVE_TEST_MAINTENANCE = $previousTestMaintenance
-            Pop-Location
+        $running = foreach ($step in $steps) {
+            $timer = [System.Diagnostics.Stopwatch]::StartNew()
+            $argumentsJson = ConvertTo-Json -InputObject $step.Arguments -Compress
+            $job = Start-Job -ScriptBlock $worker -ArgumentList $step.Program,$argumentsJson,$repo
+            [pscustomobject]@{ Step=$step; Job=$job; Timer=$timer }
         }
-        if ($exitCode -ne 0) {
-            $failed.Add("$($step.Label) (exit $exitCode; $([math]::Round($timer.Elapsed.TotalSeconds,1))s)")
-            Write-Host "FAILED: $($failed[$failed.Count - 1])" -ForegroundColor Red
-            break
+        foreach ($item in $running) {
+            Wait-Job -Job $item.Job | Out-Null
+            $result = Receive-Job -Job $item.Job -Wait -AutoRemoveJob
+            $item.Timer.Stop()
+            Write-Host "`n=== $($item.Step.Label) ===" -ForegroundColor Cyan
+            foreach ($line in $result.Output) { Write-Host $line }
+            if ($result.ExitCode -ne 0) {
+                $failed.Add("$($item.Step.Label) (exit $($result.ExitCode); $([math]::Round($item.Timer.Elapsed.TotalSeconds,1))s)")
+                Write-Host "FAILED: $($failed[$failed.Count - 1])" -ForegroundColor Red
+            } else {
+                Write-Host "PASS: $($item.Step.Label) ($([math]::Round($item.Timer.Elapsed.TotalSeconds,1))s)" -ForegroundColor Green
+            }
         }
-        Write-Host "PASS: $($step.Label) ($([math]::Round($timer.Elapsed.TotalSeconds,1))s)" -ForegroundColor Green
+    } else {
+        foreach ($step in $steps) {
+            Write-Host "`n=== $($step.Label) ===" -ForegroundColor Cyan
+            $stepPath = Join-Path $repo $step.Directory
+            Push-Location $stepPath
+            $timer = [System.Diagnostics.Stopwatch]::StartNew()
+            $previousTestPython = $env:CHARGEWEAVE_TEST_PYTHON
+            $previousTestReference = $env:CHARGEWEAVE_TEST_REFERENCE
+            $previousTestMaintenance = $env:CHARGEWEAVE_TEST_MAINTENANCE
+            if ($step.Label -eq 'Ontology authoring suite') {
+                $env:CHARGEWEAVE_TEST_PYTHON = $Python
+                $env:CHARGEWEAVE_TEST_REFERENCE = '1'
+                $env:CHARGEWEAVE_TEST_MAINTENANCE = '1'
+            }
+            try {
+                $program = $step.Program
+                $programArguments = $step.Arguments
+                & $program @programArguments
+                $exitCode = $LASTEXITCODE
+            } finally {
+                $timer.Stop()
+                $env:CHARGEWEAVE_TEST_PYTHON = $previousTestPython
+                $env:CHARGEWEAVE_TEST_REFERENCE = $previousTestReference
+                $env:CHARGEWEAVE_TEST_MAINTENANCE = $previousTestMaintenance
+                Pop-Location
+            }
+            if ($exitCode -ne 0) {
+                $failed.Add("$($step.Label) (exit $exitCode; $([math]::Round($timer.Elapsed.TotalSeconds,1))s)")
+                Write-Host "FAILED: $($failed[$failed.Count - 1])" -ForegroundColor Red
+                break
+            }
+            Write-Host "PASS: $($step.Label) ($([math]::Round($timer.Elapsed.TotalSeconds,1))s)" -ForegroundColor Green
+        }
     }
     if ($failed.Count) { throw ($failed -join "`n") }
     Write-Host "`nLocal CI profile '$Profile' passed all $($steps.Count) selected checks." -ForegroundColor Green

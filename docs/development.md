@@ -35,8 +35,11 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 ### Local CI profiles
 
 Use `powershell -NoProfile -ExecutionPolicy Bypass -File
-./tools/local-ci.ps1 -Profile fast` while iterating. It runs the generated
-artifact and business-rule gates. Before pushing a broader change, select
+./tools/local-ci.ps1 -Profile fast` while iterating. It runs generated-artifact
+consistency and business-rule checks concurrently; each writes its own report.
+On this Windows workspace, one run took 116 seconds in parallel versus 198
+seconds in the earlier serial run (about 1.7x faster). Treat that as a local
+measurement, not a runtime guarantee. Before pushing a broader change, select
 `backend`, `ontology`, or `browser`; `full` runs all locally supported profiles
 in sequence and stops at the first failure. On Windows, pass the intended Python
 explicitly when needed, for example `-Python C:\Python312\python.exe`. Add
