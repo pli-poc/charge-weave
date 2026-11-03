@@ -42,6 +42,12 @@ test('diagram selection opens the inspector without changing the view or discard
     releaseRecord();
     await expect(inspector.getByText('https://example.org/charge-domain#Record', { exact: true })).toBeVisible();
     await page.unroute('**/mcp', delayRecord);
+    const fieldsBeforeSource = await inspector.evaluate(element => {
+      const fields = [...element.querySelectorAll('h4')].find(heading => heading.textContent === 'Fields');
+      const source = [...element.querySelectorAll('summary')].find(summary => summary.textContent === 'Source preview');
+      return Boolean(fields && source && (fields.compareDocumentPosition(source) & Node.DOCUMENT_POSITION_FOLLOWING));
+    });
+    expect(fieldsBeforeSource).toBe(true);
     await expect(canvas).toBeVisible();
     await inspector.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied record definition.');
     await canvas.locator('.react-flow__node[data-id="Device"]').click();

@@ -492,7 +492,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
-    <details ref={layoutMenu} className="studio-canvas-layout-menu">
+    <details ref={layoutMenu} className="studio-canvas-layout-menu" onKeyDown={event => {
+      if (event.key !== 'Escape' || !layoutMenu.current?.open) return;
+      event.preventDefault(); event.stopPropagation();
+      layoutMenu.current.open = false;
+      layoutMenu.current.querySelector(':scope > summary')?.focus();
+    }}>
       <summary>Layout</summary>
       <p>Arrange visible concepts automatically. Pinned concepts and hidden concepts are unchanged.</p>
       <p>Pins are local to this browser tab and view; they are not included in shared views.</p>
