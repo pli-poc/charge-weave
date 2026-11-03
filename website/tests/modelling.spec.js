@@ -1356,6 +1356,35 @@ test('reviewer can inspect a publication target without publishing', async ({ pa
     await expect(page.getByText(/branch-protection requirements and deployment are not checked/)).toBeVisible();
     await page.getByRole('button', { name: 'Check required status checks' }).click();
     await expect(page.getByText('Synthetic required: passed')).toBeVisible();
+    let releaseChecks, workflowsObserved, requiredObserved;
+    const checksGate = new Promise(resolve => { releaseChecks = resolve; });
+    const workflowsStarted = new Promise(resolve => { workflowsObserved = resolve; });
+    const requiredStarted = new Promise(resolve => { requiredObserved = resolve; });
+    const delayChecks = async route => {
+      const name = route.request().postDataJSON()?.params?.name;
+      if (name === 'ontology_github_commit_workflows' || name === 'ontology_github_required_checks') {
+        if (name === 'ontology_github_commit_workflows') workflowsObserved(); else requiredObserved();
+        await checksGate;
+      }
+      await route.continue().catch(() => {});
+    };
+    await page.route('**/mcp', delayChecks);
+    try {
+      await page.getByRole('button', { name: 'Check commit workflows' }).click();
+      await workflowsStarted;
+      await page.getByRole('button', { name: 'Check required status checks' }).click();
+      await requiredStarted;
+      await page.getByLabel('Commit SHA').fill('b'.repeat(40));
+      await expect(page.getByRole('link', { name: 'Synthetic check' })).toHaveCount(0);
+      await expect(page.getByText('Synthetic required: passed')).toHaveCount(0);
+      const finishedWorkflows = page.waitForResponse(response => response.url().endsWith('/mcp') && response.request().postDataJSON()?.params?.name === 'ontology_github_commit_workflows');
+      const finishedRequired = page.waitForResponse(response => response.url().endsWith('/mcp') && response.request().postDataJSON()?.params?.name === 'ontology_github_required_checks');
+      releaseChecks();
+      await Promise.all([finishedWorkflows, finishedRequired]);
+      await expect(page.getByRole('link', { name: 'Synthetic check' })).toHaveCount(0);
+      await expect(page.getByText('Synthetic required: passed')).toHaveCount(0);
+      await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Commit checks not inspected');
+    } finally { releaseChecks(); await page.unroute('**/mcp', delayChecks); }
     expect(git(repository, ['rev-parse', 'HEAD'])).toBe(commit);
   } finally { await page.close(); if (service) await service.shutdown(); store?.close(); rmSync(directory, { recursive: true, force: true }); }
 });

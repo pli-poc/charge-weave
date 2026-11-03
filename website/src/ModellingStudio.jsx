@@ -443,6 +443,7 @@ export default function ModellingStudio() {
   const reviewDecisionsRequest = useRef(0);
   const publicationRequest = useRef(0);
   const commitChecksRequest = useRef(0);
+  const requiredChecksRequest = useRef(0);
   const [followSuggestions, setFollowSuggestions] = useState(false);
   const [followPaused, setFollowPaused] = useState(false);
   const followCursor = useRef(0);
@@ -688,7 +689,9 @@ export default function ModellingStudio() {
     setReadiness(null);
     setReviews([]);
     setDecisionsLoaded(false);
+    commitChecksRequest.current += 1; requiredChecksRequest.current += 1;
     setCommitWorkflows(null);
+    setRequiredChecks(null);
     setDiff(null);
     setEditorDocument('diagram');
     const abort = new AbortController();
@@ -1755,10 +1758,17 @@ export default function ModellingStudio() {
   }
   async function inspectRequiredChecks() {
     setError('');
+    const request = ++requiredChecksRequest.current;
+    const signal = connectionAbort.current?.signal;
+    const sha = commitSha;
     try {
-      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_github_required_checks', arguments: { workspaceId: connection.workspaceId, commitSha } });
-      setRequiredChecks(response.structuredContent);
-    } catch (problem) { setError(problem.message); }
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_github_required_checks', arguments: { workspaceId: connection.workspaceId, commitSha: sha } }, signal);
+      if (!signal?.aborted && request === requiredChecksRequest.current && response.structuredContent.sha === sha) setRequiredChecks(response.structuredContent);
+    } catch (problem) { if (!signal?.aborted && request === requiredChecksRequest.current) setError(problem.message); }
+  }
+  function updateCommitSha(value) {
+    commitChecksRequest.current += 1; requiredChecksRequest.current += 1;
+    setCommitWorkflows(null); setRequiredChecks(null); setCommitSha(value);
   }
   async function runChecks(profile) {
     if (checkInFlight.current) return;
@@ -2028,8 +2038,8 @@ export default function ModellingStudio() {
         {item.prNumber && <p>{item.prUrl ? <a href={item.prUrl} target="_blank" rel="noreferrer">Pull request #{item.prNumber}</a> : `Pull request #${item.prNumber}`} - {item.prStatus} when recorded</p>}
       </li>)}</ol>
     </section>
-    <section className="studio-activity"><h2 id="studio-commit-checks-heading" tabIndex={-1}>GitHub commit checks</h2><p>Look up workflow runs for a full commit SHA. This does not check branch-protection requirements or deployment.</p>{!availableTools.includes('ontology_github_commit_workflows') && <p>Commit workflow lookup is unavailable for this connection.</p>}<fieldset className="studio-command-fields" disabled={!availableTools.includes('ontology_github_commit_workflows')}><form onSubmit={inspectCommitWorkflows}><label>Commit SHA <input value={commitSha} onChange={event => setCommitSha(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button>Check commit workflows</button></form></fieldset>{commitWorkflows && <><p>Commit <code>{commitWorkflows.sha}</code>: {commitWorkflows.status}. {commitWorkflows.reason || commitWorkflows.note}</p><ul>{commitWorkflows.workflows.map(run => <li key={run.id}><a href={run.url} target="_blank" rel="noreferrer">{run.name}</a>: {run.status}{run.conclusion ? ` ? ${run.conclusion}` : ''}</li>)}</ul></>}</section>
-    <section className="studio-activity"><h2>Required status checks</h2><p>Use the commit SHA above. Missing policy access or incomplete results remain unknown.</p><button type="button" disabled={!availableTools.includes('ontology_github_required_checks')} onClick={inspectRequiredChecks}>Check required status checks</button>{!availableTools.includes('ontology_github_required_checks') && <p>Required-check lookup is unavailable for this connection.</p>}{requiredChecks && <><p>Commit <code>{requiredChecks.sha}</code>: {requiredChecks.status}. {requiredChecks.note}</p><ul>{requiredChecks.checks.map(check => <li key={`${check.context}-${check.appId}`}>{check.context}: {check.status}{check.appId != null && ` (app ${check.appId})`}</li>)}</ul></>}</section>
+    <section className="studio-activity"><h2 id="studio-commit-checks-heading" tabIndex={-1}>GitHub commit checks</h2><p>Look up workflow runs for a full commit SHA. This does not check branch-protection requirements or deployment.</p>{!availableTools.includes('ontology_github_commit_workflows') && <p>Commit workflow lookup is unavailable for this connection.</p>}<fieldset className="studio-command-fields" disabled={!availableTools.includes('ontology_github_commit_workflows')}><form onSubmit={inspectCommitWorkflows}><label>Commit SHA <input value={commitSha} onChange={event => updateCommitSha(event.target.value)} pattern="[a-f0-9]{40}" required /></label><button>Check commit workflows</button></form></fieldset>{commitWorkflows && <><p>Commit <code>{commitWorkflows.sha}</code>: {commitWorkflows.status}. {commitWorkflows.reason || commitWorkflows.note}</p><ul>{commitWorkflows.workflows.map(run => <li key={run.id}><a href={run.url} target="_blank" rel="noreferrer">{run.name}</a>: {run.status}{run.conclusion ? ` ? ${run.conclusion}` : ''}</li>)}</ul></>}</section>
+    <section className="studio-activity"><h2>Required status checks</h2><p>Use the commit SHA above. Missing policy access or incomplete results remain unknown.</p><button type="button" disabled={!availableTools.includes('ontology_github_required_checks') || !/^[a-f0-9]{40}$/.test(commitSha)} onClick={inspectRequiredChecks}>Check required status checks</button>{!availableTools.includes('ontology_github_required_checks') && <p>Required-check lookup is unavailable for this connection.</p>}{requiredChecks && <><p>Commit <code>{requiredChecks.sha}</code>: {requiredChecks.status}. {requiredChecks.note}</p><ul>{requiredChecks.checks.map(check => <li key={`${check.context}-${check.appId}`}>{check.context}: {check.status}{check.appId != null && ` (app ${check.appId})`}</li>)}</ul></>}</section>
     <section className="studio-activity"><h2>Reviewer interval case</h2><p>Write a separate synthetic example and expected outcome. Review whether it is independent and relevant; saving it does not run validation.</p>{!availableTools.includes('ontology_reviewer_interval_case_add') && <p>Reviewer case editing is unavailable for this connection. Connect with reviewer access.</p>}<fieldset className="studio-command-fields" disabled={!availableTools.includes('ontology_reviewer_interval_case_add')}><form onSubmit={submitReviewCase}><label>Requirement ID <input value={reviewCase.requirementId} onChange={event => setReviewCase({ ...reviewCase, requirementId: event.target.value })} pattern="BR-[0-9]+" required /></label><label>Rule ID <input value={reviewCase.ruleId} onChange={event => setReviewCase({ ...reviewCase, ruleId: event.target.value })} pattern="B[0-9]{3,6}" required /></label><label>Unique case ID <input value={reviewCase.caseId} onChange={event => setReviewCase({ ...reviewCase, caseId: event.target.value })} pattern="[A-Za-z0-9][A-Za-z0-9-]*" maxLength={128} required /></label><label>Start (UTC, YYYY-MM-DDTHH:MM:SSZ) <input value={reviewCase.start} onChange={event => setReviewCase({ ...reviewCase, start: event.target.value })} required /></label><label>End (UTC, YYYY-MM-DDTHH:MM:SSZ) <input value={reviewCase.end} onChange={event => setReviewCase({ ...reviewCase, end: event.target.value })} required /></label><label>Expected outcome <select value={reviewCase.expectedConformance} onChange={event => setReviewCase({ ...reviewCase, expectedConformance: event.target.value })}><option value="true">Conforms</option><option value="false">Violates rule</option></select></label><label>Business scenario and expected result <textarea value={reviewCase.scenario} onChange={event => setReviewCase({ ...reviewCase, scenario: event.target.value })} minLength={12} maxLength={1000} required /></label><button>Save reviewer case</button></form></fieldset></section>
     <section className="studio-activity"><h2 id="studio-review-decision-heading" tabIndex={-1}>Reviewer decision</h2><p>Acceptance records a reviewer decision for this exact draft; it does not publish or establish business completeness. A rejection does not erase the draft.</p>{!availableTools.includes('ontology_changeset_review') && <p>Reviewer decisions are unavailable for this connection. Connect with reviewer access.</p>}<fieldset className="studio-command-fields" disabled={!availableTools.includes('ontology_changeset_review')}><form onSubmit={submitReview}><label>Decision <select value={reviewDecision} onChange={event => setReviewDecision(event.target.value)}><option value="request_changes">Request changes</option><option value="reject">Reject draft</option><option value="accept">Accept draft</option></select></label><label>Reason <textarea value={reviewReason} onChange={event => setReviewReason(event.target.value)} maxLength={4000} required /></label><button>Record reviewer decision</button></form></fieldset>{reviews.length > 0 && <ol>{reviews.map(review => <li key={review.id}>{review.decision === 'reject' ? 'Rejected' : review.decision === 'accept' ? 'Accepted' : 'Changes requested'} · revision {review.revision} · {review.actor} · {review.revision !== snapshot.revision || review.sourceDigest !== snapshot.sourceDigest || Boolean(review.decision === 'accept' && snapshot.changeSet && (snapshot.changeSet.reviewId !== review.id || !['accepted', 'published'].includes(snapshot.changeSet.status))) ? 'stale' : 'current'}<p>{review.reason}</p></li>)}</ol>}</section>
     </div>
