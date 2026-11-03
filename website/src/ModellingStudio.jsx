@@ -966,12 +966,12 @@ export default function ModellingStudio() {
   }
   async function revealSelected() {
     if (!selected || !connection || !snapshot || browsePending) return;
-    const name = selected.name, request = ++browseRequest.current;
+    const name = selected.name, selection = selectionGeneration.current, request = ++browseRequest.current;
     setBrowsePending(true); setError(''); setRevealTarget('');
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, startAt: name, limit: 50 } });
       const page = response.structuredContent;
-      if (request !== browseRequest.current || page.revision !== currentRevision.current) return;
+      if (request !== browseRequest.current || selection !== selectionGeneration.current || page.revision !== currentRevision.current) return;
       if (!page.results.some(item => item.name === name)) throw new Error('Selected concept is no longer available in the explorer.');
       browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module: '', parent: '', changedOnly: false };
       setBrowseChangedOnly(false); setBrowseParent(''); setQuery(''); setResults([]); setSearchDone(false); lastSearch.current = null; searchSequence.current += 1; setSearchPending(false);

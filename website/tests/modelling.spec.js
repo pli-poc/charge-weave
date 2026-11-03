@@ -31,6 +31,24 @@ test('reveal locates a selected concept beyond the first explorer page', async (
     await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toBeVisible();
     await page.getByRole('button', { name: 'Browse from beginning' }).click();
     await expect(tree.getByRole('button', { name: 'Asset000', exact: true })).toBeVisible();
+    let release, observed;
+    const gate = new Promise(resolve => { release = resolve; });
+    const intercepted = new Promise(resolve => { observed = resolve; });
+    const delay = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.startAt === 'Asset075') { observed(); await gate; }
+      await route.continue();
+    };
+    await page.route('**/mcp', delay);
+    try {
+      await page.getByRole('button', { name: 'Reveal selected concept' }).click(); await intercepted;
+      await tree.getByRole('button', { name: 'Asset001', exact: true }).click();
+      release();
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+      await expect(page.getByRole('button', { name: 'Reveal selected concept' })).toBeEnabled();
+      await expect(tree.getByRole('button', { name: 'Asset001', exact: true })).toHaveAttribute('aria-current', 'true');
+      await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toHaveCount(0);
+    } finally { release(); await page.unroute('**/mcp', delay); }
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
