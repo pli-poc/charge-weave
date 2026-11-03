@@ -141,6 +141,39 @@ test('inherited fields link to their declaring concept', async ({ page, isMobile
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('a delayed inspector navigation cannot replace a later selection', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Inspector navigation race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\nOther|Record|Another concept.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let release, observed;
+  const gate = new Promise(resolve => { release = resolve; });
+  const intercepted = new Promise(resolve => { observed = resolve; });
+  const delay = async route => {
+    const params = route.request().postDataJSON()?.params;
+    if (params?.name === 'ontology_entity_get' && params.arguments?.name === 'Record') {
+      const response = await route.fetch(); observed(); await gate;
+      await route.fulfill({ response }).catch(() => {});
+    } else await route.continue();
+  };
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.route('**/mcp', delay);
+    await page.getByRole('button', { name: 'Inspect parent Record' }).click();
+    await intercepted;
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Other', exact: true }).click();
+    release(); await page.unrouteAll({ behavior: 'wait' });
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await expect(page.locator('#studio-inspector-pane').getByRole('heading', { name: 'Other', exact: true })).toBeVisible();
+  } finally { release(); await page.unrouteAll({ behavior: 'wait' }); await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('unreadable local layout is not silently overwritten by automatic placement', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Unreadable layout', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
