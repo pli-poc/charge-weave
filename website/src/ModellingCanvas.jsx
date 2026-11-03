@@ -18,6 +18,10 @@ const layoutNodes = (names, instance) => names.map(id => {
 });
 const layoutBox = (point, size) => ({ ...point, width: size?.width ?? 220, height: size?.height ?? 128 });
 const boxesOverlap = (a, b) => a.x < b.x + b.width + 20 && a.x + a.width + 20 > b.x && a.y < b.y + b.height + 20 && a.y + a.height + 20 > b.y;
+const cardCenter = (point, id, instance) => {
+  const { width, height } = layoutNodes([id], instance)[0];
+  return { x: point.x + width / 2, y: point.y + height / 2 };
+};
 const ConceptNode = memo(function ConceptNode({ data }) {
   const fields = typeof data.fields === 'string' ? data.fields.split(/\s+/).filter(Boolean) : Array.isArray(data.fields) ? data.fields.map(field => `${field.property}:${field.range}${field.cardinality ?? ''}`) : [];
   const changed = ['added', 'changed'].includes(data.changeStatus);
@@ -119,7 +123,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const point = positions.current[root];
     if (!point) return false;
     fitted.current = true;
-    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(200) });
+    const center = cardCenter(point, root, instance.current);
+    void instance.current.setCenter(center.x, center.y, { zoom: 1, duration: motionDuration(200) });
     return true;
   }, [graph.workspaceId, viewId]);
   const recordLayoutChange = useCallback((before, after, names, label) => {
@@ -346,13 +351,15 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const point = positions.current[selectedName];
     if (!point || !byName.current.has(selectedName) || !instance.current) return;
     onManualInteraction();
-    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
+    const center = cardCenter(point, selectedName, instance.current);
+    void instance.current.setCenter(center.x, center.y, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
   const focusRoot = useCallback(() => {
     const point = positions.current[graph.root];
     if (!point || !instance.current) return;
     onManualInteraction();
-    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
+    const center = cardCenter(point, graph.root, instance.current);
+    void instance.current.setCenter(center.x, center.y, { zoom: 1, duration: motionDuration(250) });
   }, [graph.root, onManualInteraction]);
   function panDiagram(dx, dy) {
     if (!instance.current) return;

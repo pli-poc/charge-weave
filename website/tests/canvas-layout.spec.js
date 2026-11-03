@@ -39,6 +39,7 @@ async function setup(page, { failFirstWorker = false, delayWorker = false, recor
 
 test('explicit layout sends measured card dimensions to the worker', async ({ page, isMobile }) => {
   test.skip(isMobile, 'The desktop canvas provides explicit layout; mobile has a list-first view.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   const { store, service } = await setup(page, { recordWorker: true });
   try {
     const canvas = page.getByRole('region', { name: 'Relationships for Device' });
@@ -46,6 +47,12 @@ test('explicit layout sends measured card dimensions to the worker', async ({ pa
     await page.addStyleTag({ content: '.studio-flow .studio-flow-node { width: 320px !important; height: 160px !important; }' });
     await expect.poll(() => canvas.locator('.react-flow__node[data-id="Device"]').evaluate(node => node.offsetWidth)).toBe(320);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await canvas.getByRole('button', { name: 'Focus selected concept' }).click();
+    await expect.poll(() => canvas.evaluate(element => {
+      const pane = element.querySelector('.react-flow__pane').getBoundingClientRect();
+      const node = element.querySelector('.react-flow__node[data-id="Device"]').getBoundingClientRect();
+      return Math.max(Math.abs(node.left + node.width / 2 - (pane.left + pane.width / 2)), Math.abs(node.top + node.height / 2 - (pane.top + pane.height / 2)));
+    })).toBeLessThan(2);
     await canvas.getByText('Layout', { exact: true }).click();
     await canvas.getByRole('button', { name: 'Arrange visible concepts' }).click();
     const requested = await page.evaluate(() => window.lastLayoutRequest.nodes);
