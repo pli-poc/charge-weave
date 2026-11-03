@@ -1437,6 +1437,7 @@ export default function ModellingStudio() {
     if (viewDirty && !window.confirm('Loading the shared view will replace local changes to this view. Continue?')) return;
     const context = viewContext.current;
     const version = viewChangeVersion.current;
+    const selection = selectionGeneration.current;
     if (viewOperation.current?.context === context) return;
     const operation = { context, kind: 'load' };
     setPendingViewOps(previous => ({ ...previous, [activeViewKey]: (previous[activeViewKey] || 0) + 1 }));
@@ -1449,6 +1450,7 @@ export default function ModellingStudio() {
       const entity = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name: saved.definition.root, expectedRevision: snapshot.revision } });
       if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) return;
       if (version !== viewChangeVersion.current) { setViewNotice('The shared view was not loaded because this view changed while it was loading.'); return; }
+      if (selection !== selectionGeneration.current) { setViewNotice('The shared view was not loaded because your selection changed while it was loading.'); return; }
       pauseFollowing();
       if (selectConcept(entity.structuredContent.entity)) { writeCanvasPositions(sessionStorage, connection.workspaceId, viewId, saved.definition.positions); setViewGroups(saved.definition.groups ?? []); setViewAnnotations(saved.definition.annotations ?? []); setViewMetadata(Object.fromEntries(['mappingVersion', 'viewpoint', 'filter'].filter(key => Object.hasOwn(saved.definition, key)).map(key => [key, saved.definition[key]]))); setSavedViewRevision(saved.viewRevision); setViewLoaded(true); changedViews.current.delete(activeViewKey); localViewDrafts.current.delete(activeViewKey); setViewDirty(false); viewChangeVersion.current += 1; setCanvasVersion(version => version + 1); setViewNotice('Shared view loaded.'); }
       else setViewNotice('The saved view was not loaded. Resolve any unapplied inspector edits and try again.');
