@@ -500,6 +500,8 @@ html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li
 .studio-tools-menu[open] > div button { text-align: left; }
 .studio-context-tools[open],
 .studio-connection-tools[open] { position: fixed; z-index: 24; top: 4rem; right: 1rem; width: min(42rem, calc(100vw - 2rem)); max-height: min(72dvh, 48rem); overflow: auto; box-shadow: 0 .6rem 2rem #0005; }
+.studio-context-tools[open] > summary,
+.studio-connection-tools[open] > summary { position: sticky; top: 0; z-index: 1; background: var(--studio-panel); }
 .studio-connection-tools[open] { width: min(34rem, calc(100vw - 2rem)); }
 @media (max-width: 900px) {
   .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none !important; visibility: hidden !important; pointer-events: none !important; }

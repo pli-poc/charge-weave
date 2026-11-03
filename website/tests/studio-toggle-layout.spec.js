@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
+import { openDraftContext } from './studio-utilities.js';
 
 test('follow toggle remains labelled, keyboard operable and sized for the input device', async ({ page, isMobile }) => {
   if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
@@ -16,6 +17,7 @@ test('follow toggle remains labelled, keyboard operable and sized for the input 
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     const toggle = page.getByLabel('Follow new changes and suggestions');
     const metrics = await toggle.evaluate(input => {
       const label = input.closest('label');

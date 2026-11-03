@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
+import { openDraftContext } from './studio-utilities.js';
 
 test('responsibility mapping input remains available and is reviewed after a field changes', async ({ page, isMobile }) => {
   const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record?\nParty|Record|A party.|\n';
@@ -24,6 +25,7 @@ test('responsibility mapping input remains available and is reviewed after a fie
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await page.getByText('Map an existing responsibility relationship').click();
     await page.getByLabel('Declared object relationship').selectOption('owner');

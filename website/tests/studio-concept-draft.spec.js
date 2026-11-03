@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
+import { openMoreMenuForAction } from './studio-utilities.js';
 
 test('concept input is retained and reviewed after intervening workspace activity', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
@@ -17,7 +18,7 @@ test('concept input is retained and reviewed after intervening workspace activit
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByText('Add a concept', { exact: true }).click();
     await page.getByLabel('Parent class').fill('Device');
-    await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+    await (await openMoreMenuForAction(page, 'Disconnect')).click();
     const dialog = page.getByRole('dialog', { name: 'Unapplied edits' });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Stay and keep editing' }).click();

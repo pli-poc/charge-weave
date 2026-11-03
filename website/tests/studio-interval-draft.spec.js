@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 import { editableSourcePaths } from '../../ontology-authoring/src/source-manifest.js';
+import { openDraftContext } from './studio-utilities.js';
 
 test('interval input remains visible after a new revision and cannot silently rebase', async ({ page, isMobile }) => {
   test.setTimeout(60000);
@@ -36,6 +37,7 @@ test('interval input remains visible after a new revision and cannot silently re
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByRole('button', { name: 'PlannedServiceWindow', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await openDraftContext(page);
     await page.getByLabel('Search requirements').fill('BR-012');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.getByText('Add interval rule for BR-012').click();

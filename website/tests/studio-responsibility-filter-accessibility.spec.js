@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
+import { closeDraftContext, openDraftContext } from './studio-utilities.js';
 
 test('responsibility filter announces its results and resets for a new concept', async ({ page, isMobile }) => {
   const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record? provider:Record?\n';
@@ -26,6 +27,7 @@ test('responsibility filter announces its results and resets for a new concept',
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     const status = page.getByRole('status').filter({ hasText: 'responsibility bindings' });
     await expect(status).toHaveText('Showing 2 of 2 responsibility bindings.');
@@ -33,9 +35,11 @@ test('responsibility filter announces its results and resets for a new concept',
     await expect(status).toHaveText('Showing 1 of 2 responsibility bindings.');
     await page.getByLabel('Filter responsibility category').selectOption('role');
     await expect(status).toHaveText('Showing 0 of 2 responsibility bindings.');
+    await closeDraftContext(page);
     await surface('Model');
     await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Record', exact: true }).click();
     await surface('Results');
+    await openDraftContext(page);
     await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
     await expect(page.getByLabel('Filter responsibility category')).toHaveValue('all');
     expect(store.get(workspace.id).revision).toBe(0);
