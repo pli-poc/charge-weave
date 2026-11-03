@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useId, useRef } from 'react';
 
 const valuePattern = /^[A-Za-z][A-Za-z0-9]*$/;
 
@@ -17,6 +17,7 @@ export function validFieldRangeDraft(range, candidate) {
 export default function ControlledValuesBuilder({ range, candidate, onRangeChange, onCandidateChange }) {
   const group = useRef(null);
   const candidateInput = useRef(null);
+  const issueId = useId();
   const values = parseControlledValues(range);
   const trimmed = candidate.trim();
   let issue = '';
@@ -42,9 +43,9 @@ export default function ControlledValuesBuilder({ range, candidate, onRangeChang
     {!values && <><p>The current datatype or target is not an editable controlled-value list.</p><button type="button" onClick={() => { onRangeChange('{}'); requestAnimationFrame(() => candidateInput.current?.focus()); }}>Start controlled values</button></>}
     {values && <div ref={group} role="group" aria-label="Controlled values">
       {values.length ? <ul>{values.map((value, index) => <li key={`${value}-${index}`}>{value} <button type="button" data-remove-controlled-value aria-label={`Remove value ${value}`} onClick={() => remove(index)}>Remove</button></li>)}</ul> : <p>No values added.</p>}
-      <label>New allowed value <input ref={candidateInput} value={candidate} onChange={event => onCandidateChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); add(); } }} /></label>
+      <label>New allowed value <input ref={candidateInput} value={candidate} aria-invalid={issue ? true : undefined} aria-describedby={issue ? issueId : undefined} onChange={event => onCandidateChange(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); add(); } }} /></label>
       <button type="button" onClick={add} disabled={!candidate || Boolean(issue)}>Add allowed value</button>
-      {issue && <p role="status">{issue}</p>}
+      {issue && <p id={issueId} role="status">{issue}</p>}
       {new Set(values).size !== values.length && <p role="status">Remove duplicate values before adding the field.</p>}
     </div>}
     {!values && candidate && <div><p>A value is still pending; return to controlled values or clear it before adding the field.</p><button type="button" onClick={() => onCandidateChange('')}>Clear pending value</button></div>}

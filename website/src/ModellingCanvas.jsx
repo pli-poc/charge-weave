@@ -206,6 +206,15 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       return next;
     });
   }
+  function selectConnectedConcepts() {
+    const connected = new Set(visibleNames.has(selectedName) ? [selectedName] : []);
+    for (const edge of activeEdges) {
+      if (edge.source === selectedName) connected.add(edge.target);
+      if (edge.target === selectedName) connected.add(edge.source);
+    }
+    setLayoutSelection(connected);
+    onManualInteraction();
+  }
   function alignLayoutSelection(axis) {
     if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
     const names = [...layoutSelection].filter(name => visibleNames.has(name) && positions.current[name]);
@@ -474,6 +483,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       <details>
         <summary>Align selected concepts</summary>
         <p>Select concepts below or use Shift+click or Shift+Enter on a card. Alignment and distribution change only this view and may overlap cards. Distribution spaces card positions evenly between the outermost selected cards. Unpin selected concepts before alignment. Distribution also requires unpinned concepts.</p>
+        <div className="studio-canvas-edge-actions"><button type="button" disabled={!activeNodes.length} onClick={() => { setLayoutSelection(new Set(activeNodes.map(node => node.name))); onManualInteraction(); }}>Select all visible concepts</button><button type="button" disabled={!visibleNames.has(selectedName)} onClick={selectConnectedConcepts}>Select {selectedName} and visible neighbours</button></div>
         <fieldset className="studio-layout-choices"><legend>Concepts for alignment</legend>{activeNodes.map(node => <label className="studio-layout-choice" key={node.name}><input type="checkbox" checked={layoutSelection.has(node.name)} onChange={() => toggleLayoutSelection(node.name)} />{node.name}{layoutPins.has(node.name) ? ' (pinned)' : ''}</label>)}</fieldset>
         <p aria-live="polite">{layoutSelection.size} concepts selected for layout.</p>
         {layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning or pinning concepts.</p>}

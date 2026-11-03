@@ -49,10 +49,17 @@ test('interval input remains visible after a new revision and cannot silently re
     await expect(page.getByLabel('New rule ID')).toHaveValue('B900');
     await expect(page.getByRole('button', { name: 'Add interval constraint' })).toBeDisabled();
     expect(store.get(workspace.id).revision).toBe(2);
-    await page.getByRole('button', { name: 'Cancel interval draft' }).click();
-    await expect(page.getByLabel('New rule ID')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
-    await page.getByText('Add interval rule for BR-012').click();
-    await expect(page.getByLabel('New rule ID')).toHaveValue('');
+    await warning.getByRole('button', { name: 'Inspect latest interval requirement' }).click();
+    await expect(warning).toContainText('Current requirement:');
+    await expect(warning).toContainText('Current start: maintenanceStartsAt');
+    const accept = warning.getByRole('button', { name: 'Reviewed latest, keep interval input' });
+    await expect(accept).toBeEnabled();
+    await accept.click();
+    await expect(page.getByLabel('New rule ID')).toHaveValue('B900');
+    await expect(page.getByLabel('Interval start')).toHaveValue('maintenanceStartsAt');
+    await expect(page.getByLabel('Interval end')).toHaveValue('maintenanceEndsAt');
+    await page.getByRole('button', { name: 'Add interval constraint' }).click();
+    await expect.poll(() => store.get(workspace.id).revision).toBe(3);
+    expect(store.get(workspace.id).sourceOverlays['model/audit-rules.json']).toContain('B900');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
