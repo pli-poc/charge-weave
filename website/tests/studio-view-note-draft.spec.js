@@ -40,6 +40,15 @@ test('unfinished view note cannot be silently moved to another concept or view',
     await expect(page.getByText('Add or clear the unfinished view group before switching views.')).toBeVisible();
     await expect(page.getByLabel('Group name', { exact: true })).toHaveValue('Charging assets');
     await page.getByRole('button', { name: 'Clear unfinished group' }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await canvas.getByText('Layout', { exact: true }).click();
+    await canvas.getByText('Align selected concepts', { exact: true }).click();
+    await canvas.getByLabel('New group name').fill('Canvas group');
+    await page.getByRole('button', { name: 'Choose view ID' }).click();
+    await expect(page.getByText('Add or clear the unfinished view group before switching views.')).toBeVisible();
+    await expect(canvas.getByLabel('New group name')).toHaveValue('Canvas group');
+    await canvas.getByRole('button', { name: 'Clear canvas group name' }).click();
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     await expect(page.getByRole('navigation', { name: 'Open diagram views' }).getByRole('button', { name: 'other', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(0);

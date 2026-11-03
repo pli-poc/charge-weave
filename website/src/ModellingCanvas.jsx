@@ -53,11 +53,10 @@ function ZoomReadout({ onManualInteraction, onOverviewChange }) {
     <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
 }
-export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup }) {
+export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
-  const [newGroupName, setNewGroupName] = useState('');
   const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
   const [showMinimap, setShowMinimap] = useState(false);
@@ -508,6 +507,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         <form onSubmit={createSelectedGroup} className="studio-canvas-group-form">
           <label>New group name <input value={newGroupName} onChange={event => setNewGroupName(event.target.value)} maxLength={100} /></label>
           <button type="submit" disabled={!groupsEditable || !onCreateGroup || layoutState === 'pending' || !layoutSelection.size || !newGroupName.trim() || viewGroups.length >= 50}>Group selected concepts</button>
+          <button type="button" disabled={!newGroupName} onClick={() => setNewGroupName('')}>Clear canvas group name</button>
         </form>
         <p>Grouping is presentation data for this view. Save the shared view to share it.</p>
         {!groupsEditable && <p>Load the current shared view before changing groups.</p>}

@@ -75,3 +75,5 @@ The explorer also offers a revision-pinned filter for added and modified class c
 Unfinished view-note input now participates in the unsaved-input guard when changing concepts or workspaces, and blocks switching or closing its view until the note is added or cleared. The note remains a presentation change and does not change the ontology. The website build and six focused desktop/mobile note and saved-view scenarios passed locally. Human usability and assistive-technology review remain outstanding.
 
 Unfinished view-group input is similarly protected when changing workspaces or switching or closing its view, with an explicit clear action. The website build and four focused desktop/mobile note and group scenarios passed locally. This guards the existing form; it does not establish a human usability review.
+
+The canvas selection-based group form now keeps its unfinished name in the studio controller and shares the navigation and page-exit guard. An explicit clear action is available. The website build and four focused desktop/mobile note and canvas group scenarios passed locally; human usability and assistive-technology review remain open.
