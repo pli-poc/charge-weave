@@ -217,8 +217,9 @@ function ContextHandoff({ snapshot, entity, entityRevision, job, connection, ava
     'Inspect the current model and check evidence before editing. This context is a starting point, not an instruction to publish.',
   ].join('\n') : '';
   async function copy() {
-    try { await navigator.clipboard.writeText(preview); setMessage('Context copied. Paste it into your connected client.'); }
-    catch { setMessage('Clipboard unavailable. Select and copy the preview.'); }
+    const copiedPreview = preview;
+    try { await navigator.clipboard.writeText(copiedPreview); setMessage({ preview: copiedPreview, text: 'Context copied. Paste it into your connected client.' }); }
+    catch { setMessage({ preview: copiedPreview, text: 'Clipboard unavailable. Select and copy the preview.' }); }
   }
   useEffect(() => { setMessage(''); }, [preview]);
   return <><details className="studio-requirement-links" onToggle={event => setShowLinks(event.currentTarget.open)}><summary>Linked requirements</summary>
@@ -227,7 +228,7 @@ function ContextHandoff({ snapshot, entity, entityRevision, job, connection, ava
   </details><details className="studio-context-handoff" onToggle={event => setOpen(event.currentTarget.open)}><summary>Prepare context for Codex</summary>
     <p>Preview and copy this context to your existing client. Nothing is sent automatically. Check output is not included.</p>
     {current ? <><label>Context preview <textarea readOnly value={preview} rows={9} /></label><button type="button" onClick={copy}>Copy context</button></> : <p role="status">Loading the selected concept for the current draft.</p>}
-    {message && <p role="status">{message}</p>}
+    {message?.preview === preview && <p role="status">{message.text}</p>}
   </details></>;
 }
 function CommandPalette({ commands, onClose }) {
@@ -261,12 +262,13 @@ function CommandPalette({ commands, onClose }) {
   </dialog>;
 }
 function InspectorIdentifier({ iri }) {
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState(null);
   async function copy() {
-    try { await navigator.clipboard.writeText(iri); setNotice('Identifier copied.'); }
-    catch { setNotice('Clipboard unavailable; select and copy the identifier shown here.'); }
+    const copiedIri = iri;
+    try { await navigator.clipboard.writeText(copiedIri); setNotice({ iri: copiedIri, text: 'Identifier copied.' }); }
+    catch { setNotice({ iri: copiedIri, text: 'Clipboard unavailable; select and copy the identifier shown here.' }); }
   }
-  return <div className="studio-identifier"><p>IRI: <code>{iri}</code></p><button type="button" onClick={copy}>Copy identifier</button>{notice && <p aria-live="polite">{notice}</p>}</div>;
+  return <div className="studio-identifier"><p>IRI: <code>{iri}</code></p><button type="button" onClick={copy}>Copy identifier</button>{notice?.iri === iri && <p aria-live="polite">{notice.text}</p>}</div>;
 }
 function InspectorFields({ fields, onEdit, onRequire, onNarrowValues, onInspectOwner, commandPending, narrowing, editingLocked, editingField, requiring }) {
   const [filter, setFilter] = useState('');
