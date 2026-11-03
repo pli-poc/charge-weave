@@ -1,4 +1,4 @@
-# Synthetic studio visual evidence
+# Studio visual evidence
 
 The `connected` captures show the built modelling studio after selecting the synthetic `ChargingStation` concept in an isolated in-memory workspace. They were recaptured on 2026-11-03 with headless Chromium 153 on Windows from commit `470c8472c8d8b8eb07431f3128695de5a066ed13`. They contain no real credentials or customer data.
 
@@ -13,5 +13,7 @@ The additional `welcome`, `relationship-editor`, `problems` and `review` images 
 The `changes` images show a synthetic description edit and its source patch at both desktop widths and themes. They were generated from commit `352253d4496a2499d1c6301fba743f7fc20d29fc` with `node scripts/capture-studio-workflows.mjs --changes` and a second run adding `--wide`.
 
 The `dense` images show a synthetic 151-node, 200-edge view after using the explicit fit control, at both desktop widths and themes. They were recaptured from the working tree based on `f7498672954fcc2fe837c5ef4e31963f00a9b06e` plus the zoom-bound and overview-guidance changes committed with them, using `node scripts/measure-canvas.mjs --capture-dense`. A browser geometry check confirmed that the node bounds fit inside the canvas at 1280px, and the Focus selected control returned to 100%. The resulting overview is approximately 2% zoom and its labels are unreadable; the UI advises zooming or focusing a concept. This does not demonstrate that the dense-neighbourhood usability target is met.
+
+The `real-neighbourhood` images use the committed public `model/domain.schema` at `df0e1ce40535923ef1efe4c629dcb30ce013f180` in an isolated in-memory workspace. They show `LegalEntity` after expanding all 87 direct incoming references and focusing the selected concept: the view contained 72 nodes and 92 edges. The capture script resets the editor pane's scroll position before each screenshot; the graph itself extends below the visible editor area at 1280×800 and requires scrolling. The edges around the selected concept are crowded, so these images do not establish that a high-degree neighbourhood is easy to navigate. Run `node scripts/capture-real-neighbourhood.mjs` from `website` after building to reproduce with the currently committed model; the script uses synthetic local pairing credentials.
 
 These captures are partial visual evidence, not acceptance: other required scenarios, real browser zoom, assistive technology and independent human usability review remain outstanding.
