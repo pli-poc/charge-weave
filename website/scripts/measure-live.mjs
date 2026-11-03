@@ -36,14 +36,18 @@ try {
   const times = [];
   for (let i = 0; i < 35; i++) {
     const expected = i + 1, start = performance.now();
-    const name = `latencyRelationship${i}`;
-    const command = graphMode ? { type: 'relationship.add', owner: 'Record', name, range: 'ChargingStation', cardinality: '?' } : { type: 'class.describe', name: 'Record', definition: `Synthetic latency measurement ${i}.` };
+    const name = 'latencyRelationship';
+    const cardinality = i % 2 ? '!' : '?';
+    const command = graphMode ? (i === 0
+      ? { type: 'relationship.add', owner: 'Record', name, range: 'ChargingStation', cardinality }
+      : { type: 'property.update', owner: 'Record', name, expectedRange: 'ChargingStation', expectedCardinality: i % 2 ? '?' : '!', range: 'ChargingStation', cardinality })
+      : { type: 'class.describe', name: 'Record', definition: `Synthetic latency measurement ${i}.` };
     const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: `latency-${i}`, expectedRevision: i, commands: [command] } });
     if (result.isError) throw new Error('Measurement mutation failed');
     await page.waitForFunction(value => new RegExp(`revision ${value}(?:\\s|$)`).test(document.querySelector('[role=status]')?.textContent ?? ''), expected);
-    if (graphMode) await page.locator('.react-flow__edge-text').filter({ hasText: name }).waitFor({ state: 'visible' });
+    if (graphMode) await page.locator('.react-flow__edge-text').getByText(`${name} ${cardinality === '!' ? '1' : '0..1'}`, { exact: true }).waitFor({ state: 'visible' });
     if (i >= 5) times.push(performance.now() - start);
   }
   times.sort((a, b) => a - b);
-  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship edit start to visible graph edge in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}) }));
+  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship cardinality edit start to updated graph label in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}) }));
 } finally { await page.close(); await browser.close(); await client.close(); await service.shutdown(); store.close(); }
