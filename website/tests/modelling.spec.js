@@ -2047,7 +2047,8 @@ test('recent activity describes a suggestion and opens the current concept', asy
     store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, rationale: 'Clarify device terminology.', commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
     if (isMobile) {
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
-      await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
+      const activityButton = page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true });
+      if (await activityButton.getAttribute('aria-pressed') !== 'true') await activityButton.click();
     }
     await expect(activity.getByText('Updated a definition')).toBeVisible();
     await expect(activity.getByText('Reason: Clarify device terminology.')).toBeVisible();
