@@ -14,6 +14,13 @@ export function fixtureFailures(step) {
 }
 export const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maintenanceStation'], 'invalid-planning-state': ['PlannedMaintenanceWindow', 'maintenancePlanningState'], 'reversed-shared-interval': ['TimeWindow', 'endsAt'] };
 
+export function noFailureMessage(status) {
+  if (status === 'passed') return 'No failed steps in this job. Other required checks may still be missing.';
+  if (['queued', 'running', 'cancelling'].includes(status)) return 'This check has not finished. No failed step has been reported yet.';
+  if (status === 'cancelled' || status === 'interrupted') return 'This check did not finish. No failed step was reported; the draft has not passed this check.';
+  return 'No failed step has been reported. The check outcome is not established.';
+}
+
 // A failing check is evidence of a failed check, not automatically a model defect.
 export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept, disabled = false }) {
   const [copyMessage, setCopyMessage] = useState('');
@@ -52,7 +59,7 @@ export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcep
     <button type="button" aria-expanded={expanded} aria-controls="studio-validation-content" onClick={() => setExpanded(!expanded)}>{expanded ? 'Collapse validation' : 'Expand validation'}</button>
     <div id="studio-validation-content" hidden={!expanded}>
     <p>{job.profile} check at revision {job.revision}: {job.status}{stale ? ' — stale for the current draft' : ''}.</p>
-    {!issues.length && <p>{job.status === 'passed' ? 'No failed steps in this job. Other required checks may still be missing.' : 'No failed step has been reported.'}</p>}
+    {!issues.length && <p>{noFailureMessage(job.status)}</p>}
     {issues.length > 0 && <><label>Filter failed checks <input value={filter} onChange={event => setFilter(event.target.value)} placeholder="Check name or recorded output" /></label><p aria-live="polite">Showing {visibleIssues.length} of {issues.length} failed checks{term ? ' matching the filter' : ''}.</p></>}
     {groups.map(({ step, count }) => <article key={step.ordinal}>
       <h3>Failed check: {step.checkName}</h3>
