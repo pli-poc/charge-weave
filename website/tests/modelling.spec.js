@@ -2120,11 +2120,13 @@ test('recent activity describes a suggestion and opens the current concept', asy
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const client = new Client({ name: 'activity-client', version: '1' });
   try {
+    await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${service.address().port}/mcp`), { requestInit: { headers: { authorization: `Bearer ${'test-token-'.repeat(4)}` } } }));
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    store.suggestView(workspace.id, { actor: 'codex', operationId: 'activity-suggestion', expectedRevision: 0, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device neighbourhood.' });
+    expect((await client.callTool({ name: 'ontology_view_suggest', arguments: { workspaceId: workspace.id, operationId: 'activity-suggestion', expectedRevision: 0, root: 'Device', viewpoint: 'information', explanation: 'Inspect the device neighbourhood.' } })).isError).toBeFalsy();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true }).click();
     const activity = page.getByRole('region', { name: 'Recent activity' });
@@ -2136,7 +2138,7 @@ test('recent activity describes a suggestion and opens the current concept', asy
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     }
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
-    store.apply({ workspaceId: workspace.id, actor: 'codex', operationId: 'activity-edit', expectedRevision: 0, rationale: 'Clarify device terminology.', commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] });
+    expect((await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'activity-edit', expectedRevision: 0, rationale: 'Clarify device terminology.', commands: [{ type: 'class.describe', name: 'Device', definition: 'A revised device.' }] } })).isError).toBeFalsy();
     if (isMobile) {
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
       const activityButton = page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Activity', exact: true });
@@ -2153,7 +2155,7 @@ test('recent activity describes a suggestion and opens the current concept', asy
     await expect(activity.getByRole('heading', { name: 'Recent activity' })).toBeFocused();
     await expect(activity.getByText('Updated a definition')).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(1);
-  } finally { await page.close(); await service.shutdown(); store.close(); }
+  } finally { await client.close(); await page.close(); await service.shutdown(); store.close(); }
 });
 
 test('following suggestions pauses for manual work and resumes for new events', async ({ page, isMobile }) => {
