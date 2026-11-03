@@ -387,6 +387,11 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
   .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
 }
+@media (min-width: 1400px) and (min-height: 950px) {
+  /* Use the available height for the model instead of leaving a short canvas
+     in a tall workbench; smaller screens retain the compact canvas. */
+  .studio-panels .studio-flow { height: min(50vh, 38rem); }
+}
 /* Keep the workbench heading available to assistive technology while giving
    the selected diagram more of the constrained desktop editor viewport. */
 @media (min-width: 1000px) {

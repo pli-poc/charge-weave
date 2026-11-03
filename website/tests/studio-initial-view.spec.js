@@ -16,6 +16,11 @@ test('a new workspace opens a bounded view and the first selection can replace i
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toHaveAttribute('data-layout', 'ready');
+    if (!isMobile) {
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await expect.poll(async () => (await page.getByRole('region', { name: 'Relationships for Device' }).boundingBox()).height).toBeGreaterThanOrEqual(500);
+      await page.setViewportSize({ width: 1280, height: 800 });
+    }
     if (isMobile) await expect(page.getByRole('navigation', { name: 'Diagram navigation', includeHidden: true })).toBeHidden();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Record', exact: true }).click();
