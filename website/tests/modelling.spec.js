@@ -2805,6 +2805,14 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(issues.getByText('missing-station: expected rejection, observed conformance.')).toBeVisible();
     await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeVisible();
     await expect(issues.getByText(/reversed-shared-interval: expected/)).toHaveCount(0);
+    await page.route('**/events?**', route => route.abort());
+    await page.route('**/mcp', route => route.abort());
+    service.closeAllConnections();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Reconnecting');
+    await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeDisabled();
+    await page.unroute('**/mcp'); await page.unroute('**/events?**');
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('Connected');
+    await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeEnabled();
     await issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' }).click();
     await expect(page.getByLabel('Filter fields')).toHaveValue('');
     await expect(page.locator('#studio-inspector-pane').getByRole('rowheader', { name: /^maintenanceStation/ })).toBeFocused();
