@@ -414,6 +414,45 @@ export class WorkspaceStore {
       this.db.exec('COMMIT'); return result;
     } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
+  carryForward({ workspaceId, actor, operationId, sourceWorkspaceId, expectedRevision, expectedSourceDigest, files }) {
+    if (!actor || !operationId || typeof sourceWorkspaceId !== 'string' || sourceWorkspaceId === workspaceId || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(expectedSourceDigest ?? '') || !files || typeof files !== 'object' || Array.isArray(files) || !Object.keys(files).length || Object.keys(files).length > editableSourcePaths.size + 1) throw new Error('Invalid carry-forward mutation');
+    const requestHash = hash(JSON.stringify({ type: 'carry_forward', sourceWorkspaceId, expectedRevision, expectedSourceDigest, files }));
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const receipt = this.db.prepare('SELECT request_hash, result FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(workspaceId, actor, operationId);
+      if (receipt) {
+        if (receipt.request_hash !== requestHash) throw new Error('Operation ID reused with different request');
+        this.db.exec('COMMIT'); return JSON.parse(receipt.result);
+      }
+      const source = this.get(sourceWorkspaceId), target = this.get(workspaceId);
+      if (source.revision !== expectedRevision || source.sourceDigest !== expectedSourceDigest) throw new Error('Source draft changed; inspect it and retry carry-forward');
+      if (source.digestVersion !== 4 || target.digestVersion !== 4 || !target.sourceManifest) throw new Error('Carry-forward requires version-four workspaces');
+      const targetBaseline = this.db.prepare('SELECT baseline_schema FROM workspaces WHERE id = ?').get(workspaceId);
+      if (target.revision !== 0 || target.schema !== targetBaseline.baseline_schema || Object.keys(target.sourceOverlays).length) throw new Error('Carry-forward target must be a clean, newly created workspace');
+      if (this.latestChangeSet(workspaceId)) throw new Error('Target workspace already has a change set');
+      let schema = target.schema;
+      const overlays = { ...target.sourceOverlays };
+      for (const [path, content] of Object.entries(files)) {
+        if (typeof content !== 'string' || Buffer.byteLength(content) > 2_000_000) throw new Error('Invalid carried source content');
+        if (path === 'model/domain.schema') { parse(content); schema = content; continue; }
+        if (!editableSourcePaths.has(path)) throw new Error('Source is not an editable workspace overlay');
+        try { JSON.parse(content); } catch { throw new Error('Invalid carried editable source JSON'); }
+        if (this.db.prepare('UPDATE workspace_sources SET content = ? WHERE workspace = ? AND path = ?').run(content, workspaceId, path).changes !== 1) throw new Error('Carried source is not present in target baseline');
+        overlays[path] = content;
+      }
+      const changed = schema !== target.schema || Object.entries(overlays).some(([path, content]) => content !== target.sourceOverlays[path]);
+      if (!changed) throw new Error('Carry-forward contains no changes');
+      const revision = target.revision + 1;
+      const digest = sourceDigest(schema, target.baselineCommit, target.digestVersion, target.sourceManifest, overlays);
+      this.db.prepare('UPDATE workspaces SET schema = ?, revision = ?, digest = ? WHERE id = ?').run(schema, revision, digest, workspaceId);
+      this.db.prepare('INSERT INTO command_groups (workspace, revision, before_schema, after_digest, before_overlays, after_schema, after_overlays) VALUES (?, ?, ?, ?, ?, ?, ?)').run(workspaceId, revision, target.schema, digest, JSON.stringify(target.sourceOverlays), schema, JSON.stringify(overlays));
+      const carriedFiles = Object.keys(files).sort();
+      const event = this.db.prepare('INSERT INTO events (workspace, actor, revision, payload) VALUES (?, ?, ?, ?)').run(workspaceId, actor, revision, JSON.stringify({ type: 'carry_forward', operationId, carriedFrom: { workspaceId: sourceWorkspaceId, baselineCommit: source.baselineCommit, revision: source.revision, sourceDigest: source.sourceDigest }, carriedFiles, sourceDigest: digest }));
+      const result = { workspaceId, baselineCommit: target.baselineCommit, revision, sourceDigest: digest, carriedFiles, eventSequence: Number(event.lastInsertRowid), validationRequired: true, reviewRequired: true };
+      this.db.prepare('INSERT INTO receipts VALUES (?, ?, ?, ?, ?)').run(workspaceId, actor, operationId, requestHash, JSON.stringify(result));
+      this.db.exec('COMMIT'); return result;
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
+  }
   latestChangeSet(workspaceId) {
     const row = this.db.prepare('SELECT id, intent, requirements, base_revision AS baseRevision, status, review_id AS reviewId, created_at AS createdAt, updated_at AS updatedAt FROM change_sets WHERE workspace = ? ORDER BY rowid DESC LIMIT 1').get(workspaceId);
     return row ? { ...row, requirements: JSON.parse(row.requirements) } : null;
@@ -509,7 +548,7 @@ export class WorkspaceStore {
     const event = this.db.prepare('SELECT sequence, actor, created_at AS createdAt, payload FROM events WHERE workspace = ? AND revision = ? ORDER BY sequence LIMIT 1').get(id, revision);
     const payload = event ? JSON.parse(event.payload) : {};
     return { workspaceId: id, revision, baselineCommit: workspace.baselineCommit, sourceDigest: group.after_digest, available: true,
-      actor: event?.actor ?? null, createdAt: event?.createdAt ?? null, eventSequence: event?.sequence ?? null, commandGroupId: payload.commandGroupId ?? null, operationId: payload.operationId ?? null, rationale: payload.rationale ?? null, commands: payload.commands ?? [],
+      actor: event?.actor ?? null, createdAt: event?.createdAt ?? null, eventSequence: event?.sequence ?? null, type: payload.type ?? 'command_group', carriedFrom: payload.carriedFrom ?? null, carriedFiles: payload.carriedFiles ?? [], commandGroupId: payload.commandGroupId ?? null, operationId: payload.operationId ?? null, rationale: payload.rationale ?? null, commands: payload.commands ?? [],
       patch: createPatch('model/domain.schema', group.before_schema, group.after_schema, 'before', 'after', { context: 3 }),
       baselinePatch: createPatch('model/domain.schema', baseline, group.after_schema, 'baseline', 'historical revision', { context: 3 }), additionalSources };
   }

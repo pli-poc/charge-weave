@@ -8,7 +8,7 @@ import { runPublicationPush } from './publication-push.js';
 import { runPublicationPullRequest } from './publication-pr.js';
 import { serveStudio } from './static.js';
 import { PairingSessions } from './pairing.js';
-import { createWorkspaceFromRepository } from './workspace-create.js';
+import { carryForwardWorkspaceFromRepository, createWorkspaceFromRepository } from './workspace-create.js';
 
 // A single locally provisioned bearer identifies this bounded draft-edit session.
 // Browser origins are denied unless explicitly configured by the operator.
@@ -184,7 +184,14 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
       grantedWorkspaces.add(created.id);
       return created;
     } : undefined;
-    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, workspaceId, listWorkspaceIds: () => [...grantedWorkspaces], createWorkspace, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
+    const carryForwardWorkspace = role === 'reviewer' && allowWorkspaceCreate && repository ? async args => {
+      if (!grantedWorkspaces.has(args.sourceWorkspaceId)) throw new Error('Source workspace not authorized');
+      if (grantedWorkspaces.size >= 20 && !store.createdWorkspaceId('local-reviewer', `carryforward:${args.operationId}`)) throw new Error('Workspace grant limit reached');
+      const carried = await carryForwardWorkspaceFromRepository(store, repository, { ...args, operationId: `carryforward:${args.operationId}`, actor: 'local-reviewer', publicationFixture });
+      if (carried.status === 'carried-forward') grantedWorkspaces.add(carried.workspaceId);
+      return carried;
+    } : undefined;
+    const server = createServer(scopedStore, role === 'reviewer' ? 'local-reviewer' : 'local-draft-session', { repository, python, role, workspaceId, listWorkspaceIds: () => [...grantedWorkspaces], createWorkspace, carryForwardWorkspace, startValidation, startPublication, startCommit, startPush, startPullRequest, cancelValidation, publicationFixture, ciFetch, pullRequestFetch, allowPublish, githubToken });
     res.on('close', () => { void server.close(); });
     try {
       await server.connect(transport);

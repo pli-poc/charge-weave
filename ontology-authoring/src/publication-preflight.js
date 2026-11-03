@@ -8,8 +8,8 @@ const exec = promisify(execFile);
 const canonicalRemote = 'https://github.com/pli-poc/charge-weave.git';
 const canonicalAliases = new Set([canonicalRemote, 'https://github.com/pli-poc/charge-weave', 'git@github.com:pli-poc/charge-weave.git', 'git@github.com:pli-poc/charge-weave']);
 
-// Compare a pinned remote head in a disposable repository. File-level disjointness
-// is useful to a reviewer but is not proof of semantic compatibility or a rebase.
+// Compare a pinned remote head in a disposable repository. Disjoint paths are
+// a necessary condition for carry-forward; the resulting workspace is revalidated.
 async function compareRemoteBase(repository, target, branch, baseline, head, sourceFiles, fixture) {
   let directory;
   try {
@@ -26,7 +26,7 @@ async function compareRemoteBase(repository, target, branch, baseline, head, sou
     const changedFiles = listing.split('\0').filter(Boolean).sort();
     if (changedFiles.length > 10000) throw new Error('Comparison is too large');
     const overlap = sourceFiles.filter(path => changedFiles.includes(path));
-    return { status: overlap.length ? 'overlap' : 'disjoint-paths', overlap, changedFiles, note: 'Path comparison only; combined changes require semantic review and fresh validation.' };
+    return { status: overlap.length ? 'overlap' : 'disjoint-paths', overlap, changedFiles, note: 'Disjoint paths can be carried to a fresh workspace; semantic review and validation must be repeated.' };
   } catch {
     return { status: 'unavailable', overlap: [], changedFiles: [] };
   } finally { if (directory) await rm(directory, { recursive: true, force: true }); }

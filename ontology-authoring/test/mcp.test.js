@@ -50,18 +50,20 @@ test('MCP apply accepts an event cursor and reports intervening activity', async
   } finally { await client.close(); store.close(); }
 });
 
-test('change-set reopening is available only to the reviewer role', async () => {
+test('reviewer-only workspace controls include carry-forward', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Change set', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const clients = [];
   try {
     for (const role of ['draft', 'reviewer']) {
       const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-      const server = createServer(store, role, { role });
+      const server = createServer(store, role, { role, carryForwardWorkspace: async () => ({ status: 'carried-forward' }) });
       const client = new Client({ name: role, version: '1' });
       await server.connect(serverTransport); await client.connect(clientTransport); clients.push(client);
     }
     const [draft, reviewer] = clients;
+    assert.equal((await draft.listTools()).tools.some(item => item.name === 'ontology_workspace_carry_forward'), false);
+    assert.equal((await reviewer.listTools()).tools.some(item => item.name === 'ontology_workspace_carry_forward'), true);
     assert.equal((await draft.listTools()).tools.some(item => item.name === 'ontology_changeset_reopen'), false);
     assert.equal((await reviewer.listTools()).tools.some(item => item.name === 'ontology_changeset_reopen'), true);
     const opened = (await draft.callTool({ name: 'ontology_changeset_open', arguments: { workspaceId: workspace.id, operationId: 'open', expectedRevision: 0, intent: 'Describe the record.' } })).structuredContent;
