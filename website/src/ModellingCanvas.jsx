@@ -86,6 +86,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [relationshipQuery, setRelationshipQuery] = useState('');
   const [relationshipDirection, setRelationshipDirection] = useState('all');
+  const [conceptQuery, setConceptQuery] = useState('');
+  const [navigationConcept, setNavigationConcept] = useState('');
   const [relationshipTargetQuery, setRelationshipTargetQuery] = useState('');
   const [relationshipTarget, setRelationshipTarget] = useState('');
   const [relationshipCreateNotice, setRelationshipCreateNotice] = useState('');
@@ -130,6 +132,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const relationshipTargetStatus = useId();
   const relationshipSearchInput = useRef(null);
   const relationshipTargetSearchInput = useRef(null);
+  const conceptSearchInput = useRef(null);
   const relationshipCreateAttempt = useRef(0);
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
@@ -138,6 +141,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
   useEffect(() => { setRelationshipQuery(''); }, [graph.workspaceId, graph.root, viewId]);
   useEffect(() => { setRelationshipDirection('all'); }, [graph.workspaceId, graph.root, viewId, selectedName]);
+  useEffect(() => { setConceptQuery(''); setNavigationConcept(''); }, [graph.workspaceId, graph.root, viewId]);
+  useEffect(() => { if (navigationConcept && !visibleNames.has(navigationConcept)) setNavigationConcept(''); }, [navigationConcept, visibleNames]);
   useEffect(() => {
     relationshipCreateAttempt.current += 1;
     setRelationshipTargetQuery(''); setRelationshipTarget(''); setRelationshipCreateNotice('');
@@ -263,6 +268,11 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     return term ? activeNodes.filter(node => `${node.name} ${node.label ?? ''} ${node.module ?? ''}`.toLowerCase().includes(term)) : activeNodes;
   }, [activeNodes, relationshipTargetQuery]);
   const retainedTarget = relationshipTarget && visibleNames.has(relationshipTarget) && !matchingTargets.some(node => node.name === relationshipTarget) ? relationshipTarget : '';
+  const matchingConcepts = useMemo(() => {
+    const term = conceptQuery.trim().toLowerCase();
+    return term ? activeNodes.filter(node => `${node.name} ${node.label ?? ''} ${node.module ?? ''}`.toLowerCase().includes(term)) : activeNodes;
+  }, [activeNodes, conceptQuery]);
+  const retainedNavigationConcept = navigationConcept && visibleNames.has(navigationConcept) && !matchingConcepts.some(node => node.name === navigationConcept) ? navigationConcept : '';
   const displayNodes = useMemo(() => nodes.filter(node => visibleNames.has(node.id)).map(node => ({ ...node, className: `${node.className}${layoutSelection.has(node.id) ? ' studio-layout-selected' : ''}${highlightedEdge && (node.id === highlightedEdge.source || node.id === highlightedEdge.target) ? ' studio-relationship-endpoint' : ''}`, data: { ...node.data, layoutSelected: layoutSelection.has(node.id), layoutPinned: layoutPins.has(node.id), overview } })), [nodes, layoutSelection, layoutPins, overview, visibleNames, highlightedEdge]);
   const groupFrames = useMemo(() => canvasGroupFrames(viewGroups, displayNodes), [viewGroups, displayNodes]);
   function toggleLayoutSelection(name) {
@@ -453,6 +463,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const center = cardCenter(point, selectedName, instance.current);
     void instance.current.setCenter(center.x, center.y, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
+  function focusNavigationConcept() {
+    const point = positions.current[navigationConcept];
+    if (!point || !visibleNames.has(navigationConcept) || !instance.current || layoutState !== 'ready') return;
+    onManualInteraction();
+    const center = cardCenter(point, navigationConcept, instance.current);
+    void instance.current.setCenter(center.x, center.y, { zoom: 1, duration: motionDuration(250) });
+  }
   const focusRoot = useCallback(() => {
     const point = positions.current[graph.root];
     if (!point || !instance.current) return;
@@ -696,6 +713,15 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     <p className="studio-canvas-keyboard-hint">Keyboard: focus the diagram and use arrow keys to pan.</p>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
     {activeEdges.length > 0 && <div className="studio-canvas-line-legend" aria-label="Diagram relationship line styles"><span><i aria-hidden="true" /> Relationship</span><span><i className="studio-canvas-line-inheritance" aria-hidden="true" /> Inheritance (subClassOf)</span><span>Arrows point to the target.</span></div>}
+    <details className="studio-canvas-concept-navigator">
+      <summary>Find a concept in this diagram</summary>
+      <label>Search visible concepts <input ref={conceptSearchInput} type="search" maxLength={200} value={conceptQuery} onChange={event => { onManualInteraction(); setConceptQuery(event.target.value); }} /></label>
+      {conceptQuery && <button type="button" onClick={() => { setConceptQuery(''); conceptSearchInput.current?.focus(); }}>Clear concept search</button>}
+      <p aria-live="polite">Showing {matchingConcepts.length} of {activeNodes.length} visible concepts. Hidden and unloaded concepts are excluded.{retainedNavigationConcept && ' The chosen concept remains available outside these results.'}</p>
+      <label>Visible concept <select value={navigationConcept} onChange={event => setNavigationConcept(event.target.value)}><option value="">Choose a visible concept</option>{retainedNavigationConcept && <option value={retainedNavigationConcept}>{retainedNavigationConcept} (currently chosen)</option>}{matchingConcepts.map(node => <option key={node.name} value={node.name}>{node.name}{node.label && node.label !== node.name ? ` — ${node.label}` : ''}{node.module ? ` · ${node.module}` : ''}</option>)}</select></label>
+      <div className="studio-canvas-edge-actions"><button type="button" disabled={!visibleNames.has(navigationConcept)} onClick={() => { onManualInteraction(); selectNode({ id: navigationConcept }); }}>Inspect chosen concept</button><button type="button" disabled={layoutState !== 'ready' || !visibleNames.has(navigationConcept)} onClick={focusNavigationConcept}>Focus chosen concept on diagram</button></div>
+      <p>These actions keep the current diagram root. Focusing only moves the view.</p>
+    </details>
     <details className="studio-canvas-create-relationship">
       <summary>Add relationship from selected concept</summary>
       {!visibleNames.has(selectedName) ? <p>Select a concept shown in the diagram first.</p> : <>
