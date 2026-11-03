@@ -638,7 +638,7 @@ export class WorkspaceStore {
     return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, root, results, nodes, total: references.length, nextOffset: offset + results.length < references.length ? offset + results.length : null };
   }
   view(id, root, expectedRevision, limit = 50) {
-    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Invalid view limit');
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid view limit');
     const workspace = this.get(id);
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     const classes = parse(workspace.schema).classes;
