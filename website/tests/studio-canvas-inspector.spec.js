@@ -37,6 +37,7 @@ test('diagram selection opens the inspector without changing the view or discard
     await canvas.locator('.react-flow__node[data-id="Record"]').click();
     await expect(inspector).toBeVisible();
     await expect(inspector.getByRole('heading', { name: 'Record', exact: true })).toBeVisible();
+    await expect(inspector.getByText('Class / foundation', { exact: true })).toBeVisible();
     await expect(inspector.getByRole('status').filter({ hasText: 'Loading Record details' })).toBeVisible();
     await expect(inspector.getByText('https://example.org/charge-domain#Device', { exact: true })).toHaveCount(0);
     releaseRecord();

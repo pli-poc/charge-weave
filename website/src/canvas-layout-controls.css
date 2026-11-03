@@ -59,6 +59,12 @@ html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-la
 html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canvas-layout-menu, .studio-canvas-zoom) :is(button, summary, input):focus-visible { outline-color: #91e9d1; }
 .studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .18; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+@media (forced-colors: active) {
+  .studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .55; }
+  .studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+}
 .studio-flow .studio-flow-inheritance .react-flow__edge-path { stroke-dasharray: 7 4; }
 .studio-canvas-line-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .5rem 0; color: #183a39; font-size: .8rem; }
 .studio-canvas-line-legend span { display: inline-flex; align-items: center; gap: .35rem; }

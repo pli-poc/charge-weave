@@ -72,6 +72,7 @@ function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, o
 export default function ModellingCanvas({ graph, viewId, selectedName, onSelect, onManualInteraction, onConnect, onEditRelationship, pendingEdgeEdit, onLayoutChange, viewGroups = [], groupsEditable = false, onCreateGroup, onRemoveGroup, newGroupName, setNewGroupName }) {
   const [nodes, setNodes] = useState([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState('');
+  const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [layoutSelection, setLayoutSelection] = useState(() => new Set());
   const [groupNotice, setGroupNotice] = useState('');
   const [overview, setOverview] = useState(false);
@@ -207,6 +208,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   useEffect(() => {
     setSelectedEdgeId(id => id && !activeEdges.some(edge => edge.id === id) ? '' : id);
   }, [activeEdges]);
+  useEffect(() => { if (!selectedEdgeId) setDimOtherRelationships(false); }, [selectedEdgeId]);
   useEffect(() => {
     setLayoutSelection(previous => {
       const retained = [...previous].filter(name => visibleNames.has(name));
@@ -556,7 +558,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         {hiddenNotice && <p aria-live="polite">{hiddenNotice}</p>}
       </details>
     </details>
-    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}` }))}
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
       onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
         if (!lastRoot.current) return;
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
@@ -581,6 +583,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       {selectedEdge.sourceRef?.path && <p><strong>Source:</strong> {selectedEdge.sourceRef.path}{selectedEdge.sourceRef.line != null ? `:${selectedEdge.sourceRef.line}` : ''}</p>}
       {selectedEdge.mappingVersion && <p><strong>Mapping version:</strong> {selectedEdge.mappingVersion}</p>}
       <p>Inspect a concept to review its supported field controls. Selecting this relationship does not change the model.</p>
+      <button type="button" aria-pressed={dimOtherRelationships} onClick={() => { onManualInteraction(); setDimOtherRelationships(value => !value); }}>Dim other relationships</button>
+      {dimOtherRelationships && <p>Other relationship lines are dimmed. Choose another relationship or turn this off to restore the full view. The layout and model are unchanged.</p>}
       {selectedEdge.predicate !== 'subClassOf' && <button type="button" disabled={Boolean(pendingEdgeEdit)} onClick={event => onEditRelationship(selectedEdge, event.currentTarget)}>Edit relationship {selectedEdge.predicate}</button>}
       <div className="studio-canvas-edge-actions"><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.source)} onClick={() => inspectEndpoint(selectedEdge.source)}>Inspect source {selectedEdge.source}</button><button type="button" disabled={!graph.nodes.some(node => node.name === selectedEdge.target)} onClick={() => inspectEndpoint(selectedEdge.target)}>Inspect target {selectedEdge.target}</button><button type="button" onClick={() => inspectEdge('')}>Close relationship details</button></div>
     </section>}

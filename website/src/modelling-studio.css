@@ -312,6 +312,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-editor > .studio-graph { margin-top: .5rem; }
 .studio-editor-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; color: var(--studio-muted); border: 1px dashed var(--studio-strong-border); border-radius: .4rem; }
 .studio-editor-empty h3 { color: var(--studio-text); }
+.studio-inspector-context { margin: -.35rem 0 .75rem; color: var(--studio-muted); font-size: .8rem; }
 .studio-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-top: 1rem; }
 .studio-field-list { list-style: none; margin: .5rem 0; padding: 0; }
 .studio-field-table-wrap { overflow-x: auto; }
