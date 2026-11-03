@@ -1749,14 +1749,38 @@ export default function ModellingStudio() {
   function beginFieldDraft() {
     if (!fieldDraftBase && connection && snapshot && selected) setFieldDraftBase(currentFieldDraftBase());
   }
+  async function inspectPropertyReuse(name, owner, expectedRevision) {
+    const matches = [];
+    let offset = 0, nextOffset;
+    do {
+      const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_field_search', arguments: { workspaceId: connection.workspaceId, query: name, expectedRevision, offset, limit: 100 } });
+      const page = response.structuredContent;
+      if (page.revision !== expectedRevision) throw new Error('The workspace changed during property impact review. Refresh the draft and retry.');
+      matches.push(...page.results.filter(item => item.name === name));
+      nextOffset = page.nextOffset;
+      offset = nextOffset ?? offset;
+    } while (nextOffset !== null && nextOffset !== undefined);
+    const owners = [...new Set(matches.map(item => item.owner))].sort();
+    if (owners.includes(owner)) throw new Error(`${owner} already declares ${name}. Edit its existing declaration instead.`);
+    if (owners.length) {
+      const existing = matches.map(item => `${item.owner}: ${item.range} ${item.cardinality}`).join('\n');
+      const message = `The property “${name}” is already used by:\n${existing}\n\nAdding it here extends the same global property. Object ranges may be widened; datatype ranges must match. The exact owner list will be checked again when saved. Continue?`;
+      if (!window.confirm(message)) return null;
+    }
+    return owners;
+  }
   async function addField(event) {
     event.preventDefault();
     if (!fieldDraftBase || !snapshot || !selected || !validFieldRangeDraft(field.range, fieldValueCandidate) || fieldDraftBase.workspaceId !== connection.workspaceId || fieldDraftBase.owner !== selected.name || fieldDraftBase.revision !== snapshot.revision || fieldDraftBase.eventSequence !== snapshot.eventSequence || (snapshot.changeSet && snapshot.changeSet.status !== 'draft')) return;
-    if (await applyCommand({ type: 'property.add', owner: selected.name, ...field }, fieldDraftBase.revision, fieldDraftBase.eventSequence)) {
-      setField({ name: '', range: 'string', cardinality: '?' });
-      setFieldValueCandidate('');
-      setFieldDraftBase(null);
-    }
+    try {
+      const expectedOwners = await inspectPropertyReuse(field.name, selected.name, fieldDraftBase.revision);
+      if (expectedOwners === null) return;
+      if (await applyCommand({ type: 'property.add', owner: selected.name, ...field, expectedOwners }, fieldDraftBase.revision, fieldDraftBase.eventSequence)) {
+        setField({ name: '', range: 'string', cardinality: '?' });
+        setFieldValueCandidate('');
+        setFieldDraftBase(null);
+      }
+    } catch (problem) { setError(`Could not review property reuse: ${problem.message}`); }
   }
   function startRelationship(source, target) {
     if (relationshipDraftRef.current) { setError('Finish or cancel the current relationship draft before starting another.'); return; }
@@ -1801,7 +1825,11 @@ export default function ModellingStudio() {
     const { source, target, name, description, cardinality, revision, eventSequence } = relationshipDraft;
     setRelationshipSubmitting(true);
     try {
-      if (await applyCommand({ type: 'relationship.add', owner: source, name, range: target, cardinality, description }, revision, eventSequence)) { relationshipDraftRef.current = null; setRelationshipDraft(null); }
+      const expectedOwners = await inspectPropertyReuse(name, source, revision);
+      if (expectedOwners === null) return;
+      if (await applyCommand({ type: 'relationship.add', owner: source, name, range: target, cardinality, description, expectedOwners }, revision, eventSequence)) { relationshipDraftRef.current = null; setRelationshipDraft(null); }
+    } catch (problem) {
+      setError(`Could not review relationship reuse: ${problem.message}`);
     } finally { setRelationshipSubmitting(false); }
   }
   async function undoLatest(candidate) {

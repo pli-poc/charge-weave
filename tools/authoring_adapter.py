@@ -23,7 +23,7 @@ def apply_commands(schema, commands):
     for command in commands:
         if not isinstance(command, dict):
             raise ValueError('Invalid command')
-        classes, _, _, _ = parse_schema('\n'.join(lines), DATATYPES - {'IRI'})
+        classes, _, property_types, _ = parse_schema('\n'.join(lines), DATATYPES - {'IRI'})
         modules = {line.split('|', 1)[1] for line in lines if line.startswith('MODULE|')}
         kind = command.get('type')
         if kind == 'class.add':
@@ -36,15 +36,23 @@ def apply_commands(schema, commands):
             lines.insert(index, f'{name}|{parent}|{definition}|')
         elif kind in ('property.add', 'relationship.add'):
             owner, name, target, cardinality = (command.get(key) for key in ('owner', 'name', 'range', 'cardinality'))
-            existing = {field['property'] for item in classes.values() for field in item['fields']}
+            existing_owners = sorted(owner for owner, item in classes.items() for field in item['fields'] if field['property'] == name)
             match = ENUM.fullmatch(target) if isinstance(target, str) else None
             values = match.group(1).split(',') if match else []
             valid_enum = 2 <= len(values) <= 50 and len(set(values)) == len(values)
             description = command.get('description')
             keys = {'type', 'owner', 'name', 'range', 'cardinality'}
+            expected_owners = command.get('expectedOwners')
+            if 'expectedOwners' in command:
+                keys.add('expectedOwners')
+            new_type = 'enum' if match else ('datatype' if target in DATATYPES else ('iri' if target == 'IRI' else 'object'))
+            new_range = name[0].upper() + name[1:] + 'Code' if match else target
+            compatible_reuse = all(old_type == new_type and (new_type != 'datatype' or old_range == new_range) for old_type, old_range in property_types.get(name, set()))
+            owner_already_declares = any(field['property'] == name for field in classes.get(owner, {}).get('fields', []))
+            impact_precondition = (not existing_owners and expected_owners in (None, [])) or (bool(existing_owners) and isinstance(expected_owners, list) and expected_owners == existing_owners)
             if kind == 'relationship.add' and 'description' in command:
                 keys.add('description')
-            if set(command) != keys or ('description' in command and (not isinstance(description, str) or not description.strip() or len(description) > 4000 or re.search(r'[|\r\n]', description))) or owner not in classes or not isinstance(name, str) or not IDENTIFIER.fullmatch(name) or name in existing or cardinality not in ('!', '?', '+', '*') or not (target in DATATYPES or target in classes or valid_enum) or (kind == 'relationship.add' and target not in classes):
+            if set(command) != keys or ('expectedOwners' in command and (not isinstance(expected_owners, list) or len(expected_owners) > 500 or any(not isinstance(item, str) or not IDENTIFIER.fullmatch(item) for item in expected_owners) or len(expected_owners) != len(set(expected_owners)))) or ('description' in command and (not isinstance(description, str) or not description.strip() or len(description) > 4000 or re.search(r'[|\r\n]', description))) or owner not in classes or not isinstance(name, str) or not IDENTIFIER.fullmatch(name) or owner_already_declares or not impact_precondition or not compatible_reuse or cardinality not in ('!', '?', '+', '*') or not (target in DATATYPES or target in classes or valid_enum) or (kind == 'relationship.add' and target not in classes):
                 raise ValueError('Invalid property.add')
             index = next(i for i, line in enumerate(lines) if line.startswith(owner + '|'))
             parts = lines[index].split('|')

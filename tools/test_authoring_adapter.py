@@ -10,6 +10,7 @@ from rdflib import Graph, Namespace, RDF
 from pyshacl import validate
 
 from authoring_adapter import apply_commands, inspect_entity
+from domain_schema import parse_schema
 
 
 class AuthoringAdapterTests(unittest.TestCase):
@@ -92,6 +93,34 @@ class AuthoringAdapterTests(unittest.TestCase):
         self.assertIn('related:Device*', apply_commands(schema, [command]))
         with self.assertRaisesRegex(ValueError, 'precondition'):
             apply_commands(schema.replace('related:Record?', 'related:Record? related:Device*'), [command])
+
+    def test_global_property_reuse_requires_current_owner_list_and_preserves_compatible_union(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nPerson|Record|A person.|\nDevice|Record|A device.|\nCase|Record|A case.|assignee:Person?\n'
+        command = {'type': 'relationship.add', 'owner': 'Device', 'name': 'assignee', 'range': 'Device', 'cardinality': '?', 'expectedOwners': ['Case']}
+        candidate = apply_commands(schema, [command])
+        _, _, property_types, _ = parse_schema(candidate, {'string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI'})
+        self.assertEqual(property_types['assignee'], {('object', 'Person'), ('object', 'Device')})
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(schema, [{key: value for key, value in command.items() if key != 'expectedOwners'}])
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(schema, [{**command, 'expectedOwners': ['Device']}])
+
+        data_schema = schema.replace('assignee:Person?', 'assignee:string?')
+        incompatible = {'type': 'property.add', 'owner': 'Device', 'name': 'assignee', 'range': 'integer', 'cardinality': '?', 'expectedOwners': ['Case']}
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(data_schema, [incompatible])
+
+        with tempfile.TemporaryDirectory(prefix='chargeweave-property-reuse-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            import json
+            generated = json.loads((root / 'model/property-types.json').read_text(encoding='utf8'))
+            self.assertEqual(generated['assignee'], [['object', 'Device'], ['object', 'Person']])
 
     def test_templates_compile_to_non_vacuous_structural_checks(self):
         schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|related:Record? state:{Draft,Final,Archived}?\n'

@@ -105,6 +105,24 @@ test('saved view manifests import presentation data with version and destination
   } finally { await client.close(); store.close(); }
 });
 
+test('MCP shared-property additions require the current declaring-owner precondition', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Shared property', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|label:string?\nDevice|Record|A device.|\n' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createServer(store, 'author', { role: 'draft' });
+  const client = new Client({ name: 'shared-property-test', version: '1' });
+  try {
+    await server.connect(serverTransport); await client.connect(clientTransport);
+    const add = { type: 'property.add', owner: 'Device', name: 'label', range: 'string', cardinality: '?', expectedOwners: ['Record'] };
+    const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'shared-label', expectedRevision: 0, commands: [add] } });
+    assert.equal(result.structuredContent.revision, 1);
+    assert.match(store.get(workspace.id).schema, /Device\|Record\|A device\.\|label:string\?/);
+    const missing = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: 'missing-owner-list', expectedRevision: 1, commands: [{ ...add, expectedOwners: undefined }] } });
+    assert.equal(missing.isError, true);
+    assert.equal(store.get(workspace.id).revision, 1);
+  } finally { await client.close(); store.close(); }
+});
+
 test('two MCP clients share revisioned state and reject stale edits', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Shared', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
