@@ -34,6 +34,40 @@ test('committed MCP edits wake an event stream without waiting for polling', { t
   } finally { abort.abort(); await client.close(); await service.shutdown(); store.close(); }
 });
 
+test('event replay resumes from the workspace cursor and rejects a foreign cursor', { timeout: 10000 }, async () => {
+  const store = new WorkspaceStore(':memory:');
+  const schema = 'MODULE|foundation\nRecord|root|A record.|\n';
+  const workspace = store.create({ title: 'Replay', baselineCommit: 'a'.repeat(40), schema });
+  const other = store.create({ title: 'Other', baselineCommit: 'a'.repeat(40), schema });
+  const token = 'a'.repeat(32);
+  const service = createHttpService({ store, token, workspaceId: workspace.id, eventPollMs: 10000 });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const origin = `http://127.0.0.1:${service.address().port}`;
+  const abort = new AbortController();
+  try {
+    const edit = (id, operationId, revision, definition) => store.apply({ workspaceId: id, actor: 'test', operationId, expectedRevision: revision, commands: [{ type: 'class.describe', name: 'Record', definition }] });
+    edit(workspace.id, 'first', 0, 'First.');
+    const first = store.events(workspace.id)[0];
+    edit(other.id, 'foreign', 0, 'Foreign.');
+    const foreign = store.events(other.id)[0];
+    edit(workspace.id, 'second', 1, 'Second.');
+    edit(workspace.id, 'third', 2, 'Third.');
+    const events = store.events(workspace.id);
+    const headers = { authorization: `Bearer ${token}` };
+    const invalid = await fetch(`${origin}/events?workspaceId=${workspace.id}&after=${foreign.sequence}`, { headers });
+    assert.equal(invalid.status, 409);
+    const response = await fetch(`${origin}/events?workspaceId=${workspace.id}&after=0`, { headers: { ...headers, 'Last-Event-ID': String(first.sequence) }, signal: abort.signal });
+    assert.equal(response.status, 200);
+    const reader = response.body.getReader();
+    let text = '';
+    while ((text.match(/event: workspace-change/g) || []).length < 2) text += new TextDecoder().decode((await reader.read()).value);
+    const delivered = text.split('\n\n').filter(frame => frame.includes('event: workspace-change')).map(frame => JSON.parse(frame.split('\n').find(line => line.startsWith('data: ')).slice(6)));
+    assert.deepEqual(delivered.map(event => event.sequence), events.slice(1).map(event => event.sequence));
+    assert.deepEqual(delivered.map(event => event.previousSequence), [first.sequence, events[1].sequence]);
+    assert.equal(text.includes('Foreign.'), false);
+  } finally { abort.abort(); await service.shutdown(); store.close(); }
+});
+
 test('reviewer creates a scoped workspace idempotently from a committed baseline', { timeout: 120000 }, async () => {
   const repo = mkdtempSync(join(tmpdir(), 'chargeweave-create-'));
   const git = (...args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
