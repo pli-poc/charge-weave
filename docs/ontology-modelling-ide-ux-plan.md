@@ -416,7 +416,7 @@ Presentation pinning, viewport and tab state initially stay local. Do not add st
 | Required/allowed-value/interval constraints | Constraints inspector and template editor |
 | Requirement search/link and reviewer interval cases | Requirements inspector; Review -> Evidence/cases |
 | Responsibility mapping and temporal policy | Perspective toolbar and Inspector -> Perspectives |
-| Saved views, groups, notes and manifest export | Editor tabs, view menu, visual grouping and annotation tools |
+| Saved views, groups, notes and manifest export/import | Editor tabs, view menu, visual grouping and annotation tools; import is version-checked, confirms replacement and validates destination concept references. Covered by `ontology-authoring/test/mcp.test.js` and `website/tests/studio-view-manifest-import.spec.js`. |
 | Diff, change impact and generated comparisons | Changes review editor |
 | Validation start/cancel/retry, output and repair instruction | Check menu; Problems, Checks and Output panels |
 | History, exact revision comparison and latest-group undo | Activity panel; history editor; explicit Undo command |

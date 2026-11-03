@@ -76,6 +76,35 @@ test('reviewer-only workspace controls include carry-forward', async () => {
   } finally { for (const client of clients) await client.close(); store.close(); }
 });
 
+test('saved view manifests import presentation data with version and destination checks', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const source = store.create({ title: 'Source views', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const destination = store.create({ title: 'Destination views', baselineCommit: 'b'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createServer(store, 'author', { role: 'draft' });
+  const client = new Client({ name: 'view-manifest-import-test', version: '1' });
+  try {
+    await server.connect(serverTransport); await client.connect(clientTransport);
+    const definition = { root: 'Device', positions: { Device: { x: 10, y: 20 }, Record: { x: 240, y: 20 } }, viewpoint: 'information', groups: [{ name: 'Core', members: ['Device', 'Record'] }], annotations: [{ target: 'Device', text: 'Imported view note' }] };
+    store.saveView({ workspaceId: source.id, viewId: 'maintenance', actor: 'author', operationId: 'save-source', expectedViewRevision: 0, definition });
+    const exported = (await client.callTool({ name: 'ontology_view_manifest_get', arguments: { workspaceId: source.id, viewId: 'maintenance' } })).structuredContent;
+    const request = { workspaceId: destination.id, operationId: 'import-view', expectedViewRevision: 0, manifest: exported };
+    const imported = await client.callTool({ name: 'ontology_view_manifest_import', arguments: request });
+    assert.equal(imported.structuredContent.viewId, 'maintenance');
+    assert.equal(imported.structuredContent.viewRevision, 1);
+    assert.equal(imported.structuredContent.importedFrom.workspaceId, source.id);
+    assert.deepEqual(store.savedView(destination.id, 'maintenance').definition, definition);
+    assert.deepEqual((await client.callTool({ name: 'ontology_view_manifest_import', arguments: request })).structuredContent, imported.structuredContent);
+    const invalidReference = { ...exported, definition: { ...definition, root: 'Missing' } };
+    const rejected = await client.callTool({ name: 'ontology_view_manifest_import', arguments: { ...request, operationId: 'bad-import', manifest: invalidReference } });
+    assert.equal(rejected.isError, true);
+    assert.equal(store.savedView(destination.id, 'maintenance').viewRevision, 1);
+    const wrongVersion = await client.callTool({ name: 'ontology_view_manifest_import', arguments: { ...request, operationId: 'wrong-version', manifest: { ...exported, contractVersion: 'future-view-v2' } } });
+    assert.equal(wrongVersion.isError, true);
+    assert.equal(store.get(destination.id).revision, 0);
+  } finally { await client.close(); store.close(); }
+});
+
 test('two MCP clients share revisioned state and reject stale edits', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Shared', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });

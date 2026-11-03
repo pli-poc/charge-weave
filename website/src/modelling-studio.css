@@ -295,6 +295,10 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-command-palette [role="option"] { cursor: pointer; padding: .7rem; border-radius: .3rem; }
 .studio-command-palette [role="option"][aria-selected="true"], .studio-command-palette [role="option"]:hover { background: var(--studio-hover); }
 .studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+.studio-view-import { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; padding: .7rem; border: 1px solid var(--studio-border); border-radius: .4rem; }
+.studio-view-import h3, .studio-view-import p { flex-basis: 100%; margin: 0; }
+.studio-view-import label { flex: 1 1 16rem; }
+.studio-view-import input[type="file"] { display: block; max-width: 100%; margin-top: .25rem; }
 .studio-diagram-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin: .4rem 0; }
 @media (max-width: 600px) { .studio-view-history:not(:has(button:not(:disabled))) { display: none; } }
 .studio-diagram-toolbar .studio-view-history { flex: 0 0 auto; margin: 0; }
