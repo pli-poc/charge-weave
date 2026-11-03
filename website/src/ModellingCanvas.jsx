@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Background, BaseEdge, ControlButton, Controls, Handle, MarkerType, MiniMap, Position, ReactFlow, ViewportPortal, applyNodeChanges, useReactFlow, useViewport } from '@xyflow/react';
 import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
@@ -107,7 +107,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const storageWritable = useRef(initialLayout.writable);
   const [layoutRecoveryNeeded, setLayoutRecoveryNeeded] = useState(!initialLayout.writable);
   const worker = useRef(null), sequence = useRef(0), instance = useRef(null), lastRoot = useRef(null), fitted = useRef(false);
-  const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null);
+  const arranging = useRef(false), layoutMenu = useRef(null), canvasRegion = useRef(null), relationshipFocusTrigger = useRef(null);
+  const relationshipFocusHint = useId();
   const dragBefore = useRef(null);
   const byName = useRef(new Map());
   const activeNodes = useMemo(() => graph.nodes.filter(node => !hiddenNodes.has(node.name) || node.name === graph.root || node.name === selectedName), [graph.nodes, graph.root, selectedName, hiddenNodes]);
@@ -349,11 +350,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const item = byName.current.get(name);
     if (item) { onManualInteraction(); onSelect(item); }
   }
-  function focusRelationship() {
+  function focusRelationship(event) {
     if (!selectedEdge || !instance.current || layoutState !== 'ready') return;
     const names = [...new Set([selectedEdge.source, selectedEdge.target])];
     if (names.some(name => !visibleNames.has(name))) return;
     onManualInteraction();
+    relationshipFocusTrigger.current = event.currentTarget;
     void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: MIN_CANVAS_ZOOM, maxZoom: 1, duration: motionDuration(200) });
     canvasRegion.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     canvasRegion.current?.focus({ preventScroll: true });
@@ -486,7 +488,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       setLayoutNotice('Local layout replaced with the current diagram positions. Save the shared view to share it.');
     } catch { setLayoutNotice('Local layout could not be replaced. Check browser storage access and try again.'); }
   }
-  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={-1} aria-label={`Relationships for ${graph.root}`} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
+  return <><div ref={canvasRegion} className="studio-flow" role="region" tabIndex={-1} aria-label={`Relationships for ${graph.root}`} aria-describedby={relationshipFocusHint} data-layout={layoutState} data-detail={overview ? 'overview' : 'full'}
     onMouseDownCapture={event => {
       if (!event.shiftKey || event.button !== 0) return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
@@ -496,12 +498,21 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       if (event.shiftKey && event.target.closest?.('.react-flow__node[data-id]')) { event.preventDefault(); event.stopPropagation(); }
     }}
     onKeyDownCapture={event => {
+      if (event.key === 'Escape' && event.target === canvasRegion.current && relationshipFocusTrigger.current?.isConnected) {
+        event.preventDefault(); event.stopPropagation();
+        const trigger = relationshipFocusTrigger.current;
+        relationshipFocusTrigger.current = null;
+        trigger.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        trigger.focus({ preventScroll: true });
+        return;
+      }
       if (event.key !== 'Enter' && event.key !== ' ') return;
       const node = event.target.closest?.('.react-flow__node[data-id]');
       if (node) { event.preventDefault(); event.stopPropagation(); if (event.shiftKey) toggleLayoutSelection(node.dataset.id); else { onManualInteraction(); selectNode({ id: node.dataset.id }); } return; }
       const edge = event.target.closest?.('.react-flow__edge[data-id]');
       if (edge) { event.preventDefault(); event.stopPropagation(); inspectEdge(edge.dataset.id); }
     }}>
+    <span id={relationshipFocusHint} className="sr-only">After focusing a relationship on the diagram, press Escape to return to its details.</span>
     {layoutNotice && <div className="studio-layout-notice"><p role="status">{layoutNotice}</p>{layoutRecoveryNeeded && <button type="button" disabled={layoutState !== 'ready'} onClick={replaceUnreadableLayout}>Replace unreadable local layout</button>}</div>}
     <details ref={layoutMenu} className="studio-canvas-layout-menu" onKeyDown={event => {
       if (event.key !== 'Escape' || !layoutMenu.current?.open) return;

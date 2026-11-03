@@ -375,6 +375,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-splitter[hidden] { display: none; }
 }
 @media (min-width: 901px) and (max-width: 1399px) {
+  .modelling-studio .studio-primary-actions, .modelling-studio .studio-panel-controls { gap: .3rem; margin-right: .4rem; }
+  .modelling-studio :is(.studio-primary-actions, .studio-panel-controls) :is(button, select) { padding: .45rem .55rem; font-size: .8rem; }
+  .modelling-studio .studio-primary-actions > span { font-size: .75rem; }
   .studio-panels:not([data-hide-navigator="true"]) { grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr); }
   .studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(0, 1fr); }
   .studio-panels > #studio-inspector-pane:not([hidden]) { position: absolute; z-index: 6; top: 0; right: 0; width: min(var(--inspector-width, 320px), 85%); box-shadow: 0 8px 30px #0009; }

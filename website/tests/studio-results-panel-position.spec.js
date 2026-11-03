@@ -6,6 +6,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 test('switching results panels starts at the beginning of the selected panel', async ({ page, isMobile }) => {
   if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+  else await page.setViewportSize({ width: 1280, height: 800 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Results panel position', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   for (let revision = 0; revision < 10; revision++) store.apply({ workspaceId: workspace.id, actor: 'test', operationId: `edit-${revision}`, expectedRevision: revision, commands: [{ type: 'class.describe', name: 'Record', definition: `Record ${revision}.` }] });
@@ -24,6 +25,11 @@ test('switching results panels starts at the beginning of the selected panel', a
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Check draft', exact: true }).click();
     await expect(page.getByText(/Latest structural operation: failed/)).toBeVisible();
+    if (!isMobile) {
+      const [actions, controls] = await Promise.all([page.locator('.studio-primary-actions').boundingBox(), page.locator('.studio-panel-controls').boundingBox()]);
+      expect(Math.abs(actions.y - controls.y)).toBeLessThan(10);
+      expect(actions.x + actions.width).toBeLessThanOrEqual(controls.x + 1);
+    }
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     const results = page.getByRole('region', { name: 'Workspace results' });
     await results.getByRole('button', { name: 'Activity', exact: true }).click();
