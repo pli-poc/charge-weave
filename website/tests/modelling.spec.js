@@ -2777,11 +2777,14 @@ test('failed validation can be inspected, corrected and retried on the current d
     await issues.getByRole('button', { name: 'Retry structural check on current draft' }).click();
     await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied text to discard.');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
     await expect(problems.getByText('Synthetic fixture missing-station: target PlannedMaintenanceWindow.maintenanceStation.')).toBeVisible();
     await expect(problems.getByRole('button', { name: 'Inspect fixture target PlannedMaintenanceWindow' })).toBeEnabled();
     await problems.getByRole('button', { name: 'Inspect fixture target PlannedMaintenanceWindow' }).click();
+    await page.getByRole('dialog', { name: 'Unapplied edits' }).getByRole('button', { name: 'Discard and open PlannedMaintenanceWindow' }).click();
     await expect(page.locator('#studio-inspector-pane').getByRole('heading', { name: 'PlannedMaintenanceWindow', exact: true })).toBeVisible();
     await expect(page.locator('#studio-inspector-pane').getByRole('rowheader', { name: /^maintenanceStation/ })).toBeFocused();
     await page.getByLabel('Filter fields').fill('no matching field');

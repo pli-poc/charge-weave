@@ -1209,12 +1209,12 @@ export default function ModellingStudio() {
     setViewRoot(rootHistory.entries[index]);
     pauseFollowing();
   }
-  function selectConcept(item, { focusView = true } = {}) {
+  function selectConcept(item, { focusView = true, issueField = null } = {}) {
     if (!item) return false;
     if (commandInFlight.current && item.name !== selected?.name) { setError('Wait for the model change to finish before selecting another concept.'); return false; }
     if (item.name === selected?.name) { if (focusView) focusViewRoot(item.name); if (initialViewChoice.current?.key === activeViewKey) initialViewChoice.current.automatic = false; return true; }
     selectionGeneration.current += 1;
-    if (hasUnsavedInspectorEdits()) { setPendingSelection({ kind: 'concept-selection', name: item.name, item, focusView }); return false; }
+    if (hasUnsavedInspectorEdits()) { setPendingSelection({ kind: 'concept-selection', name: item.name, item, focusView, issueField }); return false; }
     setSelected(item); setDefinition(item.definition); if (focusView) focusViewRoot(item.name); if (initialViewChoice.current?.key === activeViewKey) initialViewChoice.current.automatic = false; return true;
   }
   function inspectFromNavigator(item) {
@@ -1257,6 +1257,7 @@ export default function ModellingStudio() {
       return;
     }
     setSelected(pendingSelection.item); setDefinition(pendingSelection.item.definition);
+    if (pendingSelection.issueField?.revision === snapshot?.revision && currentRevision.current === snapshot.revision) setIssueFieldTarget({ owner: pendingSelection.item.name, ...pendingSelection.issueField });
     if (pendingSelection.focusView) { focusViewRoot(pendingSelection.item.name); setEditorDocument('diagram'); }
     else if (window.matchMedia('(min-width: 901px) and (max-width: 1399px)').matches) setHideInspector(false);
     if (window.matchMedia('(max-width: 900px)').matches) setCompactSurface(pendingSelection.focusView ? 'diagram' : 'inspector');
@@ -1524,13 +1525,13 @@ export default function ModellingStudio() {
     if (!bindingBase || bindingDraftStale || !bindingReviewReady || command.owner !== bindingBase.owner || command.property !== binding.property || command.label !== binding.label || command.category !== binding.category || command.range !== bindingCurrentField.range) return false;
     return applyCommand(command, bindingBase.revision, bindingBase.eventSequence);
   }
-  async function selectPerspectiveConcept(name, { focusView = true } = {}) {
+  async function selectPerspectiveConcept(name, { focusView = true, issueField = null } = {}) {
     pauseFollowing(); setError('');
     const signal = connectionAbort.current?.signal, selection = selectionGeneration.current;
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name, expectedRevision: snapshot.revision } }, signal);
       if (!signal?.aborted && selection === selectionGeneration.current && response.structuredContent.revision === currentRevision.current) {
-        const selected = selectConcept(response.structuredContent.entity, { focusView });
+        const selected = selectConcept(response.structuredContent.entity, { focusView, issueField });
         if (selected && focusView) setEditorDocument('diagram');
         if (selected && window.matchMedia('(max-width: 900px)').matches) openCompactPane(focusView ? 'studio-editor-pane' : 'studio-inspector-pane');
         else if (selected && !focusView && window.matchMedia('(max-width: 1399px)').matches) setHideInspector(false);
@@ -1541,7 +1542,7 @@ export default function ModellingStudio() {
   }
   async function inspectIssueField(owner, property) {
     const signal = connectionAbort.current?.signal, revision = snapshot?.revision;
-    const selected = await selectPerspectiveConcept(owner, { focusView: false });
+    const selected = await selectPerspectiveConcept(owner, { focusView: false, issueField: { property, revision } });
     if (selected && !signal?.aborted && currentRevision.current === revision) setIssueFieldTarget({ owner, property, revision });
   }
   async function saveLayout() {
