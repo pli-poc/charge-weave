@@ -29,6 +29,10 @@ test('reveal locates a selected concept beyond the first explorer page', async (
     const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
     await expect(tree.getByRole('button', { name: 'Asset075', exact: true })).toBeFocused();
     await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toBeVisible();
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'update-after-reveal', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Asset000', definition: 'Updated synthetic asset.' }] });
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    await expect(tree.getByRole('button', { name: 'Asset075', exact: true })).toBeVisible();
+    await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toBeVisible();
     await page.getByRole('button', { name: 'Browse from beginning' }).click();
     await expect(tree.getByRole('button', { name: 'Asset000', exact: true })).toBeVisible();
     let release, observed;
@@ -49,7 +53,7 @@ test('reveal locates a selected concept beyond the first explorer page', async (
       await expect(tree.getByRole('button', { name: 'Asset001', exact: true })).toHaveAttribute('aria-current', 'true');
       await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toHaveCount(0);
     } finally { release(); await page.unroute('**/mcp', delay); }
-    expect(store.get(workspace.id).revision).toBe(0);
+    expect(store.get(workspace.id).revision).toBe(1);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 

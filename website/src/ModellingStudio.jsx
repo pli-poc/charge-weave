@@ -920,9 +920,9 @@ export default function ModellingStudio() {
     setBrowse(null); setBrowsePending(false);
     if (!connection || !snapshot) return undefined;
     if (browseSelection.current.endpoint !== connection.endpoint || browseSelection.current.workspaceId !== connection.workspaceId) { browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module: '', parent: '', changedOnly: false }; setBrowseChangedOnly(false); setBrowseParent(''); }
-    const { module, parent, changedOnly } = browseSelection.current;
+    const { module, parent, changedOnly, startAt } = browseSelection.current;
     const abort = new AbortController();
-    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, limit: 50, changedOnly, ...(module ? { module } : {}), ...(parent ? { parent } : {}) } }, abort.signal)
+    call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_explorer_list', arguments: { workspaceId: connection.workspaceId, expectedRevision: snapshot.revision, limit: 50, changedOnly, ...(module ? { module } : {}), ...(parent ? { parent } : {}), ...(startAt ? { startAt } : {}) } }, abort.signal)
       .then(response => { if (!abort.signal.aborted && request === browseRequest.current && response.structuredContent.revision === currentRevision.current) setBrowse(response.structuredContent); })
       .catch(problem => { if (!abort.signal.aborted && request === browseRequest.current) setBrowse({ error: problem.message }); });
     return () => abort.abort();
@@ -973,7 +973,7 @@ export default function ModellingStudio() {
       const page = response.structuredContent;
       if (request !== browseRequest.current || selection !== selectionGeneration.current || page.revision !== currentRevision.current) return;
       if (!page.results.some(item => item.name === name)) throw new Error('Selected concept is no longer available in the explorer.');
-      browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module: '', parent: '', changedOnly: false };
+      browseSelection.current = { endpoint: connection.endpoint, workspaceId: connection.workspaceId, module: '', parent: '', changedOnly: false, startAt: name };
       setBrowseChangedOnly(false); setBrowseParent(''); setQuery(''); setResults([]); setSearchDone(false); lastSearch.current = null; searchSequence.current += 1; setSearchPending(false);
       setBrowse(page); setRevealTarget(name);
     } catch (problem) { if (request === browseRequest.current) setError(problem.message); }
