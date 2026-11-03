@@ -1,0 +1,40 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('switching results panels starts at the beginning of the selected panel', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Results panel position', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  for (let revision = 0; revision < 10; revision++) store.apply({ workspaceId: workspace.id, actor: 'test', operationId: `edit-${revision}`, expectedRevision: revision, commands: [{ type: 'class.describe', name: 'Record', definition: `Record ${revision}.` }] });
+  const output = Array.from({ length: 200 }, (_, index) => `Diagnostic ${index}`).join('\n');
+  const validationRunner = async (target, input, job) => {
+    target.startJobStep(job.id, 0, 'tools/example-check.py');
+    target.finishJobStep(job.id, 0, 'failed', output);
+    target.updateJob(job.id, 'failed', output);
+  };
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, repository: '.', validationRunner, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Check draft', exact: true }).click();
+    await expect(page.getByText(/Latest structural operation: failed/)).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    const results = page.getByRole('region', { name: 'Workspace results' });
+    await results.getByRole('button', { name: 'Activity', exact: true }).click();
+    const content = results.getByRole('region', { name: 'Results content' });
+    await expect(results.getByText('Showing the most recent 10 loaded workspace events.')).toBeVisible();
+    await content.focus();
+    await content.press('End');
+    await expect.poll(() => content.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await results.getByRole('button', { name: 'Output', exact: true }).click();
+    await expect.poll(() => content.evaluate(element => element.scrollTop)).toBe(0);
+    await expect(results.getByRole('heading', { name: 'Job output' })).toBeInViewport();
+    expect(store.get(workspace.id).revision).toBe(10);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

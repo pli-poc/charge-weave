@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import ValidationIssues from './ValidationIssues.jsx';
 import StudioScrollableText from './StudioScrollableText.jsx';
 
@@ -25,9 +25,13 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
   const failureCount = failedSteps.length || (validationJob?.status === 'failed' ? 1 : 0);
   const stale = validationJob && (validationJob.revision !== snapshot.revision || validationJob.digest !== snapshot.sourceDigest);
   const navigation = useRef(null);
+  const content = useRef(null);
   const activityHeading = useRef(null);
   const detailHeading = useRef(null);
   const drag = useRef(null);
+  useLayoutEffect(() => {
+    content.current?.scrollTo({ top: 0, behavior: 'instant' });
+  }, [panel]);
   useEffect(() => {
     if (panel === 'activity' && historyDetail) detailHeading.current?.focus();
   }, [panel, historyDetail]);
@@ -57,7 +61,16 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
       {['problems', 'checks', 'activity', 'output'].map(name => <button key={name} type="button" data-panel={name} aria-pressed={panel === name} aria-label={name === 'problems' && failureCount ? `Problems, ${failureCount} failed ${failureCount === 1 ? 'check' : 'checks'}` : undefined} onClick={() => onPanelChange(panel === name ? null : name)}>{name[0].toUpperCase() + name.slice(1)}{name === 'problems' && failureCount > 0 && <span aria-hidden="true"> {failureCount}</span>}</button>)}
       {panel && <button type="button" onClick={closePanel} aria-label="Close results panel">Close</button>}
     </nav>
-    <div id="studio-bottom-content" className="studio-bottom-content" role="region" aria-label="Results content" tabIndex={panel ? 0 : -1} hidden={!panel}>
+    <div ref={content} id="studio-bottom-content" className="studio-bottom-content" role="region" aria-label="Results content" tabIndex={panel ? 0 : -1} hidden={!panel} onKeyDown={event => {
+      if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const element = event.currentTarget;
+      if (event.key === 'Home') element.scrollTo({ top: 0, behavior: 'instant' });
+      else if (event.key === 'End') element.scrollTo({ top: element.scrollHeight, behavior: 'instant' });
+      else if (event.key === 'PageDown') element.scrollBy({ top: element.clientHeight, behavior: 'instant' });
+      else if (event.key === 'PageUp') element.scrollBy({ top: -element.clientHeight, behavior: 'instant' });
+      else return;
+      event.preventDefault();
+    }}>
       <section hidden={panel !== 'problems'} aria-label="Problems">
         <h2>Problems</h2>
         {!validationJob ? <p>No validation result is displayed. Run a check to inspect failures.</p> : <>

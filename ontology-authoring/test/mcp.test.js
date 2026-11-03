@@ -20,6 +20,8 @@ test('MCP field search reports declaration scope and revision conflicts', async 
     const inherited = await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: 'name', expectedRevision: 0, context: 'Device' } });
     assert.equal(inherited.structuredContent.results[0].owner, 'Record');
     assert.equal(inherited.structuredContent.results[0].inherited, true);
+    const relationships = await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: '', expectedRevision: 0, context: 'Device', kind: 'relationship' } });
+    assert.deepEqual(relationships.structuredContent.results.map(item => item.name), ['peer']);
     assert.equal((await client.callTool({ name: 'ontology_field_search', arguments: { workspaceId: workspace.id, query: 'peer', expectedRevision: 1 } })).structuredContent.error.code, 'REVISION_CONFLICT');
   } finally { await client.close(); store.close(); }
 });

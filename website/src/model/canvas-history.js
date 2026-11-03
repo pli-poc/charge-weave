@@ -16,3 +16,10 @@ export function undoPositionChange(current, entry) {
   for (const change of entry.changes) next[change.name] = { ...change.before };
   return next;
 }
+
+export function redoPositionChange(current, entry) {
+  if (!entry.changes.every(change => samePoint(current[change.name], change.before))) throw new Error('Layout has changed since undo');
+  const next = { ...current };
+  for (const change of entry.changes) next[change.name] = { ...change.after };
+  return next;
+}

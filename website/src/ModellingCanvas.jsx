@@ -4,7 +4,7 @@ import { parallelEdgeOffsets } from './model/parallel-edges.js';
 import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
 import { readCanvasHidden, writeCanvasHidden } from './model/canvas-hidden.js';
-import { positionChange, samePositionMaps, undoPositionChange } from './model/canvas-history.js';
+import { positionChange, samePositionMaps, undoPositionChange, redoPositionChange } from './model/canvas-history.js';
 import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
 import { canvasGroupFrames } from './model/canvas-groups.js';
 import { distributePositions } from './model/canvas-distribute.js';
@@ -77,6 +77,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [layoutNotice, setLayoutNotice] = useState('');
   const [viewportNotice, setViewportNotice] = useState('');
   const [layoutHistory, setLayoutHistory] = useState([]);
+  const [layoutRedo, setLayoutRedo] = useState([]);
   const [draggingLayout, setDraggingLayout] = useState(false);
   const [layoutState, setLayoutState] = useState('pending');
   const [layoutAttempt, setLayoutAttempt] = useState(0);
@@ -111,7 +112,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   }, [graph.workspaceId, viewId]);
   const recordLayoutChange = useCallback((before, after, names, label) => {
     const entry = positionChange(before, after, names, label);
-    if (entry) setLayoutHistory(previous => [...previous.slice(-19), entry]);
+    if (entry) { setLayoutHistory(previous => [...previous.slice(-19), entry]); setLayoutRedo([]); }
   }, []);
   useEffect(() => {
     if (!storageWritable.current) setLayoutNotice('Local layout could not be read. Diagram changes remain in memory; load a saved shared view to restore its layout before saving.');
@@ -398,8 +399,27 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const affected = new Set(entry.changes.map(change => change.name));
     setNodes(current => current.map(node => affected.has(node.id) ? { ...node, position: next[node.id] } : node));
     setLayoutHistory(previous => previous.slice(0, -1));
+    setLayoutRedo(previous => [...previous.slice(-19), entry]);
     onManualInteraction(); onLayoutChange();
     setLayoutNotice(`Undid the last layout ${entry.label}. Ontology and pin settings are unchanged.`);
+  }
+  function redoLayout() {
+    const entry = layoutRedo.at(-1);
+    if (!entry || layoutState === 'pending' || draggingLayout || !storageWritable.current) return;
+    let next;
+    try {
+      const stored = readCanvasPositions(sessionStorage, graph.workspaceId, viewId, { strict: true });
+      if (!samePositionMaps(stored, positions.current)) throw new Error('Local layout changed outside this view');
+      next = redoPositionChange(stored, entry);
+      writeCanvasPositions(sessionStorage, graph.workspaceId, viewId, next);
+    } catch { setLayoutNotice('Could not redo: the local layout changed or could not be stored. No positions were changed.'); return; }
+    positions.current = next;
+    const affected = new Set(entry.changes.map(change => change.name));
+    setNodes(current => current.map(node => affected.has(node.id) ? { ...node, position: next[node.id] } : node));
+    setLayoutRedo(previous => previous.slice(0, -1));
+    setLayoutHistory(previous => [...previous.slice(-19), entry]);
+    onManualInteraction(); onLayoutChange();
+    setLayoutNotice(`Redid the last layout ${entry.label}. Ontology and pin settings are unchanged.`);
   }
   function replaceUnreadableLayout() {
     try {
@@ -445,6 +465,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         </div>
       </details>
       <button type="button" disabled={!layoutHistory.length || layoutState === 'pending' || draggingLayout || layoutRecoveryNeeded} onClick={undoLayout}>Undo last layout change</button>
+      <button type="button" disabled={!layoutRedo.length || layoutState === 'pending' || draggingLayout || layoutRecoveryNeeded} onClick={redoLayout}>Redo last layout change</button>
       {layoutHistory.length > 0 && <p>Last {layoutHistory.at(-1).label}: {layoutHistory.at(-1).changes.slice(0, 5).map(change => change.name).join(', ')}{layoutHistory.at(-1).changes.length > 5 ? ` and ${layoutHistory.at(-1).changes.length - 5} more` : ''}. Undo restores positions even if pinned. It does not change the ontology or pin settings; history clears on reload.</p>}
       {layoutState === 'unavailable' && <button type="button" onClick={() => { setLayoutNotice('Retrying automatic layout...'); setLayoutState('pending'); setLayoutAttempt(value => value + 1); }}>Retry automatic layout</button>}
       <details>

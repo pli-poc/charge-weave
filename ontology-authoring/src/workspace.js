@@ -534,8 +534,8 @@ export class WorkspaceStore {
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
   }
-  searchFields(id, query, expectedRevision, offset = 0, limit = 25, context = undefined) {
-    if (typeof query !== 'string' || query.length > 200 || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100 || (context !== undefined && (typeof context !== 'string' || !identifier.test(context) || context.length > 128))) throw new Error('Invalid field search');
+  searchFields(id, query, expectedRevision, offset = 0, limit = 25, context = undefined, kind = 'all') {
+    if (typeof query !== 'string' || query.length > 200 || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100 || !['all', 'property', 'relationship'].includes(kind) || (context !== undefined && (typeof context !== 'string' || !identifier.test(context) || context.length > 128))) throw new Error('Invalid field search');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
     let index = this.fieldSearchCache.get(id);
@@ -557,11 +557,11 @@ export class WorkspaceStore {
     } else owners.push(...classes.values());
     for (const owner of owners) {
       for (const field of fields.get(owner.name)) {
-        if (`${field.name} ${owner.name} ${field.range}`.toLowerCase().includes(needle)) results.push({ ...field, inherited: context !== undefined && owner.name !== context });
+        if ((kind === 'all' || field.kind === kind) && `${field.name} ${owner.name} ${field.range}`.toLowerCase().includes(needle)) results.push({ ...field, inherited: context !== undefined && owner.name !== context });
       }
     }
     results.sort((a, b) => a.name.localeCompare(b.name, 'en') || a.owner.localeCompare(b.owner, 'en'));
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, query, context: context ?? null, offset, total: results.length, nextOffset: offset + limit < results.length ? offset + limit : null, results: results.slice(offset, offset + limit), scope: context ? `Fields declared on ${context} and its recorded ancestors; each field identifies its declaring owner.` : 'Declared fields in the current workspace schema; inherited appearances are not enumerated.' };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, query, kind, context: context ?? null, offset, total: results.length, nextOffset: offset + limit < results.length ? offset + limit : null, results: results.slice(offset, offset + limit), scope: context ? `Fields declared on ${context} and its recorded ancestors; each field identifies its declaring owner.` : 'Declared fields in the current workspace schema; inherited appearances are not enumerated.' };
   }
   entity(id, name, expectedRevision) {
     const workspace = this.get(id);
