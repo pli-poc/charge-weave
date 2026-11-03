@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { once } from 'node:events';
+import { mkdirSync } from 'node:fs';
 import { cpus, platform, release } from 'node:os';
 import { resolve } from 'node:path';
 import { chromium } from '../node_modules/playwright/index.mjs';
@@ -12,6 +13,7 @@ const repo = resolve(process.env.CHARGEWEAVE_REPOSITORY ?? '..');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
 const typical = process.argv.includes('--typical');
 const holdLayout = process.argv.includes('--hold-layout');
+const captureDense = process.argv.includes('--capture-dense');
 const names = Array.from({ length: typical ? 49 : 150 }, (_, i) => `Synthetic${String(i).padStart(3, '0')}`);
 const outgoing = typical ? 49 : 100;
 const schema = ['MODULE|foundation', `Record|root|Synthetic root.|${names.slice(0, outgoing).map((name, i) => `out${i}:${name}?`).join(' ')}`, ...names.map((name, i) => `${name}|root|Synthetic concept.|${typical ? `in${i}a:Record? in${i}b:Record?` : i >= 50 ? `in${i}:Record?` : ''}`)].join('\n') + '\n';
@@ -52,6 +54,19 @@ try {
     const start = performance.now(); await button.click();
     await page.waitForFunction(n => document.querySelectorAll('.react-flow__edge').length >= n && document.querySelector('.studio-flow')?.dataset.layout === 'ready', outgoing + 40 + i * 20);
     expansions.push(performance.now() - start);
+  }
+  if (captureDense) {
+    const output = resolve(repo, 'evidence/ontology-studio/ide'); mkdirSync(output, { recursive: true });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.locator('.react-flow__controls-fitview').click();
+    await page.locator('#studio-editor-pane').evaluate(element => { element.scrollTop = 0; });
+    for (const [width, height] of [[1280, 800], [1920, 1080]]) for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width, height });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      await page.waitForFunction(value => document.documentElement.dataset.studioTheme === value, theme);
+      await page.screenshot({ path: resolve(output, `dense-${width}-${theme}.png`), animations: 'disabled' });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
   }
   const graphRegion = page.getByRole('region', { name: 'Relationships for Record' });
   await graphRegion.getByText('Layout', { exact: true }).click();

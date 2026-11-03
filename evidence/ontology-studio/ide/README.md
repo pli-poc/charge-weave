@@ -10,4 +10,8 @@ The visual review identified and fixed broken word wrapping in the 320px documen
 
 The additional `welcome`, `relationship-editor`, `problems` and `review` images capture light and dark views at 1280×800 and 1920×1080 from a separate in-memory synthetic workspace. The failed check and its output are simulated. These were recaptured using the working tree based on `347b602eff16120483324f09da4aae4bf560800e` plus the welcome-card changes committed with them. After building, run `node scripts/capture-studio-workflows.mjs` from `website` for 1280px or add `--wide` for 1920px. The inspector table retains readable column widths with keyboard-accessible horizontal scrolling; its actions may require scrolling. Some screenshots show a scrolled position reached during the scenario.
 
-These captures are partial visual evidence, not acceptance: Changes, dense-view and other required scenarios, real browser zoom, assistive technology and independent human usability review remain outstanding.
+The `changes` images show a synthetic description edit and its source patch at both desktop widths and themes. They were generated from commit `352253d4496a2499d1c6301fba743f7fc20d29fc` with `node scripts/capture-studio-workflows.mjs --changes` and a second run adding `--wide`.
+
+The `dense` images show a synthetic 151-node, 200-edge view after using the explicit fit control, at both desktop widths and themes. They were generated against the same commit with `node scripts/measure-canvas.mjs --capture-dense`. The fit view reaches the 15% minimum zoom and does not show the entire fixture; labels are too small to read at that overview scale. Users must zoom or focus individual concepts. This does not demonstrate that the dense-neighbourhood usability target is met.
+
+These captures are partial visual evidence, not acceptance: other required scenarios, real browser zoom, assistive technology and independent human usability review remain outstanding.

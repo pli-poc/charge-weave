@@ -10,6 +10,7 @@ const repository = resolve(process.env.CHARGEWEAVE_REPOSITORY ?? '..');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
 const output = resolve(repository, 'evidence/ontology-studio/ide'); mkdirSync(output, { recursive: true });
 const captureViewport = process.argv.includes('--wide') ? [1920, 1080] : [1280, 800];
+const changesOnly = process.argv.includes('--changes');
 const schema = 'MODULE|foundation\nRecord|root|Identifiable domain record.|\nChargingStation|Record|A station.|site:Site?\nSite|Record|A physical site.|\n';
 const store = new WorkspaceStore(':memory:');
 const workspace = store.create({ title: 'Synthetic workflow evidence', baselineCommit: commit, schema });
@@ -25,6 +26,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
   async function capture(name) {
+    if (changesOnly && name !== 'changes') return;
     for (const [width, height] of [captureViewport]) for (const theme of ['light', 'dark']) {
       await page.setViewportSize({ width, height });
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
@@ -54,6 +56,13 @@ try {
   await page.getByRole('button', { name: 'Review draft changes' }).click();
   await page.getByRole('heading', { name: 'Review workflow' }).waitFor();
   await capture('review');
+  if (changesOnly) {
+    store.apply({ workspaceId: workspace.id, actor: 'synthetic-author', operationId: 'synthetic-description', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'ChargingStation', definition: 'A station where vehicles can be charged.' }] });
+    await page.getByRole('status', { name: 'Studio connection status' }).filter({ hasText: /revision 1/ }).waitFor();
+    await page.getByRole('region', { name: 'Review workflow' }).getByRole('button', { name: 'Open draft changes' }).click();
+    await page.getByRole('heading', { name: 'Changes at revision 1' }).waitFor();
+    await capture('changes');
+  }
   await page.close();
-  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace and failed check', captures: 8 }));
+  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace and failed check', captures: changesOnly ? 2 : 8 }));
 } finally { await browser.close(); await service.shutdown(); store.close(); }
