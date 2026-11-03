@@ -95,3 +95,36 @@ test('diagram editing preserves unfinished inspector input', async ({ page, isMo
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
+
+test('a failed relationship source read can be retried', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Relationship retry', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nAsset|Record|An asset.|\nDevice|Record|A device.|asset:Asset?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let failed = false;
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    const picker = page.getByLabel('Inspect relationship');
+    await picker.selectOption(await picker.locator('option').filter({ hasText: /Device.*asset.*Asset/ }).getAttribute('value'));
+    await page.getByRole('region', { name: 'Relationship details' }).getByRole('button', { name: 'Inspect target Asset' }).click();
+    await page.route('**/mcp', async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (!failed && params?.name === 'ontology_entity_get' && params.arguments?.name === 'Device') { failed = true; await route.abort('failed'); }
+      else await route.continue();
+    });
+    await page.getByRole('button', { name: 'Edit relationship asset' }).click();
+    await expect.poll(() => failed).toBe(true);
+    await expect(page.getByText('Loading Device.asset for editing…').locator('visible=true')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Edit field contract' })).toHaveCount(0);
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    await page.getByRole('button', { name: 'Edit relationship asset' }).click();
+    await expect(page.getByRole('heading', { name: 'Edit field contract' })).toBeVisible();
+    await expect(page.getByLabel('New datatype or target class')).toHaveValue('Asset');
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.unrouteAll({ behavior: 'wait' }); await page.close(); await service.shutdown(); store.close(); }
+});

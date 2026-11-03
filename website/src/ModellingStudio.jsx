@@ -429,6 +429,7 @@ export default function ModellingStudio() {
   const [navigatorWidth, setNavigatorWidth] = useState(() => panelWidth('navigator-width', 240, 200, 360));
   const [inspectorWidth, setInspectorWidth] = useState(() => panelWidth('inspector-width', 320, 280, 440));
   const [entityInfo, setEntityInfo] = useState(null);
+  const [entityReload, setEntityReload] = useState(0);
   const [pendingEdgeEdit, setPendingEdgeEdit] = useState(null);
   const [incoming, setIncoming] = useState(null);
   const incomingRequest = useRef(0);
@@ -910,7 +911,7 @@ export default function ModellingStudio() {
       })
       .catch(problem => { if (!abort.signal.aborted) { setPendingEdgeEdit(pending => pending?.owner === selected.name && pending.workspaceId === connection.workspaceId ? null : pending); setError(problem.message); } });
     return () => abort.abort();
-  }, [connection, snapshot?.revision, selected?.name]);
+  }, [connection, snapshot?.revision, selected?.name, entityReload]);
 
   useEffect(() => {
     const request = ++browseRequest.current;
@@ -1207,6 +1208,8 @@ export default function ModellingStudio() {
     const owner = graph.nodes.find(node => node.name === edge.source);
     if (!owner || !selectConcept(owner, { focusView: false })) return;
     pauseFollowing();
+    setError('');
+    if (selected?.name === owner.name && (!entityInfo || entityRevision !== snapshot.revision)) setEntityReload(value => value + 1);
     setPendingEdgeEdit({ workspaceId: connection.workspaceId, revision: snapshot.revision, eventSequence: snapshot.eventSequence, owner: edge.source, name: edge.predicate, range: edge.target });
     if (window.matchMedia('(max-width: 900px)').matches) setCompactSurface('inspector');
     else setHideInspector(false);
