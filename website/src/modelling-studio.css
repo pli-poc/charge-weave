@@ -295,6 +295,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-field-list .studio-field-row { margin: 0; padding: .7rem 0; border-top: 1px solid var(--studio-border); font-size: .84rem; overflow-wrap: anywhere; }
 .studio-field-row small { display: block; color: var(--studio-muted); margin: .25rem 0; }
 .studio-field-row button { margin: .3rem .3rem 0 0; }
+.studio-field-table th[data-inspector-field]:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
 .studio-conflict { flex: 1 1 100%; padding: .75rem; border: 1px solid #d3a94e; border-radius: .4rem; background: #31291b; color: #ffefc4; }
 .studio-conflict button { margin: .35rem .35rem 0 0; }
 .studio-unsaved-dialog { width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; color: var(--studio-text); background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .5rem; }

@@ -18,7 +18,7 @@ function describeActivity(event) {
   return 'Workspace activity';
 }
 
-export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, historyDetail, historyPending, onInspectRevision, onCloseHistory, onRetry, onFocusConcept, onDownloadEvidence, onShowChecks, activityConcept }) {
+export default function WorkspaceDock({ panel, onPanelChange, height, heightLimit, onHeightChange, disabled, job, snapshot, history, historyDetail, historyPending, onInspectRevision, onCloseHistory, onRetry, onFocusConcept, onFocusIssue, onDownloadEvidence, onShowChecks, activityConcept }) {
   const terminal = job && ['passed', 'failed', 'cancelled', 'interrupted'].includes(job.status);
   const validationJob = job && !['publication-preview', 'publication-commit', 'publication-push', 'publication-pr'].includes(job.profile) ? job : null;
   const failedSteps = (validationJob?.steps || []).filter(step => step.status === 'failed');
@@ -75,11 +75,11 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
         <h2>Problems</h2>
         {!validationJob ? <p>No validation result is displayed. Run a check to inspect failures.</p> : <>
           <p>{validationJob.profile}: {validationJob.status} at revision {validationJob.revision}{stale ? ' · out of date for this draft' : ''}.</p>
-          {failureCount ? <><p>A failed check needs investigation; it does not automatically identify a model defect.</p><ul>{failedSteps.length ? failedSteps.map(step => <li key={step.ordinal}><strong>{step.checkName}</strong><p>Affected concept and cause are unknown from the check summary.</p>{fixtureFailures(step).map(item => fixtureConcepts[item.case] && <div key={item.case}><p>Synthetic fixture {item.case}: target {fixtureConcepts[item.case].join('.')}.</p><button type="button" disabled={Boolean(stale) || disabled} onClick={() => onFocusConcept(fixtureConcepts[item.case][0], { focusView: false })}>Inspect fixture target {fixtureConcepts[item.case][0]}</button></div>)}<details><summary>Recorded output for {step.checkName}</summary><StudioScrollableText label={`Problem output: ${step.checkName}`}>{step.output || validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>) : <li>Validation job failed without a reported step.<details><summary>Recorded job output</summary><StudioScrollableText label="Problem job output">{validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>}</ul><button type="button" onClick={onShowChecks}>Inspect failed checks</button></> : <p>{noFailureMessage(validationJob.status)}</p>}
+          {failureCount ? <><p>A failed check needs investigation; it does not automatically identify a model defect.</p><ul>{failedSteps.length ? failedSteps.map(step => <li key={step.ordinal}><strong>{step.checkName}</strong><p>Affected concept and cause are unknown from the check summary.</p>{fixtureFailures(step).map(item => fixtureConcepts[item.case] && <div key={item.case}><p>Synthetic fixture {item.case}: target {fixtureConcepts[item.case].join('.')}.</p><button type="button" disabled={Boolean(stale) || disabled} onClick={() => onFocusIssue(...fixtureConcepts[item.case])}>Inspect fixture target {fixtureConcepts[item.case][0]}</button></div>)}<details><summary>Recorded output for {step.checkName}</summary><StudioScrollableText label={`Problem output: ${step.checkName}`}>{step.output || validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>) : <li>Validation job failed without a reported step.<details><summary>Recorded job output</summary><StudioScrollableText label="Problem job output">{validationJob.output || 'No output was recorded.'}</StudioScrollableText></details></li>}</ul><button type="button" onClick={onShowChecks}>Inspect failed checks</button></> : <p>{noFailureMessage(validationJob.status)}</p>}
         </>}
       </section>
       <div hidden={panel !== 'checks'}>
-        <ValidationIssues job={job} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} disabled={disabled} />
+        <ValidationIssues job={job} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} onFocusIssue={onFocusIssue} disabled={disabled} />
         {terminal && validationJob && <button type="button" onClick={onDownloadEvidence}>Download evidence report</button>}
       </div>
       {panel === 'activity' && <section aria-label="Recent activity">
