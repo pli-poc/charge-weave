@@ -11,6 +11,8 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     browsed.results[0].name = 'ChangedByCaller';
     browsed.modules[0].count = -1;
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).results[0].name, 'Device');
+    assert.equal(store.explore(workspace.id, { expectedRevision: 0, startAt: 'Other', limit: 1 }).results[0].name, 'Other');
+    assert.throws(() => store.explore(workspace.id, { expectedRevision: 0, startAt: 'Other', cursor: 'Device' }), /Invalid explorer request/);
     assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).modules[0].count, 3);
     const excerpt = store.sourceExcerpt(workspace.id, 'Device', 0);
     assert.equal(excerpt.path, 'model/domain.schema');

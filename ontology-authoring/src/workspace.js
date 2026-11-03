@@ -526,7 +526,7 @@ export class WorkspaceStore {
     }
     return index;
   }
-  explore(id, { expectedRevision, cursor, limit = 50, module, parent, changedOnly = false } = {}) {
+  explore(id, { expectedRevision, cursor, startAt, limit = 50, module, parent, changedOnly = false } = {}) {
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || typeof changedOnly !== 'boolean' || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128)) || (parent !== undefined && (typeof parent !== 'string' || (parent !== '-' && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(parent))))) throw new Error('Invalid explorer request');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
@@ -537,9 +537,10 @@ export class WorkspaceStore {
       index.changedNames = new Set(index.sortedClasses.filter(item => JSON.stringify(baseline.get(item.name)) !== JSON.stringify(item)).map(item => item.name));
     }
     const classes = index.sortedClasses.filter(item => (module === undefined || item.module === module) && (parent === undefined || item.parent === parent) && (!changedOnly || index.changedNames.has(item.name)));
-    const remaining = classes.filter(item => cursor === undefined || item.name > cursor);
+    if ((startAt !== undefined && (typeof startAt !== 'string' || !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(startAt))) || (startAt !== undefined && cursor !== undefined)) throw new Error('Invalid explorer request');
+    const remaining = classes.filter(item => cursor !== undefined ? item.name > cursor : startAt === undefined || item.name >= startAt);
     const results = remaining.slice(0, limit);
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, parent: parent ?? null, changedOnly, modules: modules.map(item => ({ ...item })), results: results.map(item => ({ ...item })), total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, parent: parent ?? null, changedOnly, startAt: startAt ?? null, modules: modules.map(item => ({ ...item })), results: results.map(item => ({ ...item })), total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
   }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');

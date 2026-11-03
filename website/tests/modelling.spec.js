@@ -12,6 +12,29 @@ import { editableSourcePaths, importSourceManifest } from '../../ontology-author
 
 test.use({ actionTimeout: 10000 });
 
+test('reveal locates a selected concept beyond the first explorer page', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const schema = 'MODULE|assets\nRecord|root|A record.|\n' + Array.from({ length: 80 }, (_, i) => `Asset${String(i).padStart(3, '0')}|Record|An asset.|`).join('\n') + '\n';
+  const workspace = store.create({ title: 'Reveal later concept', baselineCommit: 'a'.repeat(40), schema });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Asset075'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Asset075', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByRole('button', { name: 'Reveal selected concept' }).click();
+    const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
+    await expect(tree.getByRole('button', { name: 'Asset075', exact: true })).toBeFocused();
+    await expect(page.getByText('Browsing from Asset075; earlier concepts are not shown.')).toBeVisible();
+    await page.getByRole('button', { name: 'Browse from beginning' }).click();
+    await expect(tree.getByRole('button', { name: 'Asset000', exact: true })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('explorer expands declared and inherited fields at the current revision', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Explorer members', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|recordName:string?\nDevice|Record|A device.|serial:string!\n' });
@@ -23,6 +46,10 @@ test('explorer expands declared and inherited fields at the current revision', a
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     const row = page.getByRole('list', { name: 'Loaded concepts by module' }).locator('li').filter({ has: page.getByRole('button', { name: 'Device', exact: true }) }).last();
+    await row.getByRole('button', { name: 'Device', exact: true }).click();
+    if (await page.getByRole('button', { name: 'Model', exact: true }).isVisible()) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByRole('button', { name: 'Reveal selected concept' }).click();
+    await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Device', exact: true })).toBeFocused();
     await row.getByRole('button', { name: 'Show fields for Device' }).click();
     await expect(row.getByText('Declared fields', { exact: true })).toBeVisible();
     await expect(row.getByText('serial', { exact: true })).toBeVisible();
