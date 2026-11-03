@@ -142,7 +142,7 @@ test('the relationship list opens the shared editor with the keyboard', async ({
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     if (isMobile) {
       await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
-      await page.getByText(/Relationship list \(/).click();
+      if (!await page.locator('.studio-compact-relationships').evaluate(element => element.open)) await page.getByText(/Relationship list \(/).click();
     }
     const list = page.getByRole('region', { name: 'Relationship list for Device' });
     const edit = list.getByRole('button', { name: 'Edit relationship Device asset Asset' });

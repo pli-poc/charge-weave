@@ -2306,6 +2306,8 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await expect(page.locator('#studio-editor-pane')).toBeHidden();
     await navigation.getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Workspace', exact: true })).toBeFocused();
+    await expect(page.locator('.studio-compact-relationships')).toHaveAttribute('open', '');
+    await page.getByText('Relationship list (2)', { exact: true }).click();
     await expect(page.locator('.studio-compact-relationships')).not.toHaveAttribute('open', '');
     await page.getByText('Relationship list (2)', { exact: true }).click();
     const list = page.getByRole('region', { name: 'Relationship list for Device' });
@@ -2368,6 +2370,14 @@ test('compact layout retains the relationship list and diagram on resize', async
     expect(await page.evaluate(() => document.querySelector('.studio-flow') === window.__testCanvasBeforeResize)).toBe(true);
     await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram', exact: true }).click();
     await expect(canvas).toBeVisible();
+    const compactList = page.locator('.studio-compact-relationships');
+    await expect(compactList).toHaveAttribute('open', '');
+    await compactList.locator('summary').click();
+    await expect(compactList).not.toHaveAttribute('open', '');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(compactList).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(compactList).not.toHaveAttribute('open', '');
     await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model', exact: true }).click();
     await expect(page.getByLabel('Search model')).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -2485,7 +2495,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
     await page.getByRole('button', { name: 'Inspect time for selected concept' }).click();
     await surface('Diagram');
     await page.getByLabel('Graph viewpoint').selectOption('temporal');
-    if (isMobile) await page.locator('.studio-compact-relationships > summary').click();
+    if (isMobile && !await page.locator('.studio-compact-relationships').evaluate(element => element.open)) await page.locator('.studio-compact-relationships > summary').click();
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
     await page.getByLabel('Filter graph relationships').fill('exceptionWindow');
     await expect(page.locator('.studio-graph li').filter({ hasText: 'exceptionWindow' })).toBeVisible();
@@ -2831,7 +2841,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await surface('Diagram');
     await expect(page.getByRole('region', { name: 'Relationships for MaintenanceWindow' })).toBeVisible();
     await expect(page.locator('.react-flow__node[data-id="MaintenanceWindow"]')).toContainText('Added in draft');
-    if (isMobile) await page.locator('.studio-compact-relationships > summary').click();
+    if (isMobile && !await page.locator('.studio-compact-relationships').evaluate(element => element.open)) await page.locator('.studio-compact-relationships > summary').click();
     await expect(page.getByText('subClassOf →', { exact: true })).toBeVisible();
     await expect(page.getByText(/added · model\/domain\.schema:4/)).toBeVisible();
     await surface('Inspector');
