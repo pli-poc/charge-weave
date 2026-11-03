@@ -112,6 +112,8 @@ Opening a diagram relationship now shows a cancellable loading state while its d
 
 After a failed source read, reopening the relationship now requests its source again even if that concept is still selected. The website build and ten focused desktop/mobile scenarios passed locally, including an injected read failure followed by a successful retry without a semantic change; the retry cases also passed after the final feedback adjustment.
 
+The relationship list now offers a keyboard-operable action for each explicit relationship, opening the same checked field editor used by the diagram. Loading and cancellation appear in the inspector for either entry point. The website build and twelve focused desktop/mobile relationship editing scenarios passed locally, including a keyboard edit from the compact list. Full accessibility and human usability acceptance remain open.
+
 Shared-view load and save now require unfinished note or group input to be added or cleared first. A load also stops if such input is started while the request is in flight; a save reports when input typed afterward was not included. The website build, six desktop/mobile note and load-race scenarios, six desktop/mobile load/save-race scenarios, and eight related saved-view scenarios passed locally. GitHub verification remains separate.
 
 When a shared-view save completes after later local changes, the success notice now explicitly says those later changes remain unsaved; unfinished input is also identified, including if the view list refresh fails. The website build and **12 focused desktop/mobile saved-view and delayed-operation scenarios** passed locally. This is not evidence of independent usability review.
