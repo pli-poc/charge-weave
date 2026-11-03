@@ -32,6 +32,27 @@ The Makefile offers the same commands as `make build`, `make generated`,
 `make validate`, `make tests`, `make reason`, `make release` and `make verify`.
 Java must be on PATH for HermiT. Full verification can take several minutes.
 
+### Local CI profiles
+
+Use `powershell -NoProfile -ExecutionPolicy Bypass -File
+./tools/local-ci.ps1 -Profile fast` while iterating. It runs the generated
+artifact and business-rule gates. Before pushing a broader change, select
+`backend`, `ontology`, or `browser`; `full` runs all locally supported profiles
+in sequence and stops at the first failure. On Windows, pass the intended Python
+explicitly when needed, for example `-Python C:\Python312\python.exe`. Add
+`-Install` to install pinned Python and Node
+dependencies first (Python 3.12 is the CI version). Browser checks require the
+Playwright Chromium browser to be installed already. The runner reports each
+gate's duration and exit status. A local Python interpreter must be provisioned
+with the same version and dependencies as CI; the runner does not repair an
+invalid virtual environment automatically.
+
+These profiles invoke the same underlying project checks used by GitHub Actions,
+but the local runner does not reproduce GitHub's Ubuntu/Windows matrix, artifact
+collection, or every browser scenario. GitHub Actions remains required for the
+shared commit-level verification; local success is early feedback, not a
+replacement for that record.
+
 ## Source ownership
 
 | Editable source | Generated outputs |
