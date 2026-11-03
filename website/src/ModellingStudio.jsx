@@ -13,6 +13,7 @@ import StudioScrollableText from './StudioScrollableText.jsx';
 import { contextCheckSummary } from './model/context-checks.js';
 import { projectView } from './model/project-view.js';
 import { mergeIncoming } from './model/incoming-view.js';
+import { authHeaders, call } from './model/mcp-transport.js';
 import { canvasPositionKey, readCanvasPositions, writeCanvasPositions } from './model/canvas-positions.js';
 import './modelling-studio.css';
 
@@ -353,28 +354,6 @@ function restoredViews(workspaceId, current) {
     const valid = Array.isArray(stored) ? stored.filter(id => typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(id)).slice(0, 50) : [];
     return [...new Set([current, ...valid])];
   } catch { return [current]; }
-}
-
-// Stateless MCP Streamable HTTP requests; the token stays in component memory.
-function authHeaders(credential) {
-  return typeof credential === 'string' ? { Authorization: `Bearer ${credential}` } : { 'X-CSRF-Token': credential.csrf };
-}
-async function call(endpoint, token, method, params, signal) {
-  const response = await fetch(`${endpoint}/mcp`, {
-    method: 'POST', signal,
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...authHeaders(token), 'MCP-Protocol-Version': '2025-06-18' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: crypto.randomUUID(), method, params }),
-  });
-  if (!response.ok) {
-    const error = new Error(response.status === 401 || response.status === 403 ? 'Authorization expired or was rejected. Reconnect or pair again.' : `Service returned ${response.status}`);
-    error.status = response.status;
-    throw error;
-  }
-  const message = await response.json();
-  if (message.error) throw new Error(message.error.message);
-  if (message.result?.isError) throw new Error(message.result.content?.[0]?.text || 'Tool failed');
-  return message.result;
 }
 
 function eventConcept(event) {
