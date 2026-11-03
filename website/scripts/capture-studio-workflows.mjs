@@ -9,6 +9,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 const repository = resolve(process.env.CHARGEWEAVE_REPOSITORY ?? '..');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
 const output = resolve(repository, 'evidence/ontology-studio/ide'); mkdirSync(output, { recursive: true });
+const captureViewport = process.argv.includes('--wide') ? [1920, 1080] : [1280, 800];
 const schema = 'MODULE|foundation\nRecord|root|Identifiable domain record.|\nChargingStation|Record|A station.|site:Site?\nSite|Record|A physical site.|\n';
 const store = new WorkspaceStore(':memory:');
 const workspace = store.create({ title: 'Synthetic workflow evidence', baselineCommit: commit, schema });
@@ -24,11 +25,13 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
   async function capture(name) {
-    for (const theme of ['light', 'dark']) {
+    for (const [width, height] of [captureViewport]) for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width, height });
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await page.waitForFunction(value => document.documentElement.dataset.studioTheme === value, theme);
-      await page.screenshot({ path: resolve(output, `${name}-1280-${theme}.png`), animations: 'disabled' });
+      await page.screenshot({ path: resolve(output, `${name}-${width}-${theme}.png`), animations: 'disabled' });
     }
+    await page.setViewportSize({ width: 1280, height: 800 });
   }
   await capture('welcome');
   await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
@@ -37,7 +40,8 @@ try {
   await page.getByText(/Latest structural operation: failed/).waitFor();
   const problems = page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: /Problems/ });
   if (await problems.getAttribute('aria-pressed') === 'true') await problems.click();
-  await page.getByRole('button', { name: 'Show inspector' }).click();
+  const showInspector = page.getByRole('button', { name: 'Show inspector' });
+  if (await showInspector.isVisible()) await showInspector.click();
   await page.getByRole('button', { name: 'Edit site', exact: true }).click();
   await page.getByRole('heading', { name: 'Edit field contract' }).waitFor();
   await capture('relationship-editor');

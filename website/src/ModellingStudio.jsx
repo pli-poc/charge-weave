@@ -2056,7 +2056,8 @@ export default function ModellingStudio() {
       { label: 'Review draft changes', run: () => openWorkspaceTask(null, 'studio-review-workflow-heading') },
     ]} />}
     {!connection && <p>Use Codex to propose changes; inspect and refine them here.</p>}
-    <form className="studio-connect" onSubmit={pair} hidden={Boolean(connection)}>
+    <form className="studio-connect studio-pairing" onSubmit={pair} hidden={Boolean(connection)}>
+      <h2>Connect to your local studio</h2><p>Start the local authoring service, then enter the pairing code it provides.</p>
       <label>Pairing code <input type="password" value={pairingCode} onChange={event => setPairingCode(event.target.value)} required autoComplete="off" /></label>
       <button type="submit">Pair local studio</button>
     </form>
