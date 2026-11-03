@@ -11,6 +11,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 const repo = resolve(process.env.CHARGEWEAVE_REPOSITORY ?? '..');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
 const typical = process.argv.includes('--typical');
+const holdLayout = process.argv.includes('--hold-layout');
 const names = Array.from({ length: typical ? 49 : 150 }, (_, i) => `Synthetic${String(i).padStart(3, '0')}`);
 const outgoing = typical ? 49 : 100;
 const schema = ['MODULE|foundation', `Record|root|Synthetic root.|${names.slice(0, outgoing).map((name, i) => `out${i}:${name}?`).join(' ')}`, ...names.map((name, i) => `${name}|root|Synthetic concept.|${typical ? `in${i}a:Record? in${i}b:Record?` : i >= 50 ? `in${i}:Record?` : ''}`)].join('\n') + '\n';
@@ -22,6 +23,17 @@ service.listen(0, '127.0.0.1'); await once(service, 'listening');
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 try {
+  if (holdLayout) await page.addInitScript(() => {
+    const OriginalWorker = window.Worker;
+    window.Worker = class extends OriginalWorker {
+      set onmessage(handler) {
+        super.onmessage = event => {
+          if (window.holdLayoutResponse) window.releaseHeldLayout = () => { window.holdLayoutResponse = false; handler(event); };
+          else handler(event);
+        };
+      }
+    };
+  });
   await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
   await page.getByLabel('Pairing code').fill(pairingCode);
   await page.getByRole('button', { name: 'Pair local studio' }).click();
@@ -55,13 +67,20 @@ try {
     input.addEventListener('input', () => { trace.input = { at: performance.now(), layout: flow.dataset.layout }; }, { once: true });
     window.finishLayoutTrace = () => { observer.disconnect(); return trace; };
   });
+  if (holdLayout) await page.evaluate(() => { window.holdLayoutResponse = true; });
   await graphRegion.getByRole('button', { name: 'Arrange visible concepts' }).click();
   await page.getByLabel('Search model').fill('Synthetic149');
+  const searchValue = await page.getByLabel('Search model').inputValue();
+  if (holdLayout) {
+    await page.waitForFunction(() => Boolean(window.releaseHeldLayout));
+    await page.evaluate(() => window.releaseHeldLayout());
+  }
   await page.waitForFunction(() => document.querySelector('.studio-flow')?.dataset.layout === 'ready');
   const layoutTrace = await page.evaluate(() => window.finishLayoutTrace());
   const pending = layoutTrace.states.find(item => item.state === 'pending');
   const ready = layoutTrace.states.find(item => item.state === 'ready' && item.at >= (pending?.at ?? Infinity));
-  const layoutInteraction = { pendingObserved: Boolean(pending), inputDuringLayout: layoutTrace.input?.layout === 'pending', inputDelayMs: layoutTrace.input && layoutTrace.start != null ? layoutTrace.input.at - layoutTrace.start : null, readyDelayMs: ready && layoutTrace.start != null ? ready.at - layoutTrace.start : null };
+  const layoutInteraction = { heldLayoutResponse: holdLayout, pendingObserved: Boolean(pending), inputDuringLayout: layoutTrace.input?.layout === 'pending', inputDelayMs: layoutTrace.input && layoutTrace.start != null ? layoutTrace.input.at - layoutTrace.start : null, readyDelayMs: ready && layoutTrace.start != null ? ready.at - layoutTrace.start : null };
+  if (searchValue !== 'Synthetic149' || (holdLayout && (!pending || !layoutInteraction.inputDuringLayout || !ready))) throw new Error('Search input or held-layout recovery was not observed');
   const canvas = page.locator('.react-flow__pane');
   const box = await canvas.boundingBox();
   if (!box) throw new Error('Canvas is not visible');
