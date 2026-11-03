@@ -6,7 +6,7 @@ import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 async function withStudio(page, run) {
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Theme accessibility', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
+  const workspace = store.create({ title: 'Theme accessibility', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|peer:Record?\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
@@ -44,6 +44,25 @@ test('graph controls stay legible on hover and show a contrasting focus ring in 
       await control.focus();
       await expect(control).toHaveCSS('outline-color', 'rgb(23, 63, 116)');
     }
+  });
+});
+
+test('the narrow inspector keeps field columns readable and keyboard scrollable', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The drawer-width inspector is exercised on desktop.');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await withStudio(page, async () => {
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('button', { name: 'Show inspector' }).click();
+    const region = page.getByRole('region', { name: 'Fields table, scroll horizontally' });
+    await expect(region).toBeVisible();
+    expect(await region.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+    const cell = region.getByRole('cell', { name: 'Optional (0..1)' });
+    expect(await cell.evaluate(element => element.getBoundingClientRect().width)).toBeGreaterThan(70);
+    await region.focus();
+    for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
+    await expect.poll(() => region.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
   });
 });
 

@@ -272,7 +272,7 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-field-table-wrap { overflow-x: auto; }
 .studio-field-controls { display: flex; flex-wrap: wrap; gap: .5rem; }
 .studio-field-controls label { flex: 1 1 7rem; }
-.studio-field-table { width: 100%; border-collapse: collapse; font-size: .8rem; text-align: left; }
+.studio-field-table { width: 100%; min-width: 38rem; border-collapse: collapse; font-size: .8rem; text-align: left; }
 .studio-field-table th, .studio-field-table td { padding: .55rem .4rem; border-bottom: 1px solid var(--studio-border); vertical-align: top; }
 .studio-field-table thead th { color: var(--studio-muted); font-size: .72rem; }
 .studio-field-table tbody th { min-width: 7rem; }
