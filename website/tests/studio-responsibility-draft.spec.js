@@ -1,0 +1,48 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('responsibility mapping input remains available and is reviewed after a field changes', async ({ page, isMobile }) => {
+  const source = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|owner:Record?\nParty|Record|A party.|\n';
+  const mapping = JSON.stringify({ version: 'chargeweave-responsibility-v1', bindings: [] }, null, 2) + '\n';
+  const entries = { 'model/domain.schema': source, 'model/responsibility-bindings.json': mapping, 'tools/authoring_adapter.py': readFileSync(fileURLToPath(new URL('../../tools/authoring_adapter.py', import.meta.url)), 'utf8'), 'tools/domain_schema.py': readFileSync(fileURLToPath(new URL('../../tools/domain_schema.py', import.meta.url)), 'utf8') };
+  const sourceManifest = Object.entries(entries).map(([path, value]) => ({ path, sha256: createHash('sha256').update(value).digest('hex') })).sort((a, b) => a.path < b.path ? -1 : 1);
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Responsibility draft', baselineCommit: 'a'.repeat(40), schema: source, sourceManifest, sourceBlobs: { 'model/responsibility-bindings.json': mapping } });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, eventPollMs: 100, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+    await page.getByRole('button', { name: 'Inspect responsibilities for selected concept' }).click();
+    await page.getByText('Map an existing responsibility relationship').click();
+    await page.getByLabel('Declared object relationship').selectOption('owner');
+    await page.getByLabel('Responsibility label').fill('Accountable party');
+    store.apply({ workspaceId: workspace.id, actor: 'other', operationId: 'change-owner-range', expectedRevision: 0, commands: [{ type: 'property.update', owner: 'Device', name: 'owner', expectedRange: 'Record', expectedCardinality: '?', range: 'Party', cardinality: '?' }] });
+    const warning = page.getByRole('alert').filter({ hasText: 'workspace changed since this mapping draft began' });
+    await expect(warning).toBeVisible();
+    await expect(page.getByLabel('Responsibility label')).toHaveValue('Accountable party');
+    await expect(page.getByRole('button', { name: 'Add responsibility mapping' })).toBeDisabled();
+    await expect(warning).toContainText('Previous relationship: owner → Record (?)');
+    await expect(warning).toContainText('Current relationship: owner → Party (?)');
+    await warning.getByRole('button', { name: 'Inspect latest responsibility mapping' }).click();
+    const review = warning.getByRole('button', { name: 'Reviewed latest, keep mapping input' });
+    await expect(review).toBeEnabled();
+    await review.click();
+    await expect(page.getByLabel('Responsibility label')).toHaveValue('Accountable party');
+    await page.getByRole('button', { name: 'Add responsibility mapping' }).click();
+    await expect.poll(() => store.get(workspace.id).revision).toBe(2);
+    const result = JSON.parse(store.get(workspace.id).sourceOverlays['model/responsibility-bindings.json']);
+    expect(result.bindings).toEqual([{ owner: 'Device', property: 'owner', range: 'Party', label: 'Accountable party', category: 'ownership' }]);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

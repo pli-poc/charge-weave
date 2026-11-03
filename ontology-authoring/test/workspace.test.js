@@ -6,6 +6,14 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
   const store = new WorkspaceStore(':memory:');
   try {
     const workspace = store.create({ title: 'Field search', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|code:string?\nDevice|Record|A device.|code:string? related:Record?\nOther|Record|Other.|code:string?\n' });
+    const browsed = store.explore(workspace.id, { expectedRevision: 0, limit: 1 });
+    assert.equal(browsed.results[0].name, 'Device');
+    browsed.results[0].name = 'ChangedByCaller';
+    browsed.modules[0].count = -1;
+    assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).results[0].name, 'Device');
+    assert.equal(store.explore(workspace.id, { expectedRevision: 0, limit: 1 }).modules[0].count, 3);
+    store.search(workspace.id, 'Device', 25, 0).results[0].definition = 'ChangedByCaller';
+    assert.equal(store.search(workspace.id, 'Device', 25, 0).results[0].definition, 'A device.');
     const first = store.searchFields(workspace.id, 'code', 0, 0, 2);
     assert.equal(first.total, 3);
     assert.deepEqual(first.results.map(item => item.owner), ['Device', 'Other']);
@@ -18,6 +26,8 @@ test('field search is revision-pinned, bounded and preserves declaring owners', 
     assert.throws(() => store.searchFields(workspace.id, '', 0, 0, 25, 'Missing'), /Unknown concept/);
     store.apply({ workspaceId: workspace.id, actor: 'author', operationId: 'change', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Updated record.' }] });
     assert.throws(() => store.searchFields(workspace.id, 'code', 0, 2, 2), /Revision conflict/);
+    assert.throws(() => store.explore(workspace.id, { expectedRevision: 0, cursor: 'Device' }), /Revision conflict/);
+    assert.equal(store.explore(workspace.id, { expectedRevision: 1 }).results.find(item => item.name === 'Record').definition, 'Updated record.');
     store.apply({ workspaceId: workspace.id, actor: 'author', operationId: 'add-field', expectedRevision: 1, commands: [{ type: 'property.add', owner: 'Record', name: 'newSearchField', range: 'string', cardinality: '?' }] });
     assert.equal(store.searchFields(workspace.id, 'newSearchField', 2).results[0].owner, 'Record');
   } finally { store.close(); }

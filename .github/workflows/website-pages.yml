@@ -76,7 +76,8 @@ jobs:
     name: Build and browser checks
     needs: scope
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # Full desktop/mobile browser checks already approach ten minutes including setup.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: website

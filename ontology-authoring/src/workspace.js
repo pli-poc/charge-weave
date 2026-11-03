@@ -85,7 +85,7 @@ function verifyAdapter(workspace) {
 export class WorkspaceStore {
   constructor(path) {
     this.db = new DatabaseSync(path);
-    this.fieldSearchCache = new Map();
+    this.modelIndexCache = new Map();
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
       CREATE TABLE IF NOT EXISTS workspaces (id TEXT PRIMARY KEY, title TEXT NOT NULL, baseline_commit TEXT NOT NULL, baseline_schema TEXT NOT NULL, schema TEXT NOT NULL, revision INTEGER NOT NULL, digest TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (workspace TEXT NOT NULL, actor TEXT NOT NULL, operation TEXT NOT NULL, request_hash TEXT NOT NULL, result TEXT NOT NULL, PRIMARY KEY(workspace, actor, operation), FOREIGN KEY(workspace) REFERENCES workspaces(id));
@@ -513,40 +513,42 @@ export class WorkspaceStore {
       patch: createPatch('model/domain.schema', group.before_schema, group.after_schema, 'before', 'after', { context: 3 }),
       baselinePatch: createPatch('model/domain.schema', baseline, group.after_schema, 'baseline', 'historical revision', { context: 3 }), additionalSources };
   }
+  modelIndex(id, workspace) {
+    let index = this.modelIndexCache.get(id);
+    if (!index || index.revision !== workspace.revision || index.digest !== workspace.sourceDigest) {
+      const model = parse(workspace.schema);
+      const sortedClasses = [...model.classes.values()].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+      const counts = new Map([...model.modules].map(name => [name, 0]));
+      for (const item of sortedClasses) counts.set(item.module, (counts.get(item.module) ?? 0) + 1);
+      index = { revision: workspace.revision, digest: workspace.sourceDigest, classes: model.classes, sortedClasses, modules: [...counts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, count]) => ({ name, count })), fields: null };
+      this.modelIndexCache.delete(id); this.modelIndexCache.set(id, index);
+      if (this.modelIndexCache.size > 20) this.modelIndexCache.delete(this.modelIndexCache.keys().next().value);
+    }
+    return index;
+  }
   explore(id, { expectedRevision, cursor, limit = 50, module } = {}) {
     if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100 || (cursor !== undefined && !/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(cursor)) || (module !== undefined && (typeof module !== 'string' || module.length > 128))) throw new Error('Invalid explorer request');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    const model = parse(workspace.schema);
-    const allClasses = [...model.classes.values()];
-    const moduleCounts = new Map([...model.modules].map(name => [name, 0]));
-    for (const item of allClasses) moduleCounts.set(item.module, (moduleCounts.get(item.module) ?? 0) + 1);
-    const modules = [...moduleCounts].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, count]) => ({ name, count }));
-    const classes = allClasses.filter(item => module === undefined || item.module === module)
-      .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    const index = this.modelIndex(id, workspace);
+    const modules = index.modules;
+    const classes = module === undefined ? index.sortedClasses : index.sortedClasses.filter(item => item.module === module);
     const remaining = classes.filter(item => cursor === undefined || item.name > cursor);
     const results = remaining.slice(0, limit);
-    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, modules, results, total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
+    return { workspaceId: id, revision: workspace.revision, sourceDigest: workspace.sourceDigest, module: module ?? null, modules: modules.map(item => ({ ...item })), results: results.map(item => ({ ...item })), total: classes.length, nextCursor: remaining.length > limit ? results.at(-1).name : null };
   }
   search(id, query, limit = 25, expectedRevision) {
     if (typeof query !== 'string' || query.length > 200 || !Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid search');
     const workspace = this.get(id), needle = query.toLowerCase();
     if (expectedRevision !== undefined && workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...parse(workspace.schema).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit) };
+    return { revision: workspace.revision, sourceDigest: workspace.sourceDigest, results: [...this.modelIndex(id, workspace).classes.values()].filter(item => `${item.name} ${item.definition}`.toLowerCase().includes(needle)).slice(0, limit).map(item => ({ ...item })) };
   }
   searchFields(id, query, expectedRevision, offset = 0, limit = 25, context = undefined, kind = 'all') {
     if (typeof query !== 'string' || query.length > 200 || !Number.isSafeInteger(expectedRevision) || !Number.isSafeInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 100 || !['all', 'property', 'relationship'].includes(kind) || (context !== undefined && (typeof context !== 'string' || !identifier.test(context) || context.length > 128))) throw new Error('Invalid field search');
     const workspace = this.get(id);
     if (workspace.revision !== expectedRevision) throw new Error('Revision conflict');
-    let index = this.fieldSearchCache.get(id);
-    if (!index || index.revision !== workspace.revision || index.digest !== workspace.sourceDigest) {
-      const { classes } = parse(workspace.schema);
-      const fields = new Map([...classes.values()].map(owner => [owner.name, [...fieldContracts(owner)].map(([name, contract]) => ({ name, owner: owner.name, module: owner.module, kind: classes.has(contract.range) ? 'relationship' : 'property', range: contract.range, cardinality: contract.cardinality }))]));
-      index = { revision: workspace.revision, digest: workspace.sourceDigest, classes, fields };
-      this.fieldSearchCache.delete(id);
-      this.fieldSearchCache.set(id, index);
-      if (this.fieldSearchCache.size > 20) this.fieldSearchCache.delete(this.fieldSearchCache.keys().next().value);
-    }
+    const index = this.modelIndex(id, workspace);
+    if (!index.fields) index.fields = new Map([...index.classes.values()].map(owner => [owner.name, [...fieldContracts(owner)].map(([name, contract]) => ({ name, owner: owner.name, module: owner.module, kind: index.classes.has(contract.range) ? 'relationship' : 'property', range: contract.range, cardinality: contract.cardinality }))]));
     const { classes, fields } = index, needle = query.trim().toLowerCase(), results = [];
     const owners = [];
     if (context !== undefined) {

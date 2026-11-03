@@ -215,6 +215,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     setLayoutSelection(connected);
     onManualInteraction();
   }
+  function focusLayoutSelection() {
+    const names = [...layoutSelection].filter(name => visibleNames.has(name));
+    if (!instance.current || !names.length || layoutState !== 'ready') return;
+    onManualInteraction();
+    void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: 0.15, maxZoom: 1, duration: motionDuration(200) });
+  }
   function alignLayoutSelection(axis) {
     if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
     const names = [...layoutSelection].filter(name => visibleNames.has(name) && positions.current[name]);
@@ -489,6 +495,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         {layoutRecoveryNeeded && <p>Replace the unreadable local layout before aligning or pinning concepts.</p>}
         {pinNotice && <p aria-live="polite">{pinNotice}</p>}
         <div className="studio-canvas-edge-actions">
+          <button type="button" disabled={layoutState !== 'ready' || !layoutSelection.size} onClick={focusLayoutSelection}>Focus selected layout concepts</button>
           <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('x')}>Align left</button>
           <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 2 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => alignLayoutSelection('y')}>Align top</button>
           <button type="button" disabled={layoutState !== 'ready' || layoutSelection.size < 3 || layoutRecoveryNeeded || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))} onClick={() => distributeLayoutSelection('x')}>Distribute horizontally</button>
