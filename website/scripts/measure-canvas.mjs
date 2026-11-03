@@ -59,6 +59,14 @@ try {
     const output = resolve(repo, 'evidence/ontology-studio/ide'); mkdirSync(output, { recursive: true });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('.react-flow__controls-fitview').click();
+    await page.waitForFunction(() => {
+      const pane = document.querySelector('.react-flow__pane')?.getBoundingClientRect();
+      const nodes = [...document.querySelectorAll('.react-flow__node')];
+      return pane && nodes.length > 0 && nodes.every(node => {
+        const box = node.getBoundingClientRect();
+        return box.left >= pane.left - 1 && box.right <= pane.right + 1 && box.top >= pane.top - 1 && box.bottom <= pane.bottom + 1;
+      });
+    });
     await page.locator('#studio-editor-pane').evaluate(element => { element.scrollTop = 0; });
     for (const [width, height] of [[1280, 800], [1920, 1080]]) for (const theme of ['light', 'dark']) {
       await page.setViewportSize({ width, height });
@@ -67,6 +75,9 @@ try {
       await page.screenshot({ path: resolve(output, `dense-${width}-${theme}.png`), animations: 'disabled' });
     }
     await page.setViewportSize({ width: 1280, height: 800 });
+    const focus = page.getByRole('button', { name: 'Focus selected', exact: true });
+    await focus.click();
+    await page.getByLabel('Diagram zoom level').filter({ hasText: '100%' }).waitFor();
   }
   const graphRegion = page.getByRole('region', { name: 'Relationships for Record' });
   await graphRegion.getByText('Layout', { exact: true }).click();

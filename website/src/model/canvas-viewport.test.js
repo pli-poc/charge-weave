@@ -14,6 +14,9 @@ test('viewport preferences are isolated by workspace, view and root', () => {
   assert.equal(readCanvasViewport(storage, 'workspace-one', 'view / one', 'Record'), null);
   assert.equal(readCanvasViewport(storage, 'workspace-one', 'other', 'Device'), null);
   assert.equal(readCanvasViewport(storage, 'workspace-two', 'view / one', 'Device'), null);
+  const overview = { x: 0, y: 0, zoom: 0.01 };
+  writeCanvasViewport(storage, 'workspace-one', 'view / one', 'Device', overview);
+  assert.deepEqual(readCanvasViewport(storage, 'workspace-one', 'view / one', 'Device'), overview);
 });
 
 test('invalid viewport preferences fall back without throwing or being rewritten', () => {

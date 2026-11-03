@@ -1,10 +1,11 @@
 export const canvasViewportKey = (workspaceId, viewId, root) => `chargeweave.canvas-viewport.v1.${workspaceId}.${encodeURIComponent(viewId)}.${encodeURIComponent(root)}`;
+export const MIN_CANVAS_ZOOM = 0.01;
 
 function validViewport(value) {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value)
     && Number.isFinite(value.x) && Math.abs(value.x) < 1000000
     && Number.isFinite(value.y) && Math.abs(value.y) < 1000000
-    && Number.isFinite(value.zoom) && value.zoom >= 0.15 && value.zoom <= 2);
+    && Number.isFinite(value.zoom) && value.zoom >= MIN_CANVAS_ZOOM && value.zoom <= 2);
 }
 
 export function readCanvasViewport(storage, workspaceId, viewId, root) {

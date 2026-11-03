@@ -5,7 +5,7 @@ import { readCanvasPositions, writeCanvasPositions } from './model/canvas-positi
 import { readCanvasPins, writeCanvasPins } from './model/canvas-pins.js';
 import { readCanvasHidden, writeCanvasHidden } from './model/canvas-hidden.js';
 import { positionChange, samePositionMaps, undoPositionChange, redoPositionChange } from './model/canvas-history.js';
-import { readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
+import { MIN_CANVAS_ZOOM, readCanvasViewport, writeCanvasViewport } from './model/canvas-viewport.js';
 import { canvasGroupFrames } from './model/canvas-groups.js';
 import { distributePositions } from './model/canvas-distribute.js';
 import '@xyflow/react/dist/style.css';
@@ -44,11 +44,12 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
-function ZoomReadout({ onManualInteraction, onOverviewChange }) {
+function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected }) {
   const { zoom } = useViewport();
   const { zoomTo } = useReactFlow();
   useEffect(() => { onOverviewChange(zoom < 0.6); }, [zoom, onOverviewChange]);
   return <div className="studio-canvas-zoom" role="group" aria-label="Diagram zoom">
+    {zoom < 0.15 && <><span className="studio-canvas-overview-hint">Overview: zoom in to read.</span><button type="button" onClick={onFocusSelected}>Focus selected</button></>}
     <span aria-label="Diagram zoom level">{Math.round(zoom * 100)}%</span>
     <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
@@ -218,7 +219,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     const names = [...layoutSelection].filter(name => visibleNames.has(name));
     if (!instance.current || !names.length || layoutState !== 'ready') return;
     onManualInteraction();
-    void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: 0.15, maxZoom: 1, duration: motionDuration(200) });
+    void instance.current.fitView({ nodes: names.map(id => ({ id })), padding: 0.2, minZoom: MIN_CANVAS_ZOOM, maxZoom: 1, duration: motionDuration(200) });
   }
   function alignLayoutSelection(axis) {
     if (layoutState !== 'ready' || layoutSelection.size < 2 || !storageWritable.current || pinRecoveryNeeded || [...layoutSelection].some(name => layoutPins.has(name))) return;
@@ -527,10 +528,10 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         catch { setViewportNotice('This browser tab could not remember the diagram position.'); }
       }} onNodeClick={(_event, node) => { onManualInteraction(); selectNode(node); }} onEdgeClick={(_event, edge) => inspectEdge(edge.id)}
       onConnect={connection => { onManualInteraction(); onConnect(connection); }}
-      nodesConnectable deleteKeyCode={null} minZoom={0.15} maxZoom={2} aria-label="Interactive concept graph">
+      nodesConnectable deleteKeyCode={null} minZoom={MIN_CANVAS_ZOOM} maxZoom={2} aria-label="Interactive concept graph">
       <ViewportPortal>{groupFrames.map(frame => <div key={frame.index} className="studio-canvas-group-frame" aria-hidden="true" style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}><span>{frame.name}</span></div>)}</ViewportPortal>
       {showMinimap && <MiniMap className="studio-canvas-minimap" position="top-left" style={{ width: 140, height: 90 }} ariaLabel="Diagram overview" nodeColor="#5c8580" maskColor="rgba(20, 42, 42, .25)" pannable zoomable onClick={onManualInteraction} />}
-      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} />
+      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} onFocusSelected={focusSelected} />
     </ReactFlow>
   </div>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}
