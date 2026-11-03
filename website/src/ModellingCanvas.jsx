@@ -44,12 +44,12 @@ const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, 
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
-function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected }) {
+function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, onFocusRoot, canFocusSelected, canFocusRoot }) {
   const { zoom } = useViewport();
   const { zoomTo } = useReactFlow();
   useEffect(() => { onOverviewChange(zoom < 0.6); }, [zoom, onOverviewChange]);
   return <div className="studio-canvas-zoom" role="group" aria-label="Diagram zoom">
-    {zoom < 0.15 && <><span className="studio-canvas-overview-hint">Overview: zoom in to read.</span><button type="button" onClick={onFocusSelected}>Focus selected</button></>}
+    {zoom < 0.15 && <><span className="studio-canvas-overview-hint">Overview: zoom in to read.</span>{canFocusSelected ? <button type="button" onClick={onFocusSelected}>Focus selected</button> : <button type="button" disabled={!canFocusRoot} onClick={onFocusRoot}>Focus view root</button>}</>}
     <span aria-label="Diagram zoom level">{Math.round(zoom * 100)}%</span>
     <button type="button" aria-label="Reset zoom to 100%" onClick={() => { onManualInteraction(); void zoomTo(1, { duration: motionDuration(200) }); }}>100%</button>
   </div>;
@@ -334,6 +334,12 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     onManualInteraction();
     void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
   }, [selectedName, onManualInteraction]);
+  const focusRoot = useCallback(() => {
+    const point = positions.current[graph.root];
+    if (!point || !instance.current) return;
+    onManualInteraction();
+    void instance.current.setCenter(point.x + 110, point.y + 64, { zoom: 1, duration: motionDuration(250) });
+  }, [graph.root, onManualInteraction]);
   function panDiagram(dx, dy) {
     if (!instance.current) return;
     const viewport = instance.current.getViewport();
@@ -531,7 +537,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       nodesConnectable deleteKeyCode={null} minZoom={MIN_CANVAS_ZOOM} maxZoom={2} aria-label="Interactive concept graph">
       <ViewportPortal>{groupFrames.map(frame => <div key={frame.index} className="studio-canvas-group-frame" aria-hidden="true" style={{ left: frame.left, top: frame.top, width: frame.width, height: frame.height }}><span>{frame.name}</span></div>)}</ViewportPortal>
       {showMinimap && <MiniMap className="studio-canvas-minimap" position="top-left" style={{ width: 140, height: 90 }} ariaLabel="Diagram overview" nodeColor="#5c8580" maskColor="rgba(20, 42, 42, .25)" pannable zoomable onClick={onManualInteraction} />}
-      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !graph.nodes.some(node => node.name === selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} onFocusSelected={focusSelected} />
+      <Background /><Controls showInteractive={false}><ControlButton className="studio-focus-control" aria-label="Focus selected concept" title="Focus selected concept" disabled={layoutState !== 'ready' || !visibleNames.has(selectedName)} onClick={focusSelected}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" /><path d="M12 2v4m0 12v4M2 12h4m12 0h4" /></svg></ControlButton></Controls><ZoomReadout onManualInteraction={onManualInteraction} onOverviewChange={setOverview} onFocusSelected={focusSelected} onFocusRoot={focusRoot} canFocusSelected={layoutState === 'ready' && visibleNames.has(selectedName)} canFocusRoot={layoutState === 'ready' && visibleNames.has(graph.root)} />
     </ReactFlow>
   </div>
     {viewportNotice && <p className="studio-canvas-viewport-notice" aria-live="polite">{viewportNotice}</p>}

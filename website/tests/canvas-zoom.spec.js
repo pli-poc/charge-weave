@@ -39,3 +39,30 @@ test('zoom controls show scale, simplify overview and restore readable detail', 
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
+
+test('a very small overview can focus its root when selection is outside the view', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'The compact experience uses the relationship list first.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Overview focus', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\nExtra|Record|Another concept.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await page.getByLabel('Search model').fill('Extra'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Extra', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Extra');
+    for (let count = 0; count < 11; count++) await canvas.locator('.react-flow__controls-zoomout').click();
+    const root = canvas.getByRole('button', { name: 'Focus view root' });
+    await expect(root).toBeVisible(); await root.focus(); await page.keyboard.press('Enter');
+    await expect(canvas.getByLabel('Diagram zoom level')).toHaveText('100%');
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('Selected: Extra');
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
