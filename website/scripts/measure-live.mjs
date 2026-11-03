@@ -48,7 +48,10 @@ try {
     if (result.isError) throw new Error('Measurement mutation failed');
     await page.waitForFunction(value => new RegExp(`revision ${value}(?:\\s|$)`).test(document.querySelector('[role=status]')?.textContent ?? ''), expected);
     const revisionVisible = performance.now();
-    if (graphMode) await page.locator('.react-flow__edge-text').getByText(`${name} ${cardinality === '!' ? '1' : '0..1'}`, { exact: true }).waitFor({ state: 'visible' });
+    if (graphMode) await page.waitForFunction(label => [...document.querySelectorAll('.react-flow__edge-text')].some(element => {
+      const box = element.getBoundingClientRect();
+      return element.textContent.trim() === label && box.width > 0 && box.height > 0 && getComputedStyle(element).visibility !== 'hidden';
+    }), `${name} ${cardinality === '!' ? '1' : '0..1'}`);
     if (i >= 5) {
       const finished = performance.now();
       times.push(finished - start); commandTimes.push(commandDone - start); revisionTimes.push(revisionVisible - start);
