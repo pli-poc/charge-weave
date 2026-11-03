@@ -41,6 +41,18 @@
 .studio-canvas-zoom { position: absolute; z-index: 4; right: 6.5rem; top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; max-width: calc(100% - 7.5rem); padding: .25rem .35rem; border: 1px solid #93aaa7; border-radius: .35rem; background: #fff; color: #183a39; font-size: .8rem; font-weight: 700; }
 .studio-canvas-zoom span { min-width: 3rem; text-align: right; }
 .modelling-studio .studio-canvas-zoom button { min-height: 1.8rem; padding: .2rem .45rem; }
+/* Keep floating diagram controls consistent with the selected workbench
+   theme. The light theme retains the existing high-contrast palette. */
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu,
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-zoom {
+  background: #20363b;
+  border-color: #799c98;
+  color: #edf8f5;
+  box-shadow: 0 3px 12px #0008;
+}
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu :is(summary, p, label, legend) { color: #edf8f5; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu .studio-layout-choices { border-color: #799c98; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canvas-layout-menu, .studio-canvas-zoom) :is(button, summary, input):focus-visible { outline-color: #91e9d1; }
 .studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
 .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
 .studio-flow .studio-flow-inheritance .react-flow__edge-path { stroke-dasharray: 7 4; }

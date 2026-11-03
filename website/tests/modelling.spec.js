@@ -2426,7 +2426,7 @@ test('mobile relationship list remains usable without horizontal page scrolling'
     await expect(page.getByRole('heading', { name: 'Review workflow' })).toBeFocused();
     await expect(page.getByRole('heading', { name: 'Publication preflight' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Activity' }).click();
-    await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Recent activity', exact: true })).toBeFocused();
     await navigation.getByRole('button', { name: 'Model', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Discover concepts' })).toBeFocused();
     await page.locator('#studio-navigator-pane').getByRole('button', { name: 'Device', exact: true }).press('Enter');
