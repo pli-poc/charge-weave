@@ -1268,7 +1268,7 @@ test('two studio tabs share edits while keeping independent selections', async (
     const url = `http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`;
     await page.goto(url); await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 0');
-    second = await context.newPage(); await second.goto(url); await expect(second.getByRole('status')).toContainText('revision 0');
+    second = await context.newPage(); await second.goto(url); await expect(second.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 0');
     for (const [tab, name] of [[page, 'Record'], [second, 'Device']]) {
       await tab.getByLabel('Search model').fill(name); await tab.getByRole('button', { name: 'Search', exact: true }).click();
       await tab.getByRole('button', { name, exact: true }).click();
@@ -1278,7 +1278,7 @@ test('two studio tabs share edits while keeping independent selections', async (
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('A record edited in the first tab.');
     await page.getByRole('button', { name: 'Save definition' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
-    await expect(second.getByRole('status')).toContainText('revision 1');
+    await expect(second.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
     await expect(second.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
     expect(store.get(workspace.id).revision).toBe(1);
   } finally { if (second) await second.close(); await page.close(); await service.shutdown(); store.close(); }
