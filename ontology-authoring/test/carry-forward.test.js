@@ -11,10 +11,10 @@ import { editableSourcePaths } from '../src/source-manifest.js';
 
 test('carry-forward creates a fresh target-based draft with provenance and fresh review gates', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'chargeweave-carry-'));
-  const repository = join(directory, 'repo');
+  const repository = join(directory, 'repo'), remote = join(directory, 'remote.git'), advance = join(directory, 'advance');
   mkdirSync(repository);
   const root = fileURLToPath(new URL('../../', import.meta.url));
-  const git = args => execFileSync('git', args, { cwd: repository, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  const git = (cwd, args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   let store;
   try {
     for (const path of [...editableSourcePaths, 'model/domain.schema', 'tools/authoring_adapter.py', 'tools/domain_schema.py', 'requirements.txt']) {
@@ -23,34 +23,35 @@ test('carry-forward creates a fresh target-based draft with provenance and fresh
       cpSync(join(root, path), targetPath);
     }
     writeFileSync(join(repository, 'README.md'), 'baseline\n');
-    git(['init']);
-    git(['config', 'user.name', 'Carry-forward test']);
-    git(['config', 'user.email', 'carry-forward@example.invalid']);
-    git(['remote', 'add', 'origin', 'https://github.com/pli-poc/charge-weave.git']);
-    git(['add', '.']);
-    git(['commit', '-m', 'baseline']);
-    const baselineCommit = git(['rev-parse', 'HEAD']);
+    git(directory, ['init', '--bare', remote]);
+    git(repository, ['init']);
+    git(repository, ['config', 'user.name', 'Carry-forward test']);
+    git(repository, ['config', 'user.email', 'carry-forward@example.invalid']);
+    git(repository, ['remote', 'add', 'origin', remote]);
+    git(repository, ['add', '.']);
+    git(repository, ['commit', '-m', 'baseline']);
+    git(repository, ['push', 'origin', 'HEAD:refs/heads/main']);
+    git(directory, ['--git-dir', remote, 'symbolic-ref', 'HEAD', 'refs/heads/main']);
+    const baselineCommit = git(repository, ['rev-parse', 'HEAD']);
+    const publicationFixture = { remote, branch: 'main' };
     store = new WorkspaceStore(':memory:');
-    const source = createWorkspaceFromRepository(store, repository, { title: 'Original', baselineCommit, operationId: 'source', actor: 'reviewer' });
+    const source = createWorkspaceFromRepository(store, repository, { title: 'Original', baselineCommit, operationId: 'source', actor: 'reviewer', publicationFixture });
     await assert.rejects(carryForwardWorkspaceFromRepository(store, repository, {
       sourceWorkspaceId: source.id, expectedRevision: 0, expectedSourceDigest: source.sourceDigest,
-      baselineCommit, operationId: 'x'.repeat(114), actor: 'reviewer',
+      baselineCommit, operationId: 'x'.repeat(114), actor: 'reviewer', publicationFixture,
     }), /Invalid carry-forward request/);
     const edit = store.apply({ workspaceId: source.id, actor: 'author', operationId: 'describe', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'An identifiable tenant-owned domain record.' }] });
-    writeFileSync(join(repository, 'README.md'), 'advanced baseline\n');
-    git(['add', 'README.md']);
-    git(['commit', '-m', 'advance disjoint path']);
-    const targetCommit = git(['rev-parse', 'HEAD']);
-    const preflight = async (_store, workspaceId, expectedRevision) => ({
-      stale: false,
-      target: { status: 'changed', head: targetCommit },
-      comparison: { status: 'disjoint-paths', overlap: [], changedFiles: ['README.md'] },
-      workspaceId,
-      revision: expectedRevision,
-    });
+    git(directory, ['clone', '--quiet', remote, advance]);
+    git(advance, ['config', 'user.name', 'Remote maintainer']);
+    git(advance, ['config', 'user.email', 'remote@example.invalid']);
+    writeFileSync(join(advance, 'README.md'), 'advanced baseline\n');
+    git(advance, ['add', 'README.md']);
+    git(advance, ['commit', '-m', 'advance disjoint path']);
+    git(advance, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const targetCommit = git(advance, ['rev-parse', 'HEAD']);
     const carried = await carryForwardWorkspaceFromRepository(store, repository, {
       sourceWorkspaceId: source.id, expectedRevision: edit.revision, expectedSourceDigest: edit.sourceDigest,
-      baselineCommit: targetCommit, operationId: 'carry', actor: 'reviewer', preflight,
+      baselineCommit: targetCommit, operationId: 'carry', actor: 'reviewer', publicationFixture,
     });
     assert.equal(carried.status, 'carried-forward');
     assert.equal(carried.baselineCommit, targetCommit);
@@ -68,20 +69,20 @@ test('carry-forward creates a fresh target-based draft with provenance and fresh
     assert.deepEqual(history.carriedFiles, ['model/domain.schema']);
     const retried = await carryForwardWorkspaceFromRepository(store, repository, {
       sourceWorkspaceId: source.id, expectedRevision: edit.revision, expectedSourceDigest: edit.sourceDigest,
-      baselineCommit: targetCommit, operationId: 'carry', actor: 'reviewer', preflight,
+      baselineCommit: targetCommit, operationId: 'carry', actor: 'reviewer', publicationFixture,
     });
     assert.equal(retried.workspaceId, carried.workspaceId);
 
-    const conflictingSource = createWorkspaceFromRepository(store, repository, { title: 'Conflicting source', baselineCommit, operationId: 'source-conflict', actor: 'reviewer' });
+    const conflictingSource = createWorkspaceFromRepository(store, repository, { title: 'Conflicting source', baselineCommit, operationId: 'source-conflict', actor: 'reviewer', publicationFixture });
     const conflictingEdit = store.apply({ workspaceId: conflictingSource.id, actor: 'author', operationId: 'describe-conflict', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Draft description.' }] });
-    writeFileSync(join(repository, 'model/domain.schema'), readFileSync(join(repository, 'model/domain.schema'), 'utf8').replace('Identifiable tenant-owned domain record with explicit provenance and version metadata.', 'Remote record description.'));
-    git(['add', 'model/domain.schema']);
-    git(['commit', '-m', 'advance overlapping path']);
-    const conflictingTarget = git(['rev-parse', 'HEAD']);
+    writeFileSync(join(advance, 'model/domain.schema'), readFileSync(join(advance, 'model/domain.schema'), 'utf8').replace('Identifiable tenant-owned domain record with explicit provenance and version metadata.', 'Remote record description.'));
+    git(advance, ['add', 'model/domain.schema']);
+    git(advance, ['commit', '-m', 'advance overlapping path']);
+    git(advance, ['push', 'origin', 'HEAD:refs/heads/main']);
+    const conflictingTarget = git(advance, ['rev-parse', 'HEAD']);
     const conflict = await carryForwardWorkspaceFromRepository(store, repository, {
       sourceWorkspaceId: conflictingSource.id, expectedRevision: conflictingEdit.revision, expectedSourceDigest: conflictingEdit.sourceDigest,
-      baselineCommit: conflictingTarget, operationId: 'conflict', actor: 'reviewer',
-      preflight: async () => ({ stale: false, target: { status: 'changed', head: conflictingTarget }, comparison: { status: 'disjoint-paths', overlap: [], changedFiles: [] } }),
+      baselineCommit: conflictingTarget, operationId: 'conflict', actor: 'reviewer', publicationFixture,
     });
     assert.equal(conflict.status, 'conflict');
     assert.deepEqual(conflict.conflicts.map(item => item.path), ['model/domain.schema']);

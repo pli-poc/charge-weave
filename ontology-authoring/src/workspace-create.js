@@ -6,10 +6,11 @@ import { publicationPreflight } from './publication-preflight.js';
 const aliases = new Set(['https://github.com/pli-poc/charge-weave', 'https://github.com/pli-poc/charge-weave.git', 'git@github.com:pli-poc/charge-weave', 'git@github.com:pli-poc/charge-weave.git']);
 
 // The caller supplies a commit identity, never a repository path or executable.
-export function createWorkspaceFromRepository(store, repository, { title, baselineCommit, operationId, actor }) {
+export function createWorkspaceFromRepository(store, repository, { title, baselineCommit, operationId, actor, publicationFixture = null }) {
   if (typeof title !== 'string' || !title.trim() || title.length > 120 || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '')) throw new Error('Invalid workspace creation request');
   const git = args => execFileSync('git', args, { cwd: repository, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
-  if (!aliases.has(git(['remote', 'get-url', 'origin']).trim())) throw new Error('Repository remote is not allowlisted');
+  const configured = git(['remote', 'get-url', 'origin']).trim();
+  if (publicationFixture ? configured !== publicationFixture.remote : !aliases.has(configured)) throw new Error('Repository remote is not allowlisted');
   let resolved;
   try { resolved = git(['rev-parse', '--verify', `${baselineCommit}^{commit}`]).trim(); }
   catch { throw new Error('Baseline commit is unavailable'); }
@@ -28,12 +29,12 @@ export function createWorkspaceFromRepository(store, repository, { title, baseli
 
 // Create a target-based workspace and carry only files whose pinned baseline
 // bytes have not changed at the target. Same-path edits fail closed.
-export async function carryForwardWorkspaceFromRepository(store, repository, { sourceWorkspaceId, expectedRevision, expectedSourceDigest, baselineCommit, operationId, actor, publicationFixture = null, preflight = publicationPreflight }) {
+export async function carryForwardWorkspaceFromRepository(store, repository, { sourceWorkspaceId, expectedRevision, expectedSourceDigest, baselineCommit, operationId, actor, publicationFixture = null }) {
   if (typeof sourceWorkspaceId !== 'string' || !Number.isSafeInteger(expectedRevision) || !/^[a-f0-9]{64}$/.test(expectedSourceDigest ?? '') || !/^[a-f0-9]{40}$/.test(baselineCommit ?? '') || typeof operationId !== 'string' || !operationId || operationId.length > 113 || !actor) throw new Error('Invalid carry-forward request');
   const source = store.get(sourceWorkspaceId);
   if (source.revision !== expectedRevision || source.sourceDigest !== expectedSourceDigest) throw new Error('Source draft changed; inspect it and retry carry-forward');
   if (source.digestVersion !== 4 || !source.sourceManifest) throw new Error('Carry-forward requires a version-four source workspace');
-  const proof = await preflight(store, sourceWorkspaceId, expectedRevision, repository, publicationFixture);
+  const proof = await publicationPreflight(store, sourceWorkspaceId, expectedRevision, repository, publicationFixture);
   if (proof.stale || proof.target?.status !== 'changed' || proof.target.head !== baselineCommit) throw new Error('Baseline commit is not the current configured publication target; run preflight again');
   if (proof.comparison?.status !== 'disjoint-paths') {
     return { status: 'conflict', sourceWorkspaceId, baselineCommit, conflicts: proof.comparison?.overlap?.map(path => ({ path, reason: 'target and draft both changed this source' })) ?? [{ path: null, reason: 'target comparison is unavailable or diverged' }], carriedFiles: [] };
@@ -49,7 +50,8 @@ export async function carryForwardWorkspaceFromRepository(store, repository, { s
     catch { throw new Error('Current target commit is not available in the local repository'); }
     if (git(['rev-parse', 'FETCH_HEAD']).trim() !== baselineCommit) throw new Error('Publication target moved during carry-forward; run preflight again');
   }
-  if (!aliases.has(git(['remote', 'get-url', 'origin']).trim())) throw new Error('Repository remote is not allowlisted');
+  const configuredRemote = git(['remote', 'get-url', 'origin']).trim();
+  if (publicationFixture ? configuredRemote !== publicationFixture.remote : !aliases.has(configuredRemote)) throw new Error('Repository remote is not allowlisted');
   let resolved;
   try { resolved = git(['rev-parse', '--verify', `${baselineCommit}^{commit}`]).trim(); }
   catch { throw new Error('Target baseline commit is unavailable'); }
@@ -80,7 +82,7 @@ export async function carryForwardWorkspaceFromRepository(store, repository, { s
   }
   if (conflicts.length) return { status: 'conflict', sourceWorkspaceId, baselineCommit, conflicts, carriedFiles: [] };
   const title = `Carry forward: ${source.title}`.slice(0, 120);
-  const created = createWorkspaceFromRepository(store, repository, { title, baselineCommit, operationId, actor });
+  const created = createWorkspaceFromRepository(store, repository, { title, baselineCommit, operationId, actor, publicationFixture });
   try {
     store.carryForward({ workspaceId: created.id, actor, operationId: `carry:${operationId}`, sourceWorkspaceId, expectedRevision, expectedSourceDigest, files: carry });
   } catch (error) { throw new Error(`Carry-forward workspace was created but changes were not applied: ${error.message}`); }

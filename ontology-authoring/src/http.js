@@ -180,7 +180,7 @@ export function createHttpService({ store, token, reviewerToken, pairingCode, al
     const createWorkspace = role === 'reviewer' && allowWorkspaceCreate && repository ? args => {
       const priorWorkspaceId = store.createdWorkspaceId('local-reviewer', args.operationId);
       if (grantedWorkspaces.size >= 20 && !grantedWorkspaces.has(priorWorkspaceId)) throw new Error('Workspace grant limit reached');
-      const created = createWorkspaceFromRepository(store, repository, { ...args, actor: 'local-reviewer' });
+      const created = createWorkspaceFromRepository(store, repository, { ...args, actor: 'local-reviewer', publicationFixture });
       grantedWorkspaces.add(created.id);
       return created;
     } : undefined;
