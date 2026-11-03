@@ -22,7 +22,7 @@ test('results activity can be scrolled with the keyboard', async ({ page, isMobi
     const results = page.getByRole('region', { name: 'Workspace results' });
     await results.getByRole('button', { name: 'Activity', exact: true }).click();
     const content = results.getByRole('region', { name: 'Results content' });
-    await expect(results.getByText('Showing the most recent 10 loaded workspace events.')).toBeVisible();
+    await expect(results.getByText('Showing the latest 10 of 10 loaded workspace events. The service retains up to 100 in this view.')).toBeVisible();
     expect(await content.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
     await results.getByRole('button', { name: 'Close results panel' }).focus();
     await page.keyboard.press('Tab');

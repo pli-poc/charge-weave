@@ -34,7 +34,7 @@ test('switching results panels starts at the beginning of the selected panel', a
     const results = page.getByRole('region', { name: 'Workspace results' });
     await results.getByRole('button', { name: 'Activity', exact: true }).click();
     const content = results.getByRole('region', { name: 'Results content' });
-    await expect(results.getByText('Showing the most recent 10 loaded workspace events.')).toBeVisible();
+    await expect(results.getByText('Showing the latest 10 of 10 loaded workspace events. The service retains up to 100 in this view.')).toBeVisible();
     await content.focus();
     await content.press('End');
     await expect.poll(() => content.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
