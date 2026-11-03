@@ -205,6 +205,9 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
   .studio-app-bar .studio-appearance-controls { order: 1; flex: 1 1 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
   .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) { display: grid; gap: .15rem; }
   .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) select { width: 100%; }
+  .studio-app-bar .studio-workspaces { flex-wrap: wrap; }
+  .studio-app-bar .studio-workspaces > details { flex: 1 1 100%; }
+  .studio-app-bar .studio-workspaces > details form { position: static; width: 100%; box-shadow: none; }
 }
 .modelling-studio > .studio-status-bar { position: fixed; z-index: 12; inset: auto 0 0; display: flex; gap: .5rem 1.25rem; align-items: center; flex-wrap: wrap; min-height: 2rem; margin: 0; padding: .25rem 1rem; background: var(--studio-raised); border: 0; border-top: 1px solid var(--studio-strong-border); border-radius: 0; color: var(--studio-text); font-size: .75rem; }
 .studio-status-bar a { color: var(--studio-accent-text); }
