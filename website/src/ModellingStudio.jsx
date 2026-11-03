@@ -1392,6 +1392,7 @@ export default function ModellingStudio() {
         const selected = selectConcept(response.structuredContent.entity, { focusView });
         if (selected && focusView) setEditorDocument('diagram');
         if (selected && window.matchMedia('(max-width: 900px)').matches) openCompactPane(focusView ? 'studio-editor-pane' : 'studio-inspector-pane');
+        else if (selected && !focusView && window.matchMedia('(max-width: 1399px)').matches) setHideInspector(false);
         return selected;
       }
     } catch (problem) { setError(problem.message); }

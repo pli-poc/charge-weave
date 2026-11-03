@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StudioScrollableText from './StudioScrollableText.jsx';
 
-function fixtureFailures(step) {
+export function fixtureFailures(step) {
   if (!step.checkName.includes('tools/test_authoring_maintenance_demo.py')) return [];
   for (const line of (step.output || '').split(/\r?\n/).reverse()) {
     try {
@@ -12,7 +12,7 @@ function fixtureFailures(step) {
   }
   return [];
 }
-const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maintenanceStation'], 'invalid-planning-state': ['PlannedMaintenanceWindow', 'maintenancePlanningState'], 'reversed-shared-interval': ['TimeWindow', 'endsAt'] };
+export const fixtureConcepts = { 'missing-station': ['PlannedMaintenanceWindow', 'maintenanceStation'], 'invalid-planning-state': ['PlannedMaintenanceWindow', 'maintenancePlanningState'], 'reversed-shared-interval': ['TimeWindow', 'endsAt'] };
 
 // A failing check is evidence of a failed check, not automatically a model defect.
 export default function ValidationIssues({ job, snapshot, onRetry, onFocusConcept, disabled = false }) {

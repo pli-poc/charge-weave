@@ -2585,7 +2585,7 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
 
 test('failed validation can be inspected, corrected and retried on the current draft', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
-  const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\n' });
+  const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\nPlannedMaintenanceWindow|Record|A planned window.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const validationRunner = async (target, input, job) => {
     if (job.profile === 'maintenance-demo') {
@@ -2644,6 +2644,12 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Run maintenance fixtures' }).click();
+    await expect(problems.getByText('Synthetic fixture missing-station: target PlannedMaintenanceWindow.maintenanceStation.')).toBeVisible();
+    await expect(problems.getByRole('button', { name: 'Inspect fixture target PlannedMaintenanceWindow' })).toBeEnabled();
+    await problems.getByRole('button', { name: 'Inspect fixture target PlannedMaintenanceWindow' }).click();
+    await expect(page.locator('#studio-inspector-pane').getByRole('heading', { name: 'PlannedMaintenanceWindow', exact: true })).toBeVisible();
+    await expect(page.locator('.studio-flow[aria-label="Relationships for Record"]')).toHaveCount(1);
+    if (isMobile) { await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click(); await page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: /Problems/ }).click(); }
     await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     await expect(issues.getByText('missing-station: expected rejection, observed conformance.')).toBeVisible();
     await expect(issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' })).toBeVisible();
