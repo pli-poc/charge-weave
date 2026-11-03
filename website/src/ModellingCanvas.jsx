@@ -48,6 +48,13 @@ const ConceptNode = memo(function ConceptNode({ data }) {
 const nodeTypes = { concept: ConceptNode };
 const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, label, data }) {
   const offset = data?.offset ?? 0;
+  if (data?.selfRelationship) {
+    // Loop above the card instead of drawing through its content. Parallel
+    // self-relations get distinct heights using the same stable edge offsets.
+    const rise = data.selfLoopRise;
+    const path = `M ${sourceX},${sourceY} C ${sourceX + 90},${sourceY - rise} ${targetX - 90},${targetY - rise} ${targetX},${targetY}`;
+    return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={label} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 - rise * .75} labelShowBg />;
+  }
   const bend = Math.max(70, Math.abs(targetX - sourceX) * .45) * (targetX >= sourceX ? 1 : -1);
   const path = `M ${sourceX},${sourceY} C ${sourceX + bend},${sourceY + offset} ${targetX - bend},${targetY + offset} ${targetX},${targetY}`;
   return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={label} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 + offset * .75} labelShowBg />;
@@ -460,6 +467,13 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
     void instance.current.setViewport({ ...viewport, x: viewport.x + dx, y: viewport.y + dy }, { duration: 0 });
   }
   const offsets = parallelEdgeOffsets(activeEdges);
+  const selfLoopRises = new Map();
+  const selfLoopsByNode = new Map();
+  for (const edge of activeEdges.filter(edge => edge.source === edge.target)) {
+    if (!selfLoopsByNode.has(edge.source)) selfLoopsByNode.set(edge.source, []);
+    selfLoopsByNode.get(edge.source).push(edge.id);
+  }
+  for (const ids of selfLoopsByNode.values()) ids.sort().forEach((id, index) => selfLoopRises.set(id, 140 + index * 40));
   function arrangeVisible() {
     if (!worker.current || layoutState !== 'ready') return;
     if (!storageWritable.current) { setLayoutNotice('Resolve unreadable local layout before arranging concepts.'); return; }
@@ -665,7 +679,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         {hiddenNotice && <p aria-live="polite">{hiddenNotice}</p>}
       </details>
     </details>
-    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, ariaLabel: relationshipAccessibleName(edge), data: { offset: offsets.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, ariaLabel: relationshipAccessibleName(edge), data: { offset: offsets.get(edge.id), selfRelationship: edge.source === edge.target, selfLoopRise: selfLoopRises.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
       onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
         if (!lastRoot.current) return;
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }
