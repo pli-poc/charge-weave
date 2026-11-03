@@ -22,7 +22,20 @@ test('large explorer stays paged and supports keyboard discovery', async ({ page
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByText('Showing 50 of 1001 concepts.')).toBeVisible();
+    let failNextPage = true;
+    await page.route('**/mcp', async (route, request) => {
+      const body = request.postDataJSON();
+      if (failNextPage && body?.method === 'tools/call' && body.params?.name === 'ontology_explorer_list' && body.params.arguments?.cursor) {
+        failNextPage = false;
+        await route.fulfill({ status: 503, body: 'Synthetic page failure' });
+        return;
+      }
+      await route.continue();
+    });
     await page.getByRole('button', { name: 'Load more concepts' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Could not load more concepts' })).toBeVisible();
+    await expect(page.getByText('Showing 50 of 1001 concepts.')).toBeVisible();
+    await page.getByRole('button', { name: 'Retry loading concepts' }).click();
     await expect(page.getByText('Showing 100 of 1001 concepts.')).toBeVisible();
     const query = page.getByLabel('Search model');
     await query.fill('Asset0999');
