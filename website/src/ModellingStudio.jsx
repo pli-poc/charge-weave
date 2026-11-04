@@ -486,7 +486,7 @@ export default function ModellingStudio() {
   const browseSelection = useRef({ endpoint: null, workspaceId: null, module: '', parent: '', changedOnly: false });
   const [selected, setSelected] = useState(null);
   const [viewRoot, setViewRoot] = useState(null);
-  const [rootHistory, setRootHistory] = useState({ entries: [], index: -1 });
+  const [rootHistories, setRootHistories] = useState({});
   const [graph, setGraph] = useState(null);
   const [savedViewRevision, setSavedViewRevision] = useState(null);
   const [viewId, setViewId] = useState('default');
@@ -1196,7 +1196,7 @@ export default function ModellingStudio() {
   useEffect(() => { setFieldDraftBase(null); setFieldFormOpen(false); }, [connection, selected?.name]);
   useEffect(() => { setValueConstraint(null); }, [connection, selected?.name]);
   useEffect(() => { setRequiredDraft(null); }, [connection, selected?.name]);
-  useEffect(() => { initialViewChoice.current = null; setViewRoot(null); setRootHistory({ entries: [], index: -1 }); }, [connection]);
+  useEffect(() => { initialViewChoice.current = null; setViewRoot(null); setRootHistories({}); }, [connection]);
   useEffect(() => { setDefinitionConflict(null); }, [connection, selected?.name]);
   useEffect(() => { setDefinitionBase(null); }, [connection, selected?.name]);
   useEffect(() => { setPendingSelection(null); }, [connection]);
@@ -1272,12 +1272,13 @@ export default function ModellingStudio() {
     return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
   }, [connection, selected?.name, selected?.definition, definition, fieldEdit, valueConstraint, field, fieldValueCandidate, relationshipDraft, intervalRule, binding, temporalBaseline, temporalPolicy, newClass, conceptDefaults, annotationText, groupName, groupMembers, canvasGroupName]);
   const activeViewKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, viewId]);
+  const rootHistory = rootHistories[activeViewKey] ?? { entries: [], index: -1 };
   if (viewContextKey.current !== activeViewKey) { viewContextKey.current = activeViewKey; viewContext.current += 1; }
   useEffect(() => {
     if (!connection || !snapshot || viewId !== 'default' || viewReadyKey !== activeViewKey || !viewLoaded || savedViewRevision !== 0 || selected || viewRoot || browsePending || !browse || browse.error || browse.workspaceId !== connection.workspaceId || browse.revision !== snapshot.revision || !browse.results.length || initialViewChoice.current?.key === activeViewKey) return;
     const item = browse.results.find(result => result.name === 'ChargingStation') || browse.results[0];
     initialViewChoice.current = { key: activeViewKey, automatic: true };
-    setSelected(item); setDefinition(item.definition); setViewRoot(item.name); setRootHistory({ entries: [item.name], index: 0 });
+    setSelected(item); setDefinition(item.definition); setViewRoot(item.name); setRootHistories(previous => ({ ...previous, [activeViewKey]: { entries: [item.name], index: 0 } }));
   }, [connection, snapshot?.revision, viewId, viewReadyKey, activeViewKey, viewLoaded, savedViewRevision, selected, viewRoot, browse, browsePending]);
   function markViewEdited() { viewChangeVersion.current += 1; changedViews.current.add(activeViewKey); setViewDirty(true); }
   function updateViewMetadata(key, value) {
@@ -1337,16 +1338,18 @@ export default function ModellingStudio() {
   function focusViewRoot(name) {
     if (viewRoot && viewRoot !== name && !(initialViewChoice.current?.key === activeViewKey && initialViewChoice.current.automatic)) markViewEdited();
     setViewRoot(name);
-    setRootHistory(previous => {
-      if (previous.entries[previous.index] === name) return previous;
-      const entries = [...previous.entries.slice(0, previous.index + 1), name].slice(-50);
-      return { entries, index: entries.length - 1 };
+    setRootHistories(previous => {
+      const history = previous[activeViewKey] ?? { entries: [], index: -1 };
+      const entries = history.entries;
+      if (entries[history.index] === name) return previous;
+      const nextEntries = [...entries.slice(0, history.index + 1), name].slice(-50);
+      return { ...previous, [activeViewKey]: { entries: nextEntries, index: nextEntries.length - 1 } };
     });
   }
   function navigateViewHistory(offset) {
     const index = rootHistory.index + offset;
     if (index < 0 || index >= rootHistory.entries.length) return;
-    setRootHistory({ ...rootHistory, index });
+    setRootHistories(previous => ({ ...previous, [activeViewKey]: { ...rootHistory, index } }));
     markViewEdited();
     setViewRoot(rootHistory.entries[index]);
     pauseFollowing();
