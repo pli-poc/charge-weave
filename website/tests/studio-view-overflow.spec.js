@@ -78,6 +78,12 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Open in new tab', exact: true }).click();
     await expect(tabs.locator('[data-view-id^="preview-"]')).toHaveCount(2);
+    const restoredTabId = await tabs.locator('[data-view-id^="preview-"][aria-current="page"]').getAttribute('data-view-id');
+    await page.reload();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    const restoredTabs = page.getByRole('navigation', { name: 'Open diagram views' });
+    await expect(restoredTabs.locator(`[data-view-id="${restoredTabId}"]`)).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.studio-graph > p').first()).toContainText('Device');
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });

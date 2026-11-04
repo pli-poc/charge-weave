@@ -417,6 +417,17 @@ function restoredActiveView(workspaceId) {
     return stored && /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(stored) ? stored : 'default';
   } catch { return 'default'; }
 }
+function viewRootPreferenceKey(workspaceId, viewId) { return `chargeweave.studio.view-root.v1.${workspaceId}.${viewId}`; }
+function restoredViewRoot(workspaceId, viewId) {
+  try {
+    const root = localStorage.getItem(viewRootPreferenceKey(workspaceId, viewId));
+    return root && /^[A-Za-z][A-Za-z0-9]{0,127}$/.test(root) ? root : null;
+  } catch { return null; }
+}
+function rememberViewRoot(workspaceId, viewId, root) {
+  if (!/^[A-Za-z][A-Za-z0-9]{0,127}$/.test(root)) return;
+  try { localStorage.setItem(viewRootPreferenceKey(workspaceId, viewId), root); } catch { /* The current session still retains the active root. */ }
+}
 
 function eventConcept(event) {
   if (event.payload.type === 'view_suggestion') return event.payload.root;
@@ -1047,6 +1058,8 @@ export default function ModellingStudio() {
     const restored = restoredActiveView(connection.workspaceId);
     setViewId(restored);
     setViewIdInput(restored);
+    const restoredRoot = restoredViewRoot(connection.workspaceId, restored);
+    if (restoredRoot) setViewRoot(restoredRoot);
     setOpenViewIds(restoredViews(connection.workspaceId, restored));
     setPendingSavedView({ workspaceId: connection.workspaceId, viewId: restored, restore: true });
   }, [connection?.endpoint, connection?.workspaceId]);
@@ -1196,7 +1209,12 @@ export default function ModellingStudio() {
   useEffect(() => { setFieldDraftBase(null); setFieldFormOpen(false); }, [connection, selected?.name]);
   useEffect(() => { setValueConstraint(null); }, [connection, selected?.name]);
   useEffect(() => { setRequiredDraft(null); }, [connection, selected?.name]);
-  useEffect(() => { initialViewChoice.current = null; setViewRoot(null); setRootHistories({}); }, [connection]);
+  useEffect(() => {
+    initialViewChoice.current = null;
+    const restored = connection ? restoredActiveView(connection.workspaceId) : 'default';
+    setViewRoot(connection ? restoredViewRoot(connection.workspaceId, restored) : null);
+    setRootHistories({});
+  }, [connection]);
   useEffect(() => { setDefinitionConflict(null); }, [connection, selected?.name]);
   useEffect(() => { setDefinitionBase(null); }, [connection, selected?.name]);
   useEffect(() => { setPendingSelection(null); }, [connection]);
@@ -1278,7 +1296,7 @@ export default function ModellingStudio() {
     if (!connection || !snapshot || viewId !== 'default' || viewReadyKey !== activeViewKey || !viewLoaded || savedViewRevision !== 0 || selected || viewRoot || browsePending || !browse || browse.error || browse.workspaceId !== connection.workspaceId || browse.revision !== snapshot.revision || !browse.results.length || initialViewChoice.current?.key === activeViewKey) return;
     const item = browse.results.find(result => result.name === 'ChargingStation') || browse.results[0];
     initialViewChoice.current = { key: activeViewKey, automatic: true };
-    setSelected(item); setDefinition(item.definition); setViewRoot(item.name); setRootHistories(previous => ({ ...previous, [activeViewKey]: { entries: [item.name], index: 0 } }));
+    setSelected(item); setDefinition(item.definition); setViewRoot(item.name); rememberViewRoot(connection.workspaceId, viewId, item.name); setRootHistories(previous => ({ ...previous, [activeViewKey]: { entries: [item.name], index: 0 } }));
   }, [connection, snapshot?.revision, viewId, viewReadyKey, activeViewKey, viewLoaded, savedViewRevision, selected, viewRoot, browse, browsePending]);
   function markViewEdited() { viewChangeVersion.current += 1; changedViews.current.add(activeViewKey); setViewDirty(true); }
   function updateViewMetadata(key, value) {
@@ -1304,6 +1322,9 @@ export default function ModellingStudio() {
     if (!preview && !openViewIds.includes(nextViewId)) updateOpenViews([...openViewIds, nextViewId]);
     setViewId(nextViewId);
     setViewIdInput(nextViewId);
+    const nextKey = JSON.stringify([connection?.endpoint, connection?.workspaceId, nextViewId]);
+    const nextRoot = localViewDrafts.current.get(nextKey)?.root ?? restoredViewRoot(connection.workspaceId, nextViewId) ?? viewRoot;
+    if (nextRoot) { setViewRoot(nextRoot); rememberViewRoot(connection.workspaceId, nextViewId, nextRoot); }
     if (!preview) {
       try { localStorage.setItem(`chargeweave.studio.active-view.v1.${connection.workspaceId}`, nextViewId); }
       catch { setViewNotice('Could not remember the active view. It will remain available until this tab closes.'); }
@@ -1332,6 +1353,7 @@ export default function ModellingStudio() {
     if (!nextId) nextId = `preview-${crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`;
     cacheCurrentView();
     setViewId(nextId); setViewIdInput(nextId); setViewRoot(item.name);
+    rememberViewRoot(connection.workspaceId, nextId, item.name);
     setSelected(item); setDefinition(item.definition);
     setRootHistories(previous => ({ ...previous, [JSON.stringify([connection?.endpoint, connection?.workspaceId, nextId])]: { entries: [item.name], index: 0 } }));
     setPreviewViewId(pinned ? null : nextId);
@@ -1407,6 +1429,7 @@ export default function ModellingStudio() {
   }
   function focusViewRoot(name) {
     if (viewRoot && viewRoot !== name && !(initialViewChoice.current?.key === activeViewKey && initialViewChoice.current.automatic)) markViewEdited();
+    if (connection) rememberViewRoot(connection.workspaceId, viewId, name);
     setViewRoot(name);
     setRootHistories(previous => {
       const history = previous[activeViewKey] ?? { entries: [], index: -1 };
@@ -2396,7 +2419,7 @@ export default function ModellingStudio() {
     connectionAbort.current?.abort();
     setWorkspaceFocus(null);
     followGeneration.current += 1; currentRevision.current = null; cursor.current = 0;
-    setSnapshot(null); setSelected(null); setGraph(null); setEntityInfo(null); setTemporal(null); setResponsibility(null); setImpact(null);
+    setSnapshot(null); setSelected(null); setGraph(null); setViewRoot(null); setEntityInfo(null); setTemporal(null); setResponsibility(null); setImpact(null);
     setResults([]); setSearchDone(false); setHistory([]); setHistoryDetail(null); setDiff(null); setJob(null); setReadiness(null); setReviews([]); setPublication(null); setPublicationHistory([]); setCommitWorkflows(null); setRequiredChecks(null); setRequirements([]); setViewId('default'); setViewIdInput('default'); setError('');
     setWorkspaceId(id); setConnection({ ...connection, workspaceId: id });
   }
