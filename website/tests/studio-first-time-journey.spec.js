@@ -71,6 +71,22 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 3');
     expect(store.get(workspace.id).schema).toContain('record:Record?');
 
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByText('Add a field or relationship', { exact: true }).click();
+    await page.getByLabel('Field name').fill('state');
+    await page.getByLabel('Datatype or target class').fill('{Draft,Active,Complete}');
+    await page.getByRole('button', { name: 'Add field', exact: true }).click();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 4');
+    expect(store.get(workspace.id).schema).toContain('state:{Draft,Active,Complete}?');
+    const narrowValues = page.getByRole('button', { name: 'Narrow values for state' });
+    await narrowValues.focus();
+    await narrowValues.press('Enter');
+    const valuesEditor = page.getByRole('region', { name: 'Narrow allowed values' });
+    await valuesEditor.getByLabel('Complete').uncheck();
+    await valuesEditor.getByRole('button', { name: 'Apply allowed values' }).click();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 5');
+    expect(store.get(workspace.id).schema).toContain('state:{Draft,Active}?');
+
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Check draft' }).click();
     await expect(page.getByRole('alert').filter({ hasText: /MCP error/ })).toHaveCount(0);
@@ -83,7 +99,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
       await page.getByRole('button', { name: 'View check details' }).click();
       await expect(page.getByRole('button', { name: 'Collapse validation' })).toHaveAttribute('aria-expanded', 'true');
     } else {
-      await expect(page.getByText(/structural checks: passed for revision 3/)).toBeVisible();
+      await expect(page.getByText(/structural checks: passed for revision 5/)).toBeVisible();
       await page.getByRole('button', { name: 'View check details' }).click();
     }
     await expect(page.getByRole('region', { name: 'Validation issues' }).getByText('No failed steps in this job. Other required checks may still be missing.')).toBeVisible();
@@ -103,7 +119,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await expectNoHorizontalPageOverflow();
     await page.getByRole('button', { name: 'Inspect review gates' }).click();
     await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Last inspection: review gates incomplete:');
-    expect(store.get(workspace.id).revision).toBe(3);
+    expect(store.get(workspace.id).revision).toBe(5);
   } finally {
     await page.close();
     await service.shutdown();
