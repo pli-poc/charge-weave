@@ -68,6 +68,9 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
     await page.getByRole('button', { name: 'Check draft' }).click();
     await expect(page.getByRole('alert').filter({ hasText: /MCP error/ })).toHaveCount(0);
+    const latestOperation = page.getByText('Latest structural operation: passed', { exact: true });
+    await expect(latestOperation).toHaveAttribute('role', 'status');
+    await expect(latestOperation).toHaveAttribute('aria-live', 'polite');
     if (isMobile) {
       await page.getByRole('link', { name: 'Check: passed' }).click();
       await expect(page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true })).toHaveAttribute('aria-pressed', 'true');
