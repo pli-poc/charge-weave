@@ -125,6 +125,41 @@ test('populated result panels and review avoid WCAG 2.1 A and AA violations', as
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('forced colors retain a system focus ring and reduced motion keeps zoom controls usable', async ({ page, isMobile }) => {
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+  await withStudio(page, async () => {
+    expect(await page.evaluate(() => matchMedia('(forced-colors: active)').matches && matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+    const search = page.getByLabel('Search model');
+    await search.focus();
+    const focusColors = await search.evaluate(element => {
+      const probe = document.createElement('span');
+      probe.style.color = 'Highlight';
+      document.body.append(probe);
+      const systemColor = getComputedStyle(probe).color;
+      probe.remove();
+      const style = getComputedStyle(element);
+      return { systemColor, outlineColor: style.outlineColor, outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+    });
+    expect(focusColors).toEqual({ systemColor: focusColors.systemColor, outlineColor: focusColors.systemColor, outlineStyle: 'solid', outlineWidth: '2px' });
+    await expect(search).toHaveCSS('transition-duration', '0s');
+    await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
+
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    const zoom = canvas.getByLabel('Diagram zoom level');
+    const zoomOut = canvas.locator('.react-flow__controls-zoomout');
+    await expect(zoomOut).toBeVisible();
+    await zoomOut.click();
+    await expect(zoom).not.toHaveText('100%');
+    await canvas.getByRole('button', { name: 'Reset zoom to 100%' }).click();
+    await expect(zoom).toHaveText('100%');
+    if (isMobile) await expect(page.getByRole('navigation', { name: 'Workspace sections' })).toBeVisible();
+  });
+});
+
 test('graph controls stay legible on hover and show a contrasting focus ring in both themes', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Hover is exercised in the desktop browser.');
   await withStudio(page, async () => {
