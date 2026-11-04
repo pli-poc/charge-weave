@@ -25,7 +25,7 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.keyboard.press('Space');
     await expect(page.getByRole('button', { name: 'Hide inline subtypes of Record' })).toBeFocused();
     const childrenList = page.getByRole('list', { name: 'Direct subtypes of Record' });
-    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toBeVisible();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 Â· foundation', exact: true })).toBeVisible();
     const rejectNextPage = async route => {
       const params = route.request().postDataJSON()?.params;
       if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Record' && params.arguments?.cursor) await route.fulfill({ status: 500, body: 'Synthetic page failure' });
@@ -36,11 +36,11 @@ test('explorer pages direct children and combines parent and changed filters', a
     await expect(page.getByText(/Subtypes unavailable/)).toBeVisible();
     await page.unroute('**/mcp', rejectNextPage);
     await page.getByRole('button', { name: 'Retry subtypes of Record' }).click();
-    await expect(childrenList.getByRole('button', { name: 'Asset51 · foundation', exact: true })).toBeVisible();
-    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
+    await expect(childrenList.getByRole('button', { name: 'Asset51 Â· foundation', exact: true })).toBeVisible();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 Â· foundation', exact: true })).toHaveCount(1);
     await page.getByRole('button', { name: 'Hide inline subtypes of Record' }).click();
     await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
-    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
+    await expect(childrenList.getByRole('button', { name: 'Asset49 Â· foundation', exact: true })).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Load more subtypes of Record' })).toBeVisible();
     await page.getByLabel('Direct parent').fill('Record');
     await page.getByRole('button', { name: 'Filter parent' }).click();
@@ -49,7 +49,7 @@ test('explorer pages direct children and combines parent and changed filters', a
     await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
     await page.getByRole('button', { name: 'Show inline subtypes of Asset00' }).click();
     const nested = page.getByRole('list', { name: 'Direct subtypes of Asset00' });
-    const nestedConcept = nested.getByRole('button', { name: 'Nested · other', exact: true });
+    const nestedConcept = nested.getByRole('button', { name: 'Nested Â· other', exact: true });
     await expect(nestedConcept).toBeVisible();
     if (isMobile) expect((await nestedConcept.boundingBox()).height).toBeGreaterThanOrEqual(44);
     await nestedConcept.click();
@@ -92,3 +92,23 @@ test('explorer pages direct children and combines parent and changed filters', a
     await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
+
+test('long concept names stay readable in explorer rows and retain their full accessible name', async ({ page }) => {
+  const name = 'DashboardDefinitionWithAnExtremelyLongUnbrokenIdentifier';
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Long explorer labels', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|A record.|\n${name}|Record|A dashboard definition.|\n` });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const concept = page.getByRole('button', { name, exact: true });
+    await expect(concept).toBeVisible();
+    await expect(concept).toHaveCSS('white-space', 'nowrap');
+    await expect(concept).toHaveCSS('text-overflow', 'ellipsis');
+    await expect(concept).toHaveAttribute('title', `Select ${name} to inspect; double-click or press Enter to focus its neighbourhood`);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
