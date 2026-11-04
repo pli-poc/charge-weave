@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const storageKey = 'chargeweave.studio.theme.v1';
 const choices = new Set(['system', 'light', 'dark']);
@@ -22,6 +22,16 @@ function initialDensity() {
 export default function StudioThemeControl() {
   const [choice, setChoice] = useState(initialChoice);
   const [density, setDensity] = useState(initialDensity);
+  const preferencesRef = useRef(null);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 600px)');
+    const update = () => {
+      if (preferencesRef.current) preferencesRef.current.open = !media.matches;
+    };
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: light)');
     const apply = () => {
@@ -40,7 +50,7 @@ export default function StudioThemeControl() {
     try { localStorage.setItem(densityKey, density); } catch { /* Preference remains in memory. */ }
     return () => { delete document.documentElement.dataset.studioDensity; };
   }, [density]);
-  return <details className="studio-appearance-menu">
+  return <details ref={preferencesRef} className="studio-appearance-menu">
     <summary aria-label="Studio preferences">Preferences</summary>
     <div className="studio-appearance-controls">
     <label className="studio-theme-control">Appearance
