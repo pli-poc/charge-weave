@@ -85,6 +85,46 @@ test('connected editor avoids WCAG 2.1 A and AA violations in both themes', asyn
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('populated result panels and review avoid WCAG 2.1 A and AA violations', async ({ page, isMobile }) => {
+  await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 1000 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Populated accessibility audit', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|peer:Record?\nDevice|Record|A device.|\n' });
+  store.apply({ workspaceId: workspace.id, actor: 'Synthetic accessibility reviewer', operationId: 'accessibility-activity', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Device', definition: 'A reviewed synthetic device.' }] });
+  const snapshot = store.get(workspace.id);
+  const job = store.createJob(workspace.id, snapshot.revision, snapshot.sourceDigest, 'Synthetic accessibility reviewer', 'accessibility-check', 'structural').job;
+  store.startJobStep(job.id, 0, 'synthetic-accessibility-check');
+  store.finishJobStep(job.id, 0, 'failed', 'Synthetic recorded failure details.');
+  store.updateJob(job.id, 'failed', 'Synthetic recorded job output.');
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    for (const theme of ['light', 'dark']) {
+      if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
+      await page.getByLabel('Appearance').selectOption(theme);
+      if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+      const panelNavigation = page.getByRole('navigation', { name: 'Results panels' });
+      for (const panel of ['Problems', 'Checks', 'Activity', 'Output']) {
+        await panelNavigation.getByRole('button', { name: panel === 'Problems' ? /Problems/ : panel, exact: panel !== 'Problems' }).click();
+        const panelContent = page.getByRole('region', { name: { Problems: 'Problems', Checks: 'Validation issues', Activity: 'Recent activity', Output: 'Job output' }[panel] });
+        await expect(panelContent).toBeVisible();
+        const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(result.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Populated ${panel} panel in ${theme} theme`).toEqual([]);
+      }
+      if (!isMobile) {
+        await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(reviewResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Populated Review workspace in ${theme} theme`).toEqual([]);
+        await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Model' }).click();
+      }
+    }
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('graph controls stay legible on hover and show a contrasting focus ring in both themes', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Hover is exercised in the desktop browser.');
   await withStudio(page, async () => {
