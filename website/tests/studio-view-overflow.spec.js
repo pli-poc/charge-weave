@@ -70,10 +70,19 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     await expect(tabs.getByRole('button', { name: 'Preview: Device' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('button', { name: 'Save shared view' })).toBeDisabled();
     expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(beforePreview);
-    await page.getByRole('button', { name: 'Pin preview of Device' }).click();
+    const transientPreviewId = await tabs.locator('[data-view-id^="preview-"]').getAttribute('data-view-id');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    await expect(tabs.getByRole('button', { name: 'Preview: Record' })).toHaveAttribute('aria-current', 'page');
+    await expect(tabs.locator('[data-view-id^="preview-"]')).toHaveCount(1);
+    await expect(tabs.locator('[data-view-id^="preview-"]')).toHaveAttribute('data-view-id', transientPreviewId);
+    expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(beforePreview);
+    await page.getByRole('button', { name: 'Pin preview of Record' }).click();
     const pinnedPreview = tabs.locator('[data-view-id^="preview-"]');
     await expect(pinnedPreview).toHaveAttribute('aria-current', 'page');
-    await expect(tabs.getByRole('button', { name: 'Pin preview of Device' })).toHaveCount(0);
+    await expect(tabs.getByRole('button', { name: 'Pin preview of Record' })).toHaveCount(0);
     expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(await pinnedPreview.getAttribute('data-view-id'));
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByRole('button', { name: 'Open in new tab', exact: true }).click();
@@ -83,7 +92,7 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     const restoredTabs = page.getByRole('navigation', { name: 'Open diagram views' });
     await expect(restoredTabs.locator(`[data-view-id="${restoredTabId}"]`)).toHaveAttribute('aria-current', 'page');
-    await expect(page.locator('.studio-graph > p').first()).toContainText('Device');
+    await expect(page.locator('.studio-graph > p').first()).toContainText('Record');
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });

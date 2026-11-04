@@ -1344,11 +1344,23 @@ export default function ModellingStudio() {
     if (hasUnsavedInspectorEdits()) { setError('Apply or clear the unfinished inspector edit before opening a concept preview.'); return; }
     let nextId = previewViewId;
     let pinnedIds = openViewIds;
-    if (nextId && (nextId !== viewId || viewRoot !== item.name)) {
+    if (nextId && pinned) {
       pinnedIds = [...openViewIds.filter(id => id !== nextId), nextId];
       updateOpenViews(pinnedIds);
       setPreviewViewId(null);
       nextId = null;
+    } else if (nextId && viewRoot !== item.name) {
+      const key = JSON.stringify([connection?.endpoint, connection?.workspaceId, nextId]);
+      const replacingActive = nextId === viewId;
+      if (changedViews.current.has(key) && !window.confirm(`Replace preview of ${viewRoot} and discard its local view changes?`)) return;
+      try { sessionStorage.removeItem(canvasPositionKey(connection.workspaceId, nextId)); }
+      catch { setViewNotice('Could not replace the preview layout. Check browser storage access and try again.'); return; }
+      changedViews.current.delete(key); localViewDrafts.current.delete(key);
+      if (replacingActive) {
+        viewChangeVersion.current += 1; setViewDirty(false);
+        setViewGroups([]); setViewAnnotations([]); setViewMetadata({ mappingVersion: 'chargeweave-authoring-v1', viewpoint: 'information' });
+        setSavedViewRevision(0); setViewLoaded(true); setViewReadyKey(key); setViewNotice('');
+      }
     }
     if (!nextId) nextId = `preview-${crypto.randomUUID().replaceAll('-', '').slice(0, 24)}`;
     cacheCurrentView();
