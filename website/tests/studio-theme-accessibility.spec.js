@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
@@ -39,6 +40,36 @@ test('studio preferences toggle accessibly and reset their default across the co
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(appearance).toHaveCount(0);
   });
+});
+
+test('connected editor avoids WCAG 2.1 A and AA violations in both themes', async ({ page, isMobile }) => {
+  await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 1000 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Accessibility audit', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|peer:Record?\nDevice|Record|A device.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    for (const theme of ['light', 'dark']) {
+      if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
+      await page.getByLabel('Appearance').selectOption(theme);
+      if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
+      const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(result.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) }))).toEqual([]);
+      await page.getByLabel('Search model').fill('Device');
+      await page.getByRole('button', { name: 'Search', exact: true }).click();
+      await page.getByRole('button', { name: 'Device', exact: true }).click();
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+      await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+      const selectedResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      expect(selectedResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) }))).toEqual([]);
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+      await page.getByRole('button', { name: 'Clear search' }).click();
+    }
+  } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
 test('graph controls stay legible on hover and show a contrasting focus ring in both themes', async ({ page, isMobile }) => {

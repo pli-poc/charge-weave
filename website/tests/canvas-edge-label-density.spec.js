@@ -21,13 +21,19 @@ test('dense diagram labels collapse automatically but remain explicitly availabl
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     const canvas = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(canvas).toHaveAttribute('data-layout', 'ready');
-    await expect(canvas.locator('.react-flow__edge')).toHaveCount(14);
-    await expect(canvas.locator('.react-flow__edge-text')).toHaveCount(0);
+    await expect(canvas.locator('.react-flow__edge')).toHaveCount(12);
+    await expect(canvas.locator('.react-flow__edge-text')).toHaveCount(12);
     await expect(canvas.locator('.react-flow__edge[aria-label="Relationship linked00: Device to Record; multiplicity 0..1"]')).toHaveCount(1);
 
+    await page.getByRole('button', { name: 'Show more outgoing' }).click();
+    await expect(canvas.locator('.react-flow__edge')).toHaveCount(14);
+    await expect(canvas.locator('.react-flow__edge-text')).toHaveCount(0);
     await page.getByLabel('Inspect relationship').selectOption({ label: 'Device — linked00 → Record' });
     await expect(canvas.locator('.react-flow__edge-text')).toHaveText(['linked00 0..1']);
-    const labelMode = page.getByLabel('Relationship labels');
+    const layoutMenu = canvas.locator('.studio-canvas-layout-menu');
+    await canvas.getByText('Layout', { exact: true }).click();
+    await expect(layoutMenu).toHaveAttribute('open', '');
+    const labelMode = layoutMenu.getByLabel('Relationship labels');
     await labelMode.selectOption('all');
     await expect(canvas.locator('.react-flow__edge-text')).toHaveCount(14);
     await labelMode.selectOption('focus');
