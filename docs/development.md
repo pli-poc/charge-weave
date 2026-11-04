@@ -32,15 +32,40 @@ The Makefile offers the same commands as `make build`, `make generated`,
 `make validate`, `make tests`, `make reason`, `make release` and `make verify`.
 Java must be on PATH for HermiT. Full verification can take several minutes.
 
+### Local CI profiles
+
+Use `powershell -NoProfile -ExecutionPolicy Bypass -File
+./tools/local-ci.ps1 -Profile fast` while iterating. It runs generated-artifact
+consistency and business-rule checks concurrently; each writes its own report.
+On this Windows workspace, one run took 116 seconds in parallel versus 198
+seconds in the earlier serial run (about 1.7x faster). Treat that as a local
+measurement, not a runtime guarantee. Before pushing a broader change, select
+`backend`, `ontology`, or `browser`; `full` runs all locally supported profiles
+in sequence and stops at the first failure. On Windows, pass the intended Python
+explicitly when needed, for example `-Python C:\Python312\python.exe`. Add
+`-Install` to install pinned Python and Node
+dependencies first (Python 3.12 is the CI version). Browser checks require the
+Playwright Chromium browser to be installed already. The runner reports each
+gate's duration and exit status. A local Python interpreter must be provisioned
+with the same version and dependencies as CI; the runner does not repair an
+invalid virtual environment automatically.
+
+These profiles invoke the same underlying project checks used by GitHub Actions,
+but the local runner does not reproduce GitHub's Ubuntu/Windows matrix, artifact
+collection, or every browser scenario. GitHub Actions remains required for the
+shared commit-level verification; local success is early feedback, not a
+replacement for that record.
+
 ## Source ownership
 
 | Editable source | Generated outputs |
 |---|---|
-| `model/domain.schema`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
+| `model/domain.schema`, parser in `tools/domain_schema.py`, reviewed additions in `tools/extend_model.py` | OWL class contracts, structural SHACL, catalogue, type index, dictionary |
+| `model/responsibility-bindings.json` | Explicit, partial responsibility-perspective presentation mappings; no ontology assertions |
 | `tools/build_rules.py`, `model/audit-rules.json`, `model/lifecycle-policies.json` | Business SHACL, standalone B queries, lifecycle tables and rule documentation |
 | Captured `benchmark/` inputs and mappings in `tools/build_benchmark.py` | External platform crosswalks, actions/events and vocabulary shapes |
 | `tools/build_pricing_audit.py` | Detailed pricing crosswalk |
-| `tools/build_examples.py`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
+| `tools/build_examples.py`, `model/authoring-example-overrides.json`, `tools/build_journey_snapshots.py` | All-class reference graph and full journey snapshots |
 | `requirements/*.json`, `tools/build_audit_docs.py` | Requirement, source and actor/journey documentation |
 | `model/temporal-policy.json`, `model/temporal-queries.json`, `tools/build_temporal.py` | Temporal queries, TriG history, viewer evidence and class policy inventory |
 | `ontology/`, `validation/`, `model/`, `website/scripts/build-model.mjs` | Versioned browser model package, manifest, RDF graph asset and generated compatibility snapshot |
@@ -52,10 +77,42 @@ Java must be on PATH for HermiT. Full verification can take several minutes.
 
 `tools/check_generated.py` builds in a clean temporary output tree using only
 the committed source inputs. It compares the entire generated file inventory,
-parses JSON, compares plain text exactly, and compares RDF by exact graph
+parses JSON, compares plain text after normalizing platform line endings, and compares RDF by exact graph
 isomorphism. Blank-node identifiers and statement ordering may change without
 changing meaning. Schema source extensions must be idempotent. Missing or stale
 outputs fail CI. The reference fixture selects controlled values deterministically.
+The optional authoring example overrides are bounded synthetic UTC date-time values
+for declared class fields; they apply to subclasses and reject conflicting values.
+They keep generated examples reproducible, but do not replace independently reviewed
+positive and negative business cases. Run `python tools/test_authoring_example_overrides.py`
+when changing the override contract.
+Template-derived focused cases carry explicit provenance and are exercised by the
+business-decision test, but are excluded when the audit checks for independent
+positive and negative coverage. Run `python tools/test_business_case_provenance.py`
+when changing that distinction.
+`python tools/test_domain_schema.py` checks the parser against the committed
+catalogue and exercises invalid inputs. The temporal contract digest includes
+the parser source so changes to parsing invalidate temporal evidence.
+
+Optional field descriptions live in `model/domain.schema` as separate lines
+`# FIELD-DESCRIPTION|ClassName|propertyName|Description`. The owner and field
+must identify exactly one declared field; duplicate descriptions, empty text,
+and embedded line breaks or `|` delimiters are invalid. The generator carries
+the description into the catalogue, structural SHACL property shape and domain
+dictionary. Relationship authoring writes this line together with the field in
+one revision; older contracts without descriptions remain valid.
+
+The modelling service stores shared presentation views separately from semantic
+source edits. `ontology_view_save` requires a view ID, idempotency key and the
+expected view revision; a conflicting save must be reloaded before retrying.
+The studio can save named roots, bounded node positions, groups and notes;
+`ontology_view_saved_get` reads a view and `ontology_view_saved_list` lists up
+to 100. Groups and notes are presentation metadata, not ontology assertions.
+Saving a view emits an activity event but does not change the workspace's
+semantic revision or source digest. Existing views must be loaded before they
+are overwritten in the browser. Saved viewpoint and relationship filters are
+applied to the canvas. Responsibility edges use the explicit partial mapping;
+temporal edges show explicit window references, not inferred time semantics.
 
 ## Workflow gates
 

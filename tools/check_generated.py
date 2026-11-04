@@ -27,6 +27,12 @@ GENERATED_FILES = (
 FORMATS = {'.ttl': 'turtle', '.owl': 'xml', '.jsonld': 'json-ld'}
 
 
+def read_generated_text(path):
+    # Python's universal newline handling removes platform-only CRLF differences
+    # without changing escaped carriage returns inside RDF or JSON literals.
+    return path.read_text(encoding='utf8')
+
+
 def generated_paths(root):
     return {str(p.relative_to(root)) for name in GENERATED_DIRS
             for p in (root / name).rglob('*') if p.is_file()} | set(GENERATED_FILES)
@@ -59,12 +65,12 @@ def main():
                     passed, detail = False, 'Missing committed or generated file'
                 elif original.suffix in FORMATS:
                     fmt = FORMATS[original.suffix]
-                    passed = equivalent(Graph().parse(original, format=fmt),
-                                        Graph().parse(generated, format=fmt))
+                    passed = equivalent(Graph().parse(data=read_generated_text(original), format=fmt, publicID=original.as_uri()),
+                                        Graph().parse(data=read_generated_text(generated), format=fmt, publicID=generated.as_uri()))
                 elif original.suffix == '.json':
-                    passed = json.loads(original.read_text()) == json.loads(generated.read_text())
+                    passed = json.loads(read_generated_text(original)) == json.loads(read_generated_text(generated))
                 else:
-                    passed = original.read_bytes() == generated.read_bytes()
+                    passed = read_generated_text(original) == read_generated_text(generated)
             except Exception as exc:
                 passed, detail = False, str(exc)
             results.append({'file': relative, 'passed': passed, 'detail': detail})

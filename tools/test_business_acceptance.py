@@ -1,5 +1,6 @@
-"""Execute independently authored valid and invalid business decisions via SHACL."""
+"""Execute focused business decisions, retaining their evidence provenance."""
 from runtime import *
+from business_case_provenance import provenance
 import json
 import sys
 from pyshacl import validate
@@ -25,7 +26,7 @@ for case in cases:
         conforms, report, _ = validate(base + data, shacl_graph=shape, inference='none', advanced=True)
         expected = case['expectedConformance']
         passed = conforms == expected and (expected or (None, SH.sourceShape, rule) in report)
-        rows.append({'scenario': case['id'], 'requirement': case['requirement'],
+        rows.append({'scenario': case['id'], 'requirement': case['requirement'], 'provenance': provenance(case),
                      'rule': case['rule'], 'expectedConformance': expected,
                      'actualConformance': conforms, 'passed': bool(passed)})
     except Exception as exc:

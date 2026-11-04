@@ -1,0 +1,578 @@
+/* Studio-only theme tokens; the graph keeps its own high-contrast canvas palette. */
+.modelling-studio {
+  --studio-panel: #102127; --studio-text: #e4eeef; --studio-muted: #b8cbcc;
+  --studio-border: #30494e; --studio-strong-border: #49666a; --studio-accent-text: #a4e6d0;
+  --studio-button: #1b3439; --studio-button-text: #e8f6f2; --studio-hover: #28524f;
+  --studio-input: #0b1a20; --studio-input-text: #eef8f7; --studio-raised: #17343a;
+  --studio-warning: #f0c46d;
+  --studio-accent-border: #79cbb6; --studio-focus: #7cddc2; --studio-code-bg: #09171b; --studio-code-text: #d7e9e5;
+}
+.modelling-studio > .studio-uncertain-write { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1rem; align-items: center; margin: .5rem 0; padding: .75rem 1rem; border: 2px solid var(--studio-warning); border-radius: .4rem; background: var(--studio-raised); color: var(--studio-text); }
+.studio-uncertain-write h2 { grid-column: 1 / -1; margin: 0; font-size: 1rem; }
+.studio-uncertain-write p { margin: 0; }
+.studio-uncertain-write button { min-height: 2.75rem; }
+@media (max-width: 600px) { .modelling-studio > .studio-uncertain-write { grid-template-columns: 1fr; } }
+html[data-studio-theme="dark"] { color-scheme: dark; }
+html[data-studio-theme="light"] { color-scheme: light; background: #f4f7f7; }
+html[data-studio-theme="light"] .modelling-studio {
+  --studio-panel: #ffffff; --studio-text: #182c2d; --studio-muted: #435b5c;
+  --studio-border: #c0cecb; --studio-strong-border: #768d89; --studio-accent-text: #075c50;
+  --studio-button: #e6f0ee; --studio-button-text: #173b36; --studio-hover: #cce3dc;
+  --studio-input: #ffffff; --studio-input-text: #182c2d; --studio-raised: #e8f1ef;
+  --studio-warning: #805500;
+  --studio-accent-border: #378573; --studio-focus: #056755; --studio-code-bg: #f2f6f5; --studio-code-text: #263f3b;
+}
+html[data-studio-theme="light"]:has(.modelling-studio) body { background: #f4f7f7; }
+html[data-studio-theme="light"] .modelling-studio .studio-check-action button { color: #fff; }
+html[data-studio-theme="light"] .modelling-studio .studio-check-action button:hover:not(:disabled) { color: var(--studio-button-text); }
+html[data-studio-theme="light"] .modelling-studio .studio-conflict label { color: #ffefc4; }
+html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(code, summary, a) { color: #a4e6d0; }
+html[data-studio-theme="light"] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: #a4e6d0; }
+/* Match the diagram to the dark workbench while keeping the light palette for
+   the light theme. Text and edges remain distinct from their surfaces. */
+html[data-studio-theme="dark"] .modelling-studio .studio-graph { background: #15242a; color: #e4eeef; border-left-color: #79cbb6; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(h3, p, label) { color: #e4eeef; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(summary, code) { color: #a4e6d0; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow { background: #101b20; border-color: #49666a; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-node { background: #20363b; color: #edf8f5; border-color: #79cbb6; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-added { background: #164336; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-changed { background: #493b23; border-color: #f0c46d; }
+html[data-studio-theme="dark"] .modelling-studio .studio-concept-kind { color: #a4e6d0; }
+html[data-studio-theme="dark"] .modelling-studio :is(.studio-concept-module, .studio-concept-more) { color: #c3d8d4; }
+html[data-studio-theme="dark"] .modelling-studio .studio-concept-change { color: #ffe4a8; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-path { stroke: #a6c1bd; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-text { fill: #edf8f5; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge-textbg { fill: #15242a; }
+html[data-studio-theme="dark"] .modelling-studio .studio-canvas-line-legend { color: #e4eeef; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__node.selected { outline-color: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__node.selectable:focus-visible { outline-color: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #91e9d1; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow :is(.studio-concept-layout-selected, .studio-concept-layout-pinned) { color: #d9c8ff; }
+/* The layout popover retains its light surface in both themes. */
+html[data-studio-theme="dark"] .modelling-studio .studio-canvas-layout-menu :is(summary, p, label) { color: #183a39; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-layout-notice { color: #183a39; }
+.studio-appearance-controls { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.studio-app-bar .studio-appearance-menu { position: relative; display: flex; align-items: center; margin: 0; flex: 0 0 auto; }
+.studio-app-bar .studio-appearance-toggle { display: none; }
+.modelling-studio :is(.studio-theme-control, .studio-density-control) { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
+.modelling-studio :is(.studio-theme-control, .studio-density-control) select { width: auto; min-width: 0; }
+/* Long modelling and history panels need immediate focus/scroll positioning. */
+html:has(.modelling-studio) { scroll-behavior: auto; }
+.modelling-studio { padding-block: 2rem 4rem; }
+.modelling-studio.container { width: min(1800px, calc(100% - 64px)); }
+.studio-workspace { border: 0; margin: 0; padding: 0; min-width: 0; }
+.modelling-studio .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.studio-command-fields { display: flex; flex: 1 1 100%; flex-wrap: wrap; align-items: end; gap: .75rem; min-width: 0; min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.studio-connect { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; }
+.studio-connect label, .studio-panels label { display: grid; gap: .3rem; }
+.studio-connect input, .studio-panels input { padding: .5rem; min-width: 15rem; }
+.studio-panels { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr) minmax(14rem, 1fr); gap: 1rem; }
+.studio-panel-controls { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(18rem, 2fr) minmax(14rem, 1fr); }
+.studio-panels[data-hide-inspector="true"] { grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 2fr); }
+.studio-panels[data-hide-navigator="true"][data-hide-inspector="true"] { grid-template-columns: minmax(0, 1fr); }
+.studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
+.studio-panels li { margin-block: .5rem; }
+.studio-explorer-concept { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+.modelling-studio .studio-explorer-expand { flex: 0 0 2rem; min-height: 2rem; padding: .2rem; }
+.studio-module-tree .studio-explorer-concept > button:not(.studio-explorer-expand) { flex: 1 1 0; min-width: 0; overflow: hidden; overflow-wrap: normal; text-overflow: ellipsis; white-space: nowrap; word-break: normal; }
+.studio-explorer-fields { margin-left: 1.2rem; padding-left: .5rem; border-left: 1px solid var(--studio-strong-border); }
+.studio-explorer-fields p, .studio-explorer-fields small { font-size: .78rem; color: var(--studio-muted); }
+.studio-explorer-fields ul { padding-left: 1rem; }
+.studio-explorer-fields li { overflow-wrap: anywhere; }
+.studio-reveal-hint { margin: .35rem 0 .75rem; color: var(--studio-muted); font-size: .78rem; line-height: 1.35; }
+.studio-model-search { display: grid; gap: .4rem; }
+.studio-model-search label { min-width: 0; }
+.studio-model-search input { width: 100%; min-width: 0; }
+.studio-model-search button { justify-self: start; }
+.studio-search-scopes { display: flex; flex-wrap: wrap; gap: .2rem; margin: .35rem 0; }
+.modelling-studio .studio-search-scopes button { min-height: 2rem; padding: .3rem .55rem; border-color: transparent; background: transparent; color: var(--studio-muted); font-size: .82rem; }
+.modelling-studio .studio-search-scopes button[aria-pressed="true"] { border-color: var(--studio-accent-border); background: var(--studio-hover); color: var(--studio-text); }
+.studio-search-results { display: grid; gap: .25rem; margin: .5rem 0; padding: 0; list-style: none; }
+.studio-search-results > li { display: grid; gap: .15rem; min-width: 0; margin: 0; padding: .4rem; border: 1px solid var(--studio-border); border-radius: .3rem; }
+.studio-search-results > li > button { min-width: 0; text-align: left; overflow-wrap: anywhere; }
+.studio-search-results > li > button[aria-current="true"] { border-color: var(--studio-accent-border); background: var(--studio-hover); }
+.studio-search-results > li > small { color: var(--studio-muted); }
+.studio-search-results > li > p { margin: 0; color: var(--studio-muted); font-size: .8rem; }
+.studio-scoped-search { margin: .5rem 0; padding: .5rem; border: 1px solid var(--studio-border); border-radius: .35rem; }
+.studio-scoped-search h3 { margin: 0; font-size: .95rem; }
+.studio-scoped-search > p { color: var(--studio-muted); font-size: .8rem; }
+.studio-scoped-search ul { display: grid; gap: .4rem; margin: .5rem 0; padding: 0; list-style: none; }
+.studio-scoped-search li { display: grid; gap: .2rem; min-width: 0; margin: 0; padding: .4rem; border-bottom: 1px solid var(--studio-border); }
+.studio-scoped-search li small { color: var(--studio-muted); overflow-wrap: anywhere; }
+.studio-requirement-result-classes { display: flex; flex-wrap: wrap; gap: .25rem; }
+.studio-requirement-result-classes button { min-height: 2rem; padding: .3rem .5rem; }
+.modelling-studio pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
+.modelling-studio .studio-scrollable-text:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+.studio-graph { margin-block: 1rem; padding: 1rem; background: #edf5f4; color: #183a39; border-left: .25rem solid #147d70; }
+.studio-graph h3 { color: #183a39; }
+@media (min-width: 901px) and (pointer: fine) {
+  .studio-graph h3 { position: relative; padding-right: 9rem; }
+  .studio-graph h3 .studio-quick-create { position: absolute; top: 0; right: 0; min-height: 0; font-size: .75rem; line-height: 1.2; padding: .15rem .4rem; }
+}
+.studio-graph ul { list-style: none; padding-left: 1rem; border-left: 2px solid #147d70; }
+.studio-graph li { padding-left: 1rem; }
+.studio-flow { position: relative; width: 100%; height: 28rem; background: #f8fbfa; border: 1px solid #b8c5cc; border-radius: .4rem; }
+.studio-layout-notice { position: absolute; z-index: 5; max-width: min(32rem, 90%); padding: .5rem; background: #fff5db; border: 1px solid #9a5c00; color: #183a39; }
+.studio-flow .studio-flow-node { width: 190px; min-height: 64px; display: flex; align-items: center; justify-content: center; border: 2px solid #147d70; border-radius: .4rem; background: white; color: #183a39; font-size: 1rem; }
+.studio-flow .studio-flow-node { width: 220px; height: 128px; display: block; font-size: 12px; text-align: left; }
+.studio-concept-card { height: 100%; overflow: hidden; padding: 6px 10px; line-height: 15px; }
+.studio-concept-heading { display: flex; align-items: center; gap: 6px; min-width: 0; line-height: 18px; }
+.studio-concept-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.studio-concept-kind { flex: none; color: #17665c; font-size: 12px; font-weight: 800; letter-spacing: .05em; }
+.studio-concept-module { color: #506d69; font-size: 12px; line-height: 14px; margin: 1px 0 2px; }
+.studio-concept-change { color: #704600; font-size: 11px; font-weight: 700; line-height: 14px; }
+.studio-flow .studio-concept-card :is(.studio-concept-change, .studio-concept-layout-selected, .studio-concept-layout-pinned) { display: inline-block; margin-right: .3rem; font-size: 11px; line-height: 14px; vertical-align: top; }
+.studio-flow-added .studio-concept-change { color: #12643d; }
+.studio-flow .studio-concept-card ul { list-style: none; padding: 0; margin: 0; border: 0; }
+.studio-flow .studio-concept-card li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; margin: 0; line-height: 15px; }
+.studio-concept-more { color: #506d69; font-size: 11px; line-height: 14px; }
+.studio-flow .studio-flow-added { border-style: dashed; background: #e3f7ec; }
+.studio-flow .studio-flow-changed { border-color: #9a5c00; background: #fff5db; }
+.studio-flow .react-flow__node.selected { outline: 3px solid #173f74; outline-offset: 2px; }
+.modelling-studio .studio-flow .react-flow__node.selectable:focus-visible { outline: 3px solid #173f74; outline-offset: 3px; }
+.modelling-studio .studio-flow .react-flow__edge.selectable:focus-visible .react-flow__edge-path { stroke: #173f74; stroke-width: 3px; }
+.modelling-studio .studio-flow .react-flow__edge.selectable:focus-visible .react-flow__edge-textbg { stroke: #173f74; stroke-width: 2px; }
+.studio-flow .studio-flow-edge-added path { stroke: #14824c; stroke-dasharray: 6 4; }
+.studio-flow .react-flow__edge-textbg { fill: #f8fbfa; fill-opacity: .95; }
+.studio-flow .react-flow__edge-text { fill: #183a39; font-size: 14px; }
+.studio-flow .react-flow__controls button { background: #fff; color: #183a39; border-color: #93aaa7; }
+.studio-flow .react-flow__controls button svg { fill: #183a39; }
+.studio-flow .react-flow__controls button:disabled svg { fill: #8a9b98; }
+.modelling-studio .studio-flow .react-flow__controls button:hover:not(:disabled) { background: #d7ebe5; color: #183a39; }
+.modelling-studio .studio-graph :is(button, input, select, textarea, summary, a):focus-visible { outline-color: #173f74; }
+.modelling-studio .studio-graph .studio-conflict p { color: #ffefc4; }
+.modelling-studio .studio-graph .studio-canvas-edge-details :is(h3, p, strong, small) { color: var(--studio-text); }
+.modelling-studio .studio-graph .studio-canvas-edge-details :is(button, input, select, textarea, summary, a):focus-visible { outline-color: var(--studio-focus); }
+.studio-activity { margin-top: 1rem; padding: 1rem; min-width: 0; overflow-wrap: anywhere; border: 1px solid #b8c5cc; border-radius: .5rem; }
+.studio-workspace-details { margin-top: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .5rem; background: var(--studio-panel); color: var(--studio-text); }
+.studio-workspace-details > summary { min-height: 2.75rem; padding: .65rem .9rem; color: var(--studio-muted); cursor: pointer; font-weight: 600; }
+.studio-workspace-details[open] > summary { border-bottom: 1px solid var(--studio-strong-border); color: var(--studio-text); }
+.studio-workspace-details > :not(summary) { margin-inline: .75rem; }
+.studio-review-workflow ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .75rem; padding: 0; list-style: none; counter-reset: review-step; }
+.studio-review-workflow li { display: grid; align-content: start; gap: .45rem; padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; counter-increment: review-step; }
+.studio-review-workflow li strong::before { content: counter(review-step) '. '; color: var(--studio-accent-text); }
+.studio-review-workflow li span { color: var(--studio-muted); font-size: .8rem; }
+.studio-review-workflow li small { color: var(--studio-accent-text); font-size: .75rem; overflow-wrap: anywhere; }
+.studio-review-workflow li button { justify-self: start; }
+.studio-review-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(28rem, 100%), 1fr)); gap: .75rem; align-items: start; }
+.studio-review-tools > .studio-activity { margin: 0; }
+.studio-review-tools-header { grid-column: 1 / -1; padding: .75rem 0 0; }
+.studio-review-tools-header h2 { margin-bottom: .2rem; }
+.studio-review-tools > .studio-activity:focus-within { border-color: var(--studio-accent-border); }
+.studio-change-review .studio-change-group { margin: .75rem 0; padding: .75rem; }
+.studio-change-group > ul { list-style: none; margin: 0; padding: 0; }
+.studio-change-group > ul > li { padding: .75rem 0; border-top: 1px solid var(--studio-border); }
+.studio-change-group > ul > li > button { margin-left: .6rem; }
+.studio-change-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)); gap: .5rem; }
+.studio-change-comparison p { padding: .6rem; border: 1px solid var(--studio-border); border-radius: .3rem; }
+.studio-document-tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--studio-border); margin-bottom: .75rem; }
+.modelling-studio .studio-document-tabs button { border-color: transparent; border-radius: .35rem .35rem 0 0; background: transparent; }
+.modelling-studio .studio-document-tabs button[aria-pressed="true"] { border-bottom: 2px solid var(--studio-focus); color: var(--studio-text); }
+@media (max-width: 400px) {
+  .studio-document-tabs { flex-wrap: wrap; }
+  .modelling-studio .studio-document-tabs button { padding-inline: .35rem; white-space: nowrap; overflow-wrap: normal; }
+}
+.studio-validation-dock { border-top: 3px solid #55a991; }
+.studio-validation-dock > h2 { font-size: 1rem; }
+@media (max-width: 900px) { .modelling-studio.container { width: calc(100% - 40px); } .studio-panels, .studio-panels[data-hide-navigator], .studio-panels[data-hide-inspector] { grid-template-columns: minmax(0, 1fr); } }
+
+/* Studio controls are scoped so the existing website keeps its own styles. */
+.modelling-studio { color: var(--studio-text); line-height: 1.5; }
+.modelling-studio > h1 { font-size: clamp(2rem, 3vw, 2.75rem); line-height: 1.1; letter-spacing: -.035em; margin-bottom: .5rem; }
+.modelling-studio > h1 + p { color: var(--studio-muted); margin-bottom: 1.5rem; }
+.modelling-studio h2 { font-size: 1.2rem; line-height: 1.3; letter-spacing: -.01em; margin: 0 0 .8rem; }
+.modelling-studio h3 { font-size: 1rem; line-height: 1.35; margin: 1rem 0 .5rem; }
+.modelling-studio h4 { font-size: .9rem; margin: .85rem 0 .4rem; }
+.modelling-studio p { margin: .4rem 0; }
+.modelling-studio label { display: grid; gap: .35rem; color: var(--studio-muted); font-size: .85rem; font-weight: 600; }
+.modelling-studio input, .modelling-studio select, .modelling-studio textarea {
+  width: 100%; min-width: 0; max-width: 100%; padding: .6rem .7rem;
+  border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-input); color: var(--studio-input-text); font: inherit;
+}
+.modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) { display: flex; align-items: center; gap: .5rem; }
+.modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) > input { flex: 0 0 auto; width: 1.125rem; min-width: 1.125rem; height: 1.125rem; margin: 0; padding: 0; }
+.modelling-studio textarea { min-height: 5rem; resize: vertical; }
+.modelling-studio input:focus-visible, .modelling-studio select:focus-visible, .modelling-studio textarea:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+.modelling-studio button {
+  min-height: 2.35rem; padding: .48rem .8rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem;
+  background: var(--studio-button); color: var(--studio-button-text); font-size: .84rem; font-weight: 650; line-height: 1.2;
+}
+.modelling-studio button:hover:not(:disabled) { background: var(--studio-hover); border-color: var(--studio-accent-border); }
+.modelling-studio button:disabled { opacity: .5; cursor: not-allowed; }
+.modelling-studio button:focus-visible, .modelling-studio summary:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 3px; }
+.modelling-studio a:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+.modelling-studio form:not(.studio-connect) { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin: .75rem 0; }
+.modelling-studio form:not(.studio-connect) label { flex: 1 1 12rem; }
+.studio-connect { padding: 1rem; margin: .75rem 0; border: 1px solid var(--studio-border); border-radius: .65rem; background: var(--studio-panel); }
+.studio-pairing { max-width: 42rem; }
+.studio-pairing h2, .studio-pairing p { flex: 1 1 100%; margin: 0; }
+.studio-pairing p { color: var(--studio-muted); }
+.studio-connect[hidden] { display: none; }
+.studio-connect label { flex: 1 1 12rem; }
+.studio-connect input { min-width: 0; }
+.modelling-studio > [role="status"] { margin: 1rem 0; color: var(--studio-accent-text); font-size: .85rem; overflow-wrap: anywhere; }
+.modelling-studio > section, .studio-activity, .studio-panels section { background: var(--studio-panel); border-color: var(--studio-border); }
+.modelling-studio > section { margin: 1rem 0; padding: 1rem; border: 1px solid var(--studio-border); border-radius: .65rem; }
+.studio-activity, .studio-panels section { border-radius: .65rem; }
+.studio-panel-controls { margin: 1rem 0; }
+.studio-primary-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+.studio-check-action { display: inline-flex; min-width: 0; max-width: 100%; }
+.modelling-studio .studio-check-action button { border-radius: .4rem 0 0 .4rem; background: #17665c; border-color: #55a991; }
+.modelling-studio .studio-check-action select { width: auto; max-width: min(12rem, 52vw); border-radius: 0 .4rem .4rem 0; }
+.studio-primary-actions span { color: var(--studio-muted); font-size: .82rem; }
+.studio-destinations { display: flex; flex-wrap: wrap; gap: .25rem; margin: .5rem 0; border-bottom: 1px solid var(--studio-border); }
+.studio-destinations a { display: inline-block; padding: .45rem .7rem; color: var(--studio-muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.studio-destinations a:hover { color: var(--studio-button-text); border-color: var(--studio-accent-border); }
+.studio-destinations a:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-destinations svg { width: 1.2rem; height: 1.2rem; flex: none; }
+@media (min-width: 901px) {
+  .studio-workspace { position: relative; padding-left: 3.75rem; }
+  .studio-workspace .studio-destinations { position: absolute; inset: 0 auto 0 0; z-index: 2; display: flex; flex-direction: column; align-items: stretch; width: 3.25rem; margin: 0; padding: .25rem 0; border: 1px solid var(--studio-border); border-radius: .4rem; background: var(--studio-panel); }
+  .studio-workspace .studio-destinations a { display: flex; flex-direction: column; align-items: center; gap: .15rem; min-height: 3.25rem; padding: .35rem .1rem; border: 0; border-left: 2px solid transparent; font-size: .65rem; line-height: 1.1; }
+  .studio-workspace .studio-destinations a:hover, .studio-workspace .studio-destinations a:focus-visible { color: var(--studio-text); border-left-color: var(--studio-accent-border); background: var(--studio-hover); }
+}
+@media (max-width: 900px) { .studio-destinations svg { display: none; } }
+@media (min-width: 901px) {
+  .studio-destinations { position: sticky; top: 0; z-index: 10; padding: .15rem .25rem; background: var(--studio-panel); }
+  #studio-navigator-pane, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 3.5rem; }
+}
+.modelling-studio details { margin: .75rem 0; }
+.modelling-studio summary { color: var(--studio-accent-text); font-weight: 650; cursor: pointer; }
+.modelling-studio code { overflow-wrap: anywhere; color: var(--studio-accent-text); }
+.modelling-studio pre { padding: .75rem; border: 1px solid var(--studio-border); border-radius: .4rem; background: var(--studio-code-bg); color: var(--studio-code-text); font-size: .8rem; }
+.studio-graph p, .studio-graph label { color: #183a39; }
+.modelling-studio .studio-graph summary, .modelling-studio .studio-graph code { color: #17665c; }
+.modelling-studio .studio-flow .react-flow__controls button {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; min-height: 0; padding: 5px;
+}
+.modelling-studio .studio-flow .react-flow__controls button svg { width: 14px; height: 14px; }
+.modelling-studio .studio-flow .react-flow__controls .studio-focus-control svg { fill: none; stroke: currentColor; stroke-width: 2; }
+@media (max-width: 900px) {
+  .modelling-studio > h1 { font-size: 2rem; }
+  .studio-connect { align-items: stretch; }
+  .studio-connect label { flex-basis: 100%; }
+}
+
+/* The authoring route is an application workspace, independent of site chrome. */
+.modelling-studio.container { width: 100%; max-width: none; padding: 0 1.25rem 3rem; }
+.studio-app-bar { display: flex; align-items: center; gap: 1rem; min-height: 3.5rem; margin: 0 -1.25rem 1rem; padding: 0 1.25rem; background: var(--studio-panel); border-bottom: 1px solid var(--studio-border); }
+.studio-app-bar h1 { margin: 0; font-size: 1rem; letter-spacing: 0; }
+.studio-app-bar .studio-workspaces { display: flex; align-items: center; gap: .75rem; flex: 1 1 auto; min-width: 0; }
+.studio-app-bar .studio-workspaces > label { display: flex; align-items: center; gap: .5rem; min-width: 0; white-space: nowrap; }
+.studio-app-bar .studio-workspaces select { width: auto; min-width: 8rem; max-width: min(20rem, 30vw); }
+.studio-app-bar .studio-workspaces > details { position: relative; margin: 0; flex: 0 0 auto; }
+.studio-app-bar .studio-workspaces > details form { position: absolute; z-index: 20; top: 100%; left: 0; width: min(26rem, 85vw); padding: 1rem; background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .4rem; box-shadow: 0 .5rem 1.5rem #0009; }
+.modelling-studio > .studio-sr-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
+.studio-current-workspace { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: .85rem; }
+@media (max-width: 600px) { .studio-app-bar { flex-wrap: wrap; gap: .3rem .8rem; padding-block: .5rem; } .studio-app-bar .studio-workspaces { order: 2; flex-basis: 100%; } .studio-app-bar .studio-workspaces select { max-width: 45vw; } }
+@media (max-width: 1150px) { .studio-app-bar { flex-wrap: wrap; padding-block: .5rem; } }
+/* Keep the desktop workbench on one header row at drawer widths. */
+@media (min-width: 901px) and (max-width: 1150px) {
+  .studio-app-bar { flex-wrap: nowrap; gap: .4rem; padding-block: 0; }
+  .studio-app-bar h1 { flex: 0 1 12rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .studio-app-bar .studio-workspaces > label { font-size: 0; }
+  .studio-app-bar .studio-workspaces > label::before { content: 'Workspace'; font-size: .75rem; }
+  .studio-app-bar .studio-workspaces select { min-width: 6rem; max-width: min(14rem, 19vw); font-size: .85rem; }
+  .studio-appearance-controls { gap: .35rem; }
+  .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) { gap: .25rem; font-size: .75rem; }
+  .modelling-studio .studio-appearance-controls select { padding: .4rem .35rem; font-size: .75rem; }
+}
+@media (max-width: 600px) {
+  .studio-app-bar .studio-appearance-menu { order: 1; }
+  .studio-app-bar .studio-appearance-toggle { display: block; min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--studio-border); border-radius: .35rem; color: var(--studio-text); font-size: .85rem; }
+  .studio-app-bar .studio-appearance-menu[data-compact="true"] .studio-appearance-controls { position: absolute; z-index: 30; top: calc(100% + .35rem); right: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; width: min(22rem, calc(100vw - 2rem)); padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-panel); box-shadow: 0 .5rem 1.5rem #0008; }
+  .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) { display: grid; gap: .15rem; }
+  .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) select { width: 100%; }
+  .studio-app-bar .studio-workspaces { flex-wrap: wrap; }
+  .studio-app-bar .studio-workspaces > details { flex: 1 1 100%; }
+  .studio-app-bar .studio-workspaces > details form { position: static; width: 100%; box-shadow: none; }
+}
+.modelling-studio > .studio-status-bar { position: fixed; z-index: 12; inset: auto 0 0; display: flex; gap: .5rem 1.25rem; align-items: center; flex-wrap: wrap; min-height: 2rem; margin: 0; padding: .25rem 1rem; background: var(--studio-raised); border: 0; border-top: 1px solid var(--studio-strong-border); border-radius: 0; color: var(--studio-text); font-size: .75rem; }
+.studio-status-bar a { color: var(--studio-accent-text); }
+.studio-status-bar a:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+.studio-bottom-dock { position: relative; margin-top: 1rem; border: 1px solid var(--studio-border); border-radius: .4rem; background: var(--studio-panel); }
+.studio-results-splitter { position: absolute; z-index: 5; inset: -6px 0 auto; height: 12px; cursor: row-resize; touch-action: none; }
+.studio-results-splitter:hover { background: var(--studio-accent-border); }
+.studio-results-splitter:focus-visible { background: var(--studio-accent-border); outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-bottom-dock > nav { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; padding: .25rem .5rem; }
+.modelling-studio .studio-bottom-dock > nav button { border-color: transparent; background: transparent; }
+.modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom: 2px solid var(--studio-focus); border-radius: 0; color: var(--studio-text); }
+.studio-bottom-dock > nav button[aria-label="Close results panel"] { margin-left: auto; }
+.studio-bottom-content { max-height: 35vh; overflow: auto; padding: .75rem; border-top: 1px solid var(--studio-border); overscroll-behavior: contain; overflow-wrap: anywhere; overflow-anchor: none; }
+.studio-bottom-content:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-bottom-content > div > .studio-validation-dock { margin: 0; padding: 0; border: 0; }
+.studio-bottom-content a { color: var(--studio-accent-text); }
+.modelling-studio.container { padding-bottom: 5rem; }
+.studio-home-link { color: var(--studio-accent-text); font-weight: 700; text-decoration: none; }
+.studio-home-link:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 3px; }
+.studio-app-bar > button { margin-left: auto; }
+.studio-command-palette { width: min(36rem, calc(100% - 2rem)); max-height: calc(100dvh - clamp(1rem, 16dvh, 10rem)); overflow-y: auto; overscroll-behavior: contain; margin: clamp(.5rem, 8dvh, 5rem) auto auto; padding: 1rem; color: var(--studio-text); background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .5rem; box-shadow: 0 1rem 3rem #0009; }
+.studio-command-palette::backdrop { background: rgb(0 0 0 / .65); }
+.studio-command-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.studio-command-header h2 { margin: 0; }
+.studio-command-palette input { width: 100%; }
+.studio-command-hint { color: var(--studio-muted); font-size: .8rem; }
+.studio-command-palette [role="listbox"] { max-height: 50vh; overflow: auto; margin: .75rem 0 0; }
+.studio-command-group { margin-top: .8rem; }
+.studio-command-group h3 { margin: 0; padding: .25rem .55rem; color: var(--studio-muted); font-size: .75rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.studio-command-group ul { list-style: none; margin: 0; padding: 0; }
+.studio-command-group li { margin: 0; }
+.studio-command-palette [role="option"] { display: grid; grid-template-columns: minmax(0, 1fr) auto; width: 100%; min-height: 2.75rem; gap: .15rem .75rem; align-items: center; text-align: left; cursor: pointer; padding: .5rem .6rem; border: 0; border-radius: .3rem; background: transparent; color: var(--studio-text); }
+.studio-command-palette [role="option"][aria-selected="true"] { background: var(--studio-hover); outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-command-palette [role="option"][aria-disabled="true"] { color: var(--studio-muted); cursor: not-allowed; }
+.studio-command-option-label { min-width: 0; }
+.studio-command-palette [role="option"] small { grid-column: 1 / -1; color: var(--studio-muted); font-size: .78rem; line-height: 1.35; }
+.studio-command-palette [role="option"] .studio-command-unavailable { color: var(--studio-warning-text, var(--studio-error)); }
+.studio-command-palette kbd { padding: .1rem .35rem; border: 1px solid var(--studio-border); border-radius: .25rem; color: var(--studio-muted); font: inherit; font-size: .75rem; }
+.studio-view-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+.studio-view-import { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; padding: .7rem; border: 1px solid var(--studio-border); border-radius: .4rem; }
+.studio-view-import h3, .studio-view-import p { flex-basis: 100%; margin: 0; }
+.studio-view-import label { flex: 1 1 16rem; }
+.studio-view-import input[type="file"] { display: block; max-width: 100%; margin-top: .25rem; }
+.studio-diagram-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; margin: .4rem 0; }
+@media (max-width: 600px) { .studio-view-history:not(:has(button:not(:disabled))) { display: none; } }
+.studio-diagram-toolbar .studio-view-history { flex: 0 0 auto; margin: 0; }
+.studio-diagram-toolbar .studio-view-controls { flex: 1 1 18rem; min-width: 0; }
+.studio-diagram-toolbar .studio-view-controls > label { flex: 1 1 8rem; }
+.studio-view-tabs { display: flex; overflow-x: auto; gap: .15rem; margin: 0 0 .75rem; border-bottom: 1px solid var(--studio-strong-border); }
+.studio-view-picker { display: inline-block; position: relative; margin: 0 0 .75rem .35rem; vertical-align: top; }
+.studio-view-picker > summary { cursor: pointer; list-style: none; padding: .45rem .65rem; border: 1px solid var(--studio-border); border-radius: .35rem; color: var(--studio-text); background: var(--studio-panel); }
+.studio-view-picker > summary::-webkit-details-marker { display: none; }
+.studio-view-picker[open] { z-index: 12; }
+.studio-view-picker > ul { position: absolute; z-index: 12; top: calc(100% + .2rem); right: 0; width: min(18rem, calc(100vw - 2rem)); max-height: min(60dvh, 28rem); overflow: auto; margin: 0; padding: .25rem; list-style: none; background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .4rem; box-shadow: 0 .5rem 1.5rem #0004; }
+.studio-view-picker li { margin: 0; }
+.studio-view-picker > button { width: 100%; margin-top: .25rem; }
+.modelling-studio .studio-view-picker li button { display: block; width: 100%; min-width: 0; overflow-wrap: anywhere; text-align: left; white-space: normal; }
+.modelling-studio .studio-view-picker li button[aria-current="page"] { color: var(--studio-text); background: var(--studio-raised); }
+.studio-view-tab { display: flex; flex: 0 0 auto; align-items: stretch; min-width: 0; }
+.studio-view-tab-preview { border-top: 2px dashed var(--studio-accent-border); background: var(--studio-raised); }
+.modelling-studio .studio-view-tabs button { flex: 0 0 auto; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; border-radius: .3rem .3rem 0 0; background: transparent; color: var(--studio-muted); }
+.modelling-studio .studio-view-tabs button[aria-current="page"] { color: var(--studio-text); background: var(--studio-raised); border-bottom-color: var(--studio-focus); }
+.modelling-studio .studio-view-tabs .studio-view-close { padding-inline: .5rem; font-size: 1rem; }
+.studio-view-history { display: flex; gap: .4rem; margin: .5rem 0; }
+.studio-diagram-legend { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .8rem; margin: .5rem 0; font-size: .85rem; }
+.studio-diagram-legend dt { font-weight: 700; }
+.studio-diagram-legend dd { margin: 0; }
+.studio-view-controls > label { flex: 1 1 12rem; }
+.studio-graph .studio-incoming-toggle { display: flex; align-items: center; gap: .45rem; margin: .5rem 0; }
+.studio-graph .studio-incoming-toggle input { width: auto; }
+.studio-graph > details { margin: .3rem 0; }
+.studio-editor > .studio-graph { margin-top: .5rem; }
+.studio-editor-empty { display: grid; align-content: center; justify-items: center; min-height: 18rem; padding: 2rem; text-align: center; color: var(--studio-muted); border: 1px dashed var(--studio-strong-border); border-radius: .4rem; }
+.studio-editor-empty h3 { color: var(--studio-text); }
+.studio-inspector-context { margin: -.35rem 0 .75rem; color: var(--studio-muted); font-size: .8rem; }
+.studio-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-top: 1rem; }
+.studio-field-list { list-style: none; margin: .5rem 0; padding: 0; }
+.studio-field-table-wrap { overflow-x: auto; }
+.studio-field-controls { display: flex; flex-wrap: wrap; gap: .5rem; }
+.studio-field-controls label { flex: 1 1 7rem; }
+.studio-field-table { width: 100%; min-width: 38rem; border-collapse: collapse; font-size: .8rem; text-align: left; }
+.studio-field-table th, .studio-field-table td { padding: .55rem .4rem; border-bottom: 1px solid var(--studio-border); vertical-align: top; }
+.studio-field-table thead th { color: var(--studio-muted); font-size: .72rem; }
+.studio-field-table tbody th { min-width: 7rem; }
+.studio-field-table :is(thead th:first-child, tbody th[scope="row"]) { position: sticky; left: 0; z-index: 1; background: var(--studio-panel); }
+.studio-field-table thead th:first-child { z-index: 2; }
+.studio-field-table small { display: block; margin-top: .25rem; color: var(--studio-muted); font-weight: 400; overflow-wrap: anywhere; }
+.studio-field-table td button { display: block; margin-bottom: .3rem; white-space: nowrap; }
+.studio-module-tree, .studio-module-tree ul { list-style: none; margin: 0; padding: 0; }
+.studio-module-tree details { margin: .25rem 0; }
+.studio-module-tree summary { padding: .35rem 0; overflow-wrap: anywhere; }
+.studio-module-tree summary span { color: var(--studio-muted); font-size: .75rem; font-weight: 400; }
+.studio-module-tree ul { margin-left: .6rem; padding-left: .65rem; border-left: 1px solid var(--studio-strong-border); }
+.studio-module-tree .studio-subtypes ul { margin-left: .2rem; padding-left: .4rem; }
+.studio-module-tree .studio-subtypes p { margin: .15rem 0; }
+.modelling-studio .studio-module-tree .studio-subtypes-toggle { min-height: 1.75rem; color: var(--studio-muted); font-size: .78rem; }
+.studio-module-tree li { margin: 0; }
+.modelling-studio .studio-module-tree li li button { width: 100%; min-height: 2rem; text-align: left; background: transparent; border-color: transparent; }
+.modelling-studio .studio-module-tree li li button[aria-current="true"] { background: var(--studio-hover); border-color: var(--studio-accent-border); }
+.studio-field-list .studio-field-row { margin: 0; padding: .7rem 0; border-top: 1px solid var(--studio-border); font-size: .84rem; overflow-wrap: anywhere; }
+.studio-field-row small { display: block; color: var(--studio-muted); margin: .25rem 0; }
+.studio-field-row button { margin: .3rem .3rem 0 0; }
+.studio-field-table th[data-inspector-field]:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+.studio-conflict { flex: 1 1 100%; padding: .75rem; border: 1px solid #d3a94e; border-radius: .4rem; background: #31291b; color: #ffefc4; }
+.studio-conflict button { margin: .35rem .35rem 0 0; }
+.studio-unsaved-dialog { width: min(30rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; color: var(--studio-text); background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .5rem; }
+.studio-unsaved-dialog::backdrop { background: rgb(0 0 0 / .65); }
+.studio-unsaved-dialog button { margin: .75rem .5rem 0 0; }
+.modelling-studio > .studio-workspaces { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; padding: .65rem 1rem; }
+.studio-workspaces h2 { margin: 0; }
+.studio-workspaces > label { display: flex; align-items: center; gap: .5rem; }
+.studio-workspaces > label select { width: auto; max-width: 22rem; }
+.studio-workspaces > details { margin: 0; flex: 1 1 auto; }
+.modelling-studio > .studio-connection-settings { margin-top: 1.5rem; }
+@media (max-width: 900px) { .modelling-studio.container { width: 100%; } }
+
+/* Keep the explorer, canvas and inspector independently navigable on desktop. */
+@media (min-width: 901px) {
+  #studio-diagram-document:not([hidden]) { display: contents; }
+  .studio-document-tabs, .studio-view-tabs { display: inline-flex; vertical-align: top; }
+  .studio-document-tabs { margin: 0 .5rem .75rem 0; }
+  .studio-view-tabs { max-width: calc(100% - 15rem); }
+  .studio-primary-actions, .studio-destinations, .studio-panel-controls { display: inline-flex; vertical-align: middle; margin: .25rem .75rem .75rem 0; }
+  .studio-panels { position: relative; grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr) var(--inspector-width, 320px); align-items: start; }
+  .studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(0, 1fr) var(--inspector-width, 320px); }
+  .studio-panels[data-hide-inspector="true"] { grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr); }
+  .studio-panels[data-hide-navigator="true"][data-hide-inspector="true"] { grid-template-columns: minmax(0, 1fr); }
+  .studio-panels > section { height: max(18rem, calc(100dvh - 20rem)); min-height: 18rem; overflow: auto; overscroll-behavior: contain; }
+  .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 24.5rem - var(--results-height, 184px))); }
+  .studio-panels .studio-flow { height: min(38vh, 30rem); min-height: 20rem; }
+  .studio-bottom-content { height: var(--results-height, 184px); max-height: 45vh; }
+  .studio-splitter { position: absolute; top: 0; bottom: 0; width: 12px; z-index: 5; cursor: col-resize; touch-action: none; }
+  .studio-splitter-navigator { left: calc(var(--navigator-width) + .5rem - 6px); }
+  .studio-splitter-inspector { right: calc(var(--inspector-width) + .5rem - 6px); }
+  .studio-splitter:hover { background: var(--studio-accent-border); }
+  .studio-splitter:focus-visible { background: var(--studio-accent-border); outline: 2px solid var(--studio-focus); outline-offset: -2px; }
+  .studio-splitter[hidden] { display: none; }
+}
+@media (min-width: 901px) and (max-width: 1399px) {
+  .modelling-studio .studio-primary-actions, .modelling-studio .studio-panel-controls { gap: .3rem; margin-right: .4rem; }
+  .modelling-studio :is(.studio-primary-actions, .studio-panel-controls) :is(button, select) { padding: .45rem .55rem; font-size: .8rem; }
+  .modelling-studio .studio-primary-actions > span { font-size: .75rem; }
+  .studio-panels:not([data-hide-navigator="true"]) { grid-template-columns: var(--navigator-width, 240px) minmax(0, 1fr); }
+  .studio-panels[data-hide-navigator="true"] { grid-template-columns: minmax(0, 1fr); }
+  .studio-panels > #studio-inspector-pane:not([hidden]) { position: absolute; z-index: 6; top: 0; right: 0; width: min(var(--inspector-width, 320px), 85%); box-shadow: 0 8px 30px #0009; }
+  .studio-splitter-inspector { display: none; }
+}
+@media (min-width: 1000px) {
+  .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
+  .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
+  /* Keep the dock inside the available editor height, above the fixed status bar. */
+  .studio-workspace .studio-bottom-dock { margin-top: .35rem; }
+}
+@media (min-width: 1400px) and (min-height: 950px) {
+  /* Use the available height for the model instead of leaving a short canvas
+     in a tall workbench; smaller screens retain the compact canvas. */
+  .studio-panels .studio-flow { height: min(50vh, 38rem); }
+}
+/* Keep the workbench heading available to assistive technology while giving
+   the selected diagram more of the constrained desktop editor viewport. */
+@media (min-width: 1000px) {
+  .studio-editor > h2 { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .studio-editor .studio-document-tabs { margin-bottom: .35rem; }
+  .studio-editor .studio-graph { margin-block: .4rem; padding: .7rem; }
+  .studio-editor .studio-graph > h3 { margin-block: .25rem; }
+  .studio-editor .studio-graph > p { margin-block: .35rem; }
+  .studio-editor .studio-diagram-toolbar { margin-block: .25rem; }
+}
+.studio-panel-sizing { position: relative; }
+.studio-panel-sizing[open] { padding: .5rem; border: 1px solid var(--studio-border); border-radius: .4rem; background: var(--studio-panel); }
+.studio-panel-sizing label { display: flex; align-items: center; gap: .5rem; margin: .5rem 0; }
+.studio-panel-sizing input[type="range"] { width: 8rem; padding: 0; }
+.studio-mobile-navigation { display: none; }
+@media (max-width: 900px) { .studio-panel-sizing, .studio-splitter, .studio-results-splitter { display: none; } }
+@media (max-width: 900px) {
+  .studio-mobile-navigation { position: sticky; top: 0; z-index: 8; display: flex; gap: .4rem; padding: .5rem; background: var(--studio-panel); border: 1px solid var(--studio-border); border-radius: .4rem; }
+  .studio-mobile-navigation button { flex: 1 1 0; min-width: 0; padding-inline: .3rem; font-size: .78rem; }
+  .studio-mobile-navigation button[aria-pressed="true"] { background: #397d71; border-color: var(--studio-accent-text); color: #fff; }
+  .modelling-studio .studio-mobile-navigation button[aria-pressed="true"]:hover:not(:disabled) { background: #2b6259; color: #fff; }
+  .studio-panel-controls { display: none; }
+  .studio-workspace[data-compact-surface="model"] .studio-panels > #studio-editor-pane,
+  .studio-workspace[data-compact-surface="model"] .studio-panels > #studio-inspector-pane,
+  .studio-workspace[data-compact-surface="diagram"] .studio-panels > #studio-navigator-pane,
+  .studio-workspace[data-compact-surface="diagram"] .studio-panels > #studio-inspector-pane,
+  .studio-workspace[data-compact-surface="inspector"] .studio-panels > #studio-navigator-pane,
+  .studio-workspace[data-compact-surface="inspector"] .studio-panels > #studio-editor-pane,
+  .studio-workspace[data-compact-surface="results"] .studio-panels,
+  .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none !important; visibility: hidden; pointer-events: none; }
+  .studio-panels > section { scroll-margin-top: 4rem; }
+  .modelling-studio :is(button, input, select, textarea, summary, a) { scroll-margin-block: 5rem 4.5rem; }
+  #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 4.5rem; }
+}
+@media (max-width: 360px) {
+  .studio-mobile-navigation { flex-wrap: wrap; }
+  .studio-mobile-navigation button { flex: 1 1 calc(50% - .4rem); min-height: 2.75rem; }
+  .studio-panels > section, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading { scroll-margin-top: 7.5rem; }
+  .modelling-studio :is(button, input, select, textarea, summary, a) { scroll-margin-block-start: 7.5rem; }
+}
+/* At high zoom, fixed bars can consume most of the short visual viewport. */
+@media (max-height: 500px) {
+  .modelling-studio > .studio-status-bar { position: static; inset: auto; }
+  .modelling-studio.container { padding-bottom: 1rem; }
+}
+@media (max-width: 900px) and (max-height: 500px) {
+  .studio-mobile-navigation { position: static; }
+  .studio-panels > section, #studio-validation-heading, #studio-activity-heading, #studio-review-heading, #studio-review-workflow-heading, #studio-review-decision-heading, #studio-publication-heading, #studio-commit-checks-heading,
+  .modelling-studio :is(button, input, select, textarea, summary, a) { scroll-margin-block: 1rem; }
+}
+@media (forced-colors: active) {
+  .modelling-studio :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  .modelling-studio .studio-scrollable-text:focus-visible { outline-color: Highlight; }
+  html[data-studio-theme] .modelling-studio .studio-graph :is(button, input, select, textarea, summary, a):focus-visible,
+  html[data-studio-theme] .modelling-studio .studio-graph .studio-canvas-edge-details :is(button, input, select, textarea, summary, a):focus-visible,
+  html[data-studio-theme] .modelling-studio .studio-conflict :is(button, input, select, textarea, summary, a):focus-visible { outline-color: Highlight; }
+  .studio-flow .react-flow__node.selected { outline: 3px solid Highlight; }
+  .modelling-studio .studio-flow .react-flow__node.selectable:focus-visible { outline-color: Highlight; }
+  .modelling-studio .studio-flow .react-flow__edge.selectable:focus-visible .react-flow__edge-path,
+  .modelling-studio .studio-flow .react-flow__edge.selectable:focus-visible .react-flow__edge-textbg { stroke: Highlight; }
+  .studio-flow .studio-flow-node { border-color: CanvasText; }
+  .modelling-studio .studio-view-tabs button[aria-current="page"],
+  .modelling-studio .studio-document-tabs button[aria-pressed="true"],
+  .modelling-studio .studio-bottom-dock > nav button[aria-pressed="true"] { border-bottom-color: Highlight; }
+  .modelling-studio .studio-mobile-navigation button[aria-pressed="true"],
+  .modelling-studio .studio-module-tree button[aria-current="true"] { border: 2px solid Highlight; }
+  .studio-command-palette [role="option"][aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .studio-splitter:focus-visible, .studio-results-splitter:focus-visible { background: Highlight; outline: 2px solid Highlight; }
+}
+
+/* Density affects presentation only; labels and text sizes stay the same. */
+html[data-studio-density="compact"] .modelling-studio .studio-panels > section { padding: .65rem; }
+html[data-studio-density="compact"] .modelling-studio .studio-field-table :is(th, td) { padding: .3rem .3rem; }
+html[data-studio-density="compact"] .modelling-studio .studio-activity { padding: .7rem; }
+html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li { padding: .5rem; }
+
+/* The modeller is a workbench, not a document page. Keep its shell on the
+   viewport and let the explorer, editor, inspector and results own scrolling. */
+@media (min-width: 901px) {
+  .modelling-studio.container {
+    position: fixed;
+    z-index: 5;
+    inset: 0;
+    width: 100%;
+    max-width: 1800px;
+    height: 100dvh;
+    margin: 0 auto;
+    padding: 0 0 2rem;
+    overflow: hidden;
+    background: var(--studio-bg);
+  }
+  .studio-panels > section { height: max(18rem, calc(100dvh - 14.5rem)); }
+  .studio-panels[data-results-open="true"] > section { height: max(18rem, calc(100dvh - 19rem - var(--results-height, 184px))); }
+}
+.studio-workspace-details:not([open]) { display: none; }
+.studio-compact-results[hidden] { display: none !important; }
+.studio-tools-menu { position: relative; flex: 0 0 auto; margin: 0; }
+.studio-tools-menu > summary { padding: .45rem .65rem; border: 1px solid var(--studio-strong-border); border-radius: .35rem; background: var(--studio-button); color: var(--studio-button-text); }
+.studio-tools-menu[open] > div { position: absolute; z-index: 25; top: calc(100% + .4rem); right: 0; display: grid; gap: .3rem; min-width: 15rem; padding: .5rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-panel); box-shadow: 0 .5rem 1.5rem #0007; }
+.studio-tools-menu[open] > div button { text-align: left; }
+.studio-context-tools[open],
+.studio-connection-tools[open] { position: fixed; z-index: 24; top: 4rem; right: 1rem; width: min(42rem, calc(100vw - 2rem)); max-height: min(72dvh, 48rem); overflow: auto; box-shadow: 0 .6rem 2rem #0005; }
+.studio-context-tools[open] > summary,
+.studio-connection-tools[open] > summary { position: sticky; top: 0; z-index: 1; background: var(--studio-panel); }
+.studio-connection-tools[open] { width: min(34rem, calc(100vw - 2rem)); }
+@media (max-width: 900px) {
+  .studio-workspace:not([data-compact-surface="results"]) .studio-compact-results { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+}
+@media (max-width: 900px) {
+  .modelling-studio.container { min-height: 100dvh; padding-bottom: 5rem; }
+  .studio-context-tools[open],
+  .studio-connection-tools[open] { top: min(7rem, 18dvh); right: .5rem; width: calc(100vw - 1rem); max-height: 65dvh; }
+}
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  html[data-studio-density="compact"] .modelling-studio button { min-height: 2rem; padding: .3rem .6rem; }
+  html[data-studio-density="compact"] .modelling-studio :is(input, select) { padding: .38rem .55rem; }
+  html[data-studio-density="compact"] .modelling-studio .studio-primary-actions { gap: .35rem; }
+}
+/* Enlarge interactive targets for touch without changing fine-pointer density. */
+@media (pointer: coarse) {
+  .modelling-studio :is(button, select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { min-height: 2.75rem; }
+  .modelling-studio .studio-module-tree li li button, .modelling-studio .studio-module-tree .studio-subtypes-toggle { min-height: 2.75rem; }
+  .modelling-studio summary { min-height: 2.75rem; padding-block: .6rem; }
+  .modelling-studio .studio-explorer-expand { flex-basis: 2.75rem; min-height: 2.75rem; }
+  .modelling-studio .studio-flow .react-flow__controls button { width: 44px; height: 44px; min-height: 44px; padding: 11px; }
+  .modelling-studio :is(input[type="checkbox"], input[type="radio"]),
+  .modelling-studio .studio-canvas-layout-menu .studio-layout-choice input[type="checkbox"] { width: 1.5rem; min-width: 1.5rem; height: 1.5rem; padding: 0; }
+  .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 2.75rem; }
+  .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) > input { width: 1.5rem; min-width: 1.5rem; height: 1.5rem; }
+}

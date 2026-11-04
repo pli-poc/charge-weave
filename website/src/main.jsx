@@ -8,6 +8,7 @@ import "./pages.css";
 const Home = lazy(() => import("./Home.jsx"));
 const ProductPages = lazy(() => import("./ProductPages.jsx"));
 const Ontology = lazy(() => import("./Ontology.jsx"));
+const ModellingStudio = lazy(() => import("./ModellingStudio.jsx"));
 const DeveloperPages = lazy(() => import("./DeveloperPages.jsx"));
 const Blog = lazy(() => import("./Blog.jsx"));
 export const base = import.meta.env.BASE_URL;
@@ -21,10 +22,13 @@ function App() {
     .slice(base.length)
     .replace(/(?:index\.html)?\/?$/, "")
     .replace(/^\//, "");
+  const localStudio = window.location.hostname === '127.0.0.1' && !['4173', '5173'].includes(window.location.port);
+  const studioRoute = route === "modelling" || route === "developer/modeler/studio" || (route === "developer/modeler" && localStudio);
   const nav = [
     ["", "Overview"],
     ["capabilities", "Capabilities"],
     ["ontology", "Ontology explorer"],
+    ["modelling", "Modelling studio"],
     ["architecture", "Architecture"],
     ["roadmap", "Roadmap"],
     ["app", "Operations console"],
@@ -36,7 +40,7 @@ function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="header">
+      {!studioRoute && <header className="header">
         <div className="container nav-wrap">
           <a className="brand" href={base} aria-label="ChargeWeave home">
             <Mark />
@@ -80,7 +84,7 @@ function App() {
             ))}
           </nav>
         </div>
-      </header>
+      </header>}
       <Suspense
         fallback={
           <main id="main" className="container page-loading" aria-live="polite">
@@ -88,7 +92,9 @@ function App() {
           </main>
         }
       >
-        {route === "ontology" ? (
+        {studioRoute ? (
+          <ModellingStudio />
+        ) : route === "ontology" ? (
           <Ontology />
         ) : route === "blog" || route.startsWith("blog/") ? (
           <Blog route={route} />
@@ -100,7 +106,7 @@ function App() {
           <Home />
         )}
       </Suspense>
-      <footer className="footer">
+      {!studioRoute && <footer className="footer">
         <div className="container footer-inner">
           <a className="brand" href={base}>
             <Mark />
@@ -109,7 +115,7 @@ function App() {
           <span>A connected foundation for the charging business.</span>
           <span className="footer-status">In development</span>
         </div>
-      </footer>
+      </footer>}
     </>
   );
 }

@@ -76,7 +76,8 @@ jobs:
     name: Build and browser checks
     needs: scope
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # Full desktop/mobile browser checks already approach ten minutes including setup.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: website
@@ -93,6 +94,7 @@ jobs:
             console-app/package-lock.json
             client-runtime/package-lock.json
       - run: npm ci --prefix ../client-runtime
+      - run: npm ci --prefix ../ontology-authoring
       - run: npm run generate --prefix ../client-runtime
       - name: Record generated schema compatibility diff
         run: diff -u ../tests/client-contract/schema.graphql ../client-runtime/generated/schema.graphql > ../client-runtime/generated/schema-diff.txt
@@ -133,6 +135,7 @@ jobs:
       - name: Record exact-commit engineering verification
         env:
           ARTICLE_ONLY: ${{ needs.scope.outputs.article_only }}
+          EXACT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/write-engineering-verification.mjs
       - name: Save browser report and screenshots
         if: always()

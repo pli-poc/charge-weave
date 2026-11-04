@@ -1,0 +1,52 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('filter visible relationships by direction around the selected concept', async ({ page, isMobile }) => {
+  await page.setViewportSize({ width: isMobile ? 320 : 1920, height: 800 });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Relationship direction', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record? self:Device?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    const direction = page.locator('.studio-canvas-edge-picker').getByLabel('Relationship direction');
+    const picker = page.getByLabel('Inspect relationship');
+    await expect(picker.locator('option')).toHaveCount(4);
+    await picker.selectOption({ label: 'Device — peer → Record' });
+    await direction.selectOption('incoming');
+    await expect(page.getByText('Showing 1 of 3 visible relationships.', { exact: false })).toBeVisible();
+    await expect(picker.locator('option')).toHaveCount(3);
+    await expect(picker).toContainText('currently inspected');
+    await expect(picker).toContainText('Device — self → Device');
+    await direction.selectOption('outgoing');
+    await expect(picker.locator('option')).toHaveCount(4);
+    await expect(picker).toContainText('Device — peer → Record');
+    await expect(picker).toContainText('Device — self → Device');
+    await page.getByLabel('Find visible relationships').fill('not found');
+    await expect(page.getByText('Showing 0 of 3 visible relationships.', { exact: false })).toBeVisible();
+    await expect(picker).toContainText('currently inspected');
+    await canvas.locator('.react-flow__node[data-id="Record"]').focus();
+    await page.keyboard.press('Enter');
+    await expect(direction).toHaveValue('all');
+    await expect(direction.locator('option[value="incoming"]')).toHaveText('Incoming to Record');
+    await page.getByLabel('Find visible relationships').fill('');
+    await direction.selectOption('incoming');
+    await expect(page.getByText('Showing 2 of 3 visible relationships.', { exact: false })).toBeVisible();
+    await direction.selectOption('outgoing');
+    await expect(page.getByText('Showing 0 of 3 visible relationships.', { exact: false })).toBeVisible();
+    expect(store.get(workspace.id).revision).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

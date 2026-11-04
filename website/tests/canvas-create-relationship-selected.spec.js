@@ -1,0 +1,54 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('create a relationship draft from the selected visible concept', async ({ page, isMobile }) => {
+  await page.setViewportSize({ width: isMobile ? 320 : 1920, height: 800 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Selected concept relationship', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await canvas.locator('.react-flow__node[data-id="Record"]').focus();
+    await page.keyboard.press('Enter');
+    const creator = page.locator('.studio-canvas-create-relationship');
+    await creator.locator('summary').click();
+    await expect(creator).toContainText('Source: Record');
+    const search = creator.getByLabel('Find visible target concepts');
+    const target = creator.getByRole('combobox');
+    await search.fill('Device');
+    await expect(creator).toContainText('Showing 1 of 2 visible concepts');
+    await target.selectOption('Device');
+    await search.fill('Record');
+    await expect(creator).toContainText('The chosen target remains available outside these results.');
+    await expect(target).toHaveValue('Device');
+    const open = creator.getByRole('button', { name: 'Open relationship editor' });
+    await open.focus(); await page.keyboard.press('Enter');
+    const form = page.getByRole('form', { name: 'New relationship' });
+    await expect(form).toContainText('Record → Device');
+    await expect(form.getByLabel('Predicate name')).toBeFocused();
+    expect(store.get(workspace.id).revision).toBe(0);
+    await form.getByRole('button', { name: 'Cancel' }).click();
+    await expect(open).toBeFocused();
+    await target.selectOption('Record');
+    await open.focus(); await page.keyboard.press('Enter');
+    await expect(form).toContainText('Record → Record');
+    await form.getByRole('button', { name: 'Cancel' }).click();
+    await expect(open).toBeFocused();
+    expect(store.get(workspace.id).revision).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

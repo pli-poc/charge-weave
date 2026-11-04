@@ -881,7 +881,7 @@ root.addEventListener("input", (event) => {
     root.querySelectorAll(".entity-row").forEach((row) => { row.hidden = !row.textContent.toLowerCase().includes(query); });
   }
 });
-window.addEventListener("hashchange", () => { currentView = viewFromHash(); search = ""; country = "all"; render(); });
+window.addEventListener("hashchange", () => { const nextView = viewFromHash(); if (nextView === currentView) return; currentView = nextView; search = ""; country = "all"; render(); });
 root.addEventListener("keydown", (event) => {
   const marker = event.target.closest?.("[data-map-site], [data-map-roaming], [data-graph-node]");
   if (!marker || (event.key !== "Enter" && event.key !== " ")) return;

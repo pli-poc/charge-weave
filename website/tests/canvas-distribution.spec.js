@@ -1,0 +1,50 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('distribution respects pins and can be undone without changing the model', async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Distribution', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nAsset|Record|An asset.|\nDevice|Record|A device.|asset:Asset?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  const initial = { Record: { x: 0, y: 0 }, Asset: { x: 100, y: 90 }, Device: { x: 600, y: 300 } };
+  await page.addInitScript(({ id, initial }) => sessionStorage.setItem(`chargeweave.canvas.v2.${id}.default`, JSON.stringify(initial)), { id: workspace.id, initial });
+  const positions = () => page.evaluate(id => JSON.parse(sessionStorage.getItem(`chargeweave.canvas.v2.${id}.default`)), workspace.id);
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    const canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await canvas.getByText('Layout', { exact: true }).click();
+    await canvas.getByText('Align selected concepts', { exact: true }).click();
+    await canvas.getByRole('checkbox', { name: 'Asset', exact: true }).check();
+    await canvas.getByRole('button', { name: 'Pin selected', exact: true }).click();
+    await canvas.getByRole('checkbox', { name: 'Record', exact: true }).check();
+    await canvas.getByRole('checkbox', { name: 'Device', exact: true }).check();
+    const horizontal = canvas.getByRole('button', { name: 'Distribute horizontally' });
+    const vertical = canvas.getByRole('button', { name: 'Distribute vertically' });
+    await expect(horizontal).toBeDisabled();
+    await expect(vertical).toBeDisabled();
+    expect(await positions()).toEqual(initial);
+    await canvas.getByRole('button', { name: 'Unpin selected', exact: true }).click();
+    await expect(horizontal).toBeEnabled();
+    await horizontal.focus(); await page.keyboard.press('Enter');
+    expect(await positions()).toEqual({ ...initial, Asset: { x: 300, y: 90 } });
+    await canvas.getByRole('button', { name: 'Undo last layout change' }).click();
+    expect(await positions()).toEqual(initial);
+    await vertical.click();
+    expect(await positions()).toEqual({ ...initial, Asset: { x: 100, y: 150 } });
+    await canvas.getByRole('button', { name: 'Undo last layout change' }).click();
+    expect(await positions()).toEqual(initial);
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

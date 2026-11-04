@@ -48,4 +48,4 @@ MODULE|sessions-metering
 ClockAssessment|-|Recorded clock offset applied to a source timestamp, including method and evidence; preserves the unmodified source time.|offsetSeconds:decimal! correctionMethod:string! assessedAt:dateTime! evidence:EvidenceDocument+
 '''
 if 'DiscountRule|-|' not in s:lines.append(extra)
-p.write_text('\n'.join(lines)+'\n')
+p.write_text('\n'.join(lines)+'\n', encoding='utf8', newline='\n')

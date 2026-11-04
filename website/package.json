@@ -7,7 +7,10 @@
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build",
     "check:blog": "node scripts/check-blog-content.mjs",
+    "check:route-splitting": "node scripts/check-route-splitting.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "benchmark:live": "node scripts/measure-live.mjs",
+    "benchmark:layout": "node scripts/measure-layout.mjs",
     "test": "node --test src/simulation/*.test.js src/model/*.test.js && playwright test",
     "prebuild": "npm run generate --prefix ../client-runtime && node scripts/build-model.mjs && node scripts/check-temporal.mjs",
     "predev": "node scripts/build-model.mjs",
@@ -16,19 +19,22 @@
     "check:public-links": "node scripts/check-public-source-links.mjs"
   },
   "dependencies": {
+    "@chargeweave/client-runtime": "file:../client-runtime",
     "@fontsource-variable/manrope": "^5.2.8",
+    "@xyflow/react": "12.12.0",
+    "elkjs": "0.12.1",
     "lucide-react": "^0.577.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "three": "^0.186.1",
-    "xstate": "5.33.2",
-    "@chargeweave/client-runtime": "file:../client-runtime"
+    "xstate": "5.33.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "^1.58.2",
     "@vitejs/plugin-react": "6.1.1",
     "esbuild": "^0.28.2",
     "n3": "^2.7.12",
-    "vite": "8.3.1"
+    "vite": "8.3.5"
   }
 }

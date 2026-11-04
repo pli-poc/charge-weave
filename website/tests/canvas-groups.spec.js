@@ -1,0 +1,56 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('selected concepts form a visual group that can be saved and restored', async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Group view', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  page.on('dialog', dialog => dialog.accept());
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByLabel('Search model').fill('Device');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Device', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    let canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas).toHaveAttribute('data-layout', 'ready');
+    await canvas.getByText('Layout', { exact: true }).click();
+    await canvas.getByText('Align selected concepts', { exact: true }).click();
+    await canvas.getByRole('checkbox', { name: 'Device', exact: true }).check();
+    await canvas.getByRole('checkbox', { name: 'Record', exact: true }).check();
+    await canvas.getByLabel('New group name').fill('Core equipment');
+    await expect(canvas.getByRole('button', { name: 'Group selected concepts' })).toBeEnabled();
+    await canvas.getByRole('button', { name: 'Group selected concepts' }).click();
+    const groups = page.getByRole('region', { name: 'Diagram groups' });
+    await expect(groups).toContainText('Core equipment');
+    await expect(groups).toContainText('2 of 2 concepts shown');
+    await expect(canvas.locator('.studio-canvas-group-frame')).toHaveCount(1);
+    expect(store.get(workspace.id).revision).toBe(0);
+    await canvas.getByRole('button', { name: 'Hide selected from diagram' }).click();
+    await expect(groups).toContainText('1 of 2 concepts shown');
+    await expect(groups).toContainText('Record — not shown');
+    await canvas.getByText('Hidden concepts (1)', { exact: true }).click();
+    await canvas.getByRole('button', { name: 'Restore Record' }).click();
+    await expect(groups).toContainText('2 of 2 concepts shown');
+    await expect(page.getByRole('region', { name: 'Workspace status' })).toContainText('View changed locally');
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByText('Shared view saved.', { exact: true })).toBeVisible();
+    expect(store.savedView(workspace.id, 'default').definition.groups).toEqual([{ name: 'Core equipment', members: ['Device', 'Record'] }]);
+    await groups.getByRole('button', { name: 'Remove Core equipment from view' }).click();
+    await expect(groups).toHaveCount(0);
+    await page.getByRole('button', { name: 'Load shared view' }).click();
+    await expect(page.getByText('Shared view loaded.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Diagram groups' })).toContainText('Core equipment');
+    canvas = page.getByRole('region', { name: 'Relationships for Device' });
+    await expect(canvas.locator('.studio-canvas-group-frame')).toHaveCount(1);
+    expect(store.get(workspace.id).revision).toBe(0);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

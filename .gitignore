@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv-*/
 venv/
 .env
 .env.*
@@ -11,3 +12,5 @@ dist/
 *.egg-info/
 .pytest_cache/
 .DS_Store
+node_modules/
+ontology-authoring/*.sqlite*

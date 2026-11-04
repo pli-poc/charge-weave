@@ -1,0 +1,163 @@
+"""Tests for bounded, source-preserving schema commands."""
+import unittest
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from shutil import copy2
+
+from rdflib import Graph, Namespace, RDF
+from pyshacl import validate
+
+from authoring_adapter import apply_commands, inspect_entity
+from domain_schema import parse_schema
+
+
+class AuthoringAdapterTests(unittest.TestCase):
+    def setUp(self):
+        self.schema = '# retained comment\nMODULE|foundation\nRecord|root|A record.|\n'
+
+    def test_group_adds_class_and_controlled_field(self):
+        commands = [
+            {'type': 'class.add', 'name': 'Example', 'module': 'foundation', 'parent': 'Record', 'definition': 'An example.'},
+            {'type': 'property.add', 'owner': 'Example', 'name': 'exampleState', 'range': '{Draft,Final}', 'cardinality': '!'},
+        ]
+        candidate = apply_commands(self.schema, commands)
+        self.assertIn('# retained comment\nMODULE|foundation\nRecord|root|A record.|\n', candidate)
+        self.assertIn('Example|Record|An example.|exampleState:{Draft,Final}!', candidate)
+
+    def test_invalid_group_does_not_return_a_partial_candidate(self):
+        commands = [
+            {'type': 'class.add', 'name': 'Example', 'module': 'foundation', 'parent': 'Record', 'definition': 'An example.'},
+            {'type': 'relationship.add', 'owner': 'Example', 'name': 'target', 'range': 'Missing', 'cardinality': '!'},
+        ]
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(self.schema, commands)
+        self.assertNotIn('Example', self.schema)
+
+    def test_relationship_description_is_preserved_and_compiled(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n'
+        command = {'type': 'relationship.add', 'owner': 'Device', 'name': 'linkedRecord', 'range': 'Record', 'cardinality': '?', 'description': 'The record linked to this device.'}
+        candidate = apply_commands(schema, [command])
+        self.assertIn('# FIELD-DESCRIPTION|Device|linkedRecord|The record linked to this device.', candidate)
+        self.assertEqual(inspect_entity(candidate, 'Device')['fields'][0]['description'], command['description'])
+        for bad in ['', 'bad|description', 'bad\ndescription']:
+            with self.assertRaises(ValueError):
+                apply_commands(schema, [{**command, 'description': bad}])
+        with tempfile.TemporaryDirectory(prefix='chargeweave-description-test-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            shapes = Graph().parse(root / 'validation/structure.shacl.ttl')
+            cd = Namespace('https://example.org/charge-domain#')
+            sh = Namespace('http://www.w3.org/ns/shacl#')
+            self.assertEqual(str(next(shapes.objects(cd.Device_linkedRecordShape, sh.description))), command['description'])
+            self.assertIn(command['description'], (root / 'docs/domain-dictionary.md').read_text(encoding='utf8'))
+
+    def test_inspection_reports_declared_and_inherited_source(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|recordName:string!\nExample|Record|An example.|count:integer?\n'
+        entity = inspect_entity(schema, 'Example')
+        self.assertEqual(entity['source'], {'path': 'model/domain.schema', 'line': 3})
+        self.assertEqual([(field['property'], field['owner'], field['inherited']) for field in entity['fields']], [('count', 'Example', False), ('recordName', 'Record', True)])
+        self.assertEqual(entity['iri'], 'https://example.org/charge-domain#Example')
+
+    def test_inspection_rejects_inheritance_cycles(self):
+        schema = 'MODULE|foundation\nFirst|Second|First.|\nSecond|First|Second.|\n'
+        with self.assertRaisesRegex(ValueError, 'Invalid inheritance chain'):
+            inspect_entity(schema, 'First')
+
+    def test_update_requires_exact_declared_field_and_preserves_other_spacing(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|name:string?  count:integer!\n'
+        command = {'type': 'property.update', 'owner': 'Record', 'name': 'name', 'expectedRange': 'string', 'expectedCardinality': '?', 'range': 'string', 'cardinality': '!'}
+        self.assertEqual(apply_commands(schema, [command]), schema.replace('name:string?', 'name:string!'))
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema, [{**command, 'expectedCardinality': '!'}])
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema, [{**command, 'name': 'missing'}])
+
+    def test_update_rejects_incompatible_shared_property_ranges(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|value:string?\nExample|Record|An example.|value:string!\n'
+        command = {'type': 'property.update', 'owner': 'Example', 'name': 'value', 'expectedRange': 'string', 'expectedCardinality': '!', 'range': 'integer', 'cardinality': '!'}
+        with self.assertRaisesRegex(ValueError, 'ranges must agree'):
+            apply_commands(schema, [command])
+        with self.assertRaisesRegex(ValueError, 'shared property contract'):
+            apply_commands(schema, [{**command, 'range': 'Record'}])
+
+    def test_update_can_change_object_range_and_rejects_ambiguous_fields(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|related:Record?\n'
+        command = {'type': 'property.update', 'owner': 'Device', 'name': 'related', 'expectedRange': 'Record', 'expectedCardinality': '?', 'range': 'Device', 'cardinality': '*'}
+        self.assertIn('related:Device*', apply_commands(schema, [command]))
+        with self.assertRaisesRegex(ValueError, 'precondition'):
+            apply_commands(schema.replace('related:Record?', 'related:Record? related:Device*'), [command])
+
+    def test_global_property_reuse_requires_current_owner_list_and_preserves_compatible_union(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nPerson|Record|A person.|\nDevice|Record|A device.|\nCase|Record|A case.|assignee:Person?\n'
+        command = {'type': 'relationship.add', 'owner': 'Device', 'name': 'assignee', 'range': 'Device', 'cardinality': '?', 'expectedOwners': ['Case']}
+        candidate = apply_commands(schema, [command])
+        _, _, property_types, _ = parse_schema(candidate, {'string', 'langString', 'integer', 'nonNegativeInteger', 'positiveInteger', 'decimal', 'boolean', 'dateTime', 'date', 'time', 'anyURI'})
+        self.assertEqual(property_types['assignee'], {('object', 'Person'), ('object', 'Device')})
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(schema, [{key: value for key, value in command.items() if key != 'expectedOwners'}])
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(schema, [{**command, 'expectedOwners': ['Device']}])
+
+        data_schema = schema.replace('assignee:Person?', 'assignee:string?')
+        incompatible = {'type': 'property.add', 'owner': 'Device', 'name': 'assignee', 'range': 'integer', 'cardinality': '?', 'expectedOwners': ['Case']}
+        with self.assertRaisesRegex(ValueError, 'Invalid property.add'):
+            apply_commands(data_schema, [incompatible])
+
+        with tempfile.TemporaryDirectory(prefix='chargeweave-property-reuse-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            import json
+            generated = json.loads((root / 'model/property-types.json').read_text(encoding='utf8'))
+            self.assertEqual(generated['assignee'], [['object', 'Device'], ['object', 'Person']])
+
+    def test_templates_compile_to_non_vacuous_structural_checks(self):
+        schema = 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|related:Record? state:{Draft,Final,Archived}?\n'
+        commands = [
+            {'type': 'constraint.add', 'template': 'required-relationship', 'owner': 'Device', 'name': 'related', 'expectedRange': 'Record', 'expectedCardinality': '?'},
+            {'type': 'constraint.add', 'template': 'allowed-values', 'owner': 'Device', 'name': 'state', 'expectedRange': '{Draft,Final,Archived}', 'expectedCardinality': '?', 'values': ['Draft', 'Final']},
+        ]
+        candidate = apply_commands(schema, commands)
+        self.assertIn('related:Record! state:{Draft,Final}?', candidate)
+        with self.assertRaisesRegex(ValueError, 'Invalid allowed-values'):
+            apply_commands(schema, [{**commands[1], 'values': ['Draft', 'Unknown']}])
+        with self.assertRaisesRegex(ValueError, 'Invalid required-relationship'):
+            apply_commands(schema, [{**commands[0], 'expectedRange': 'string'}])
+        with tempfile.TemporaryDirectory(prefix='chargeweave-template-test-') as temporary:
+            root = Path(temporary)
+            for name in ['tools', 'model', 'ontology/modules', 'validation', 'docs']:
+                (root / name).mkdir(parents=True, exist_ok=True)
+            for name in ['build.py', 'domain_schema.py']:
+                copy2(Path(__file__).parent / name, root / 'tools' / name)
+            (root / 'model/domain.schema').write_text(candidate, encoding='utf8')
+            subprocess.run([sys.executable, str(root / 'tools/build.py')], check=True, capture_output=True)
+            shapes = Graph().parse(root / 'validation/structure.shacl.ttl')
+            cd = Namespace('https://example.org/charge-domain#')
+            ex = Namespace('https://example.org/test/')
+            sh = Namespace('http://www.w3.org/ns/shacl#')
+            valid = Graph()
+            valid.add((ex.device, RDF.type, cd.Device)); valid.add((ex.target, RDF.type, cd.Record))
+            valid.add((cd.state_Draft, RDF.type, cd.StateCode)); valid.add((cd.state_Archived, RDF.type, cd.StateCode))
+            valid.add((ex.device, cd.related, ex.target)); valid.add((ex.device, cd.state, cd.state_Draft))
+            self.assertTrue(validate(valid, shacl_graph=shapes)[0])
+            missing = valid + Graph(); missing.remove((ex.device, cd.related, ex.target))
+            conforms, report, _ = validate(missing, shacl_graph=shapes)
+            self.assertFalse(conforms); self.assertIn(cd.Device_relatedShape, set(report.objects(None, sh.sourceShape)))
+            disallowed = valid + Graph(); disallowed.set((ex.device, cd.state, cd.state_Archived))
+            conforms, report, _ = validate(disallowed, shacl_graph=shapes)
+            self.assertFalse(conforms); self.assertIn(cd.Device_stateShape, set(report.objects(None, sh.sourceShape)))
+
+
+if __name__ == '__main__':
+    unittest.main()

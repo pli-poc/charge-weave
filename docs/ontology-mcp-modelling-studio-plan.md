@@ -8,6 +8,8 @@
 
 **Goal:** An architect describes an ontology extension in their installed Codex CLI and watches a connected browser construct, explain, validate and refine the model. The architect can intervene through normal modelling controls, review an exact change set, and publish a reproducible source change to GitHub.
 
+**UX follow-up (2026-11-02):** The implemented prototype needs a full IDE interaction redesign. The [ontology modelling IDE UI/UX plan](ontology-modelling-ide-ux-plan.md) specifies the next implementation phases and supersedes this document's screen-layout specification where they differ. It is planned work, not a claim that the redesign or usability acceptance is complete.
+
 ## Contents
 
 1. [Decision and MVP boundary](#1-decision-and-mvp-boundary)

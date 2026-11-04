@@ -1,0 +1,64 @@
+import { execFileSync } from 'node:child_process';
+import { once } from 'node:events';
+import { cpus, platform, release } from 'node:os';
+import { resolve } from 'node:path';
+import { chromium } from '../node_modules/playwright/index.mjs';
+import { Client } from '../../ontology-authoring/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js';
+import { StreamableHTTPClientTransport } from '../../ontology-authoring/node_modules/@modelcontextprotocol/sdk/dist/esm/client/streamableHttp.js';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+const repo = resolve(process.env.CHARGEWEAVE_REPOSITORY ?? '..');
+const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
+const schema = execFileSync('git', ['show', `${commit}:model/domain.schema`], { cwd: repo, encoding: 'utf8' });
+const store = new WorkspaceStore(':memory:');
+const workspace = store.create({ title: 'Synthetic latency measurement', baselineCommit: commit, schema });
+const token = 'synthetic-measurement-token-'.repeat(2), pairingCode = 'synthetic-pairing-code-'.repeat(2);
+const graphMode = process.argv.includes('--graph');
+const detail = process.argv.includes('--detail');
+const service = createHttpService({ store, token, pairingCode, workspaceId: workspace.id, staticDirectory: resolve(repo, 'website/dist') });
+service.listen(0, '127.0.0.1'); await once(service, 'listening');
+const origin = `http://127.0.0.1:${service.address().port}`;
+const client = new Client({ name: 'synthetic-latency', version: '1' });
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+try {
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token}` } } }));
+  await page.goto(`${origin}/charge-weave-app/modelling/`);
+  await page.getByLabel('Pairing code').fill(pairingCode); await page.getByRole('button', { name: 'Pair local studio' }).click();
+  await page.getByRole('button', { name: 'Search', exact: true }).waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: 'Search', exact: true }).waitFor({ state: 'attached' });
+  await page.waitForFunction(() => { const workspace = document.querySelector('fieldset.studio-workspace'); return workspace && !workspace.disabled; });
+  if (graphMode) {
+    await page.getByLabel('Search model').fill('Record'); await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    await page.getByRole('region', { name: 'Relationships for Record' }).waitFor({ state: 'visible' });
+  }
+  const times = [], commandTimes = [], revisionTimes = [], samples = [];
+  for (let i = 0; i < 35; i++) {
+    const expected = i + 1, start = performance.now();
+    const name = 'latencyRelationship';
+    const cardinality = i % 2 ? '!' : '?';
+    const command = graphMode ? (i === 0
+      ? { type: 'relationship.add', owner: 'Record', name, range: 'ChargingStation', cardinality }
+      : { type: 'property.update', owner: 'Record', name, expectedRange: 'ChargingStation', expectedCardinality: i % 2 ? '?' : '!', range: 'ChargingStation', cardinality })
+      : { type: 'class.describe', name: 'Record', definition: `Synthetic latency measurement ${i}.` };
+    const result = await client.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId: `latency-${i}`, expectedRevision: i, commands: [command] } });
+    const commandDone = performance.now();
+    if (result.isError) throw new Error('Measurement mutation failed');
+    await page.waitForFunction(value => new RegExp(`revision ${value}(?:\\s|$)`).test(document.querySelector('[role=status]')?.textContent ?? ''), expected);
+    const revisionVisible = performance.now();
+    if (graphMode) await page.waitForFunction(label => [...document.querySelectorAll('.react-flow__edge-text')].some(element => {
+      const box = element.getBoundingClientRect();
+      return element.textContent.trim() === label && box.width > 0 && box.height > 0 && getComputedStyle(element).visibility !== 'hidden';
+    }), `${name} ${cardinality === '!' ? '1' : '0..1'}`);
+    if (i >= 5) {
+      const finished = performance.now();
+      times.push(finished - start); commandTimes.push(commandDone - start); revisionTimes.push(revisionVisible - start);
+      if (detail) samples.push({ commandMs: commandDone - start, afterCommandToRevisionMs: revisionVisible - commandDone, afterRevisionToGraphMs: finished - revisionVisible, totalMs: finished - start });
+    }
+  }
+  times.sort((a, b) => a - b);
+  commandTimes.sort((a, b) => a - b); revisionTimes.sort((a, b) => a - b);
+  console.log(JSON.stringify({ commit, node: process.version, os: `${platform()} ${release()}`, cpu: cpus()[0]?.model, browser: browser.version(), samples: times.length, warmup: 5, commandP95Ms: commandTimes[28], revisionVisibleP95Ms: revisionTimes[28], p50Ms: times[14], p95Ms: times[Math.ceil(times.length * 0.95) - 1], maxMs: times.at(-1), scope: graphMode ? 'MCP relationship cardinality edit start to updated graph label in second browser client; excludes model inference' : 'MCP edit start to visible revision in second browser client; no graph selected; excludes model inference', ...(graphMode ? { graphNodes: await page.locator('.react-flow__node').count(), graphEdges: await page.locator('.react-flow__edge').count() } : {}), ...(detail ? { sampleDetails: samples } : {}) }));
+} finally { await page.close(); await browser.close(); await client.close(); await service.shutdown(); store.close(); }

@@ -99,6 +99,8 @@ test('capture the connected correction journey with checkpoint provenance', asyn
   await page.screenshot({ path: info.outputPath('correction-dashboard-before.png'), fullPage: true });
   await dashboard.getByRole('button', { name: 'Start demonstration' }).click();
   await page.getByLabel('Decision note').fill('Synthetic evidence checked against the accepted register.');
+  await page.evaluate(() => window.dispatchEvent(new HashChangeEvent('hashchange')));
+  await expect(page.getByLabel('Decision note')).toHaveValue('Synthetic evidence checked against the accepted register.');
   await page.getByRole('button', { name: /Validate evidence/ }).click();
   await expect(page.getByRole('heading', { name: 'Approve the billing correction' })).toBeVisible();
   await page.screenshot({ path: info.outputPath('correction-approval.png'), fullPage: true });

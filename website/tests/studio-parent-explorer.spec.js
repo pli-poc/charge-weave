@@ -1,0 +1,113 @@
+import { test, expect } from '@playwright/test';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
+import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
+import { createHttpService } from '../../ontology-authoring/src/http.js';
+
+test('explorer pages direct children and combines parent and changed filters', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+  const store = new WorkspaceStore(':memory:');
+  const children = Array.from({ length: 52 }, (_, i) => `Asset${String(i).padStart(2, '0')}|Record|An asset.|`);
+  const schema = `MODULE|foundation\nRecord|root|A record.|\n${children.join('\n')}\nMODULE|other\nNested|Asset00|A nested asset.|\n`;
+  const workspace = store.create({ title: 'Parent explorer', baselineCommit: 'a'.repeat(40), schema });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    await page.getByRole('button', { name: 'Load more concepts' }).click();
+    await page.getByRole('button', { name: 'Show fields for Record' }).click();
+    const expandRecord = page.getByRole('button', { name: 'Show inline subtypes of Record' });
+    if (isMobile) expect((await expandRecord.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await expandRecord.focus();
+    await page.keyboard.press('Space');
+    await expect(page.getByRole('button', { name: 'Hide inline subtypes of Record' })).toBeFocused();
+    const childrenList = page.getByRole('list', { name: 'Direct subtypes of Record' });
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toBeVisible();
+    const rejectNextPage = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Record' && params.arguments?.cursor) await route.fulfill({ status: 500, body: 'Synthetic page failure' });
+      else await route.continue();
+    };
+    await page.route('**/mcp', rejectNextPage);
+    await page.getByRole('button', { name: 'Load more subtypes of Record' }).click();
+    await expect(page.getByText(/Subtypes unavailable/)).toBeVisible();
+    await page.unroute('**/mcp', rejectNextPage);
+    await page.getByRole('button', { name: 'Retry subtypes of Record' }).click();
+    await expect(childrenList.getByRole('button', { name: 'Asset51 · foundation', exact: true })).toBeVisible();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
+    await page.getByRole('button', { name: 'Hide inline subtypes of Record' }).click();
+    await page.getByRole('button', { name: 'Show inline subtypes of Record' }).click();
+    await expect(childrenList.getByRole('button', { name: 'Asset49 · foundation', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Load more subtypes of Record' })).toBeVisible();
+    await page.getByLabel('Direct parent').fill('Record');
+    await page.getByRole('button', { name: 'Filter parent' }).click();
+    await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
+    await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
+    await page.getByRole('button', { name: 'Show fields for Asset00' }).click();
+    await page.getByRole('button', { name: 'Show inline subtypes of Asset00' }).click();
+    const nested = page.getByRole('list', { name: 'Direct subtypes of Asset00' });
+    const nestedConcept = nested.getByRole('button', { name: 'Nested · other', exact: true });
+    await expect(nestedConcept).toBeVisible();
+    if (isMobile) expect((await nestedConcept.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await nestedConcept.click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await expect(nestedConcept).toHaveAttribute('aria-current', 'true');
+    await expect(page.getByLabel('Direct parent')).toHaveValue('Record');
+    await nested.getByRole('button', { name: 'Show inline subtypes of Nested' }).click();
+    await expect(nested.getByText('No direct subtypes.')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const rejectChildren = async route => {
+      const params = route.request().postDataJSON()?.params;
+      if (params?.name === 'ontology_explorer_list' && params.arguments?.parent === 'Asset00') await route.fulfill({ status: 500, body: 'Synthetic failure' });
+      else await route.continue();
+    };
+    await page.route('**/mcp', rejectChildren);
+    try {
+      await page.getByRole('button', { name: 'Browse direct subtypes of Asset00' }).click();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(page.getByLabel('Direct parent')).toHaveValue('Record');
+      await expect(page.getByText('Direct parent: Record. Indirect descendants are not included.')).toBeVisible();
+    } finally { await page.unroute('**/mcp', rejectChildren); }
+    await page.getByRole('button', { name: 'Browse direct subtypes of Asset00' }).click();
+    await expect(page.getByLabel('Direct parent')).toHaveValue('Asset00');
+    await expect(page.getByLabel('Direct parent')).toBeFocused();
+    await expect(page.getByRole('list', { name: 'Loaded concepts by module' }).getByRole('button', { name: 'Nested', exact: true })).toBeVisible();
+    await page.getByLabel('Direct parent').fill('Record'); await page.getByRole('button', { name: 'Filter parent' }).click();
+    await expect(page.getByText('Showing 50 of 52 concepts.')).toBeVisible();
+    await page.getByRole('button', { name: 'Load more concepts' }).click();
+    await expect(page.getByText('Showing 52 of 52 concepts.')).toBeVisible();
+    const tree = page.getByRole('list', { name: 'Loaded concepts by module' });
+    await expect(tree.getByRole('button', { name: 'Asset51', exact: true })).toBeVisible();
+    await expect(tree.getByRole('button', { name: 'Nested', exact: true })).toHaveCount(0);
+    store.apply({ workspaceId: workspace.id, actor: 'other-client', operationId: 'describe', expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Asset51', definition: 'A revised asset.' }] });
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    await page.getByLabel('Show changed class contracts only').check();
+    await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
+    await expect(tree.getByRole('button', { name: 'Asset51', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Clear parent filter' }).click();
+    await expect(page.getByLabel('Direct parent')).toHaveValue('');
+    await expect(page.getByText('Showing 1 of 1 concepts.')).toBeVisible();
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('long concept names stay readable in explorer rows and retain their full accessible name', async ({ page }) => {
+  const name = 'DashboardDefinitionWithAnExtremelyLongUnbrokenIdentifier';
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Long explorer labels', baselineCommit: 'a'.repeat(40), schema: `MODULE|foundation\nRecord|root|A record.|\n${name}|Record|A dashboard definition.|\n` });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    const concept = page.getByRole('button', { name, exact: true });
+    await expect(concept).toBeVisible();
+    await expect(concept).toHaveCSS('white-space', 'nowrap');
+    await expect(concept).toHaveCSS('text-overflow', 'ellipsis');
+    await expect(concept).toHaveAttribute('title', `Select ${name} to inspect; double-click or press Enter to focus its neighbourhood`);
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});

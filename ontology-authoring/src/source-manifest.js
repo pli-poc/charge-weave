@@ -1,0 +1,44 @@
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+export const generatedInputs = new Set([
+  'model/catalog.json', 'model/property-types.json', 'model/rules.json', 'model/transitions.json', 'model/competency-questions.json', 'model/temporal-example.json',
+  'benchmark/resource-coverage.json', 'benchmark/endpoint-coverage.json', 'benchmark/event-catalog.json', 'benchmark/capture.json', 'benchmark/pricing-field-crosswalk.json', 'tests/journey-snapshots.json',
+]);
+// Only these declared source owners may be materialized as draft overlays.
+export const editableSourcePaths = new Set([
+  'model/audit-rules.json', 'model/authoring-example-overrides.json', 'model/temporal-policy.json',
+  'model/responsibility-bindings.json',
+  'requirements/business-requirements.json', 'tests/business-acceptance.json', 'tests/negative-cases.json',
+]);
+export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+
+export function importSourceManifest(repository, commit) {
+  if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error('Invalid baseline commit');
+  const listing = execFileSync('git', ['ls-tree', '-r', '-z', commit, '--', 'model', 'benchmark', 'requirements', 'tests', 'tools', 'requirements.txt'], { cwd: repository, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+  const objects = [];
+  for (const line of listing.split('\0').filter(Boolean)) {
+    const match = /^(\d{6}) (\w+) ([a-f0-9]{40})\t(.+)$/.exec(line);
+    if (!match || match[2] !== 'blob' || !['100644', '100755'].includes(match[1])) throw new Error('Unsupported tracked source type');
+    const path = match[4];
+    if (generatedInputs.has(path)) continue;
+    objects.push({ path, object: match[3] });
+  }
+  if (!objects.length) return [];
+  // Blob IDs from ls-tree avoid parsing paths as batch commands. Git frames each
+  // response by byte length, so binary data and embedded newlines are safe.
+  const output = execFileSync('git', ['cat-file', '--batch'], { cwd: repository, input: objects.map(item => item.object).join('\n') + '\n', maxBuffer: 128 * 1024 * 1024 });
+  const entries = [];
+  let cursor = 0;
+  for (const { path, object } of objects) {
+    const end = output.indexOf(10, cursor);
+    if (end < 0) throw new Error('Invalid Git batch response');
+    const header = /^([a-f0-9]{40}) blob ([0-9]+)$/.exec(output.toString('ascii', cursor, end));
+    const size = header ? Number(header[2]) : NaN;
+    if (!header || header[1] !== object || !Number.isSafeInteger(size) || size > 8 * 1024 * 1024 || end + 1 + size >= output.length || output[end + 1 + size] !== 10) throw new Error('Invalid Git batch response');
+    entries.push({ path, sha256: sha256(output.subarray(end + 1, end + 1 + size)) });
+    cursor = end + size + 2;
+  }
+  if (cursor !== output.length) throw new Error('Invalid Git batch response');
+  return entries.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+}

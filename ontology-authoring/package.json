@@ -1,0 +1,22 @@
+{
+  "name": "@chargeweave/ontology-authoring",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "doctor": "node src/doctor.js",
+    "demo": "node src/demo-cli.js",
+    "demo:repair-check": "node scripts/demo-repair-check.mjs",
+    "benchmark:search": "node scripts/measure-search.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "diff": "9.0.0",
+    "zod": "4.6.7"
+  }
+}

@@ -1,0 +1,101 @@
+.studio-canvas-layout-menu {
+  position: absolute;
+  z-index: 5;
+  top: .5rem;
+  right: .5rem;
+  max-width: min(19rem, calc(100% - 1rem));
+  padding: .35rem .55rem;
+  border: 1px solid #93aaa7;
+  border-radius: .35rem;
+  background: #fff;
+  color: #183a39;
+  box-shadow: 0 2px 8px #0002;
+}
+.studio-canvas-layout-menu summary { cursor: pointer; font-weight: 700; }
+.studio-canvas-layout-menu p { margin: .5rem 0; font-size: .8rem; line-height: 1.4; }
+.studio-canvas-layout-menu button { margin: .25rem .25rem .25rem 0; }
+.modelling-studio .studio-canvas-minimap-toggle { display: flex; align-items: center; gap: .4rem; margin: .5rem 0; color: #183a39; font-size: .8rem; }
+.modelling-studio .studio-canvas-minimap-toggle input { width: auto; min-width: 0; margin: 0; }
+.studio-flow .studio-canvas-minimap { border: 1px solid #506d69; border-radius: .25rem; }
+.modelling-studio .studio-flow:focus-visible { outline: 3px solid var(--studio-focus); outline-offset: 2px; }
+@media (forced-colors: active) { .modelling-studio .studio-flow:focus-visible { outline-color: Highlight; } }
+.studio-canvas-layout-menu[open] { max-height: min(26rem, calc(100% - 1rem)); overflow: auto; }
+.studio-canvas-layout-menu .studio-layout-choices { max-height: 8rem; overflow: auto; margin: .4rem 0; padding: .3rem .5rem; border: 1px solid #93aaa7; }
+.studio-canvas-layout-menu .studio-layout-choices legend { font-size: .78rem; font-weight: 700; }
+.modelling-studio .studio-canvas-layout-menu .studio-layout-choice { display: flex; align-items: center; gap: .4rem; margin: .25rem 0; color: #183a39; font-size: .8rem; }
+.modelling-studio .studio-canvas-layout-menu .studio-layout-choice input { flex: 0 0 auto; width: auto; min-width: 0; margin: 0; }
+.modelling-studio .studio-canvas-group-form label { color: #183a39; }
+.modelling-studio .studio-canvas-group-form input { color: #183a39; background: #fff; border-color: #6d8985; }
+.studio-flow .react-flow__viewport-portal { z-index: -1; pointer-events: none; }
+.studio-canvas-group-frame { position: absolute; box-sizing: border-box; border: 2px dashed #4b7e73; border-radius: .65rem; background: rgb(68 142 123 / 7%); pointer-events: none; }
+.studio-canvas-group-frame span { position: absolute; top: 5px; left: 8px; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 5px; border-radius: .2rem; background: #eef8f4; color: #22594d; font-size: 12px; font-weight: 700; }
+.modelling-studio .studio-canvas-groups { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
+.studio-canvas-groups h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
+.studio-canvas-groups li { overflow-wrap: anywhere; }
+.studio-flow .studio-flow-node.studio-layout-selected { box-shadow: 0 0 0 4px #6b35b8; }
+.studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline: 3px dashed #0056a8; outline-offset: -5px; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline-color: #b9e0ff; }
+.studio-flow .studio-concept-card .studio-concept-module { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-flow .studio-concept-card .studio-concept-badges { display: flex; flex-wrap: wrap; column-gap: 4px; row-gap: 0; max-height: 28px; line-height: 14px; }
+.studio-flow .studio-concept-card .studio-concept-badges > * { display: block; flex: 0 0 auto; margin: 0; white-space: nowrap; }
+.studio-concept-layout-selected { display: block; color: #4d2686; font-size: 10px; font-weight: 700; }
+.studio-concept-layout-pinned { display: block; color: #124f77; font-size: 10px; font-weight: 700; }
+.studio-flow:has(.studio-canvas-layout-menu) .studio-layout-notice { max-width: min(32rem, calc(100% - 6.5rem)); }
+.studio-canvas-zoom { position: absolute; z-index: 4; right: 6.5rem; top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; max-width: calc(100% - 7.5rem); padding: .25rem .35rem; border: 1px solid #93aaa7; border-radius: .35rem; background: #fff; color: #183a39; font-size: .8rem; font-weight: 700; }
+.studio-canvas-zoom span { min-width: 3rem; text-align: right; }
+.modelling-studio .studio-canvas-zoom button { min-height: 1.8rem; padding: .2rem .45rem; }
+@media (pointer: coarse) {
+  /* The global touch-target rule is less specific than this zoom control. */
+  .modelling-studio .studio-canvas-zoom button { min-width: 44px; min-height: 44px; }
+}
+/* Keep floating diagram controls consistent with the selected workbench
+   theme. The light theme retains the existing high-contrast palette. */
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu,
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-zoom {
+  background: #20363b;
+  border-color: #799c98;
+  color: #edf8f5;
+  box-shadow: 0 3px 12px #0008;
+}
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu :is(summary, p, label, legend) { color: #edf8f5; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-canvas-layout-menu .studio-layout-choices { border-color: #799c98; }
+html[data-studio-theme="dark"] .modelling-studio .studio-graph :is(.studio-canvas-layout-menu, .studio-canvas-zoom) :is(button, summary, input):focus-visible { outline-color: #91e9d1; }
+.studio-canvas-viewport-notice { color: var(--studio-text, #e4eeef); font-size: .8rem; }
+.studio-canvas-keyboard-hint { margin: .4rem 0; font-size: .8rem; }
+:is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) { margin: .6rem 0; padding: .6rem; border: 1px solid var(--studio-border); border-radius: .35rem; background: var(--studio-panel); color: var(--studio-text); }
+:is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) > summary { cursor: pointer; font-weight: 700; }
+:is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) > label { margin: .5rem 0; }
+.modelling-studio :is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) :is(input, select) { width: 100%; min-width: 0; max-width: 100%; }
+:is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) p { margin: .5rem 0; font-size: .8rem; }
+.modelling-studio .studio-graph :is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) :is(button, input, select, summary):focus-visible { outline-color: var(--studio-focus); }
+@media (forced-colors: active) { html[data-studio-theme] .modelling-studio .studio-graph :is(.studio-canvas-create-relationship, .studio-canvas-concept-navigator) :is(button, input, select, summary):focus-visible { outline-color: Highlight; } }
+.studio-flow .react-flow__edge.selected .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .18; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted:hover { opacity: 1; }
+.studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+.studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: #0056a8; stroke-width: 3; }
+html[data-studio-theme="dark"] .modelling-studio .studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: #b9e0ff; stroke-width: 3; }
+@media (forced-colors: active) {
+  .studio-flow .react-flow__edge.studio-flow-edge-muted { opacity: .55; }
+  .studio-flow .react-flow__edge.studio-flow-edge-muted:focus-visible { opacity: 1; }
+  html[data-studio-theme] .modelling-studio .studio-flow .studio-flow-node.studio-relationship-endpoint .studio-concept-card { outline-color: Highlight; }
+  html[data-studio-theme] .modelling-studio .studio-flow .react-flow__edge:hover .react-flow__edge-path { stroke: Highlight; }
+}
+.studio-flow .studio-flow-inheritance .react-flow__edge-path { stroke-dasharray: 7 4; }
+.studio-canvas-line-legend { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin: .5rem 0; color: #183a39; font-size: .8rem; }
+.studio-canvas-line-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.studio-canvas-line-legend i { display: inline-block; width: 1.6rem; border-top: 2px solid currentColor; }
+.studio-canvas-line-legend i.studio-canvas-line-inheritance { border-top-style: dashed; }
+.studio-canvas-edge-picker { display: grid; gap: .4rem; margin: .75rem 0; }
+.modelling-studio .studio-canvas-edge-picker :is(input, select) { width: 100%; min-width: 0; max-width: 100%; }
+.studio-canvas-edge-picker button { justify-self: start; }
+.studio-canvas-edge-picker p { margin: 0; font-size: .8rem; }
+.studio-canvas-selection-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; min-width: 0; margin: .4rem 0; padding: .45rem; border: 1px solid var(--studio-strong-border); border-radius: .35rem; background: var(--studio-raised); color: var(--studio-text); }
+.studio-canvas-selection-strip > span { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; font-size: .8rem; }
+.studio-canvas-selection-strip button { max-width: 100%; }
+.modelling-studio .studio-canvas-edge-details { margin: .5rem 0; padding: .8rem; border: 1px solid var(--studio-strong-border, #49666a); background: var(--studio-panel, #102127); color: var(--studio-text, #e4eeef); }
+.modelling-studio .studio-canvas-edge-details:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 2px; }
+@media (forced-colors: active) { .modelling-studio .studio-canvas-edge-details:focus-visible { outline-color: Highlight; } }
+.studio-canvas-edge-details h3 { margin-top: 0; color: var(--studio-text, #e4eeef); }
+.studio-canvas-edge-details p { overflow-wrap: anywhere; }
+.studio-canvas-edge-actions { display: flex; flex-wrap: wrap; gap: .4rem; }

@@ -1,5 +1,6 @@
 """All-class synthetic integration fixture. Never production/customer data."""
 from runtime import *
+from authoring_example_overrides import apply_overrides
 import json
 from rdflib import RDF,Literal,XSD,URIRef
 catalog=json.loads((P/'model/catalog.json').read_text());g=Graph();g.bind('cd',C);g.bind('ex',E)
@@ -91,5 +92,6 @@ code('AnalyticalResult','resultState','Unavailable');code('AnalyticalExecution',
 code('DashboardPane','paneKind','Custom');setv('DashboardPane','rendererKey',Literal('sites',datatype=XSD.string))
 setv('AnalyticalFilter','filterDatatype',XSD.string);setv('DimensionDefinition','dimensionValueDatatype',XSD.string)
 from temporal_integrity import stamp_digests
+apply_overrides(g, catalog, json.loads((P/'model/authoring-example-overrides.json').read_text()), C, node)
 stamp_digests(g)
 temp=P/'examples/reference.ttl.tmp';temp.write_text(g.serialize(format='turtle'));temp.replace(P/'examples/reference.ttl');print(len(g),'example triples',len(catalog)-1,'explicit domain instances')
