@@ -48,22 +48,24 @@ const ConceptNode = memo(function ConceptNode({ data }) {
 const nodeTypes = { concept: ConceptNode };
 const RelationshipEdge = memo(function RelationshipEdge({ id, sourceX, sourceY, targetX, targetY, markerEnd, label, data }) {
   const offset = data?.offset ?? 0;
+  const visibleLabel = data?.showLabel ? label : undefined;
   if (data?.selfRelationship) {
     // Loop above the card instead of drawing through its content. Parallel
     // self-relations get distinct heights using the same stable edge offsets.
     const rise = data.selfLoopRise;
     const path = `M ${sourceX},${sourceY} C ${sourceX + 90},${sourceY - rise} ${targetX - 90},${targetY - rise} ${targetX},${targetY}`;
-    return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={label} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 - rise * .75} labelShowBg />;
+    return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={visibleLabel} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 - rise * .75} labelShowBg />;
   }
   const bend = Math.max(70, Math.abs(targetX - sourceX) * .45) * (targetX >= sourceX ? 1 : -1);
   const path = `M ${sourceX},${sourceY} C ${sourceX + bend},${sourceY + offset} ${targetX - bend},${targetY + offset} ${targetX},${targetY}`;
-  return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={label} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 + offset * .75} labelShowBg />;
+  return <BaseEdge id={id} path={path} markerEnd={markerEnd} label={visibleLabel} labelX={(sourceX + targetX) / 2} labelY={(sourceY + targetY) / 2 + offset * .75} labelShowBg />;
 });
 const edgeTypes = { relationship: RelationshipEdge };
 const multiplicity = { '!': '1', '?': '0..1', '+': '1..*', '*': '0..*' };
 const relationshipAccessibleName = edge => edge.predicate === 'subClassOf'
   ? `Inheritance: ${edge.source} is a subtype of ${edge.target}`
   : `Relationship ${edge.predicate}: ${edge.source} to ${edge.target}; multiplicity ${edge.cardinality ? multiplicity[edge.cardinality] ?? edge.cardinality : 'not recorded'}`;
+const automaticRelationshipLabelLimit = 12;
 function ZoomReadout({ onManualInteraction, onOverviewChange, onFocusSelected, onFocusRoot, canFocusSelected, canFocusRoot }) {
   const { zoom } = useViewport();
   const { zoomTo } = useReactFlow();
@@ -86,6 +88,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const [dimOtherRelationships, setDimOtherRelationships] = useState(false);
   const [relationshipQuery, setRelationshipQuery] = useState('');
   const [relationshipDirection, setRelationshipDirection] = useState('all');
+  const [relationshipLabelMode, setRelationshipLabelMode] = useState('automatic');
   const [conceptQuery, setConceptQuery] = useState('');
   const [navigationConcept, setNavigationConcept] = useState('');
   const [relationshipTargetQuery, setRelationshipTargetQuery] = useState('');
@@ -129,6 +132,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const relationshipFocusHint = useId();
   const relationshipDetailsId = useId();
   const relationshipSearchStatus = useId();
+  const relationshipLabelHelp = useId();
   const relationshipTargetStatus = useId();
   const relationshipSearchInput = useRef(null);
   const relationshipTargetSearchInput = useRef(null);
@@ -141,6 +145,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   const activeEdges = useMemo(() => graph.edges.filter(edge => visibleNames.has(edge.source) && visibleNames.has(edge.target)), [graph.edges, visibleNames]);
   useEffect(() => { setRelationshipQuery(''); }, [graph.workspaceId, graph.root, viewId]);
   useEffect(() => { setRelationshipDirection('all'); }, [graph.workspaceId, graph.root, viewId, selectedName]);
+  useEffect(() => { setRelationshipLabelMode('automatic'); }, [graph.workspaceId, graph.root, viewId]);
   useEffect(() => { setConceptQuery(''); setNavigationConcept(''); }, [graph.workspaceId, graph.root, viewId]);
   useEffect(() => { if (navigationConcept && !visibleNames.has(navigationConcept)) setNavigationConcept(''); }, [navigationConcept, visibleNames]);
   useEffect(() => {
@@ -258,6 +263,10 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
   }, [visibleNames]);
   const selectedEdge = activeEdges.find(edge => edge.id === selectedEdgeId) ?? null;
   const highlightedEdge = activeEdges.find(edge => edge.id === hoveredEdgeId) ?? selectedEdge;
+  const showRelationshipLabel = edge => relationshipLabelMode === 'all'
+    || (relationshipLabelMode === 'focus' || (relationshipLabelMode === 'automatic' && activeEdges.length > automaticRelationshipLabelLimit)
+      ? edge.id === selectedEdgeId || edge.id === hoveredEdgeId
+      : true);
   const matchingRelationships = useMemo(() => {
     const term = relationshipQuery.trim().toLowerCase();
     return activeEdges.filter(edge => (relationshipDirection === 'all' || (relationshipDirection === 'incoming' ? edge.target === selectedName : edge.source === selectedName)) && (!term || `${edge.source} ${edge.predicate} ${edge.target} ${edge.label ?? ''}`.toLowerCase().includes(term)));
@@ -641,6 +650,8 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
       <summary>Layout</summary>
       <p>Arrange visible concepts automatically. Pinned concepts and hidden concepts are unchanged.</p>
       <p>Pins are local to this browser tab and view; they are not included in shared views.</p>
+      <label>Relationship labels <select aria-describedby={relationshipLabelHelp} value={relationshipLabelMode} onChange={event => { onManualInteraction(); setRelationshipLabelMode(event.target.value); }}><option value="automatic">Automatic</option><option value="all">Show all labels</option><option value="focus">Selected or hovered only</option></select></label>
+      <p id={relationshipLabelHelp}>Automatic labels every relationship in views with {automaticRelationshipLabelLimit} or fewer visible relationships. In denser views, labels appear on the relationship you select or hover. All relationships remain available in the inspector and keyboard navigation. This setting applies to this browser view.</p>
       <p>Dragging a pinned concept moves it explicitly and keeps it pinned.</p>
       {missingPinnedPositions && <p>Some previously pinned positions were unavailable. Check their positions before continuing.</p>}
       {pinRecoveryNeeded && <><p>Local pin settings could not be read. Replacing them removes the stored pins for this view.</p><button type="button" onClick={replaceUnreadablePins}>Replace unreadable pin settings</button></>}
@@ -696,7 +707,7 @@ export default function ModellingCanvas({ graph, viewId, selectedName, onSelect,
         {hiddenNotice && <p aria-live="polite">{hiddenNotice}</p>}
       </details>
     </details>
-    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, ariaLabel: relationshipAccessibleName(edge), data: { offset: offsets.get(edge.id), selfRelationship: edge.source === edge.target, selfLoopRise: selfLoopRises.get(edge.id) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
+    <ReactFlow nodes={displayNodes} nodeTypes={nodeTypes} edgeTypes={edgeTypes} edges={activeEdges.map(edge => ({ id: edge.id, type: 'relationship', source: edge.source, target: edge.target, label: edge.cardinality ? `${edge.predicate} ${multiplicity[edge.cardinality] ?? edge.cardinality}` : edge.predicate, ariaLabel: relationshipAccessibleName(edge), data: { offset: offsets.get(edge.id), selfRelationship: edge.source === edge.target, selfLoopRise: selfLoopRises.get(edge.id), showLabel: showRelationshipLabel(edge) }, selected: edge.id === selectedEdgeId, markerEnd: { type: MarkerType.ArrowClosed, color: '#506d69' }, className: `studio-flow-edge-${edge.changeStatus}${edge.predicate === 'subClassOf' ? ' studio-flow-inheritance' : ''}${dimOtherRelationships && selectedEdge && edge.id !== selectedEdgeId ? ' studio-flow-edge-muted' : ''}` }))}
       onInit={value => { instance.current = value; if (!fitted.current && lastRoot.current) frameRoot(lastRoot.current); }} onNodesChange={onNodesChange} onNodeDragStop={onNodeDragStop} onNodeDragStart={startNodeDrag} onMoveStart={event => { if (event?.isTrusted) onManualInteraction(); }} onMoveEnd={(_event, viewport) => {
         if (!lastRoot.current) return;
         try { writeCanvasViewport(sessionStorage, graph.workspaceId, viewId, lastRoot.current, viewport); setViewportNotice(''); }

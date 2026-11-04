@@ -38,6 +38,7 @@ test('all card badges and the accurate field overflow fit together', async ({ pa
     await expect(card.locator('li')).toHaveCount(2);
     await expect(card.getByText('+2 fields', { exact: true })).toBeVisible();
     await expect(card.locator('.studio-concept-module')).toHaveAttribute('title', module);
+    if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
     for (const theme of ['light', 'dark']) {
       await page.getByLabel('Appearance').selectOption(theme);
       const geometry = await card.evaluate(element => {

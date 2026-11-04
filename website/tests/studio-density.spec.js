@@ -65,9 +65,10 @@ test('compact density preserves compact-screen navigation targets', async ({ pag
   });
 });
 
-test('invalid stored density falls back to comfortable', async ({ page }) => {
+test('invalid stored density falls back to comfortable', async ({ page, isMobile }) => {
   await page.addInitScript(() => { try { localStorage.setItem('chargeweave.studio.density.v1', 'unknown'); } catch { /* No origin yet. */ } });
   await withStudio(page, async () => {
+    if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
     await expect(page.getByLabel('Density')).toHaveValue('comfortable');
     await expect(page.locator('html')).toHaveAttribute('data-studio-density', 'comfortable');
   });

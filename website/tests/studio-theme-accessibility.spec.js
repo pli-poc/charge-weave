@@ -119,8 +119,8 @@ test('320px compact navigation keeps controls usable without page overflow', asy
     expect(bounds[2].top).toBeGreaterThan(bounds[0].top);
     const settings = page.getByRole('button', { name: 'Studio preferences' });
     await expect(settings).toBeVisible();
-    await expect(page.getByLabel('Appearance')).toBeHidden();
-    await expect(page.getByLabel('Density')).toBeHidden();
+    await expect(page.getByLabel('Appearance')).toHaveCount(0);
+    await expect(page.getByLabel('Density')).toHaveCount(0);
     const settingsTop = await settings.evaluate(element => element.getBoundingClientRect().top);
     const workspaceTop = await page.locator('.studio-workspaces').evaluate(element => element.getBoundingClientRect().top);
     expect(workspaceTop - settingsTop).toBeLessThan(100);
