@@ -69,12 +69,16 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await page.getByRole('button', { name: 'Check draft' }).click();
     await expect(page.getByRole('alert').filter({ hasText: /MCP error/ })).toHaveCount(0);
     if (isMobile) {
-      await expect(page.getByRole('link', { name: 'Check: passed' })).toBeVisible();
+      await page.getByRole('link', { name: 'Check: passed' }).click();
+      await expect(page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await page.getByRole('button', { name: 'View check details' }).click();
+      await expect(page.getByRole('button', { name: 'Collapse validation' })).toHaveAttribute('aria-expanded', 'true');
     } else {
       await expect(page.getByText(/structural checks: passed for revision 3/)).toBeVisible();
       await page.getByRole('button', { name: 'View check details' }).click();
-      await expect(page.getByText('synthetic-structural-check: passed')).toBeVisible();
     }
+    await expect(page.getByRole('region', { name: 'Validation issues' }).getByText('No failed steps in this job. Other required checks may still be missing.')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Results content' }).getByRole('region', { name: 'Recorded check steps' })).toContainText('synthetic-structural-check: passed');
 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();
