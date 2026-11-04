@@ -1,6 +1,6 @@
 # ChargeWeave ontology modelling IDE: UI and UX implementation plan
 
-**Status:** Planned work, ready for later execution. This document does not implement the redesign or declare the existing studio usable.
+**Status:** Execution in progress on `implement/ontology-modelling-studio`. This document is the acceptance plan; implementation and evidence are tracked separately in the [execution ledger](ontology-modelling-ide-ux-status.md). It does not declare the existing studio usable.
 
 **Requested outcome:** A professional modelling IDE with a clear visual workspace, rich contextual controls, and an intuitive workflow from discovery through editing, validation and review.
 
@@ -407,25 +407,25 @@ Presentation pinning, viewport and tab state initially stay local. Do not add st
 
 ### Capability migration checklist
 
-| Existing feature | Destination in redesigned IDE |
-|---|---|
-| Pair/token connection, diagnostics, workspace list/create/switch | Welcome/connection surface; workspace menu; Settings -> Connection |
-| Change-set intent and requirement context | Changes sidebar header and change-set details |
-| Concept search, entity inspection and property/source details | Explorer, Search and Inspector |
-| Class/definition/property/relationship editing | Add menu, card/edge actions and contextual editors |
-| Required/allowed-value/interval constraints | Constraints inspector and template editor |
-| Requirement search/link and reviewer interval cases | Requirements inspector; Review -> Evidence/cases |
-| Responsibility mapping and temporal policy | Perspective toolbar and Inspector -> Perspectives |
-| Saved views, groups, notes and manifest export/import | Editor tabs, view menu, visual grouping and annotation tools; import is version-checked, confirms replacement and validates destination concept references. Covered by `ontology-authoring/test/mcp.test.js` and `website/tests/studio-view-manifest-import.spec.js`. |
-| Diff, change impact and generated comparisons | Changes review editor |
-| Validation start/cancel/retry, output and repair instruction | Check menu; Problems, Checks and Output panels |
-| History, exact revision comparison and latest-group undo | Activity panel; history editor; explicit Undo command |
-| View suggestions/follow pause/resume | AI activity and view-follow status |
-| Readiness, review decisions and reopen | Review editor and state-specific actions |
-| Preflight, prepare, reserve, commit, push, draft PR and reconciliation | Publish stage of Review, backed by existing journal |
-| Publication history, exact-SHA workflows and required-policy lookup | Review -> Publication history and Verify |
+| Existing feature | Destination in redesigned IDE | Behavior evidence | Remaining acceptance |
+|---|---|---|---|
+| Pair/token connection, diagnostics, workspace list/create/switch | Welcome/connection surface; workspace menu; Settings -> Connection | [Connection and diagnostics](../website/tests/modelling.spec.js#L37), [workspace creation/switch](../website/tests/modelling.spec.js#L1353), [first-time journey](../website/tests/studio-first-time-journey.spec.js) | Complete first-run/resume journey and human timing; token/UUID entry must remain advanced. |
+| Change-set intent and requirement context | Changes sidebar header and change-set details | [Requirement search/link](../website/tests/modelling.spec.js#L268), [first-time journey](../website/tests/studio-first-time-journey.spec.js) | Verify intent, links, status and saved-state comprehension end to end. |
+| Concept search, entity inspection and property/source details | Explorer, Search and Inspector | [Bounded discovery and inspection](../website/tests/modelling.spec.js#L78), [source preview](../website/tests/studio-source-preview.spec.js) | Full feature parity, source-owner coverage and human discovery task. |
+| Class/definition/property/relationship editing | Add menu, card/edge actions and contextual editors | [First-time journey](../website/tests/studio-first-time-journey.spec.js), [relationship authoring](../website/tests/modelling.spec.js#L2328), [definition conflict](../website/tests/modelling.spec.js#L1175), [field conflict](../website/tests/studio-field-conflict.spec.js) | Complete supported form inventory, boundary/error paths and task walkthrough. |
+| Required/allowed-value/interval constraints | Constraints inspector and template editor | [Allowed values](../website/tests/studio-allowed-values.spec.js), [interval rule authoring](../website/tests/modelling.spec.js#L1402), [required relationship](../website/tests/studio-required-relationship.spec.js) | Exercise each template at desktop and compact widths; verify invalid and stale states in the journey matrix. |
+| Requirement search/link and reviewer interval cases | Requirements inspector; Review -> Evidence/cases | [Requirement explorer and links](../website/tests/modelling.spec.js#L268), [paged links](../website/tests/modelling.spec.js#L1782), [interval cases](../website/tests/modelling.spec.js#L1402) | Confirm reviewer task clarity, missing links and large requirement sets in end-to-end review. |
+| Responsibility mapping and temporal policy | Perspective toolbar and Inspector -> Perspectives | [Responsibility mapping](../website/tests/modelling.spec.js#L2587), [temporal policy](../website/tests/modelling.spec.js#L2665), [mapping draft recovery](../website/tests/studio-responsibility-draft.spec.js) | Combined journey, mapped/missing state explanation and independent modeller review. |
+| Saved views, groups, notes and manifest export/import | Editor tabs, view menu, visual grouping and annotation tools | [Saved views and view identity](../website/tests/modelling.spec.js#L324), [visual groups](../website/tests/canvas-groups.spec.js), [manifest import](../website/tests/studio-view-manifest-import.spec.js), [note draft](../website/tests/studio-view-note-draft.spec.js) | Save/conflict/reopen parity matrix and confirmation that presentation edits remain separate from ontology changes. |
+| Diff, change impact and generated comparisons | Changes review editor | [Semantic/source comparison](../website/tests/modelling.spec.js#L1692), [source preview](../website/tests/studio-source-preview.spec.js), [first-time journey](../website/tests/studio-first-time-journey.spec.js) | Validate all source owners, long patches, stale state and reviewer comprehension. |
+| Validation start/cancel/retry, output and repair instruction | Check menu; Problems, Checks and Output panels | [Check output and repair journey](../website/tests/modelling.spec.js#L2845), [scrollable output](../website/tests/studio-scrollable-output.spec.js), [first-time synthetic check](../website/tests/studio-first-time-journey.spec.js) | Known/unknown failure taxonomy, actual authoring checks, compact detail reachability and end-to-end repair journey. |
+| History, exact revision comparison and latest-group undo | Activity panel; history editor; explicit Undo command | [Latest-group undo](../website/tests/modelling.spec.js#L2173), [revision comparison and activity](../website/tests/modelling.spec.js#L2205) | Multi-actor journey and human understanding of undo scope and shared impact. |
+| View suggestions/follow pause/resume | AI activity and view-follow status | [Suggestion activity](../website/tests/modelling.spec.js#L2205), [follow pause/resume](../website/tests/modelling.spec.js#L2249) | Verify no focus theft during a full edit/check journey; AI/client behavior remains simulated where noted. |
+| Readiness, review decisions and reopen | Review editor and state-specific actions | [Review gates and cross-client invalidation](../website/tests/modelling.spec.js#L1935), [review workflow navigation](../website/tests/modelling.spec.js#L2118) | Complete accept/reject/reopen transition matrix and human review of evidence/role clarity. |
+| Preflight, prepare, reserve, commit, push, draft PR and reconciliation | Publish stage of Review, backed by existing journal | [Target preflight](../website/tests/modelling.spec.js#L1489), [simulated draft PR](../website/tests/modelling.spec.js#L1564) | Full failure/recovery matrix; tests are simulated and do not prove a real studio publication. |
+| Publication history, exact-SHA workflows and required-policy lookup | Review -> Publication history and Verify | [Publication history and journal](../website/tests/modelling.spec.js#L1489), [exact commit workflow lookup](../website/tests/modelling.spec.js#L1520) | Exact-SHA live service behavior, role limitations and actual deployment/branch-policy distinction. |
 
-No row is complete merely because its old section was hidden. Maintain this checklist during execution and link each row to behavior tests or documented verification.
+The links identify behavior coverage, not proof that every linked scenario passed on the current head or that the complete capability is accepted. Track current-SHA execution in the [UX status ledger](ontology-modelling-ide-ux-status.md). No row is complete merely because its old section was hidden; use the remaining-acceptance column to drive the J1-J14, feature-parity and human review work.
 
 ## 13. Execution phases and deliverables
 
