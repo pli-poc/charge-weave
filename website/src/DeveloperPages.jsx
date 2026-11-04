@@ -29,6 +29,7 @@ const base = import.meta.env.BASE_URL;
 const developerUrl = (slug = "") => `${base}developer/${slug ? slug + "/" : ""}`;
 const pages = [
   { id: "workbench", route: "developer/workbench", label: "Engineering workbench" },
+  { id: "modelling-studio", route: "developer/modelling-studio", label: "Ontology modelling studio" },
   { id: "local", route: "developer/local", label: "Local workspace" },
   { id: "runtime", route: "developer", label: "Runtime" },
   { id: "platform", route: "developer/platform", label: "Workflow runtime" },
@@ -285,6 +286,53 @@ function SemanticModelerPage() {
           <ShieldCheck size={23} />
           <div><strong>Definition of done for the first usable release</strong><p>A reconciliation viewpoint can be generated deterministically from ontology-backed data, laid out entirely in the browser, switched between at least Business, Process and Information views, inspected back to semantic source identifiers, and saved as a presentation-only view without changing ontology facts.</p></div>
         </div>
+      </section>
+    </>
+  );
+}
+
+function ModellingStudioGuidePage() {
+  return (
+    <>
+      <section className="container dev-runtime-section">
+        <SectionTitle eyebrow="Local authoring setup" title="Pair the browser studio with your workspace.">
+          The ontology modelling studio runs against a local authoring service. The service owns the workspace and serves the studio from the same loopback address, so pairing credentials stay local to your machine.
+        </SectionTitle>
+        <div className="dev-callout">
+          <ShieldCheck size={23} />
+          <div>
+            <strong>Use the authoring service URL</strong>
+            <p>The Vite preview on port 4173 is for viewing the site. Pairing requires the service URL on port 4317 (or the custom port you configured), because the pairing endpoint is provided by that service.</p>
+          </div>
+        </div>
+      </section>
+      <section className="container dev-modeler-roadmap">
+        <SectionTitle eyebrow="PowerShell · Windows" title="Start a workspace and connect." />
+        <div className="dev-modeler-roadmap-list">
+          <article><span>01</span><div><h3>Install the service dependencies</h3><p>From the repository root, using Node.js 22.18 or newer:</p><pre className="dev-code"><code>{`npm ci --prefix ontology-authoring`}</code></pre></div></article>
+          <article><span>02</span><div><h3>Build the website the service will serve</h3><p>Install the frontend dependencies and create the production bundle:</p><pre className="dev-code"><code>{`npm ci --prefix client-runtime
+npm ci --prefix website
+npm run build --prefix website`}</code></pre></div></article>
+          <article><span>03</span><div><h3>Create a workspace</h3><p>This imports the committed model at the current Git HEAD and prints a workspace ID. Uncommitted model edits are not included.</p><pre className="dev-code"><code>{`npm start --prefix ontology-authoring -- --create-workspace`}</code></pre><p>Copy the printed <code>id</code> value for the next step. The workspace is stored locally in <code>ontology-authoring/workspaces.sqlite</code>.</p></div></article>
+          <article><span>04</span><div><h3>Configure local credentials and start the service</h3><p>In the same PowerShell window, set the workspace ID you copied and generate separate random draft and pairing secrets. The pairing code is printed before the service starts so you can copy it from this window:</p><pre className="dev-code"><code>{`$env:CHARGEWEAVE_WORKSPACE_ID = "paste-workspace-id-here"
+$env:CHARGEWEAVE_DRAFT_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+$env:CHARGEWEAVE_PAIRING_CODE = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+Write-Host "Pairing code:" $env:CHARGEWEAVE_PAIRING_CODE
+npm start --prefix ontology-authoring`}</code></pre><p>Keep this window open while using the studio. The service listens on <code>127.0.0.1:4317</code> by default.</p></div></article>
+          <article><span>05</span><div><h3>Pair the browser</h3><p>Open <code>http://127.0.0.1:4317/charge-weave-app/modelling/</code> and enter the code printed by the service window in <strong>Pair local studio</strong>.</p><p>The pairing code expires five minutes after service startup, is single-use, and locks after five incorrect attempts. The browser session lasts up to eight hours and is cleared when the service restarts or you disconnect.</p></div></article>
+        </div>
+        <div className="dev-callout">
+          <ShieldCheck size={23} />
+          <div>
+            <strong>Keep credentials private</strong>
+            <p>Do not put the pairing code or draft token in a URL, source file, commit, or message. The draft token is for service clients; the browser uses the pairing code to establish its protected session.</p>
+          </div>
+        </div>
+      </section>
+      <section className="container dev-modeler-modes">
+        <SectionTitle eyebrow="Workspace identity" title="Find the workspace ID after pairing." />
+        <p>After connecting, the current workspace title appears in the app bar. Open <strong>More → Connection and diagnostics</strong> to see its full workspace ID, revision, connection state and latest job. The ID is also the value you set in <code>CHARGEWEAVE_WORKSPACE_ID</code>.</p>
+        <p className="dev-inline-note">A browser refresh resumes the existing session. A service restart ends it; start the service again and pair with the new code.</p>
       </section>
     </>
   );
@@ -721,6 +769,7 @@ function ReplayPage() {
 
 const pageCopy = {
   workbench: { title: <>Build with evidence.<br /><span>Accelerate with context.</span></>, description: "Model candidate changes, run synthetic scenarios and use the same browser tools manually or through an AI adapter." },
+  "modelling-studio": { title: <>Connect the model.<br /><span>Work from one local source.</span></>, description: "Set up the local ontology authoring service, create a workspace and pair the browser modelling studio without exposing credentials." },
   local: { title: <>Client execution.<br /><span>One saved workspace.</span></>, description: "Inspect the operator task, pinned workflow and accepted correction from the local application runtime." },
   runtime: {
     title: <>Test the process<br /><span>before the infrastructure.</span></>,
@@ -781,6 +830,7 @@ export default function DeveloperPages({ route }) {
   }
   const content = {
     workbench: <EngineeringWorkbench />,
+    "modelling-studio": <ModellingStudioGuidePage />,
     local: <LocalWorkspaceInspector />,
     runtime: <RuntimePage />,
     platform: <WorkflowPlatformOverview />,
