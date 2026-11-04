@@ -79,6 +79,8 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     }
     await expect(page.getByRole('region', { name: 'Validation issues' }).getByText('No failed steps in this job. Other required checks may still be missing.')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Results content' }).getByRole('region', { name: 'Recorded check steps' })).toContainText('synthetic-structural-check: passed');
+    await page.getByText('Recorded output for synthetic-structural-check', { exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Recorded step output: synthetic-structural-check' })).toContainText('Synthetic fixture check passed.');
 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await page.getByRole('button', { name: 'Inspect changes' }).click();

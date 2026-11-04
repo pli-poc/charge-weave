@@ -54,8 +54,12 @@ try {
   const checks = page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true });
   if (await checks.getAttribute('aria-pressed') !== 'true') await checks.click();
   await page.getByRole('region', { name: 'Recorded check steps' }).getByText('synthetic-structural-check', { exact: true }).waitFor();
-  await page.getByRole('region', { name: 'Results content' }).evaluate(element => element.scrollTo({ top: element.scrollHeight, behavior: 'instant' }));
+  const scrollToSteps = () => page.getByRole('region', { name: 'Results content' }).evaluate(element => { const section = element.querySelector('[aria-label="Recorded check steps"]'); element.scrollTo({ top: element.scrollTop + section.getBoundingClientRect().top - element.getBoundingClientRect().top - 12, behavior: 'instant' }); });
+  await scrollToSteps();
   await capture('checks');
+  await page.getByText('Recorded output for synthetic-structural-check', { exact: true }).click();
+  await scrollToSteps();
+  await capture('checks-output');
   await checks.click();
   if (await problems.getAttribute('aria-pressed') !== 'true') await problems.click();
   await page.getByRole('region', { name: 'Problems' }).getByText('synthetic-review-fixture', { exact: true }).waitFor();
@@ -72,5 +76,5 @@ try {
     await capture('changes');
   }
   await page.close();
-  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace with distinct passing and failing check steps', captures: changesOnly ? 2 : 10 }));
+  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace with distinct passing and failing check steps', captures: changesOnly ? 2 : 12 }));
 } finally { await browser.close(); await service.shutdown(); store.close(); }

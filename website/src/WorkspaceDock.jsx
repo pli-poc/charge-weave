@@ -91,7 +91,7 @@ export default function WorkspaceDock({ panel, onPanelChange, height, heightLimi
       </section>
       <div hidden={panel !== 'checks'}>
         <ValidationIssues job={validationJob} snapshot={snapshot} onRetry={onRetry} onFocusConcept={onFocusConcept} onFocusIssue={onFocusIssue} disabled={disabled} />
-        {validationJob?.steps?.length > 0 && <section aria-label="Recorded check steps"><h2>Recorded check steps</h2><ul>{validationJob.steps.map(step => <li key={step.ordinal}><strong>{step.checkName}</strong>: {step.status}</li>)}</ul></section>}
+        {validationJob?.steps?.length > 0 && <section aria-label="Recorded check steps"><h2>Recorded check steps</h2><ul>{validationJob.steps.map(step => <li key={step.ordinal}><strong>{step.checkName}</strong>: {step.status}<details><summary>Recorded output for {step.checkName}</summary><StudioScrollableText label={`Recorded step output: ${step.checkName}`}>{step.output || 'No output was recorded for this step.'}</StudioScrollableText></details></li>)}</ul></section>}
         {terminal && validationJob && <button type="button" onClick={onDownloadEvidence}>Download evidence report</button>}
       </div>
       {panel === 'activity' && <section aria-label="Recent activity">
