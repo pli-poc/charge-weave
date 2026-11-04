@@ -1200,6 +1200,53 @@ test('a remote definition edit preserves local input and requires conflict revie
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
+test('a lost model-change response retries with the same operation identity', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Lost write response', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original definition.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let lostResponse = false;
+  const operationIds = [];
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Saved despite the lost response.');
+    await page.route('**/mcp', async route => {
+      const request = route.request().postDataJSON();
+      if (request?.params?.name === 'ontology_changeset_apply') {
+        operationIds.push(request.params.arguments.operationId);
+        if (!lostResponse) {
+          lostResponse = true;
+          await route.fetch();
+          await route.fulfill({ status: 502, body: 'Synthetic connection reset after commit.' });
+          return;
+        }
+      }
+      await route.continue();
+    });
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    const recovery = page.getByRole('alert', { name: 'Model change outcome is unknown' });
+    await expect(recovery).toContainText('The service may have saved this change.');
+    await expect(recovery.getByRole('button', { name: 'Retry the same model change' })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Save definition' })).toBeDisabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await recovery.getByRole('button', { name: 'Retry the same model change' }).click();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    expect(operationIds).toHaveLength(2);
+    expect(operationIds[1]).toBe(operationIds[0]);
+    expect(store.snapshot(workspace.id).revision).toBe(1);
+    expect(store.search(workspace.id, 'Record').results[0].definition).toBe('Saved despite the lost response.');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
 test('an older search cannot replace newer navigator results', async ({ page }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Search race', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
