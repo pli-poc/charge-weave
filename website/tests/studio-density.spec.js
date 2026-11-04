@@ -18,8 +18,13 @@ async function withStudio(page, run) {
   } finally { await page.close(); await service.shutdown(); store.close(); }
 }
 
+async function openAppearanceSettings(page, isMobile) {
+  if (isMobile) await page.getByRole('button', { name: 'Appearance and density settings' }).click();
+}
+
 test('density preference changes spacing, preserves readable text and survives reload', async ({ page, isMobile }) => {
   await withStudio(page, async ({ store, workspace }) => {
+    await openAppearanceSettings(page, isMobile);
     const density = page.getByLabel('Density');
     await expect(density).toHaveValue('comfortable');
     await page.getByLabel('Search model').fill('Record');
@@ -50,6 +55,7 @@ test('compact density preserves compact-screen navigation targets', async ({ pag
   test.skip(!isMobile, 'Touch-sized compact navigation is exercised on mobile.');
   await page.setViewportSize({ width: 320, height: 800 });
   await withStudio(page, async () => {
+    await page.getByRole('button', { name: 'Appearance and density settings' }).click();
     await page.getByLabel('Density').selectOption('compact');
     const controls = page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button');
     await expect(controls).toHaveCount(4);

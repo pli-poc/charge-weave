@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
-test('studio appearance follows the system and remembers an explicit choice', async ({ page }) => {
+test('studio appearance follows the system and remembers an explicit choice', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Appearance', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode: 'synthetic-pairing-code-'.repeat(2), workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
@@ -12,6 +12,7 @@ test('studio appearance follows the system and remembers an explicit choice', as
   try {
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    if (isMobile) await page.getByRole('button', { name: 'Appearance and density settings' }).click();
     const appearance = page.getByLabel('Appearance');
     await expect(appearance).toHaveValue('system');
     await expect(page.locator('html')).toHaveAttribute('data-studio-theme', 'light');

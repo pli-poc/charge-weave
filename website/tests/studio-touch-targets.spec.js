@@ -18,12 +18,14 @@ for (const width of [320, 390]) {
       await page.getByLabel('Pairing code').fill(pairingCode);
       await page.getByRole('button', { name: 'Pair local studio' }).click();
       expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+      await page.getByRole('button', { name: 'Appearance and density settings' }).click();
       await page.getByLabel('Density').selectOption('compact');
       const targets = [page.getByLabel('Appearance'), page.getByLabel('Density'), page.getByLabel('Search model'), page.getByRole('button', { name: 'Check draft', exact: true })];
       for (const target of targets) {
         const box = await target.boundingBox();
         expect(box.height).toBeGreaterThanOrEqual(44);
       }
+      await page.getByRole('button', { name: 'Appearance and density settings' }).click();
       await page.getByLabel('Search model').fill('Device');
       await page.getByRole('button', { name: 'Search', exact: true }).click();
       await page.getByRole('button', { name: 'Device', exact: true }).click();

@@ -117,9 +117,16 @@ test('320px compact navigation keeps controls usable without page overflow', asy
     }));
     expect(bounds.every(box => box.height >= 44)).toBe(true);
     expect(bounds[2].top).toBeGreaterThan(bounds[0].top);
+    const settings = page.getByRole('button', { name: 'Appearance and density settings' });
+    await expect(settings).toBeVisible();
+    const settingsTop = await settings.evaluate(element => element.getBoundingClientRect().top);
+    const workspaceTop = await page.locator('.studio-workspaces').evaluate(element => element.getBoundingClientRect().top);
+    expect(workspaceTop - settingsTop).toBeLessThan(100);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     for (const theme of ['light', 'dark']) {
+      await settings.click();
       await page.getByLabel('Appearance').selectOption(theme);
+      await settings.click();
       await navigation.getByRole('button', { name: 'Diagram' }).click();
       await navigation.getByRole('button', { name: 'Diagram' }).hover();
       await expect(navigation.getByRole('button', { name: 'Diagram' })).toHaveCSS('background-color', 'rgb(43, 98, 89)');

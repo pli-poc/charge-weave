@@ -40,7 +40,9 @@ export default function StudioThemeControl() {
     try { localStorage.setItem(densityKey, density); } catch { /* Preference remains in memory. */ }
     return () => { delete document.documentElement.dataset.studioDensity; };
   }, [density]);
-  return <div className="studio-appearance-controls">
+  return <details className="studio-appearance-menu">
+    <summary aria-label="Appearance and density settings">Appearance</summary>
+    <div className="studio-appearance-controls">
     <label className="studio-theme-control">Appearance
       <select value={choice} onChange={event => setChoice(event.target.value)}>
         <option value="system">System</option>
@@ -54,5 +56,6 @@ export default function StudioThemeControl() {
         <option value="compact">Compact</option>
       </select>
     </label>
-  </div>;
+    </div>
+  </details>;
 }
