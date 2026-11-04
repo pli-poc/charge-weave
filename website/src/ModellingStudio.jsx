@@ -1417,7 +1417,7 @@ export default function ModellingStudio() {
   function discardDefinitionAndSelect() {
     if (!pendingSelection) return;
     setFieldEdit(null); setValueConstraint(null); setField({ name: '', range: 'string', cardinality: '?' }); setFieldValueCandidate(''); setFieldDraftBase(null); setRelationshipDraft(null); setIntervalRule({ startProperty: '', endProperty: '', ruleId: '' }); setIntervalBase(null); setBinding({ property: '', label: '', category: 'ownership' }); setBindingBase(null); setTemporalBaseline(null); setAnnotationText(''); setCanvasGroupName('');
-    if (['workspace-switch', 'disconnect'].includes(pendingSelection.kind)) { setNewClass({ name: '', module: 'foundation', parent: 'Record', definition: '' }); setConceptDefaults({ module: 'foundation', parent: 'Record' }); setConceptDraftBase(null); setGroupName(''); setGroupMembers(''); }
+    if (['workspace-switch', 'disconnect'].includes(pendingSelection.kind)) { setNewClass({ name: '', module: 'foundation', parent: 'Record', definition: '' }); setConceptDefaults({ module: 'foundation', parent: 'Record' }); setConceptDraftBase(null); }
     if (pendingSelection.kind === 'disconnect') {
       setPendingSelection(null);
       void disconnect(true);
@@ -2310,6 +2310,7 @@ export default function ModellingStudio() {
     setFollowSuggestions(false);
     setFollowPaused(false);
     setServerInfo(null);
+    setConnection(null); setOnline(false); setSnapshot(null); setSelected(null); setStatus('Disconnected');
     let revokeFailed = false;
     if (connection && typeof connection.token !== 'string') {
       try {
@@ -2317,7 +2318,6 @@ export default function ModellingStudio() {
         revokeFailed = !response.ok;
       } catch { revokeFailed = true; }
     }
-    setConnection(null); setOnline(false); setSnapshot(null); setSelected(null); setStatus('Disconnected');
     if (revokeFailed) setError('Could not confirm session revocation. Reconnect and try Disconnect again, or restart the service.');
   }
   async function copyDiagnostics() {
