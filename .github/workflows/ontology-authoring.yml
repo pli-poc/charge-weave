@@ -155,6 +155,7 @@ jobs:
       - run: npm ci --prefix client-runtime
       - run: npm ci --prefix website
       - run: npm run build --prefix website
+      - run: npm run check:route-splitting --prefix website
       - run: node --test src/model/event-cursor.test.js src/model/canvas-pins.test.js src/model/canvas-history.test.js src/model/canvas-viewport.test.js src/model/canvas-hidden.test.js src/model/canvas-groups.test.js src/model/canvas-distribute.test.js src/model/canvas-redo.test.js src/model/context-checks.test.js
         working-directory: website
       - run: npx playwright install --with-deps chromium

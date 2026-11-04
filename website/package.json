@@ -7,6 +7,7 @@
     "dev": "vite --host 0.0.0.0 --port 4173",
     "build": "vite build",
     "check:blog": "node scripts/check-blog-content.mjs",
+    "check:route-splitting": "node scripts/check-route-splitting.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "benchmark:live": "node scripts/measure-live.mjs",
     "benchmark:layout": "node scripts/measure-layout.mjs",
