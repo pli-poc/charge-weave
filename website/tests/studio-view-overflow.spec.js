@@ -71,9 +71,18 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     await expect(page.getByRole('button', { name: 'Save shared view' })).toBeDisabled();
     expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(beforePreview);
     const transientPreviewId = await tabs.locator('[data-view-id^="preview-"]').getAttribute('data-view-id');
+    await page.getByLabel('Filter graph relationships').fill('no matching predicate');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Record');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
+    let replacePrompt = '';
+    page.once('dialog', async dialog => { replacePrompt = dialog.message(); await dialog.dismiss(); });
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    expect(replacePrompt).toContain('discard its local view changes');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    await expect(tabs.getByRole('button', { name: 'Preview: Device, local changes' })).toHaveAttribute('aria-current', 'page');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    page.once('dialog', async dialog => { await dialog.accept(); });
     await page.getByRole('button', { name: 'Preview', exact: true }).click();
     await expect(tabs.getByRole('button', { name: 'Preview: Record' })).toHaveAttribute('aria-current', 'page');
     await expect(tabs.locator('[data-view-id^="preview-"]')).toHaveCount(1);
