@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const storageKey = 'chargeweave.studio.theme.v1';
 const choices = new Set(['system', 'light', 'dark']);
@@ -22,11 +22,13 @@ function initialDensity() {
 export default function StudioThemeControl() {
   const [choice, setChoice] = useState(initialChoice);
   const [density, setDensity] = useState(initialDensity);
-  const preferencesRef = useRef(null);
+  const [compact, setCompact] = useState(() => window.matchMedia('(max-width: 600px)').matches);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 600px)');
     const update = () => {
-      if (preferencesRef.current) preferencesRef.current.open = !media.matches;
+      setCompact(media.matches);
+      setSettingsOpen(!media.matches);
     };
     update();
     media.addEventListener('change', update);
@@ -50,9 +52,9 @@ export default function StudioThemeControl() {
     try { localStorage.setItem(densityKey, density); } catch { /* Preference remains in memory. */ }
     return () => { delete document.documentElement.dataset.studioDensity; };
   }, [density]);
-  return <details ref={preferencesRef} className="studio-appearance-menu">
-    <summary aria-label="Studio preferences">Preferences</summary>
-    <div className="studio-appearance-controls">
+  return <div className="studio-appearance-menu" data-compact={compact}>
+    <button type="button" className="studio-appearance-toggle" aria-label="Studio preferences" aria-controls="studio-appearance-controls" aria-expanded={!compact || settingsOpen} onClick={() => setSettingsOpen(open => !open)}>Preferences</button>
+    {(!compact || settingsOpen) && <div id="studio-appearance-controls" className="studio-appearance-controls">
     <label className="studio-theme-control">Appearance
       <select value={choice} onChange={event => setChoice(event.target.value)}>
         <option value="system">System</option>
@@ -66,6 +68,7 @@ export default function StudioThemeControl() {
         <option value="compact">Compact</option>
       </select>
     </label>
-    </div>
-  </details>;
+    </div>}
+  </div>;
 }
+
