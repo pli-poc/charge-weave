@@ -2841,6 +2841,10 @@ test('browser inspects the pinned temporal policy and explicit time fields', asy
 });
 
 test('failed validation can be inspected, corrected and retried on the current draft', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+  async function expectNoHorizontalPageOverflow() {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  }
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Repair', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Needs correction.|\nChargingStation|Record|A station.|\nPlannedMaintenanceWindow|Record|A planned window.|maintenanceStation:ChargingStation?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -2874,6 +2878,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await expect(problems.getByText(/Affected concept and cause are unknown/)).toBeVisible();
     await problems.getByText('Recorded output for tools/example-check.py').click();
     await expect(problems.getByRole('region', { name: 'Problem output: tools/example-check.py' })).toContainText('Synthetic fixture: definition needs correction.');
+    await expectNoHorizontalPageOverflow();
     await problems.getByRole('button', { name: 'Inspect failed checks' }).click();
     const issues = page.getByRole('region', { name: 'Validation issues' });
     await expect(issues.getByRole('heading', { name: 'Failed check: tools/example-check.py' })).toBeVisible();
@@ -2899,6 +2904,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await issues.getByRole('button', { name: 'Retry structural check on current draft' }).click();
     await expect(issues.getByText(/structural check at revision 1: passed/)).toBeVisible();
     await expect(issues.getByText(/Other required checks may still be missing/)).toBeVisible();
+    await expectNoHorizontalPageOverflow();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Unapplied text to discard.');
     await closeDraftContext(page);
@@ -2928,6 +2934,7 @@ test('failed validation can be inspected, corrected and retried on the current d
     await issues.getByRole('button', { name: 'Inspect PlannedMaintenanceWindow' }).click();
     await expect(page.getByLabel('Filter fields')).toHaveValue('');
     await expect(page.locator('#studio-inspector-pane').getByRole('rowheader', { name: /^maintenanceStation/ })).toBeFocused();
+    await expectNoHorizontalPageOverflow();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
