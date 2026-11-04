@@ -45,8 +45,8 @@ html[data-studio-theme="dark"] .modelling-studio .studio-flow :is(.studio-concep
 html[data-studio-theme="dark"] .modelling-studio .studio-canvas-layout-menu :is(summary, p, label) { color: #183a39; }
 html[data-studio-theme="dark"] .modelling-studio .studio-graph .studio-layout-notice { color: #183a39; }
 .studio-appearance-controls { display: flex; align-items: center; gap: .6rem; min-width: 0; }
-.studio-app-bar .studio-appearance-menu { position: relative; margin: 0; flex: 0 0 auto; }
-.studio-app-bar .studio-appearance-menu > summary { display: none; }
+.studio-app-bar .studio-appearance-menu { position: relative; display: flex; align-items: center; margin: 0; flex: 0 0 auto; }
+.studio-app-bar .studio-appearance-toggle { display: none; }
 .modelling-studio :is(.studio-theme-control, .studio-density-control) { display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
 .modelling-studio :is(.studio-theme-control, .studio-density-control) select { width: auto; min-width: 0; }
 /* Long modelling and history panels need immediate focus/scroll positioning. */
@@ -273,9 +273,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 }
 @media (max-width: 600px) {
   .studio-app-bar .studio-appearance-menu { order: 1; }
-  .studio-app-bar .studio-appearance-menu > summary { display: block; min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--studio-border); border-radius: .35rem; color: var(--studio-text); font-size: .85rem; }
-  .studio-app-bar .studio-appearance-menu[open] > .studio-appearance-controls { position: absolute; z-index: 30; top: calc(100% + .35rem); right: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; width: min(22rem, calc(100vw - 2rem)); padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-panel); box-shadow: 0 .5rem 1.5rem #0008; }
-  .studio-app-bar .studio-appearance-menu:not([open]) > .studio-appearance-controls { display: none; }
+  .studio-app-bar .studio-appearance-toggle { display: block; min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--studio-border); border-radius: .35rem; color: var(--studio-text); font-size: .85rem; }
+  .studio-app-bar .studio-appearance-menu[data-compact="true"] .studio-appearance-controls { position: absolute; z-index: 30; top: calc(100% + .35rem); right: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; width: min(22rem, calc(100vw - 2rem)); padding: .75rem; border: 1px solid var(--studio-strong-border); border-radius: .4rem; background: var(--studio-panel); box-shadow: 0 .5rem 1.5rem #0008; }
   .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) { display: grid; gap: .15rem; }
   .modelling-studio .studio-appearance-controls :is(.studio-theme-control, .studio-density-control) select { width: 100%; }
   .studio-app-bar .studio-workspaces { flex-wrap: wrap; }
@@ -559,3 +558,4 @@ html[data-studio-density="compact"] .modelling-studio .studio-review-workflow li
   .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 2.75rem; }
   .modelling-studio label:has(> input:is([type="checkbox"], [type="radio"])) > input { width: 1.5rem; min-width: 1.5rem; height: 1.5rem; }
 }
+
