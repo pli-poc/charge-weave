@@ -67,8 +67,8 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-panels section { padding: 1rem; border: 1px solid #b8c5cc; border-radius: .5rem; min-width: 0; overflow-wrap: anywhere; }
 .studio-panels li { margin-block: .5rem; }
 .studio-explorer-concept { display: flex; align-items: center; gap: .25rem; min-width: 0; }
-.modelling-studio .studio-explorer-expand { flex: 0 0 2rem; min-height: 2rem; padding: .2rem; }
 .studio-module-tree .studio-explorer-concept > button:not(.studio-explorer-expand) { flex: 1 1 0; min-width: 0; overflow: hidden; overflow-wrap: normal; text-overflow: ellipsis; white-space: nowrap; word-break: normal; }
+.modelling-studio .studio-explorer-expand { flex: 0 0 2rem; min-height: 2rem; padding: .2rem; }
 .studio-explorer-fields { margin-left: 1.2rem; padding-left: .5rem; border-left: 1px solid var(--studio-strong-border); }
 .studio-explorer-fields p, .studio-explorer-fields small { font-size: .78rem; color: var(--studio-muted); }
 .studio-explorer-fields ul { padding-left: 1rem; }
