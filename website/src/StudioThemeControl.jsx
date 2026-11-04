@@ -41,7 +41,7 @@ export default function StudioThemeControl() {
     return () => { delete document.documentElement.dataset.studioDensity; };
   }, [density]);
   return <details className="studio-appearance-menu">
-    <summary aria-label="Appearance and density settings">Appearance</summary>
+    <summary aria-label="Studio preferences">Preferences</summary>
     <div className="studio-appearance-controls">
     <label className="studio-theme-control">Appearance
       <select value={choice} onChange={event => setChoice(event.target.value)}>

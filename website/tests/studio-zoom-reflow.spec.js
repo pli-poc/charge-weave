@@ -17,7 +17,7 @@ test('short 320px viewport keeps controls and dialogs reachable', async ({ page,
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
-    await page.getByRole('button', { name: 'Appearance and density settings' }).click();
+    await page.getByRole('button', { name: 'Studio preferences' }).click();
     await page.getByLabel('Appearance').selectOption('light');
     await expect(page.locator('html')).toHaveAttribute('data-studio-theme', 'light');
     const sections = page.getByRole('navigation', { name: 'Workspace sections' });

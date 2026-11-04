@@ -117,7 +117,7 @@ test('320px compact navigation keeps controls usable without page overflow', asy
     }));
     expect(bounds.every(box => box.height >= 44)).toBe(true);
     expect(bounds[2].top).toBeGreaterThan(bounds[0].top);
-    const settings = page.getByRole('button', { name: 'Appearance and density settings' });
+    const settings = page.getByRole('button', { name: 'Studio preferences' });
     await expect(settings).toBeVisible();
     const settingsTop = await settings.evaluate(element => element.getBoundingClientRect().top);
     const workspaceTop = await page.locator('.studio-workspaces').evaluate(element => element.getBoundingClientRect().top);

@@ -19,7 +19,7 @@ async function withStudio(page, run) {
 }
 
 async function openAppearanceSettings(page, isMobile) {
-  if (isMobile) await page.getByRole('button', { name: 'Appearance and density settings' }).click();
+  if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
 }
 
 test('density preference changes spacing, preserves readable text and survives reload', async ({ page, isMobile }) => {
@@ -44,6 +44,7 @@ test('density preference changes spacing, preserves readable text and survives r
     await page.getByLabel('Appearance').selectOption('dark');
     await expect(density).toHaveValue('compact');
     await page.reload();
+    if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
     await expect(page.getByLabel('Density')).toHaveValue('compact');
     await expect(page.locator('html')).toHaveAttribute('data-studio-density', 'compact');
     await page.getByLabel('Density').selectOption('comfortable');
@@ -55,7 +56,7 @@ test('compact density preserves compact-screen navigation targets', async ({ pag
   test.skip(!isMobile, 'Touch-sized compact navigation is exercised on mobile.');
   await page.setViewportSize({ width: 320, height: 800 });
   await withStudio(page, async () => {
-    await page.getByRole('button', { name: 'Appearance and density settings' }).click();
+    await page.getByRole('button', { name: 'Studio preferences' }).click();
     await page.getByLabel('Density').selectOption('compact');
     const controls = page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button');
     await expect(controls).toHaveCount(4);

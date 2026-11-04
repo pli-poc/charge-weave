@@ -12,7 +12,7 @@ test('studio appearance follows the system and remembers an explicit choice', as
   try {
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
-    if (isMobile) await page.getByRole('button', { name: 'Appearance and density settings' }).click();
+    if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
     const appearance = page.getByLabel('Appearance');
     await expect(appearance).toHaveValue('system');
     await expect(page.locator('html')).toHaveAttribute('data-studio-theme', 'light');
@@ -22,6 +22,7 @@ test('studio appearance follows the system and remembers an explicit choice', as
     await appearance.selectOption('light');
     await expect(page.locator('html')).toHaveAttribute('data-studio-theme', 'light');
     await page.reload();
+    if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
     await expect(page.getByLabel('Appearance')).toHaveValue('light');
     await expect(page.locator('html')).toHaveAttribute('data-studio-theme', 'light');
     await page.getByLabel('Appearance').selectOption('dark');
