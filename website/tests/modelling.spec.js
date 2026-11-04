@@ -591,7 +591,7 @@ test('named diagram views keep independent local positions', async ({ page, isMo
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
-test('diagram navigation history stays independent for each view tab', async ({ page }) => {
+test('diagram navigation history stays independent for each view tab', async ({ page, isMobile }) => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Per-view history', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -603,15 +603,20 @@ test('diagram navigation history stays independent for each view tab', async ({ 
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Inspect parent Record' }).click();
     await page.getByRole('button', { name: 'Focus neighbourhood' }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Record' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Previous view' })).toBeEnabled();
     await page.getByLabel('View ID').fill('inspection');
     await page.getByRole('button', { name: 'Choose view ID' }).click();
-    await expect(page.getByRole('button', { name: 'Previous view' })).toBeDisabled();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
+    if (isMobile) await expect(page.getByRole('button', { name: 'Previous view' })).toHaveCount(0);
+    else await expect(page.getByRole('button', { name: 'Previous view' })).toBeDisabled();
     const views = page.getByRole('navigation', { name: 'Open diagram views' });
     await views.locator('[data-view-id="default"]').click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('button', { name: 'Previous view' })).toBeEnabled();
     await page.getByRole('button', { name: 'Previous view' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
