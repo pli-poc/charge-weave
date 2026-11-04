@@ -1401,6 +1401,7 @@ test('reviewer creates and switches between workspaces', async ({ page, isMobile
 
 test('browser authors an interval rule with draft cases and source patches', async ({ page, isMobile }) => {
   test.setTimeout(60000);
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
   const repository = fileURLToPath(new URL('../..', import.meta.url));
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repository, encoding: 'utf8' }).trim();
   const show = path => execFileSync('git', ['show', `${commit}:${path}`], { cwd: repository });
@@ -1432,6 +1433,7 @@ test('browser authors an interval rule with draft cases and source patches', asy
     await page.getByLabel('Search requirements').fill('BR-012');
     await page.getByRole('button', { name: 'Search requirements', exact: true }).click();
     await page.getByText('Add interval rule for BR-012').click();
+    if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await page.getByLabel('Interval start').selectOption('maintenanceStartsAt');
     await page.getByLabel('Interval end').selectOption('maintenanceEndsAt');
     await page.getByLabel('New rule ID').fill('B900');

@@ -5,6 +5,7 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 test('requiring a relationship reviews the change and rejects stale activity', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Relationship review', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|peer:Record?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -18,6 +19,7 @@ test('requiring a relationship reviews the change and rejects stale activity', a
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Require peer' }).click();
     const review = page.getByRole('region', { name: 'Review required relationship' });
+    if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await expect(review).toContainText('optional (0..1) to exactly one (1)');
     await expect(review).toContainText('Existing data without a value may no longer conform');
     expect(store.get(workspace.id).revision).toBe(0);

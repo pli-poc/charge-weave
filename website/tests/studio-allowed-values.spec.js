@@ -5,6 +5,7 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 test('narrow controlled values with a guarded draft and revision check', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Controlled values', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|state:{Draft,Final,Archived}?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -18,6 +19,7 @@ test('narrow controlled values with a guarded draft and revision check', async (
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Narrow values for state' }).click();
     const editor = page.getByRole('region', { name: 'Narrow allowed values' });
+    if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await expect(editor.getByRole('button', { name: 'Apply allowed values' })).toBeDisabled();
     await editor.getByLabel('Archived').uncheck();
     await expect(editor.getByRole('button', { name: 'Apply allowed values' })).toBeEnabled();
@@ -44,6 +46,7 @@ test('narrow controlled values with a guarded draft and revision check', async (
 });
 
 test('change-set transitions at the same revision do not silently rebase allowed values', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Change set guard', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\nDevice|Record|A device.|state:{Draft,Final,Archived}?\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -57,6 +60,7 @@ test('change-set transitions at the same revision do not silently rebase allowed
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await page.getByRole('button', { name: 'Narrow values for state' }).click();
     const editor = page.getByRole('region', { name: 'Narrow allowed values' });
+    if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await editor.getByLabel('Archived').uncheck();
     const opened = store.openChangeSet({ workspaceId: workspace.id, actor: 'other', operationId: 'open', expectedRevision: 0, intent: 'Review new policy', requirements: [] });
     await expect(editor.getByRole('alert')).toContainText('change set');
