@@ -949,4 +949,12 @@ export class WorkspaceStore {
     this.get(id);
     return this.db.prepare('SELECT sequence, actor, revision, created_at AS createdAt, payload FROM events WHERE workspace = ? ORDER BY sequence DESC LIMIT 100').all(id).reverse().map(row => ({ ...row, payload: JSON.parse(row.payload) }));
   }
+  commandReceipt(id, actor, operationId) {
+    if (typeof actor !== 'string' || !actor || typeof operationId !== 'string' || !operationId || operationId.length > 128) throw new Error('Invalid operation receipt request');
+    const current = this.get(id);
+    const receipt = this.db.prepare('SELECT result FROM receipts WHERE workspace = ? AND actor = ? AND operation = ?').get(id, actor, operationId);
+    const recorded = receipt && JSON.parse(receipt.result);
+    if (!recorded || typeof recorded.commandGroupId !== 'string' || !Number.isSafeInteger(recorded.revision) || !/^[a-f0-9]{64}$/.test(recorded.sourceDigest ?? '')) return { workspaceId: id, operationId, recorded: false, currentRevision: current.revision, currentSourceDigest: current.sourceDigest };
+    return { workspaceId: id, operationId, recorded: true, revision: recorded.revision, sourceDigest: recorded.sourceDigest, commandGroupId: recorded.commandGroupId, eventSequence: recorded.eventSequence, currentRevision: current.revision, currentSourceDigest: current.sourceDigest, stale: current.revision !== recorded.revision || current.sourceDigest !== recorded.sourceDigest };
+  }
 }

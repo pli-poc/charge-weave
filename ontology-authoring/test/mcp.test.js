@@ -50,6 +50,29 @@ test('MCP apply accepts an event cursor and reports intervening activity', async
   } finally { await client.close(); store.close(); }
 });
 
+test('MCP change receipt lookup reconciles only the authenticated actor write', async () => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Receipt recovery', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });
+  const clients = [];
+  try {
+    for (const actor of ['author', 'other']) {
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+      const server = createServer(store, actor, { role: 'draft' });
+      const client = new Client({ name: actor, version: '1' });
+      await server.connect(serverTransport); await client.connect(clientTransport); clients.push(client);
+    }
+    const [author, other] = clients;
+    const operationId = 'recoverable-definition-edit';
+    const applied = await author.callTool({ name: 'ontology_changeset_apply', arguments: { workspaceId: workspace.id, operationId, expectedRevision: 0, commands: [{ type: 'class.describe', name: 'Record', definition: 'Committed before response loss.' }] } });
+    assert.equal(applied.structuredContent.revision, 1);
+    const recovered = await author.callTool({ name: 'ontology_changeset_receipt_get', arguments: { workspaceId: workspace.id, operationId } });
+    assert.deepEqual(recovered.structuredContent, { workspaceId: workspace.id, operationId, recorded: true, revision: 1, sourceDigest: applied.structuredContent.sourceDigest, commandGroupId: applied.structuredContent.commandGroupId, eventSequence: applied.structuredContent.eventSequence, currentRevision: 1, currentSourceDigest: applied.structuredContent.sourceDigest, stale: false });
+    assert.equal('commands' in recovered.structuredContent, false);
+    assert.equal((await other.callTool({ name: 'ontology_changeset_receipt_get', arguments: { workspaceId: workspace.id, operationId } })).structuredContent.recorded, false);
+    assert.equal((await author.callTool({ name: 'ontology_changeset_receipt_get', arguments: { workspaceId: workspace.id, operationId: 'not-recorded' } })).structuredContent.recorded, false);
+  } finally { for (const client of clients) await client.close(); store.close(); }
+});
+
 test('reviewer-only workspace controls include carry-forward', async () => {
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Change set', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|\n' });

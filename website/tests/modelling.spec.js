@@ -1206,7 +1206,7 @@ test('a lost model-change response retries with the same operation identity', as
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
   const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
   service.listen(0, '127.0.0.1'); await once(service, 'listening');
-  let lostResponse = false;
+  const lostResponses = new Set();
   const operationIds = [];
   try {
     await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
@@ -1222,8 +1222,9 @@ test('a lost model-change response retries with the same operation identity', as
       const request = route.request().postDataJSON();
       if (request?.params?.name === 'ontology_changeset_apply') {
         operationIds.push(request.params.arguments.operationId);
-        if (!lostResponse) {
-          lostResponse = true;
+        const definition = request.params.arguments.commands?.[0]?.definition;
+        if (!lostResponses.has(definition)) {
+          lostResponses.add(definition);
           await route.fetch();
           await route.fulfill({ status: 502, body: 'Synthetic connection reset after commit.' });
           return;
@@ -1244,6 +1245,51 @@ test('a lost model-change response retries with the same operation identity', as
     expect(operationIds[1]).toBe(operationIds[0]);
     expect(store.snapshot(workspace.id).revision).toBe(1);
     expect(store.search(workspace.id, 'Record').results[0].definition).toBe('Saved despite the lost response.');
+  } finally { await page.close(); await service.shutdown(); store.close(); }
+});
+
+test('a committed model change is reconciled after reloading the studio', async ({ page, isMobile }) => {
+  const store = new WorkspaceStore(':memory:');
+  const workspace = store.create({ title: 'Reload recovery', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|Original definition.|\n' });
+  const pairingCode = 'synthetic-pairing-code-'.repeat(2);
+  const service = createHttpService({ store, token: 'test-token-'.repeat(4), pairingCode, workspaceId: workspace.id, staticDirectory: fileURLToPath(new URL('../dist/', import.meta.url)) });
+  service.listen(0, '127.0.0.1'); await once(service, 'listening');
+  let lostResponse = false;
+  const operationIds = [];
+  try {
+    await page.goto(`http://127.0.0.1:${service.address().port}/charge-weave-app/modelling/`);
+    await page.getByLabel('Pairing code').fill(pairingCode);
+    await page.getByRole('button', { name: 'Pair local studio' }).click();
+    if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+    await page.getByLabel('Search model').fill('Record');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByRole('button', { name: 'Record', exact: true }).click();
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
+    await page.getByRole('textbox', { name: 'Definition', exact: true }).fill('Committed before page reload.');
+    await page.route('**/mcp', async route => {
+      const request = route.request().postDataJSON();
+      if (request?.params?.name === 'ontology_changeset_apply') {
+        operationIds.push(request.params.arguments.operationId);
+        if (!lostResponse) {
+          lostResponse = true;
+          await route.fetch();
+          await route.fulfill({ status: 502, body: 'Synthetic connection reset after commit.' });
+          return;
+        }
+      }
+      await route.continue();
+    });
+    await page.getByRole('button', { name: 'Save definition' }).click();
+    await expect(page.getByRole('alert', { name: 'Model change outcome is unknown' })).toBeVisible();
+    expect(store.snapshot(workspace.id).revision).toBe(1);
+    expect(await page.evaluate(() => sessionStorage.getItem('chargeweave.pending-model-write.v1'))).toContain(operationIds[0]);
+    await page.reload();
+    await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 1');
+    await expect(page.getByRole('status').filter({ hasText: 'Recovered a committed model change at revision 1' })).toBeVisible();
+    expect(store.snapshot(workspace.id).revision).toBe(1);
+    expect(store.search(workspace.id, 'Record').results[0].definition).toBe('Committed before page reload.');
+    expect(operationIds).toHaveLength(1);
+    expect(await page.evaluate(() => sessionStorage.getItem('chargeweave.pending-model-write.v1'))).toBeNull();
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
