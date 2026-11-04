@@ -337,6 +337,14 @@ html:has(.modelling-studio) { scroll-behavior: auto; }
 .studio-diagram-toolbar .studio-view-controls { flex: 1 1 18rem; min-width: 0; }
 .studio-diagram-toolbar .studio-view-controls > label { flex: 1 1 8rem; }
 .studio-view-tabs { display: flex; overflow-x: auto; gap: .15rem; margin: 0 0 .75rem; border-bottom: 1px solid var(--studio-strong-border); }
+.studio-view-picker { display: inline-block; position: relative; margin: 0 0 .75rem .35rem; vertical-align: top; }
+.studio-view-picker > summary { cursor: pointer; list-style: none; padding: .45rem .65rem; border: 1px solid var(--studio-border); border-radius: .35rem; color: var(--studio-text); background: var(--studio-panel); }
+.studio-view-picker > summary::-webkit-details-marker { display: none; }
+.studio-view-picker[open] { z-index: 12; }
+.studio-view-picker > ul { position: absolute; z-index: 12; top: calc(100% + .2rem); right: 0; width: min(18rem, calc(100vw - 2rem)); max-height: min(60dvh, 28rem); overflow: auto; margin: 0; padding: .25rem; list-style: none; background: var(--studio-panel); border: 1px solid var(--studio-strong-border); border-radius: .4rem; box-shadow: 0 .5rem 1.5rem #0004; }
+.studio-view-picker li { margin: 0; }
+.modelling-studio .studio-view-picker li button { display: block; width: 100%; min-width: 0; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.modelling-studio .studio-view-picker li button[aria-current="page"] { color: var(--studio-text); background: var(--studio-raised); }
 .studio-view-tab { display: flex; flex: 0 0 auto; align-items: stretch; min-width: 0; }
 .modelling-studio .studio-view-tabs button { flex: 0 0 auto; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; border-radius: .3rem .3rem 0 0; background: transparent; color: var(--studio-muted); }
 .modelling-studio .studio-view-tabs button[aria-current="page"] { color: var(--studio-text); background: var(--studio-raised); border-bottom-color: var(--studio-focus); }
