@@ -62,6 +62,22 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     await picker.getByRole('button', { name: 'Close other views' }).click();
     await expect(page.getByRole('navigation', { name: 'Open diagram views' }).locator('[data-view-id]')).toHaveCount(1);
     await expect(page.getByRole('navigation', { name: 'Open diagram views' }).getByRole('button', { name: 'temporary', exact: true })).toHaveAttribute('aria-current', 'page');
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    const activeViewKey = `chargeweave.studio.active-view.v1.${workspace.id}`;
+    const beforePreview = await page.evaluate(key => localStorage.getItem(key), activeViewKey);
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    const tabs = page.getByRole('navigation', { name: 'Open diagram views' });
+    await expect(tabs.getByRole('button', { name: 'Preview: Device' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('button', { name: 'Save shared view' })).toBeDisabled();
+    expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(beforePreview);
+    await page.getByRole('button', { name: 'Pin preview of Device' }).click();
+    const pinnedPreview = tabs.locator('[data-view-id^="preview-"]');
+    await expect(pinnedPreview).toHaveAttribute('aria-current', 'page');
+    await expect(tabs.getByRole('button', { name: 'Pin preview of Device' })).toHaveCount(0);
+    expect(await page.evaluate(key => localStorage.getItem(key), activeViewKey)).toBe(await pinnedPreview.getAttribute('data-view-id'));
+    if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
+    await page.getByRole('button', { name: 'Open in new tab', exact: true }).click();
+    await expect(tabs.locator('[data-view-id^="preview-"]')).toHaveCount(2);
     expect(store.get(workspace.id).revision).toBe(0);
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
