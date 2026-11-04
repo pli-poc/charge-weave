@@ -66,6 +66,19 @@ test('connected editor avoids WCAG 2.1 A and AA violations in both themes', asyn
       await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
       const selectedResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
       expect(selectedResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) }))).toEqual([]);
+      const panelNavigation = page.getByRole('navigation', { name: 'Results panels' });
+      if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
+      for (const panel of ['Problems', 'Checks', 'Activity', 'Output']) {
+        await panelNavigation.getByRole('button', { name: panel, exact: true }).click();
+        const panelResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(panelResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `${panel} panel in ${theme} theme`).toEqual([]);
+      }
+      if (!isMobile) {
+        await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
+        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(reviewResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Review workspace in ${theme} theme`).toEqual([]);
+        await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Model' }).click();
+      }
       if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
       await page.getByRole('button', { name: 'Clear search' }).click();
     }
