@@ -3005,7 +3005,7 @@ test('browser discovers and edits the shared MCP workspace', async ({ page, isMo
     await page.locator('details.studio-connection-tools[open] > summary').click({ force: true });
     await surface('Diagram');
     await page.getByRole('button', { name: 'Run structural generator' }).click();
-    await expect(page.getByText('tools/build.py: passed')).toBeVisible();
+    await expect(page.locator('#studio-diagram-document').getByText('tools/build.py: passed')).toBeVisible();
     await page.getByRole('button', { name: 'View check details' }).click();
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download evidence report' }).click();

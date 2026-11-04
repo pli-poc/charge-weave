@@ -16,7 +16,9 @@ const store = new WorkspaceStore(':memory:');
 const workspace = store.create({ title: 'Synthetic workflow evidence', baselineCommit: commit, schema });
 const { job } = store.createJob(workspace.id, 0, workspace.sourceDigest, 'synthetic-reviewer', 'synthetic-check', 'structural');
 store.startJobStep(job.id, 0, 'synthetic-structural-check');
-store.finishJobStep(job.id, 0, 'failed', 'Synthetic example: inspect the candidate and rerun the check.');
+store.finishJobStep(job.id, 0, 'passed', 'Synthetic example: the structural check passed.');
+store.startJobStep(job.id, 1, 'synthetic-review-fixture');
+store.finishJobStep(job.id, 1, 'failed', 'Synthetic example: inspect the candidate and rerun the check.');
 store.updateJob(job.id, 'failed');
 const pairingCode = 'synthetic-pairing-code-'.repeat(2);
 const service = createHttpService({ store, token: 'synthetic-evidence-token-'.repeat(2), pairingCode, workspaceId: workspace.id, repository, staticDirectory: resolve(repository, 'website/dist') });
@@ -49,8 +51,14 @@ try {
   await capture('relationship-editor');
   await page.getByRole('button', { name: 'Cancel field edit' }).click();
   await page.getByRole('button', { name: 'Hide inspector' }).click();
+  const checks = page.getByRole('navigation', { name: 'Results panels' }).getByRole('button', { name: 'Checks', exact: true });
+  if (await checks.getAttribute('aria-pressed') !== 'true') await checks.click();
+  await page.getByRole('region', { name: 'Recorded check steps' }).getByText('synthetic-structural-check', { exact: true }).waitFor();
+  await page.getByRole('region', { name: 'Results content' }).evaluate(element => element.scrollTo({ top: element.scrollHeight, behavior: 'instant' }));
+  await capture('checks');
+  await checks.click();
   if (await problems.getAttribute('aria-pressed') !== 'true') await problems.click();
-  await page.getByRole('region', { name: 'Problems' }).getByText('synthetic-structural-check', { exact: true }).waitFor();
+  await page.getByRole('region', { name: 'Problems' }).getByText('synthetic-review-fixture', { exact: true }).waitFor();
   await capture('problems');
   await problems.click();
   await page.getByRole('button', { name: 'Review draft changes' }).click();
@@ -64,5 +72,5 @@ try {
     await capture('changes');
   }
   await page.close();
-  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace and failed check', captures: changesOnly ? 2 : 8 }));
+  console.log(JSON.stringify({ commit, browser: browser.version(), fixture: 'synthetic workspace with distinct passing and failing check steps', captures: changesOnly ? 2 : 10 }));
 } finally { await browser.close(); await service.shutdown(); store.close(); }
