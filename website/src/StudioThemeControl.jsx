@@ -23,7 +23,7 @@ export default function StudioThemeControl() {
   const [choice, setChoice] = useState(initialChoice);
   const [density, setDensity] = useState(initialDensity);
   const [compact, setCompact] = useState(() => window.matchMedia('(max-width: 600px)').matches);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(() => !window.matchMedia('(max-width: 600px)').matches);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 600px)');
     const update = () => {
@@ -53,8 +53,8 @@ export default function StudioThemeControl() {
     return () => { delete document.documentElement.dataset.studioDensity; };
   }, [density]);
   return <div className="studio-appearance-menu" data-compact={compact}>
-    <button type="button" className="studio-appearance-toggle" aria-label="Studio preferences" aria-controls="studio-appearance-controls" aria-expanded={!compact || settingsOpen} onClick={() => setSettingsOpen(open => !open)}>Preferences</button>
-    {(!compact || settingsOpen) && <div id="studio-appearance-controls" className="studio-appearance-controls">
+    <button type="button" className="studio-appearance-toggle" aria-label="Studio preferences" aria-controls="studio-appearance-controls" aria-expanded={settingsOpen} onClick={() => setSettingsOpen(open => !open)}>Preferences</button>
+    {settingsOpen && <div id="studio-appearance-controls" className="studio-appearance-controls">
     <label className="studio-theme-control">Appearance
       <select value={choice} onChange={event => setChoice(event.target.value)}>
         <option value="system">System</option>

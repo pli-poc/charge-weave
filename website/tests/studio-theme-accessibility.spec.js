@@ -18,6 +18,29 @@ async function withStudio(page, run) {
   } finally { await page.close(); await service.shutdown(); store.close(); }
 }
 
+test('studio preferences toggle accessibly and reset their default across the compact breakpoint', async ({ page }) => {
+  await page.setViewportSize({ width: 600, height: 800 });
+  await withStudio(page, async () => {
+    const toggle = page.getByRole('button', { name: 'Studio preferences' });
+    const appearance = page.getByLabel('Appearance');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(appearance).toHaveCount(0);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(appearance).toBeVisible();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(appearance).toHaveCount(0);
+
+    await page.setViewportSize({ width: 601, height: 800 });
+    await expect(page.locator('.studio-appearance-menu')).toHaveAttribute('data-compact', 'false');
+    await expect(appearance).toBeVisible();
+    await page.setViewportSize({ width: 600, height: 800 });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(appearance).toHaveCount(0);
+  });
+});
+
 test('graph controls stay legible on hover and show a contrasting focus ring in both themes', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Hover is exercised in the desktop browser.');
   await withStudio(page, async () => {
