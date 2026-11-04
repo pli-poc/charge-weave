@@ -42,7 +42,7 @@ test('studio preferences toggle accessibly and reset their default across the co
   });
 });
 
-test('connected editor avoids WCAG 2.1 A and AA violations in both themes', async ({ page, isMobile }) => {
+test('connected editor avoids WCAG 2.1 and 2.2 A/AA violations in both themes', async ({ page, isMobile }) => {
   await page.setViewportSize({ width: isMobile ? 390 : 1440, height: isMobile ? 844 : 1000 });
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'Accessibility audit', baselineCommit: 'a'.repeat(40), schema: 'MODULE|foundation\nRecord|root|A record.|peer:Record?\nDevice|Record|A device.|\n' });
@@ -57,25 +57,25 @@ test('connected editor avoids WCAG 2.1 A and AA violations in both themes', asyn
       if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
       await page.getByLabel('Appearance').selectOption(theme);
       if (isMobile) await page.getByRole('button', { name: 'Studio preferences' }).click();
-      const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
       expect(result.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) }))).toEqual([]);
       await page.getByLabel('Search model').fill('Device');
       await page.getByRole('button', { name: 'Search', exact: true }).click();
       await page.getByRole('button', { name: 'Device', exact: true }).click();
       if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
       await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
-      const selectedResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      const selectedResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
       expect(selectedResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) }))).toEqual([]);
       const panelNavigation = page.getByRole('navigation', { name: 'Results panels' });
       if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Results' }).click();
       for (const panel of ['Problems', 'Checks', 'Activity', 'Output']) {
         await panelNavigation.getByRole('button', { name: panel, exact: true }).click();
-        const panelResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        const panelResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         expect(panelResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `${panel} panel in ${theme} theme`).toEqual([]);
       }
       if (!isMobile) {
         await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
-        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         expect(reviewResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Review workspace in ${theme} theme`).toEqual([]);
         await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Model' }).click();
       }
@@ -112,12 +112,12 @@ test('populated result panels and review avoid WCAG 2.1 A and AA violations', as
         await panelNavigation.getByRole('button', { name: panel === 'Problems' ? /Problems/ : panel, exact: panel !== 'Problems' }).click();
         const panelContent = page.getByRole('region', { name: { Problems: 'Problems', Checks: 'Validation issues', Activity: 'Recent activity', Output: 'Job output' }[panel] });
         await expect(panelContent).toBeVisible();
-        const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         expect(result.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Populated ${panel} panel in ${theme} theme`).toEqual([]);
       }
       if (!isMobile) {
         await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
-        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        const reviewResult = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         expect(reviewResult.violations.map(({ id, help, nodes }) => ({ id, help, elements: nodes.map(node => node.target) })), `Populated Review workspace in ${theme} theme`).toEqual([]);
         await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Model' }).click();
       }
