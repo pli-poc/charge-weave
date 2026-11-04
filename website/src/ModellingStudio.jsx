@@ -1022,7 +1022,11 @@ export default function ModellingStudio() {
     if (!connection) return undefined;
     const abort = new AbortController();
     call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_get', arguments: { workspaceId: connection.workspaceId, viewId } }, abort.signal)
-      .then(response => { if (!abort.signal.aborted && !draft) { setSavedViewRevision(response.structuredContent.viewRevision); setViewLoaded(!response.structuredContent.definition); } })
+      .then(response => {
+        if (abort.signal.aborted || draft) return;
+        setSavedViewRevision(response.structuredContent.viewRevision);
+        setViewLoaded(!response.structuredContent.definition);
+      })
       .catch(problem => { if (!abort.signal.aborted) { setPendingSavedView(current => current?.workspaceId === connection.workspaceId && current.viewId === viewId ? null : current); setViewNotice(`Saved view unavailable: ${problem.message}`); } });
     return () => abort.abort();
   }, [connection, viewId]);
@@ -1044,6 +1048,7 @@ export default function ModellingStudio() {
     setViewId(restored);
     setViewIdInput(restored);
     setOpenViewIds(restoredViews(connection.workspaceId, restored));
+    setPendingSavedView({ workspaceId: connection.workspaceId, viewId: restored, restore: true });
   }, [connection?.endpoint, connection?.workspaceId]);
 
   useEffect(() => {
@@ -1714,7 +1719,7 @@ export default function ModellingStudio() {
     } catch (problem) { if (context === viewContext.current) setViewNotice(`Could not save view: ${problem.message}. Load the shared view to refresh its revision.`); }
     finally { setPendingViewOps(previous => ({ ...previous, [activeViewKey]: Math.max(0, (previous[activeViewKey] || 1) - 1) })); if (viewOperation.current === operation) { viewOperation.current = null; setViewBusy(null); } }
   }
-  async function loadLayout() {
+  async function loadLayout({ restoring = false } = {}) {
     if (viewReadyKey !== activeViewKey) return;
     if (pendingViewInput.current) { setViewNotice('Add or clear unfinished view input before loading the shared view.'); return; }
     if (viewDirty && !window.confirm('Loading the shared view will replace local changes to this view. Continue?')) return;
@@ -1727,11 +1732,11 @@ export default function ModellingStudio() {
     viewOperation.current = operation; setViewBusy(operation); setViewNotice('');
     try {
       const response = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_view_saved_get', arguments: { workspaceId: connection.workspaceId, viewId } });
-      if (context !== viewContext.current) return;
+      if (context !== viewContext.current) { if (restoring && connection && viewId === restoredActiveView(connection.workspaceId)) setPendingSavedView({ workspaceId: connection.workspaceId, viewId, restore: true }); return; }
       const saved = response.structuredContent;
-      if (!saved.definition) { setViewNotice('No shared view has been saved.'); return; }
+      if (!saved.definition) { if (!restoring) setViewNotice('No shared view has been saved.'); return; }
       const entity = await call(connection.endpoint, connection.token, 'tools/call', { name: 'ontology_entity_get', arguments: { workspaceId: connection.workspaceId, name: saved.definition.root, expectedRevision: snapshot.revision } });
-      if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) return;
+      if (context !== viewContext.current || entity.structuredContent.revision !== currentRevision.current) { if (restoring && connection && viewId === restoredActiveView(connection.workspaceId)) setPendingSavedView({ workspaceId: connection.workspaceId, viewId, restore: true }); return; }
       if (version !== viewChangeVersion.current) { setViewNotice('The shared view was not loaded because this view changed while it was loading.'); return; }
       if (selection !== selectionGeneration.current) { setViewNotice('The shared view was not loaded because your selection changed while it was loading.'); return; }
       if (pendingViewInput.current) { setViewNotice('The shared view was not loaded because view input was started while it was loading.'); return; }
@@ -1744,11 +1749,12 @@ export default function ModellingStudio() {
   useEffect(() => {
     if (!pendingSavedView) return;
     if (!connection || pendingSavedView.workspaceId !== connection.workspaceId || pendingSavedView.viewId !== viewId) { setPendingSavedView(null); return; }
+    if (!snapshot) return;
     if (viewReadyKey !== activeViewKey || savedViewRevision === null || pendingViewOps[activeViewKey]) return;
     setPendingSavedView(null);
     if (viewDirty) { setViewNotice('Local view changes were retained. Use Load shared view to replace them after review.'); return; }
-    void loadLayout();
-  }, [pendingSavedView, connection, viewId, viewReadyKey, activeViewKey, savedViewRevision, viewDirty, pendingViewOps]);
+    void loadLayout({ restoring: pendingSavedView.restore });
+  }, [pendingSavedView, connection, viewId, snapshot, viewReadyKey, activeViewKey, savedViewRevision, viewDirty, pendingViewOps]);
   async function exportView() {
     setViewNotice('');
     try {

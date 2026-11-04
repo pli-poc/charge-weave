@@ -628,10 +628,25 @@ test('open views can be restored and closed without discarding changed views', a
     await page.getByRole('button', { name: 'Choose view ID' }).click();
     const views = page.getByRole('navigation', { name: 'Open diagram views' });
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByText(/Shared view: inspection; revision: 0\./)).toBeVisible();
+    await page.getByRole('button', { name: 'Save shared view' }).click();
+    await expect(page.getByRole('region', { name: 'Workspace status' })).not.toContainText('View changed locally');
+    expect(store.savedView(workspace.id, 'inspection').definition.root).toBe('Device');
+    const savedViewReads = [];
+    const restoredEntityReads = [];
+    page.on('request', request => {
+      if (!request.url().endsWith('/mcp')) return;
+      const body = request.postDataJSON();
+      if (body?.params?.name === 'ontology_view_saved_get') savedViewReads.push(body.params.arguments.viewId);
+      if (body?.params?.name === 'ontology_entity_get') restoredEntityReads.push(body.params.arguments.name);
+    });
     await page.reload();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toBeVisible();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect.poll(() => savedViewReads.includes('inspection')).toBe(true);
+    await expect.poll(() => restoredEntityReads.includes('Device')).toBe(true);
+    await expect(page.getByRole('region', { name: 'Relationships for Device' })).toBeVisible();
     await views.getByRole('button', { name: 'inspection', exact: true }).click();
     await views.getByRole('button', { name: 'Close inspection view' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveCount(0);
