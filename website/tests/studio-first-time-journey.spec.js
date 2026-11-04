@@ -5,6 +5,10 @@ import { WorkspaceStore } from '../../ontology-authoring/src/workspace.js';
 import { createHttpService } from '../../ontology-authoring/src/http.js';
 
 test('first-time modeller can discover, edit, check, and review a synthetic model', async ({ page, isMobile }) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 800 });
+  async function expectNoHorizontalPageOverflow() {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  }
   const store = new WorkspaceStore(':memory:');
   const workspace = store.create({ title: 'First-time journey', baselineCommit: 'a'.repeat(40), schema: 'MODULE|assets\nRecord|root|A record.|\nDevice|Record|A device.|\n' });
   const pairingCode = 'synthetic-pairing-code-'.repeat(2);
@@ -28,6 +32,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await page.getByLabel('Pairing code').fill(pairingCode);
     await page.getByRole('button', { name: 'Pair local studio' }).click();
     await expect(page.getByRole('status', { name: 'Studio connection status' })).toContainText('revision 0');
+    await expectNoHorizontalPageOverflow();
 
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Model' }).click();
     await page.getByLabel('Search model').fill('Device');
@@ -35,6 +40,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await page.getByRole('button', { name: 'Device', exact: true }).click();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Inspector' }).click();
     await expect(page.getByRole('heading', { name: 'Device', exact: true })).toBeVisible();
+    await expectNoHorizontalPageOverflow();
     const savedDefinition = page.getByRole('textbox', { name: 'Definition', exact: true });
     await savedDefinition.fill('An inspected device.');
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
@@ -82,6 +88,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     }
     await expect(page.getByRole('region', { name: 'Validation issues' }).getByText('No failed steps in this job. Other required checks may still be missing.')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Results content' }).getByRole('region', { name: 'Recorded check steps' })).toContainText('synthetic-structural-check: passed');
+    await expectNoHorizontalPageOverflow();
     const recordedOutputDisclosure = page.getByText('Recorded output for synthetic-structural-check', { exact: true });
     await recordedOutputDisclosure.focus();
     await recordedOutputDisclosure.press('Enter');
@@ -93,6 +100,7 @@ test('first-time modeller can discover, edit, check, and review a synthetic mode
     await expect(page.getByText('added: ServiceWindow')).toBeVisible();
     await page.getByRole('navigation', { name: 'Workspace destinations' }).getByRole('link', { name: 'Review' }).click();
     await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Checks and review decisions do not publish the draft.');
+    await expectNoHorizontalPageOverflow();
     await page.getByRole('button', { name: 'Inspect review gates' }).click();
     await expect(page.getByRole('region', { name: 'Review workflow' })).toContainText('Last inspection: review gates incomplete:');
     expect(store.get(workspace.id).revision).toBe(3);
