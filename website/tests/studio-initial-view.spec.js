@@ -17,6 +17,14 @@ test('a new workspace opens a bounded view and the first selection can replace i
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(page.getByRole('region', { name: 'Relationships for Device' })).toHaveAttribute('data-layout', 'ready');
     if (!isMobile) {
+      const canvas = page.locator('.studio-flow .react-flow');
+      const root = canvas.locator('.react-flow__node[data-id="Device"]');
+      const [canvasBounds, rootBounds] = await Promise.all([canvas.boundingBox(), root.boundingBox()]);
+      expect(rootBounds).not.toBeNull();
+      expect(rootBounds.x).toBeGreaterThanOrEqual(canvasBounds.x);
+      expect(rootBounds.y).toBeGreaterThanOrEqual(canvasBounds.y);
+      expect(rootBounds.x + rootBounds.width).toBeLessThanOrEqual(canvasBounds.x + canvasBounds.width);
+      expect(rootBounds.y + rootBounds.height).toBeLessThanOrEqual(canvasBounds.y + canvasBounds.height);
       await page.setViewportSize({ width: 1920, height: 1080 });
       await expect.poll(async () => (await page.getByRole('region', { name: 'Relationships for Device' }).boundingBox()).height).toBeGreaterThanOrEqual(500);
       await page.setViewportSize({ width: 1280, height: 800 });
