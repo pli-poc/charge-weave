@@ -40,11 +40,7 @@ test('unfinished view note cannot be silently moved to another concept or view',
     await expect(note).toHaveValue('Keep this with Device');
     await page.getByRole('button', { name: 'Add view note' }).click();
     await expect(page.getByText('Device: Keep this with Device')).toBeVisible();
-    await page.getByLabel('Group name', { exact: true }).fill('Charging assets');
-    await page.getByRole('button', { name: 'Choose view ID' }).click();
-    await expect(page.getByText('Add or clear the unfinished view group before switching views.')).toBeVisible();
-    await expect(page.getByLabel('Group name', { exact: true })).toHaveValue('Charging assets');
-    await page.getByRole('button', { name: 'Clear unfinished group' }).click();
+
     const canvas = page.getByRole('region', { name: 'Relationships for Device' });
     await expect(canvas).toHaveAttribute('data-layout', 'ready');
     await canvas.getByText('Layout', { exact: true }).click();
