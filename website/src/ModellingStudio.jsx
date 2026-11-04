@@ -411,6 +411,12 @@ function restoredViews(workspaceId, current) {
     return [...new Set([current, ...valid])];
   } catch { return [current]; }
 }
+function restoredActiveView(workspaceId) {
+  try {
+    const stored = localStorage.getItem(`chargeweave.studio.active-view.v1.${workspaceId}`);
+    return stored && /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(stored) ? stored : 'default';
+  } catch { return 'default'; }
+}
 
 function eventConcept(event) {
   if (event.payload.type === 'view_suggestion') return event.payload.root;
@@ -1032,7 +1038,13 @@ export default function ModellingStudio() {
     return () => abort.abort();
   }, [connection, savedViewsReload]);
 
-  useEffect(() => { setOpenViewIds(connection ? restoredViews(connection.workspaceId, viewId) : [viewId]); }, [connection?.endpoint, connection?.workspaceId]);
+  useEffect(() => {
+    if (!connection) { setOpenViewIds([viewId]); return; }
+    const restored = restoredActiveView(connection.workspaceId);
+    setViewId(restored);
+    setViewIdInput(restored);
+    setOpenViewIds(restoredViews(connection.workspaceId, restored));
+  }, [connection?.endpoint, connection?.workspaceId]);
 
   useEffect(() => {
     if (!connection || !snapshot || !viewRoot) { setGraph(null); return undefined; }
@@ -1285,6 +1297,8 @@ export default function ModellingStudio() {
     if (!openViewIds.includes(nextViewId)) updateOpenViews([...openViewIds, nextViewId]);
     setViewId(nextViewId);
     setViewIdInput(nextViewId);
+    try { localStorage.setItem(`chargeweave.studio.active-view.v1.${connection.workspaceId}`, nextViewId); }
+    catch { setViewNotice('Could not remember the active view. It will remain available until this tab closes.'); }
     return true;
   }
   function openSavedView(nextViewId) {

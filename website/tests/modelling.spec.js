@@ -631,6 +631,7 @@ test('open views can be restored and closed without discarding changed views', a
     await page.reload();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toBeVisible();
+    await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveAttribute('aria-current', 'page');
     await views.getByRole('button', { name: 'inspection', exact: true }).click();
     await views.getByRole('button', { name: 'Close inspection view' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveCount(0);
@@ -639,6 +640,7 @@ test('open views can be restored and closed without discarding changed views', a
     await page.reload();
     if (isMobile) await page.getByRole('navigation', { name: 'Workspace sections' }).getByRole('button', { name: 'Diagram' }).click();
     await expect(views.getByRole('button', { name: 'inspection', exact: true })).toHaveCount(0);
+    await expect(views.getByRole('button', { name: 'default', exact: true })).toHaveAttribute('aria-current', 'page');
   } finally { await page.close(); await service.shutdown(); store.close(); }
 });
 
