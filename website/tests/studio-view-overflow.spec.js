@@ -26,6 +26,8 @@ test('open-view picker exposes and switches among views beyond the tab strip', a
     const picker = page.locator('.studio-view-picker');
     await picker.locator('summary').click();
     await expect(picker.getByRole('button', { name: 'a-long-view-name-that-does-not-fit', exact: true })).toBeVisible();
+    const longEntry = picker.getByRole('button', { name: 'a-long-view-name-that-does-not-fit', exact: true });
+    expect(await longEntry.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
     await expect(picker.getByRole('button', { name: 'gamma', exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await picker.getByRole('button', { name: 'beta', exact: true }).click();
